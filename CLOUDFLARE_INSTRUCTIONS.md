@@ -10,6 +10,7 @@ This repository includes a `wrangler.json` file configured for static asset depl
 {
   "name": "diamondlegendz",
   "compatibility_date": "2024-04-01",
+  "pages_build_output_dir": ".",
   "assets": {
     "directory": "."
   }
