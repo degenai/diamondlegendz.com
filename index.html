@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Alex and Andy's Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-image: url('assets/bg.gif');
+            color: #FFFF00; /* Bright Yellow */
+            font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+            text-align: center;
+        }
+        a {
+            color: #00FFFF; /* Cyan links */
+            text-decoration: none;
+        }
+        a:hover {
+            color: #FF00FF; /* Magenta hover */
+            text-decoration: underline;
+            background-color: white;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 128, 0.8); /* Semi-transparent Navy */
+            border: 10px ridge #FF0000; /* Red ridge border */
+            padding: 20px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #00FF00; /* Green */
+            text-shadow: 3px 3px #FF00FF; /* Magenta shadow */
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .nav-table {
+            width: 100%;
+            border: 5px solid cyan;
+            margin-top: 20px;
+            background-color: black;
+        }
+        .nav-table td {
+            padding: 15px;
+            border: 1px dashed white;
+            font-size: 1.2em;
+        }
+        .counter-box {
+            border: 3px inset white;
+            background-color: black;
+            color: red;
+            font-family: "Courier New", monospace;
+            padding: 5px;
+            font-size: 1.5em;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+        #music-btn {
+            background: linear-gradient(to bottom, #ff0000, #990000);
+            border: 3px outset #ffcccc;
+            color: white;
+            font-family: "Comic Sans MS", sans-serif;
+            font-weight: bold;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin: 20px;
+        }
+        #music-btn:active {
+            border-style: inset;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Marquee -->
+        <marquee scrollamount="12" bgcolor="#FF00FF" style="border: 2px solid white; color: white; font-weight: bold;">
+            ★ ★ ★ WELCOME TO ALEX AND ANDY'S VIBE CODING SANDBOX ★ ★ ★ BEST VIEWED IN NETSCAPE NAVIGATOR 4.0 ★ ★ ★
+        </marquee>
+
+        <!-- Header -->
+        <h1>Welcome to Alex and Andy's Page</h1>
+
+        <!-- Under Construction GIF -->
+        <p><img src="assets/construction.gif" alt="Under Construction"></p>
+
+        <p>This is where the magic happens. Or at least where we break things.</p>
+
+        <!-- Music Player -->
+        <button id="music-btn" onclick="toggleMusic()">▶ Play 8-Bit Music</button>
+
+        <!-- Navigation -->
+        <table class="nav-table">
+            <tr>
+                <td>
+                    <p>🎹 <a href="midi-player/index.html">Street Fighter MIDI Player</a> <span class="blink" style="color:red; font-size:0.8em;">NEW!</span></p>
+                    <p>Coming soon: Visualizers & authentic SF2 tunes.</p>
+                </td>
+                <td>
+                    <p>🤖 <a href="ai-playground/index.html">AI Playground</a></p>
+                    <p>Experiments with Gradio & Local Models.</p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>💡 <a href="ideas.html">The Master Plan / Ideas</a></p>
+                    <p>Read about our plans for Guestbooks, Hit Counters, and World Domination.</p>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Hit Counter -->
+        <p>You are visitor number:</p>
+        <div class="counter-box">01337</div>
+
+        <p>
+            <a href="mailto:fake@email.com">📧 Email Webmaster</a> |
+            <a href="ideas.html">✍️ Sign Guestbook</a>
+        </p>
+
+        <p style="font-size: 0.8em; margin-top: 50px;">
+            &copy; 1999-2024 DiamondLegendz. All Rights Reserved.<br>
+            Made with 100% Recycled Pixels.
+        </p>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/chiptune.js"></script>
+</body>
+</html>

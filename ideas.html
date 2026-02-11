@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Alex and Andy's Ideas Dump</title>
+    <style>
+        body {
+            background-color: #000080; /* Navy Blue */
+            color: #FFFF00; /* Yellow text */
+            font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+            text-align: center;
+            background-image: url('assets/bg.gif');
+        }
+        .container {
+            width: 800px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 5px ridge #FF00FF;
+            padding: 20px;
+        }
+        h1 {
+            color: #00FF00;
+            text-shadow: 2px 2px #FF0000;
+        }
+        hr {
+            border: 0;
+            height: 3px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(255, 0, 0, 0.75), rgba(0, 0, 0, 0));
+        }
+        .idea-box {
+            border: 2px dashed cyan;
+            padding: 10px;
+            margin: 20px;
+            text-align: left;
+        }
+        a {
+            color: #00FFFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <marquee scrollamount="10" bgcolor="#FF0000">⚠️ BRAINSTORMING IN PROGRESS ⚠️ DO NOT DISTURB THE GENIUS AT WORK ⚠️</marquee>
+
+        <h1>THE MASTER PLAN</h1>
+        <img src="assets/construction.gif" alt="Under Construction">
+
+        <p>Here lies the roadmap to digital domination (or just cool website stuff).</p>
+
+        <div class="idea-box">
+            <h2>1. The Guestbook & Hit Counter (Cloudflare D1)</h2>
+            <p><strong>Goal:</strong> Persistent storage for visitors to leave their mark.</p>
+            <p><strong>The Tech Stack:</strong></p>
+            <ul>
+                <li><strong>Cloudflare D1:</strong> A serverless SQLite database at the edge. Perfect for storing simple text data like guestbook entries and an integer for the counter.</li>
+                <li><strong>Cloudflare Workers:</strong> Serverless functions that sit between the user and the database. The static site (this page) will make `fetch()` requests to the Worker (e.g., `GET /api/guestbook`, `POST /api/sign`).</li>
+            </ul>
+            <p><em>Verdict: This is the modern, scalable way to do "classic" backend features on a static site.</em></p>
+        </div>
+
+        <div class="idea-box">
+            <h2>2. Local AI Facilitator (Gradio)</h2>
+            <p><strong>Goal:</strong> Andy wants to jam with AI (Suno, Stable Diffusion, LLMs) using local hardware but controlled via this site.</p>
+            <p><strong>How it works:</strong></p>
+            <ul>
+                <li><strong>The Local Machine:</strong> You run the heavy AI model on your powerful PC (using Python/Gradio).</li>
+                <li><strong>The Connection:</strong> Gradio apps typically run on `http://localhost:7860`.</li>
+                <li><strong>The Website:</strong> We create a page here that connects to that local port.</li>
+            </ul>
+            <p><strong>Implementation Strategy:</strong></p>
+            <ul>
+                <li><em>Option A (Simple):</em> Use an `&lt;iframe&gt;` pointing to `http://localhost:7860`. The browser handles the connection securely since it's all on your network.</li>
+                <li><em>Option B (Advanced):</em> Use the Gradio Client API (JavaScript) to build a custom "Geocities" UI that sends prompts to the local backend and displays the results, hiding the standard Gradio interface.</li>
+            </ul>
+            <p><em>Verdict: Confirmed. The "Facilitator" model is standard practice for local-first AI dev.</em></p>
+        </div>
+
+        <div class="idea-box">
+            <h2>3. MIDI Player Visualizer</h2>
+            <p><strong>Goal:</strong> Street Fighter MIDIs with a cool visualizer.</p>
+            <p><strong>Status:</strong> Coming soon to a browser near you. We'll use `Tone.js` or standard Web Audio API to parse MIDI files and render bars/waveforms on an HTML5 Canvas.</p>
+        </div>
+
+        <p><a href="index.html">⬅️ Back to Home</a></p>
+    </div>
+</body>
+</html>
