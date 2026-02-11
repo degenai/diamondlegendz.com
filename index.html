@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Welcome to Alex and Andy's Page</title>
@@ -7,49 +8,72 @@
     <style>
         body {
             background-image: url('assets/bg.gif');
-            color: #FFFF00; /* Bright Yellow */
+            color: #FFFF00;
+            /* Bright Yellow */
             font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
             text-align: center;
         }
+
         a {
-            color: #00FFFF; /* Cyan links */
+            color: #00FFFF;
+            /* Cyan links */
             text-decoration: none;
         }
+
         a:hover {
-            color: #FF00FF; /* Magenta hover */
+            color: #FF00FF;
+            /* Magenta hover */
             text-decoration: underline;
             background-color: white;
         }
+
         .container {
             width: 80%;
             max-width: 800px;
             margin: 0 auto;
-            background-color: rgba(0, 0, 128, 0.8); /* Semi-transparent Navy */
-            border: 10px ridge #FF0000; /* Red ridge border */
+            background-color: rgba(0, 0, 128, 0.8);
+            /* Semi-transparent Navy */
+            border: 10px ridge #FF0000;
+            /* Red ridge border */
             padding: 20px;
         }
+
         h1 {
             font-size: 3em;
-            color: #00FF00; /* Green */
-            text-shadow: 3px 3px #FF00FF; /* Magenta shadow */
+            color: #00FF00;
+            /* Green */
+            text-shadow: 3px 3px #FF00FF;
+            /* Magenta shadow */
             animation: pulse 2s infinite;
         }
+
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
+
         .nav-table {
             width: 100%;
             border: 5px solid cyan;
             margin-top: 20px;
             background-color: black;
         }
+
         .nav-table td {
             padding: 15px;
             border: 1px dashed white;
             font-size: 1.2em;
         }
+
         .counter-box {
             border: 3px inset white;
             background-color: black;
@@ -60,12 +84,17 @@
             display: inline-block;
             margin-top: 20px;
         }
+
         .blink {
             animation: blinker 1s linear infinite;
         }
+
         @keyframes blinker {
-            50% { opacity: 0; }
+            50% {
+                opacity: 0;
+            }
         }
+
         #music-btn {
             background: linear-gradient(to bottom, #ff0000, #990000);
             border: 3px outset #ffcccc;
@@ -77,11 +106,13 @@
             font-size: 1.2em;
             margin: 20px;
         }
+
         #music-btn:active {
             border-style: inset;
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <!-- Marquee -->
@@ -104,8 +135,9 @@
         <table class="nav-table">
             <tr>
                 <td>
-                    <p>🎹 <a href="midi-player/index.html">Street Fighter MIDI Player</a> <span class="blink" style="color:red; font-size:0.8em;">NEW!</span></p>
-                    <p>Coming soon: Visualizers & authentic SF2 tunes.</p>
+                    <p>🎹 <a href="midi-player/index.html">Street Fighter MIDI Player (TURBO)</a> <span class="blink"
+                            style="color:red; font-size:0.8em;">NEW!</span></p>
+                    <p>Visualizers & authentic SF2 tunes!</p>
                 </td>
                 <td>
                     <p>🤖 <a href="ai-playground/index.html">AI Playground</a></p>
@@ -138,4 +170,5 @@
     <!-- Scripts -->
     <script src="assets/chiptune.js"></script>
 </body>
+
 </html>
