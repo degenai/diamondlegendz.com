@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>~*~ THE GENERATED ASSETS GALLERY ~*~</title>
+    <style>
+        body {
+            background-color: #000033; /* Dark Blue */
+            background-image: url('../assets/bg.gif');
+            color: #FFFF00; /* Bright Yellow */
+            font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+            text-align: center;
+        }
+
+        a {
+            color: #00FFFF; /* Cyan links */
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #FF00FF; /* Magenta hover */
+            text-decoration: underline;
+            background-color: white;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #00FF00; /* Green */
+            text-shadow: 3px 3px #FF00FF; /* Magenta shadow */
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .gallery-container {
+            width: 90%;
+            margin: 0 auto;
+            border: 5px ridge #FF0000;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px;
+        }
+
+        td {
+            border: 3px outset #CCCCCC;
+            background-color: black;
+            padding: 5px;
+            vertical-align: top;
+            width: 33%; /* 3 columns */
+        }
+
+        .asset-title {
+            font-weight: bold;
+            color: #FF9900; /* Orange */
+            margin-bottom: 5px;
+            border-bottom: 1px dashed white;
+        }
+
+        .asset-canvas-container {
+            width: 100%;
+            height: 200px; /* Fixed height for consistency */
+            overflow: hidden;
+            position: relative;
+            background-color: #111;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .blink {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% { opacity: 0; }
+        }
+
+        .back-link {
+            font-size: 1.5em;
+            margin: 20px;
+            display: inline-block;
+            border: 2px solid white;
+            padding: 5px;
+            background-color: blue;
+        }
+    </style>
+    <!-- Libraries -->
+    <script src="lib/d3.min.js"></script>
+    <script src="lib/anime.min.js"></script>
+</head>
+<body>
+
+    <marquee scrollamount="15" bgcolor="#FF00FF" style="border: 2px solid white; color: white; font-weight: bold;">
+        ★ ★ ★ WELCOME TO THE GALLERY OF THE FUTURE ★ ★ ★ 20 GENERATED MASTERPIECES ★ ★ ★
+    </marquee>
+
+    <h1>~*~ Generated Assets Gallery ~*~</h1>
+
+    <p><img src="../assets/construction.gif" alt="Under Construction"></p>
+
+    <div class="back-link">
+        <a href="../index.html">🔙 Back to Home</a>
+    </div>
+
+    <div class="gallery-container">
+        <table id="gallery-table">
+            <!-- Content will be injected by JS -->
+        </table>
+    </div>
+
+    <p style="font-size: 0.8em; margin-top: 50px;">
+        &copy; 1999-2024 DiamondLegendz. All Rights Reserved.<br>
+        Powered by JavaScript & Caffeine.
+    </p>
+
+    <script src="gallery.js"></script>
+</body>
+</html>
