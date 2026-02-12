@@ -92,3 +92,11 @@ function toggleMusic() {
     scheduler();
     btn.innerText = "⏹ Stop Music";
 }
+
+// Attach event listener to music button
+document.addEventListener('DOMContentLoaded', () => {
+    const musicBtn = document.getElementById('music-btn');
+    if (musicBtn) {
+        musicBtn.addEventListener('click', toggleMusic);
+    }
+});

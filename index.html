@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self';">
     <title>Welcome to Alex and Andy's Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
@@ -129,7 +130,7 @@
         <p>This is where the magic happens. Or at least where we break things.</p>
 
         <!-- Music Player -->
-        <button id="music-btn" onclick="toggleMusic()">▶ Play 8-Bit Music</button>
+        <button id="music-btn">▶ Play 8-Bit Music</button>
 
         <!-- Navigation -->
         <table class="nav-table">
@@ -148,6 +149,12 @@
                 <td colspan="2">
                     <p>💡 <a href="ideas.html">The Master Plan / Ideas</a></p>
                     <p>Read about our plans for Guestbooks, Hit Counters, and World Domination.</p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <p>🎨 <a href="generated-gallery/index.html">Generated Assets Gallery</a> <span class="blink" style="color:lime; font-size:0.8em;">HOT!</span></p>
+                    <p>20 Procedural Masterpieces. Warning: May cause seizures.</p>
                 </td>
             </tr>
         </table>
