@@ -1,13 +1,36 @@
-# Cloudflare Pages Configuration Instructions
+# Cloudflare Deployment Configuration
 
-If the build fails or incorrectly identifies as a Worker project (e.g. `[ERROR] Missing entry-point to Worker script`), please update the Build settings in the Cloudflare Dashboard to force a static asset deployment:
+This project is configured to deploy as a Cloudflare Worker with static assets.
 
-1.  Log in to the Cloudflare Dashboard and navigate to **Workers & Pages**.
-2.  Select your project (`diamondlegendz`).
-3.  Go to **Settings > Build & deployments**.
-4.  Under **Build configuration**, click **Edit**.
-5.  Set **Build command** to `exit 0` (this ensures a successful "build" without running any commands).
-6.  Set **Build output directory** to `.` (this tells Cloudflare to serve the root directory as static assets).
-7.  Click **Save**.
+## Configuration
 
-These settings will override any automatic detection and force Cloudflare to serve your HTML/CSS/JS files directly.
+The build configuration is defined in `wrangler.json`:
+
+```json
+{
+  "name": "diamondlegendz",
+  "compatibility_date": "2024-04-01",
+  "assets": {
+    "directory": "."
+  }
+}
+```
+
+This configuration instructs Cloudflare to serve the root directory (`.`) as static assets without requiring a separate Worker script.
+
+## Deployment
+
+To deploy manually or via CI/CD, use:
+
+```bash
+npx wrangler versions upload
+```
+
+This command will bundle the assets and upload them to Cloudflare.
+
+## Troubleshooting
+
+If you encounter `[ERROR] Missing entry-point to Worker script or to assets directory`, ensure that:
+1. `wrangler.json` exists in the root directory.
+2. The `assets` key is correctly configured with `"directory": "."`.
+3. You are not using an outdated `wrangler.toml` file (it should be removed).
