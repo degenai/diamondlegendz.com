@@ -1,0 +1,246 @@
+body {
+    background-color: #000033;
+    background-image: url('../assets/bg.gif');
+    color: #FFFF00;
+    font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+    text-align: center;
+    margin: 0;
+    overflow-x: hidden; /* Prevent horizontal scroll from eyes or marquees */
+}
+
+a {
+    color: #00FFFF;
+}
+
+a:hover {
+    color: #FF00FF;
+    background-color: white;
+}
+
+#eyeball-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Behind content */
+    pointer-events: none; /* Let clicks pass through */
+    overflow: hidden;
+}
+
+.eyeball {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 50%;
+    border: 2px solid black;
+    /* Eyes will be positioned by JS */
+}
+
+.pupil {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: black;
+    border-radius: 50%;
+    top: 14px;
+    left: 14px;
+    /* Pupil movement controlled by JS */
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 1; /* Above eyeballs */
+    width: 90%;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: rgba(0, 0, 128, 0.85); /* Semi-transparent Navy */
+    border: 10px ridge #FF00FF;
+    padding: 20px;
+    box-shadow: 0 0 20px #FF00FF;
+}
+
+h1 {
+    font-size: 3em;
+    color: #00FF00;
+    text-shadow: 3px 3px #FF00FF;
+    animation: rainbow 2s infinite;
+    margin-top: 10px;
+}
+
+@keyframes rainbow {
+    0% { color: red; text-shadow: 3px 3px yellow; }
+    20% { color: yellow; text-shadow: 3px 3px lime; }
+    40% { color: lime; text-shadow: 3px 3px cyan; }
+    60% { color: cyan; text-shadow: 3px 3px blue; }
+    80% { color: blue; text-shadow: 3px 3px magenta; }
+    100% { color: magenta; text-shadow: 3px 3px red; }
+}
+
+.navigation {
+    margin-bottom: 30px;
+}
+
+.navigation a {
+    color: cyan;
+    font-size: 1.5em;
+    text-decoration: none;
+    background: black;
+    padding: 10px 20px;
+    border: 3px outset cyan;
+    display: inline-block;
+}
+
+.navigation a:active {
+    border-style: inset;
+}
+
+.section {
+    margin: 30px 0;
+    padding: 20px;
+    border: 3px dashed white;
+    background: rgba(0,0,0,0.5);
+    border-radius: 15px;
+}
+
+.lisa-frank-vibes {
+    border-color: #FF00FF;
+    background: linear-gradient(45deg, rgba(255,0,0,0.2), rgba(255,255,0,0.2), rgba(0,255,0,0.2), rgba(0,255,255,0.2), rgba(0,0,255,0.2), rgba(255,0,255,0.2));
+}
+
+.gallery {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.polaroid {
+    background: white;
+    padding: 10px 10px 40px 10px; /* Bottom padding for text space */
+    color: black;
+    transform: rotate(-5deg);
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+    width: 220px;
+    transition: transform 0.2s;
+}
+
+.polaroid:hover {
+    transform: scale(1.1) rotate(0deg);
+    z-index: 10;
+}
+
+.polaroid:nth-child(even) {
+    transform: rotate(5deg);
+}
+
+.polaroid:nth-child(even):hover {
+    transform: scale(1.1) rotate(0deg);
+}
+
+.polaroid img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border: 1px solid #ccc;
+    background-color: #eee;
+    display: block;
+}
+
+.polaroid p {
+    font-family: "Comic Sans MS", cursive;
+    margin: 10px 0 0 0;
+    font-weight: bold;
+    color: #ff00ff;
+}
+
+.review-section {
+    border-color: #00FF00;
+}
+
+.review-content {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    text-align: left;
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.game-cover {
+    width: 150px;
+    height: auto;
+    border: 5px double white;
+    flex-shrink: 0;
+}
+
+.review-text {
+    flex-grow: 1;
+}
+
+.midi-section {
+    border-color: cyan;
+}
+
+.player-box {
+    border: 5px inset cyan;
+    background: black;
+    padding: 20px;
+    width: 80%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+button {
+    background: linear-gradient(to bottom, #ff00ff, #990099);
+    border: 3px outset #ffccff;
+    color: white;
+    font-family: "Comic Sans MS", sans-serif;
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin: 10px;
+}
+
+button:active {
+    border-style: inset;
+}
+
+#status {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: lime;
+}
+
+/* Fallback placeholder style */
+.fallback-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    text-shadow: 1px 1px black;
+    width: 100%;
+    height: 100%;
+    min-height: 150px;
+    background-color: #555;
+    font-size: 1.2em;
+}
+
+@media (max-width: 600px) {
+    .review-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .gallery {
+        flex-direction: column;
+        align-items: center;
+    }
+}

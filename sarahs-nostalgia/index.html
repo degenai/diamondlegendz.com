@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>~*~ Sarah's Nostalgia Page ~*~</title>
+    <!-- Use same CSP as main site but adjusted if needed -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' blob:;">
+    <link rel="stylesheet" href="style.css">
+    <script src="lib/webaudio-tinysynth.min.js"></script>
+</head>
+<body>
+
+    <!-- Background Layers -->
+    <div id="eyeball-bg"></div>
+
+    <!-- Main Content -->
+    <div class="content-wrapper">
+        <marquee scrollamount="10" bgcolor="#FF00FF" class="top-marquee">
+            ★ ★ ★ WELCOME TO SARAH'S NOSTALGIA ZONE ★ ★ ★ UNICORNS AHEAD ★ ★ ★ MARY-KATE & ASHLEY FOREVER ★ ★ ★
+        </marquee>
+
+        <h1>~*~ Sarah's Nostalgia Page ~*~</h1>
+
+        <div class="navigation">
+            <a href="../index.html">🔙 Back to Main Site</a>
+        </div>
+
+        <div class="section lisa-frank-vibes">
+            <h2>🌈 Unicorns & Rainbows 🌈</h2>
+            <div class="gallery">
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/sparkling%20unicorn.gif" alt="Sparkling Unicorn" class="fallback-img" data-fallback-color="pink">
+                    <p>Sparkles!</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/serene%20unicorns.gif" alt="Serene Unicorns" class="fallback-img" data-fallback-color="magenta">
+                    <p>So Majestic</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/unicorns%20and%20fairy.gif" alt="Unicorns & Fairy" class="fallback-img" data-fallback-color="purple">
+                    <p>Fairytale Dreams</p>
+                </div>
+                 <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/sparkling%20unicorn2.gif" alt="More Sparkles" class="fallback-img" data-fallback-color="cyan">
+                    <p>More Magic!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section review-section">
+            <h2>🎮 Game Review: Mary-Kate & Ashley: Magical Mystery Mall (PS1) 🎮</h2>
+            <div class="review-content">
+                <img src="../assets/SarahNostalgia/marykateps1cover.jpg" class="game-cover fallback-img" alt="Magical Mystery Mall Cover" data-fallback-color="purple">
+                <div class="review-text">
+                    <p><strong>Rating:</strong> ★★★★★ (5/5 Shopping Bags)</p>
+                    <p>OMG! This game is literally everything. You get to go to the mall with Mary-Kate and Ashley and try on clothes, work at the food court, and solve mysteries! The graphics are SO 1999 and the music is a total bop.</p>
+                    <p>The "Fashion Show" mini-game is harder than it looks (don't trip!), and I spent way too much time at the "Food Court" trying to serve pizza. It's the ultimate nostalgia trip. If you didn't play this, did you even have a childhood?</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section random-vibes" style="border-color: yellow;">
+            <h2>✨ Random Cool Stuff ✨</h2>
+            <div class="gallery">
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/dollzgirl.gif" alt="Dollz" class="fallback-img">
+                    <p>Dollz!</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/HEARTDOLPHINS.gif" alt="Dolphins" class="fallback-img">
+                    <p>Luv Dolphins</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/ILOVEMYSPACE.gif" alt="MySpace" class="fallback-img">
+                    <p>MySpace 4Eva</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/LOVEMYKITTEN.gif" alt="Kitten" class="fallback-img">
+                    <p>Cute Kitten</p>
+                </div>
+                 <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/sims2myoffice.gif" alt="Sims 2" class="fallback-img">
+                    <p>Sims 2 Obsession</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/thisisMYSPACE.gif" alt="This is MySpace" class="fallback-img">
+                    <p>Add Me!</p>
+                </div>
+                 <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/TWILIGHT.gif" alt="Twilight" class="fallback-img">
+                    <p>Team Edward?</p>
+                </div>
+                <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/ripmichaeljackson.gif" alt="MJ" class="fallback-img">
+                    <p>Legend</p>
+                </div>
+                 <div class="polaroid">
+                    <img src="../assets/SarahNostalgia/ENGAGED.gif" alt="Engaged" class="fallback-img">
+                    <p>Big News!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section midi-section">
+            <h2>🎶 Music 🎶</h2>
+            <div class="player-box">
+                <p>Now Playing: <strong>Ed Sheeran (MIDI Cover)</strong></p>
+                <!-- Hidden synth element -->
+                <div id="synth-container"></div>
+                <div class="controls">
+                    <button id="play-btn">▶ Play</button>
+                    <button id="stop-btn">⏹ Stop</button>
+                </div>
+                <div id="status">Loading synth...</div>
+            </div>
+        </div>
+
+        <p style="font-size: 0.8em; margin-top: 50px; color: yellow;">
+            &copy; 2024 Sarah's Nostalgia Page. <br>
+            <img src="../assets/construction.gif" alt="Under Construction">
+        </p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
