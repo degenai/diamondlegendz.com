@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' blob:; worker-src 'self' blob:; img-src 'self'; connect-src 'self';">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Street Fighter MIDI Player Turbo</title>
     <style>
@@ -187,12 +187,7 @@
             <!-- Left Panel: Lists -->
             <div class="panel">
                 <h3>SELECT TRACK</h3>
-                <select id="track-select" size="5">
-                    <option>LOADING...</option>
-                </select>
-
-                <h3 style="margin-top: 10px;">SOUNDFONT</h3>
-                <select id="sf-select">
+                <select id="track-select" size="10">
                     <option>LOADING...</option>
                 </select>
             </div>
@@ -213,7 +208,7 @@
 
                 <div style="margin-top: 15px; border: 2px dashed #555; padding: 10px; text-align: center; color: #777; font-size: 0.6rem;"
                     id="drop-zone">
-                    DROP .MID OR .SF2 FILES HERE
+                    DROP .MID FILES HERE
                 </div>
             </div>
         </div>
@@ -227,6 +222,7 @@
         </div>
     </div>
 
+    <script type="text/javascript" src="https://www.midijs.net/lib/midi.js"></script>
     <script type="module" src="app.js"></script>
 
     <style>
