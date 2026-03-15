@@ -12,7 +12,6 @@ const trackName = document.getElementById('track-name');
 
 // Visualizer State
 let notes = []; // Active notes for visualization
-const FALL_SPEED = 200; // Pixels per second
 
 // --- Initialization ---
 
