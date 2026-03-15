@@ -24,27 +24,33 @@ async function init() {
 
         // Configure visualizer
         visualizer.config = {
-            noteHeight: 4,
-            pixelsPerTimeStep: 40,
-            minPitch: 30
+            noteHeight: 3,
+            pixelsPerTimeStep: 45,
+            minPitch: 20,
+            maxPitch: 100,
+            noteSpacing: 1
         };
 
         // Listen to player events to update UI
-        player.addEventListener('start', () => {
-            isPlaying = true;
-            btnPlay.textContent = "⏸";
-            elStatus.textContent = "PLAYING";
-        });
-        player.addEventListener('stop', () => {
-            isPlaying = false;
-            btnPlay.textContent = "▶";
-            // Only overwrite if it wasn't paused manually
-            if (elStatus.textContent !== "PAUSED") {
-                elStatus.textContent = "STOPPED";
-            }
-        });
+        // Note: html-midi-player doesn't natively fire standard 'start' / 'stop' DOM events
+        // the same way an audio element does, but we will attach event listeners
+        // using Tone.js / Magenta hooks if needed, or rely on our manual state checks.
+        // The element fires 'load' when the sequence is fully loaded.
         player.addEventListener('load', () => {
-            elStatus.textContent = "READY TO PLAY";
+            // If we selected a track, auto-start it when it's done loading
+            if (isPlaying && typeof player.start === 'function') {
+                player.start().then(() => {
+                    btnPlay.textContent = "⏸";
+                    elStatus.textContent = "PLAYING";
+                }).catch(err => {
+                    console.error("Playback failed:", err);
+                    elStatus.textContent = "PLAYBACK ERROR";
+                    isPlaying = false;
+                    btnPlay.textContent = "▶";
+                });
+            } else {
+                elStatus.textContent = "READY TO PLAY";
+            }
         });
 
     } catch (e) {
@@ -93,20 +99,14 @@ async function loadMidi(index) {
         // Ensure the custom element is defined and ready
         await customElements.whenDefined('midi-player');
 
-        // Play via html-midi-player
+        // Start load
         player.src = url;
 
-        // Ensure we only call start() after the element is upgraded
-        if (typeof player.start === 'function') {
-            // Note: start() returns a promise in html-midi-player
-            await player.start();
-            isPlaying = true;
-        } else {
-            console.error("player.start is not a function - HTMLMidiPlayer failed to initialize");
-        }
-        btnPlay.textContent = "⏸";
+        // UI updates (playback will start automatically via the 'load' listener)
+        isPlaying = true;
+        btnPlay.textContent = "⏳";
         elTrackSelect.value = index;
-        elStatus.textContent = "LOADING/PLAYING...";
+        elStatus.textContent = "LOADING...";
 
     } catch (e) {
         console.error(e);
@@ -125,13 +125,9 @@ elStartOverlay.addEventListener('click', () => {
 
 document.getElementById('btn-play').addEventListener('click', () => {
     if (isPlaying) {
-        // html-midi-player has stop() not pause(), but we can just use stop
-        // or actually since it uses magenta it doesn't easily expose pause/resume natively
-        // but we can just stop it. Let's check if it exposes pause.
-        // HTMLMidiPlayer handles playing via .playing property.
         if (player.playing) {
-            player.playing = false; // toggles pause/stop depending on API, or just player.stop()
-            // actually standard html-midi-player API just has start() and stop().
+            player.playing = false;
+        } else if (typeof player.stop === 'function') {
             player.stop();
         }
         isPlaying = false;
@@ -140,20 +136,14 @@ document.getElementById('btn-play').addEventListener('click', () => {
     } else {
         if (elTrackSelect.value === 'LOADING...') return;
 
-        // If nothing is playing and hasn't started yet, play the selected
-        if (elStatus.textContent === "READY" || elStatus.textContent === "STOPPED" || elStatus.textContent === "PAUSED") {
-            // html-midi-player doesn't easily "resume" from stopped, so we just start() again
-            // start() might resume if it wasn't fully unloaded.
-            if (!player.src && midiList.length > 0) {
-                loadMidi(currentMidiIndex);
-            } else {
-                if (typeof player.start === 'function') {
-                    player.start();
-                    isPlaying = true;
-                    btnPlay.textContent = "⏸";
-                    elStatus.textContent = "PLAYING";
-                }
-            }
+        // If we have a track loaded, play it. Otherwise, load the selected index.
+        if (player.src && typeof player.start === 'function') {
+            player.start().catch(err => console.error(err));
+            isPlaying = true;
+            btnPlay.textContent = "⏸";
+            elStatus.textContent = "PLAYING";
+        } else if (midiList.length > 0) {
+            loadMidi(currentMidiIndex);
         }
     }
 });
@@ -214,12 +204,9 @@ dropZone.addEventListener('drop', async (e) => {
         await customElements.whenDefined('midi-player');
 
         player.src = url;
-        if (typeof player.start === 'function') {
-            await player.start();
-            isPlaying = true;
-        }
-        btnPlay.textContent = "⏸";
-        elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
+        isPlaying = true;
+        btnPlay.textContent = "⏳";
+        elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
