@@ -74,7 +74,7 @@ async function loadLists() {
 
 // --- Player Logic ---
 
-function loadMidi(index) {
+async function loadMidi(index) {
     if (index < 0 || index >= midiList.length) return;
     currentMidiIndex = index;
 
@@ -90,14 +90,20 @@ function loadMidi(index) {
             player.stop();
         }
 
+        // Ensure the custom element is defined and ready
+        await customElements.whenDefined('midi-player');
+
         // Play via html-midi-player
         player.src = url;
 
-        // Note: setting src auto-loads. Calling play directly might throw if not loaded,
-        // but html-midi-player starts playing on start() which awaits load internally.
-        player.start();
-
-        isPlaying = true;
+        // Ensure we only call start() after the element is upgraded
+        if (typeof player.start === 'function') {
+            // Note: start() returns a promise in html-midi-player
+            await player.start();
+            isPlaying = true;
+        } else {
+            console.error("player.start is not a function - HTMLMidiPlayer failed to initialize");
+        }
         btnPlay.textContent = "⏸";
         elTrackSelect.value = index;
         elStatus.textContent = "LOADING/PLAYING...";
@@ -141,10 +147,12 @@ document.getElementById('btn-play').addEventListener('click', () => {
             if (!player.src && midiList.length > 0) {
                 loadMidi(currentMidiIndex);
             } else {
-                player.start();
-                isPlaying = true;
-                btnPlay.textContent = "⏸";
-                elStatus.textContent = "PLAYING";
+                if (typeof player.start === 'function') {
+                    player.start();
+                    isPlaying = true;
+                    btnPlay.textContent = "⏸";
+                    elStatus.textContent = "PLAYING";
+                }
             }
         }
     }
@@ -186,7 +194,7 @@ dropZone.addEventListener('dragleave', (e) => {
     dropZone.style.borderColor = '#555';
 });
 
-dropZone.addEventListener('drop', (e) => {
+dropZone.addEventListener('drop', async (e) => {
     e.preventDefault();
     dropZone.style.borderColor = '#555';
 
@@ -203,10 +211,13 @@ dropZone.addEventListener('drop', (e) => {
             player.stop();
         }
 
-        player.src = url;
-        player.start();
+        await customElements.whenDefined('midi-player');
 
-        isPlaying = true;
+        player.src = url;
+        if (typeof player.start === 'function') {
+            await player.start();
+            isPlaying = true;
+        }
         btnPlay.textContent = "⏸";
         elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
