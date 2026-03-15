@@ -47,7 +47,6 @@ async function loadSoundFontList() {
         const response = await fetch('soundfonts/sf2/soundfont_list.json?t=' + Date.now());
         if (!response.ok) throw new Error("SF LIST 404");
         const sfList = await response.json();
-        console.log("SF List:", sfList);
 
         const sfSelector = document.getElementById('sf-selector');
 
@@ -142,7 +141,6 @@ async function loadSoundFontBuffer(buffer) {
             statusBar.textContent = "LOADING WORKLET...";
             try {
                 await audioCtx.audioWorklet.addModule('./libs/spessasynth_worklet_processor.js');
-                console.log("Worklet module added");
             } catch (e) {
                 console.warn("Worklet addModule failed (maybe already added?)", e);
             }
@@ -381,7 +379,6 @@ requestAnimationFrame(drawVisualizer);
 
 // Init on load
 window.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready, loading list...");
     loadSoundFontList();
     loadTrackList();
 });
