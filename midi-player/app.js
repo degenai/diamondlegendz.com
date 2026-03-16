@@ -1,10 +1,11 @@
 // --- State ---
 let midiList = [];
 let currentMidiIndex = 0;
-let isPlaying = false;
+let shouldAutoplay = false;
 
 // --- Elements ---
 const elTrackSelect = document.getElementById('track-select');
+const elSoundFontSelect = document.getElementById('soundfont-select');
 const elStatus = document.getElementById('status-bar');
 const elStartOverlay = document.getElementById('start-overlay');
 const elTrackInfo = document.getElementById('track-info');
@@ -30,26 +31,25 @@ async function init() {
         };
 
         // Listen to player events to update UI
-        // Note: html-midi-player doesn't natively fire standard 'start' / 'stop' DOM events
-        // the same way an audio element does, but we will attach event listeners
-        // using Tone.js / Magenta hooks if needed, or rely on our manual state checks.
-        // The element fires 'load' when the sequence is fully loaded.
         player.addEventListener('load', () => {
-            // Once Tone.js successfully finishes downloading/parsing SoundFonts
-            // and the MIDI sequence, we update the UI
-            if (isPlaying) {
-                btnPlay.textContent = "⏸";
-
-                // Keep the custom title if it's playing a dropped file
-                if (elStatus.textContent.startsWith('LOADING CUSTOM')) {
-                    elStatus.textContent = `PLAYING: ${elTrackInfo.textContent}`;
-                } else {
-                    elStatus.textContent = "PLAYING";
+            // Fired when the MIDI file or soundfont finishes loading
+            if (shouldAutoplay) {
+                if (typeof player.start === 'function') {
+                    player.start().catch(err => console.log("Autoplay blocked:", err));
                 }
             } else {
-                elStatus.textContent = "READY TO PLAY";
+                updateUIState();
             }
         });
+
+        player.addEventListener('start', () => {
+            updateUIState();
+        });
+
+        player.addEventListener('stop', () => {
+            updateUIState();
+        });
+
     } catch (e) {
         console.error(e);
         elStatus.textContent = "ERROR INITIALIZING";
@@ -57,6 +57,29 @@ async function init() {
         if (overlayText) {
             overlayText.textContent = "SYSTEM ERROR";
             overlayText.style.color = "red";
+        }
+    }
+}
+
+function updateUIState() {
+    const isPlaying = player.playing;
+
+    if (isPlaying) {
+        btnPlay.textContent = "⏸";
+        if (elStatus.textContent.startsWith('LOADING CUSTOM')) {
+            elStatus.textContent = `PLAYING: ${elTrackInfo.textContent}`;
+        } else {
+            elStatus.textContent = "PLAYING";
+        }
+    } else {
+        btnPlay.textContent = "▶";
+        // Only override status if it's not currently loading something
+        if (!elStatus.textContent.startsWith('LOADING')) {
+             if (player.currentTime > 0) {
+                 elStatus.textContent = "PAUSED";
+             } else {
+                 elStatus.textContent = "STOPPED";
+             }
         }
     }
 }
@@ -108,22 +131,17 @@ async function loadMidi(index) {
         await customElements.whenDefined('midi-player');
         await ensureAudioContext();
 
-        // Start load
+        // Let the 'load' event trigger the playback start via shouldAutoplay
+        shouldAutoplay = true;
         player.src = url;
-        isPlaying = true;
+
         btnPlay.textContent = "⏳";
         elTrackSelect.value = index;
-        elStatus.textContent = "LOADING...";
-
-        // Let the web component handle its own start via its internal queue
-        if (typeof player.start === 'function') {
-            player.start().catch(err => console.log(err));
-        }
 
     } catch (e) {
         console.error(e);
         elStatus.textContent = "LOAD ERROR";
-        isPlaying = false;
+        shouldAutoplay = false;
         btnPlay.textContent = "▶";
     }
 }
@@ -144,34 +162,28 @@ document.getElementById('btn-play').addEventListener('click', async () => {
 
     await ensureAudioContext();
 
-    if (isPlaying) {
+    if (player.playing) {
         // Pause
+        shouldAutoplay = false;
         if (typeof player.stop === 'function') {
-            // Note: calling stop() in Magenta API without resetting currentTime is effectively a pause!
             player.stop();
         }
-        isPlaying = false;
-        btnPlay.textContent = "▶";
-        elStatus.textContent = "PAUSED";
     } else {
         // Resume / Start
         if (player.src) {
+            shouldAutoplay = true;
             if (typeof player.start === 'function') {
-                const startPromise = player.start();
-                if (startPromise && typeof startPromise.catch === 'function') {
-                    startPromise.catch(err => console.log(err));
-                }
+                player.start().catch(err => console.log(err));
             }
-            isPlaying = true;
-            btnPlay.textContent = "⏸";
-            elStatus.textContent = "PLAYING";
         } else if (midiList.length > 0) {
+            shouldAutoplay = true;
             loadMidi(currentMidiIndex);
         }
     }
 });
 
 document.getElementById('btn-stop').addEventListener('click', () => {
+    shouldAutoplay = false;
     // Hard stop and reset
     if (typeof player.stop === 'function') {
         player.stop();
@@ -182,9 +194,7 @@ document.getElementById('btn-stop').addEventListener('click', () => {
         player.currentTime = 0;
     } catch(e) {}
 
-    isPlaying = false;
-    btnPlay.textContent = "▶";
-    elStatus.textContent = "STOPPED";
+    updateUIState();
 });
 
 document.getElementById('btn-next').addEventListener('click', () => {
@@ -201,6 +211,23 @@ document.getElementById('btn-prev').addEventListener('click', () => {
 
 elTrackSelect.addEventListener('change', (e) => {
     loadMidi(parseInt(e.target.value));
+});
+
+elSoundFontSelect.addEventListener('change', async (e) => {
+    const url = e.target.value;
+
+    // Remember if it was playing, so we can autoplay after the soundfont loads
+    shouldAutoplay = player.playing;
+
+    if (typeof player.stop === 'function') {
+        player.stop();
+    }
+
+    elStatus.textContent = "LOADING SOUNDFONT...";
+    btnPlay.textContent = "⏳";
+
+    // This triggers the fetch, and eventually the 'load' event
+    player.setAttribute('sound-font', url);
 });
 
 // Drag & Drop
@@ -229,22 +256,20 @@ dropZone.addEventListener('drop', async (e) => {
         // Create an object URL from the dropped file to play locally
         const url = URL.createObjectURL(file);
 
-        if (isPlaying) {
+        if (typeof player.stop === 'function') {
             player.stop();
         }
 
         await customElements.whenDefined('midi-player');
         await ensureAudioContext();
 
+        shouldAutoplay = true;
         player.src = url;
-        isPlaying = true;
+
         btnPlay.textContent = "⏳";
         elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
 
-        if (typeof player.start === 'function') {
-            player.start().catch(e => console.log(e));
-        }
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
     }
