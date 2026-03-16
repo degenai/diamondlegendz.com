@@ -5,7 +5,6 @@ let isPlaying = false;
 
 // --- Elements ---
 const elTrackSelect = document.getElementById('track-select');
-const elSoundFontSelect = document.getElementById('soundfont-select');
 const elStatus = document.getElementById('status-bar');
 const elStartOverlay = document.getElementById('start-overlay');
 const elTrackInfo = document.getElementById('track-info');
@@ -116,22 +115,10 @@ async function loadMidi(index) {
         elTrackSelect.value = index;
         elStatus.textContent = "LOADING...";
 
-        // Give the component a tiny delay to process the new .src before starting it
-        setTimeout(() => {
-            // First we must trigger the player's internal logic
-            if (typeof player.start === 'function') {
-                player.start().catch(err => console.log(err));
-            }
-
-            // Wait an additional tick before syncing properties so Web Components getter evaluates correctly
-            setTimeout(() => {
-                if (isPlaying) {
-                    try {
-                        player.playing = true;
-                    } catch (e) {}
-                }
-            }, 50);
-        }, 50);
+        // Let the web component handle its own start via its internal queue
+        if (typeof player.start === 'function') {
+            player.start().catch(err => console.log(err));
+        }
 
     } catch (e) {
         console.error(e);
@@ -216,21 +203,6 @@ elTrackSelect.addEventListener('change', (e) => {
     loadMidi(parseInt(e.target.value));
 });
 
-elSoundFontSelect.addEventListener('change', async (e) => {
-    const url = e.target.value;
-    const wasPlaying = isPlaying;
-
-    // Changing soundfonts requires the player to re-fetch the instrument buffers.
-    player.setAttribute('sound-font', url);
-
-    // If it was playing, it might hiccup/pause as the new soundfont chunks download.
-    if (wasPlaying && player.src) {
-        if (typeof player.start === 'function') {
-            player.start().catch(err => console.error(err));
-        }
-    }
-});
-
 // Drag & Drop
 const dropZone = document.getElementById('drop-zone');
 
@@ -270,19 +242,9 @@ dropZone.addEventListener('drop', async (e) => {
         elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
 
-        setTimeout(() => {
-            if (typeof player.start === 'function') {
-                player.start().catch(e => console.log(e));
-            }
-
-            setTimeout(() => {
-                if (isPlaying) {
-                    try {
-                        player.playing = true;
-                    } catch(e) {}
-                }
-            }, 50);
-        }, 50);
+        if (typeof player.start === 'function') {
+            player.start().catch(e => console.log(e));
+        }
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
     }

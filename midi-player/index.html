@@ -181,7 +181,7 @@
 
         <div class="visualizer-container" style="background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden;">
             <midi-visualizer type="piano-roll" id="myVisualizer" style="width: 100%; height: 100%; margin: 0; padding: 0;"></midi-visualizer>
-            <midi-player id="myPlayer" sound-font visualizer="#myVisualizer" style="display: none;"></midi-player>
+            <midi-player id="myPlayer" sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/salamander" visualizer="#myVisualizer" style="display: none;"></midi-player>
         </div>
 
         <div class="controls-area">
@@ -190,12 +190,6 @@
                 <h3>SELECT TRACK</h3>
                 <select id="track-select" size="10">
                     <option>LOADING...</option>
-                </select>
-                <h3 style="margin-top: 15px;">SOUNDFONT (SYNTH)</h3>
-                <select id="soundfont-select" style="margin-bottom: 0;">
-                    <option value="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus">SGM PLUS (DEFAULT)</option>
-                    <option value="https://storage.googleapis.com/magentadata/js/soundfonts/salamander">SALAMANDER (GRAND PIANO)</option>
-                    <option value="https://storage.googleapis.com/magentadata/js/soundfonts/jazz_kit">JAZZ KIT (PERCUSSION)</option>
                 </select>
             </div>
 
