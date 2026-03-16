@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/html-midi-player@1.5.0"></script>
+</head>
+<body>
+    <midi-player id="testPlayer" src="http://127.0.0.1:8000/midi-player/midis/balrog__s_theme2.mid" sound-font></midi-player>
+    <button id="myPlay">Play Custom</button>
+    <button id="myPause">Pause Custom</button>
+    <script>
+        document.getElementById('myPlay').addEventListener('click', async () => {
+            const p = document.getElementById('testPlayer');
+            await p.start();
+            console.log("Playing:", p.playing);
+        });
+        document.getElementById('myPause').addEventListener('click', () => {
+            const p = document.getElementById('testPlayer');
+            p.stop();
+            console.log("Playing:", p.playing);
+        });
+    </script>
+</body>
+</html>

@@ -34,8 +34,22 @@ async function init() {
         // the same way an audio element does, but we will attach event listeners
         // using Tone.js / Magenta hooks if needed, or rely on our manual state checks.
         // The element fires 'load' when the sequence is fully loaded.
-        // (Removing the 'load' listener because html-midi-player doesn't consistently fire it
-        // across rapid src changes, we will handle state internally using the start() Promise)
+        player.addEventListener('load', () => {
+            // Once Tone.js successfully finishes downloading/parsing SoundFonts
+            // and the MIDI sequence, we update the UI
+            if (isPlaying) {
+                btnPlay.textContent = "⏸";
+
+                // Keep the custom title if it's playing a dropped file
+                if (elStatus.textContent.startsWith('LOADING CUSTOM')) {
+                    elStatus.textContent = `PLAYING: ${elTrackInfo.textContent}`;
+                } else {
+                    elStatus.textContent = "PLAYING";
+                }
+            } else {
+                elStatus.textContent = "READY TO PLAY";
+            }
+        });
     } catch (e) {
         console.error(e);
         elStatus.textContent = "ERROR INITIALIZING";
@@ -103,29 +117,19 @@ async function loadMidi(index) {
 
         // Give the component a tiny delay to process the new .src before starting it
         setTimeout(() => {
+            // First we must trigger the player's internal logic
             if (typeof player.start === 'function') {
-                const startPromise = player.start();
-                if (startPromise && typeof startPromise.then === 'function') {
-                    startPromise.then(() => {
-                        // Ensure we haven't stopped or paused it in the meantime!
-                        if (isPlaying) {
-                            btnPlay.textContent = "⏸";
-                            elStatus.textContent = "PLAYING";
-                        }
-                    }).catch(err => {
-                        console.log(err);
-                        if (isPlaying) {
-                            btnPlay.textContent = "▶";
-                            elStatus.textContent = "READY TO PLAY";
-                            isPlaying = false;
-                        }
-                    });
-                } else {
-                    // If it doesn't return a promise immediately (e.g. synchronous start internally)
-                    btnPlay.textContent = "⏸";
-                    elStatus.textContent = "PLAYING";
-                }
+                player.start().catch(err => console.log(err));
             }
+
+            // Wait an additional tick before syncing properties so Web Components getter evaluates correctly
+            setTimeout(() => {
+                if (isPlaying) {
+                    try {
+                        player.playing = true;
+                    } catch (e) {}
+                }
+            }, 50);
         }, 50);
 
     } catch (e) {
@@ -252,19 +256,16 @@ dropZone.addEventListener('drop', async (e) => {
 
         setTimeout(() => {
             if (typeof player.start === 'function') {
-                const startPromise = player.start();
-                if (startPromise && typeof startPromise.then === 'function') {
-                    startPromise.then(() => {
-                        if (isPlaying) {
-                            btnPlay.textContent = "⏸";
-                            elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
-                        }
-                    }).catch(e => console.log(e));
-                } else {
-                    btnPlay.textContent = "⏸";
-                    elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
-                }
+                player.start().catch(e => console.log(e));
             }
+
+            setTimeout(() => {
+                if (isPlaying) {
+                    try {
+                        player.playing = true;
+                    } catch(e) {}
+                }
+            }, 50);
         }, 50);
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
