@@ -34,14 +34,8 @@ async function init() {
         // the same way an audio element does, but we will attach event listeners
         // using Tone.js / Magenta hooks if needed, or rely on our manual state checks.
         // The element fires 'load' when the sequence is fully loaded.
-        // Let the player handle its internal state.
-        // We will just make sure it displays READY when fully loaded if not playing.
-        player.addEventListener('load', () => {
-            if (!isPlaying) {
-                elStatus.textContent = "READY TO PLAY";
-            }
-        });
-
+        // (Removing the 'load' listener because html-midi-player doesn't consistently fire it
+        // across rapid src changes, we will handle state internally using the start() Promise)
     } catch (e) {
         console.error(e);
         elStatus.textContent = "ERROR INITIALIZING";
@@ -103,16 +97,36 @@ async function loadMidi(index) {
         // Start load
         player.src = url;
         isPlaying = true;
-        btnPlay.textContent = "⏸";
+        btnPlay.textContent = "⏳";
         elTrackSelect.value = index;
-        elStatus.textContent = "PLAYING";
+        elStatus.textContent = "LOADING...";
 
-        if (typeof player.start === 'function') {
-            const startPromise = player.start();
-            if (startPromise && typeof startPromise.catch === 'function') {
-                startPromise.catch(err => console.log(err));
+        // Give the component a tiny delay to process the new .src before starting it
+        setTimeout(() => {
+            if (typeof player.start === 'function') {
+                const startPromise = player.start();
+                if (startPromise && typeof startPromise.then === 'function') {
+                    startPromise.then(() => {
+                        // Ensure we haven't stopped or paused it in the meantime!
+                        if (isPlaying) {
+                            btnPlay.textContent = "⏸";
+                            elStatus.textContent = "PLAYING";
+                        }
+                    }).catch(err => {
+                        console.log(err);
+                        if (isPlaying) {
+                            btnPlay.textContent = "▶";
+                            elStatus.textContent = "READY TO PLAY";
+                            isPlaying = false;
+                        }
+                    });
+                } else {
+                    // If it doesn't return a promise immediately (e.g. synchronous start internally)
+                    btnPlay.textContent = "⏸";
+                    elStatus.textContent = "PLAYING";
+                }
             }
-        }
+        }, 10);
 
     } catch (e) {
         console.error(e);
@@ -231,11 +245,27 @@ dropZone.addEventListener('drop', async (e) => {
         await ensureAudioContext();
 
         player.src = url;
-        player.playing = true;
         isPlaying = true;
-        btnPlay.textContent = "⏸";
-        elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
+        btnPlay.textContent = "⏳";
+        elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
+
+        setTimeout(() => {
+            if (typeof player.start === 'function') {
+                const startPromise = player.start();
+                if (startPromise && typeof startPromise.then === 'function') {
+                    startPromise.then(() => {
+                        if (isPlaying) {
+                            btnPlay.textContent = "⏸";
+                            elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
+                        }
+                    }).catch(e => console.log(e));
+                } else {
+                    btnPlay.textContent = "⏸";
+                    elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
+                }
+            }
+        }, 10);
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
     }
