@@ -5,6 +5,7 @@ let isPlaying = false;
 
 // --- Elements ---
 const elTrackSelect = document.getElementById('track-select');
+const elSoundFontSelect = document.getElementById('soundfont-select');
 const elStatus = document.getElementById('status-bar');
 const elStartOverlay = document.getElementById('start-overlay');
 const elTrackInfo = document.getElementById('track-info');
@@ -213,6 +214,21 @@ document.getElementById('btn-prev').addEventListener('click', () => {
 
 elTrackSelect.addEventListener('change', (e) => {
     loadMidi(parseInt(e.target.value));
+});
+
+elSoundFontSelect.addEventListener('change', async (e) => {
+    const url = e.target.value;
+    const wasPlaying = isPlaying;
+
+    // Changing soundfonts requires the player to re-fetch the instrument buffers.
+    player.setAttribute('sound-font', url);
+
+    // If it was playing, it might hiccup/pause as the new soundfont chunks download.
+    if (wasPlaying && player.src) {
+        if (typeof player.start === 'function') {
+            player.start().catch(err => console.error(err));
+        }
+    }
 });
 
 // Drag & Drop
