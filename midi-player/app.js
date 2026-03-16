@@ -126,7 +126,7 @@ async function loadMidi(index) {
                     elStatus.textContent = "PLAYING";
                 }
             }
-        }, 10);
+        }, 50);
 
     } catch (e) {
         console.error(e);
@@ -265,7 +265,7 @@ dropZone.addEventListener('drop', async (e) => {
                     elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
                 }
             }
-        }, 10);
+        }, 50);
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
     }
