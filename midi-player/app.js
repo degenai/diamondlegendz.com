@@ -2,8 +2,6 @@
 let midiList = [];
 let currentMidiIndex = 0;
 let isPlaying = false;
-let fakeVisualizerActive = false;
-let startTime = 0;
 
 // --- Elements ---
 const elTrackSelect = document.getElementById('track-select');
@@ -36,19 +34,10 @@ async function init() {
         // the same way an audio element does, but we will attach event listeners
         // using Tone.js / Magenta hooks if needed, or rely on our manual state checks.
         // The element fires 'load' when the sequence is fully loaded.
+        // Let the player handle its internal state.
+        // We will just make sure it displays READY when fully loaded if not playing.
         player.addEventListener('load', () => {
-            // If we selected a track, auto-start it when it's done loading
-            if (isPlaying && typeof player.start === 'function') {
-                player.start().then(() => {
-                    btnPlay.textContent = "⏸";
-                    elStatus.textContent = "PLAYING";
-                }).catch(err => {
-                    console.error("Playback failed:", err);
-                    elStatus.textContent = "PLAYBACK ERROR";
-                    isPlaying = false;
-                    btnPlay.textContent = "▶";
-                });
-            } else {
+            if (!isPlaying) {
                 elStatus.textContent = "READY TO PLAY";
             }
         });
@@ -80,6 +69,17 @@ async function loadLists() {
 
 // --- Player Logic ---
 
+// Helper function to ensure Tone.js audio context is running
+async function ensureAudioContext() {
+    if (window.Tone && window.Tone.context.state !== 'running') {
+        try {
+            await window.Tone.start();
+        } catch (e) {
+            console.error("Failed to start Tone context", e);
+        }
+    }
+}
+
 async function loadMidi(index) {
     if (index < 0 || index >= midiList.length) return;
     currentMidiIndex = index;
@@ -92,25 +92,33 @@ async function loadMidi(index) {
         const url = `midis/${filename}`;
 
         // Stop current if playing
-        if (isPlaying) {
+        if (typeof player.stop === 'function') {
             player.stop();
         }
 
         // Ensure the custom element is defined and ready
         await customElements.whenDefined('midi-player');
+        await ensureAudioContext();
 
         // Start load
         player.src = url;
-
-        // UI updates (playback will start automatically via the 'load' listener)
         isPlaying = true;
-        btnPlay.textContent = "⏳";
+        btnPlay.textContent = "⏸";
         elTrackSelect.value = index;
-        elStatus.textContent = "LOADING...";
+        elStatus.textContent = "PLAYING";
+
+        if (typeof player.start === 'function') {
+            const startPromise = player.start();
+            if (startPromise && typeof startPromise.catch === 'function') {
+                startPromise.catch(err => console.log(err));
+            }
+        }
 
     } catch (e) {
         console.error(e);
         elStatus.textContent = "LOAD ERROR";
+        isPlaying = false;
+        btnPlay.textContent = "▶";
     }
 }
 
@@ -123,22 +131,31 @@ elStartOverlay.addEventListener('click', () => {
     init();
 });
 
-document.getElementById('btn-play').addEventListener('click', () => {
+document.getElementById('btn-play').addEventListener('click', async () => {
+    if (elStatus.textContent.startsWith('LOADING')) {
+        return;
+    }
+
+    await ensureAudioContext();
+
     if (isPlaying) {
-        if (player.playing) {
-            player.playing = false;
-        } else if (typeof player.stop === 'function') {
+        // Pause
+        if (typeof player.stop === 'function') {
+            // Note: calling stop() in Magenta API without resetting currentTime is effectively a pause!
             player.stop();
         }
         isPlaying = false;
         btnPlay.textContent = "▶";
         elStatus.textContent = "PAUSED";
     } else {
-        if (elTrackSelect.value === 'LOADING...') return;
-
-        // If we have a track loaded, play it. Otherwise, load the selected index.
-        if (player.src && typeof player.start === 'function') {
-            player.start().catch(err => console.error(err));
+        // Resume / Start
+        if (player.src) {
+            if (typeof player.start === 'function') {
+                const startPromise = player.start();
+                if (startPromise && typeof startPromise.catch === 'function') {
+                    startPromise.catch(err => console.log(err));
+                }
+            }
             isPlaying = true;
             btnPlay.textContent = "⏸";
             elStatus.textContent = "PLAYING";
@@ -149,7 +166,16 @@ document.getElementById('btn-play').addEventListener('click', () => {
 });
 
 document.getElementById('btn-stop').addEventListener('click', () => {
-    player.stop();
+    // Hard stop and reset
+    if (typeof player.stop === 'function') {
+        player.stop();
+    }
+
+    try {
+        // Force Magenta player back to the start!
+        player.currentTime = 0;
+    } catch(e) {}
+
     isPlaying = false;
     btnPlay.textContent = "▶";
     elStatus.textContent = "STOPPED";
@@ -202,11 +228,13 @@ dropZone.addEventListener('drop', async (e) => {
         }
 
         await customElements.whenDefined('midi-player');
+        await ensureAudioContext();
 
         player.src = url;
+        player.playing = true;
         isPlaying = true;
-        btnPlay.textContent = "⏳";
-        elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
+        btnPlay.textContent = "⏸";
+        elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
