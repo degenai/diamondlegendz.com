@@ -9,9 +9,10 @@ let startTime = 0;
 const elTrackSelect = document.getElementById('track-select');
 const elStatus = document.getElementById('status-bar');
 const elStartOverlay = document.getElementById('start-overlay');
-const elVisualizer = document.getElementById('visualizer');
 const elTrackInfo = document.getElementById('track-info');
 const btnPlay = document.getElementById('btn-play');
+const player = document.getElementById('myPlayer');
+const visualizer = document.getElementById('myVisualizer');
 
 // --- Initialization ---
 async function init() {
@@ -21,8 +22,37 @@ async function init() {
         elStatus.textContent = "READY";
         elStartOverlay.classList.add('hidden');
 
-        // Start "fake" Visualizer loop
-        requestAnimationFrame(drawVisualizer);
+        // Configure visualizer
+        visualizer.config = {
+            noteHeight: 3,
+            pixelsPerTimeStep: 45,
+            minPitch: 20,
+            maxPitch: 100,
+            noteSpacing: 1
+        };
+
+        // Listen to player events to update UI
+        // Note: html-midi-player doesn't natively fire standard 'start' / 'stop' DOM events
+        // the same way an audio element does, but we will attach event listeners
+        // using Tone.js / Magenta hooks if needed, or rely on our manual state checks.
+        // The element fires 'load' when the sequence is fully loaded.
+        player.addEventListener('load', () => {
+            // If we selected a track, auto-start it when it's done loading
+            if (isPlaying && typeof player.start === 'function') {
+                player.start().then(() => {
+                    btnPlay.textContent = "⏸";
+                    elStatus.textContent = "PLAYING";
+                }).catch(err => {
+                    console.error("Playback failed:", err);
+                    elStatus.textContent = "PLAYBACK ERROR";
+                    isPlaying = false;
+                    btnPlay.textContent = "▶";
+                });
+            } else {
+                elStatus.textContent = "READY TO PLAY";
+            }
+        });
+
     } catch (e) {
         console.error(e);
         elStatus.textContent = "ERROR INITIALIZING";
@@ -50,7 +80,7 @@ async function loadLists() {
 
 // --- Player Logic ---
 
-function loadMidi(index) {
+async function loadMidi(index) {
     if (index < 0 || index >= midiList.length) return;
     currentMidiIndex = index;
 
@@ -61,15 +91,22 @@ function loadMidi(index) {
     try {
         const url = `midis/${filename}`;
 
-        // Play directly via MIDIjs
-        MIDIjs.play(url);
+        // Stop current if playing
+        if (isPlaying) {
+            player.stop();
+        }
 
+        // Ensure the custom element is defined and ready
+        await customElements.whenDefined('midi-player');
+
+        // Start load
+        player.src = url;
+
+        // UI updates (playback will start automatically via the 'load' listener)
         isPlaying = true;
-        btnPlay.textContent = "⏸";
+        btnPlay.textContent = "⏳";
         elTrackSelect.value = index;
-        elStatus.textContent = "PLAYING";
-        fakeVisualizerActive = true;
-        startTime = Date.now();
+        elStatus.textContent = "LOADING...";
 
     } catch (e) {
         console.error(e);
@@ -88,32 +125,32 @@ elStartOverlay.addEventListener('click', () => {
 
 document.getElementById('btn-play').addEventListener('click', () => {
     if (isPlaying) {
-        MIDIjs.pause();
+        if (player.playing) {
+            player.playing = false;
+        } else if (typeof player.stop === 'function') {
+            player.stop();
+        }
         isPlaying = false;
-        fakeVisualizerActive = false;
         btnPlay.textContent = "▶";
         elStatus.textContent = "PAUSED";
     } else {
         if (elTrackSelect.value === 'LOADING...') return;
 
-        // If nothing is playing and hasn't started yet, play the selected
-        if (elStatus.textContent === "READY" || elStatus.textContent === "STOPPED") {
-            loadMidi(currentMidiIndex);
-        } else {
-            // It was paused, so resume
-            MIDIjs.resume();
+        // If we have a track loaded, play it. Otherwise, load the selected index.
+        if (player.src && typeof player.start === 'function') {
+            player.start().catch(err => console.error(err));
             isPlaying = true;
-            fakeVisualizerActive = true;
             btnPlay.textContent = "⏸";
             elStatus.textContent = "PLAYING";
+        } else if (midiList.length > 0) {
+            loadMidi(currentMidiIndex);
         }
     }
 });
 
 document.getElementById('btn-stop').addEventListener('click', () => {
-    MIDIjs.stop();
+    player.stop();
     isPlaying = false;
-    fakeVisualizerActive = false;
     btnPlay.textContent = "▶";
     elStatus.textContent = "STOPPED";
 });
@@ -147,7 +184,7 @@ dropZone.addEventListener('dragleave', (e) => {
     dropZone.style.borderColor = '#555';
 });
 
-dropZone.addEventListener('drop', (e) => {
+dropZone.addEventListener('drop', async (e) => {
     e.preventDefault();
     dropZone.style.borderColor = '#555';
 
@@ -160,77 +197,20 @@ dropZone.addEventListener('drop', (e) => {
         // Create an object URL from the dropped file to play locally
         const url = URL.createObjectURL(file);
 
-        MIDIjs.play(url);
+        if (isPlaying) {
+            player.stop();
+        }
+
+        await customElements.whenDefined('midi-player');
+
+        player.src = url;
         isPlaying = true;
-        fakeVisualizerActive = true;
-        btnPlay.textContent = "⏸";
-        elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
+        btnPlay.textContent = "⏳";
+        elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
-        startTime = Date.now();
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
     }
 });
 
-// --- Fake Visualization ---
-const canvas = elVisualizer;
-const ctx = canvas.getContext('2d');
-let fakeHeights = [];
-
-function drawVisualizer() {
-    requestAnimationFrame(drawVisualizer);
-
-    // Resize handling if needed, though hardcoded in css initially
-    const bufferLength = 32; // nice chunky retro bars
-
-    if (fakeHeights.length !== bufferLength) {
-        fakeHeights = new Array(bufferLength).fill(0);
-    }
-
-    // Clear
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Fake Progress loop (since MIDIjs doesn't easily expose current time)
-    ctx.fillStyle = '#333';
-    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-
-    if (isPlaying) {
-        // Just loop a progress bar every 60s for visual feedback
-        const elapsed = (Date.now() - startTime) % 60000;
-        const pct = elapsed / 60000;
-        ctx.fillStyle = '#39ff14'; // Neon Green
-        const barWidthProgress = canvas.width * pct;
-        ctx.fillRect(0, canvas.height - 20, barWidthProgress, 20);
-    }
-
-    // Draw spectrum
-    const barWidth = (canvas.width / bufferLength) * 0.9;
-    let x = 0;
-
-    for (let i = 0; i < bufferLength; i++) {
-        // Generate bouncy fake data
-        if (fakeVisualizerActive) {
-            // Randomly jump up, smoothly decay
-            if (Math.random() > 0.8) {
-                fakeHeights[i] = Math.random() * 255;
-            } else {
-                fakeHeights[i] = Math.max(0, fakeHeights[i] - 10);
-            }
-        } else {
-            fakeHeights[i] = Math.max(0, fakeHeights[i] - 15);
-        }
-
-        const barHeight = (fakeHeights[i] / 255) * (canvas.height - 30);
-
-        const gradient = ctx.createLinearGradient(0, canvas.height - 30, 0, 0);
-        gradient.addColorStop(0, '#00ff00');
-        gradient.addColorStop(0.5, '#ffff00');
-        gradient.addColorStop(1, '#ff0000');
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, (canvas.height - 30) - barHeight, barWidth, barHeight);
-
-        x += (canvas.width / bufferLength);
-    }
-}
+// --- Visualizer handled by html-midi-player ---
