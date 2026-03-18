@@ -1,17 +1,17 @@
 // --- State ---
 let midiList = [];
 let currentMidiIndex = 0;
-let isPlaying = false;
-let fakeVisualizerActive = false;
-let startTime = 0;
+let shouldAutoplay = false;
 
 // --- Elements ---
 const elTrackSelect = document.getElementById('track-select');
+const elSoundFontSelect = document.getElementById('soundfont-select');
 const elStatus = document.getElementById('status-bar');
 const elStartOverlay = document.getElementById('start-overlay');
-const elVisualizer = document.getElementById('visualizer');
 const elTrackInfo = document.getElementById('track-info');
 const btnPlay = document.getElementById('btn-play');
+const player = document.getElementById('myPlayer');
+const visualizer = document.getElementById('myVisualizer');
 
 // --- Initialization ---
 async function init() {
@@ -21,8 +21,38 @@ async function init() {
         elStatus.textContent = "READY";
         elStartOverlay.classList.add('hidden');
 
-        // Start "fake" Visualizer loop
-        requestAnimationFrame(drawVisualizer);
+        // Configure visualizer
+        visualizer.config = {
+            noteHeight: 3,
+            pixelsPerTimeStep: 45,
+            minPitch: 20,
+            maxPitch: 100,
+            noteSpacing: 1
+        };
+
+        // Listen to player events to update UI
+        player.addEventListener('load', () => {
+            // Fired when the MIDI file or soundfont finishes loading
+            if (shouldAutoplay) {
+                if (typeof player.start === 'function') {
+                    const startPromise = player.start();
+                    if (startPromise && typeof startPromise.catch === 'function') {
+                        startPromise.catch(err => console.log("Autoplay blocked:", err));
+                    }
+                }
+            } else {
+                updateUIState();
+            }
+        });
+
+        player.addEventListener('start', () => {
+            updateUIState();
+        });
+
+        player.addEventListener('stop', () => {
+            updateUIState();
+        });
+
     } catch (e) {
         console.error(e);
         elStatus.textContent = "ERROR INITIALIZING";
@@ -30,6 +60,29 @@ async function init() {
         if (overlayText) {
             overlayText.textContent = "SYSTEM ERROR";
             overlayText.style.color = "red";
+        }
+    }
+}
+
+function updateUIState() {
+    const isPlaying = player.playing;
+
+    if (isPlaying) {
+        btnPlay.textContent = "⏸";
+        if (elStatus.textContent.startsWith('LOADING CUSTOM')) {
+            elStatus.textContent = `PLAYING: ${elTrackInfo.textContent}`;
+        } else {
+            elStatus.textContent = "PLAYING";
+        }
+    } else {
+        btnPlay.textContent = "▶";
+        // Only override status if it's not currently loading something
+        if (!elStatus.textContent.startsWith('LOADING')) {
+             if (player.currentTime > 0) {
+                 elStatus.textContent = "PAUSED";
+             } else {
+                 elStatus.textContent = "STOPPED";
+             }
         }
     }
 }
@@ -50,7 +103,18 @@ async function loadLists() {
 
 // --- Player Logic ---
 
-function loadMidi(index) {
+// Helper function to ensure Tone.js audio context is running
+async function ensureAudioContext() {
+    if (window.Tone && window.Tone.context.state !== 'running') {
+        try {
+            await window.Tone.start();
+        } catch (e) {
+            console.error("Failed to start Tone context", e);
+        }
+    }
+}
+
+async function loadMidi(index) {
     if (index < 0 || index >= midiList.length) return;
     currentMidiIndex = index;
 
@@ -61,19 +125,27 @@ function loadMidi(index) {
     try {
         const url = `midis/${filename}`;
 
-        // Play directly via MIDIjs
-        MIDIjs.play(url);
+        // Stop current if playing
+        if (typeof player.stop === 'function') {
+            player.stop();
+        }
 
-        isPlaying = true;
-        btnPlay.textContent = "⏸";
+        // Ensure the custom element is defined and ready
+        await customElements.whenDefined('midi-player');
+        await ensureAudioContext();
+
+        // Let the 'load' event trigger the playback start via shouldAutoplay
+        shouldAutoplay = true;
+        player.src = url;
+
+        btnPlay.textContent = "⏳";
         elTrackSelect.value = index;
-        elStatus.textContent = "PLAYING";
-        fakeVisualizerActive = true;
-        startTime = Date.now();
 
     } catch (e) {
         console.error(e);
         elStatus.textContent = "LOAD ERROR";
+        shouldAutoplay = false;
+        btnPlay.textContent = "▶";
     }
 }
 
@@ -86,36 +158,49 @@ elStartOverlay.addEventListener('click', () => {
     init();
 });
 
-document.getElementById('btn-play').addEventListener('click', () => {
-    if (isPlaying) {
-        MIDIjs.pause();
-        isPlaying = false;
-        fakeVisualizerActive = false;
-        btnPlay.textContent = "▶";
-        elStatus.textContent = "PAUSED";
-    } else {
-        if (elTrackSelect.value === 'LOADING...') return;
+document.getElementById('btn-play').addEventListener('click', async () => {
+    if (elStatus.textContent.startsWith('LOADING')) {
+        return;
+    }
 
-        // If nothing is playing and hasn't started yet, play the selected
-        if (elStatus.textContent === "READY" || elStatus.textContent === "STOPPED") {
+    await ensureAudioContext();
+
+    if (player.playing) {
+        // Pause
+        shouldAutoplay = false;
+        if (typeof player.stop === 'function') {
+            player.stop();
+        }
+    } else {
+        // Resume / Start
+        if (player.src) {
+            shouldAutoplay = true;
+            if (typeof player.start === 'function') {
+                const startPromise = player.start();
+                if (startPromise && typeof startPromise.catch === 'function') {
+                    startPromise.catch(err => console.log(err));
+                }
+            }
+        } else if (midiList.length > 0) {
+            shouldAutoplay = true;
             loadMidi(currentMidiIndex);
-        } else {
-            // It was paused, so resume
-            MIDIjs.resume();
-            isPlaying = true;
-            fakeVisualizerActive = true;
-            btnPlay.textContent = "⏸";
-            elStatus.textContent = "PLAYING";
         }
     }
 });
 
 document.getElementById('btn-stop').addEventListener('click', () => {
-    MIDIjs.stop();
-    isPlaying = false;
-    fakeVisualizerActive = false;
-    btnPlay.textContent = "▶";
-    elStatus.textContent = "STOPPED";
+    shouldAutoplay = false;
+    // Hard stop and reset
+    if (typeof player.stop === 'function') {
+        player.stop();
+    }
+
+    try {
+        // Force Magenta player back to the start!
+        player.currentTime = 0;
+    } catch(e) {}
+
+    updateUIState();
 });
 
 document.getElementById('btn-next').addEventListener('click', () => {
@@ -134,6 +219,23 @@ elTrackSelect.addEventListener('change', (e) => {
     loadMidi(parseInt(e.target.value));
 });
 
+elSoundFontSelect.addEventListener('change', async (e) => {
+    const url = e.target.value;
+
+    // Remember if it was playing, so we can autoplay after the soundfont loads
+    shouldAutoplay = player.playing;
+
+    if (typeof player.stop === 'function') {
+        player.stop();
+    }
+
+    elStatus.textContent = "LOADING SOUNDFONT...";
+    btnPlay.textContent = "⏳";
+
+    // This triggers the fetch, and eventually the 'load' event
+    player.setAttribute('sound-font', url);
+});
+
 // Drag & Drop
 const dropZone = document.getElementById('drop-zone');
 
@@ -147,7 +249,7 @@ dropZone.addEventListener('dragleave', (e) => {
     dropZone.style.borderColor = '#555';
 });
 
-dropZone.addEventListener('drop', (e) => {
+dropZone.addEventListener('drop', async (e) => {
     e.preventDefault();
     dropZone.style.borderColor = '#555';
 
@@ -160,77 +262,23 @@ dropZone.addEventListener('drop', (e) => {
         // Create an object URL from the dropped file to play locally
         const url = URL.createObjectURL(file);
 
-        MIDIjs.play(url);
-        isPlaying = true;
-        fakeVisualizerActive = true;
-        btnPlay.textContent = "⏸";
-        elStatus.textContent = `PLAYING: ${file.name.toUpperCase()}`;
+        if (typeof player.stop === 'function') {
+            player.stop();
+        }
+
+        await customElements.whenDefined('midi-player');
+        await ensureAudioContext();
+
+        shouldAutoplay = true;
+        player.src = url;
+
+        btnPlay.textContent = "⏳";
+        elStatus.textContent = `LOADING: ${file.name.toUpperCase()}`;
         elTrackInfo.textContent = file.name.toUpperCase();
-        startTime = Date.now();
+
     } else {
         elStatus.textContent = "INVALID FILE (.MID ONLY)";
     }
 });
 
-// --- Fake Visualization ---
-const canvas = elVisualizer;
-const ctx = canvas.getContext('2d');
-let fakeHeights = [];
-
-function drawVisualizer() {
-    requestAnimationFrame(drawVisualizer);
-
-    // Resize handling if needed, though hardcoded in css initially
-    const bufferLength = 32; // nice chunky retro bars
-
-    if (fakeHeights.length !== bufferLength) {
-        fakeHeights = new Array(bufferLength).fill(0);
-    }
-
-    // Clear
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Fake Progress loop (since MIDIjs doesn't easily expose current time)
-    ctx.fillStyle = '#333';
-    ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-
-    if (isPlaying) {
-        // Just loop a progress bar every 60s for visual feedback
-        const elapsed = (Date.now() - startTime) % 60000;
-        const pct = elapsed / 60000;
-        ctx.fillStyle = '#39ff14'; // Neon Green
-        const barWidthProgress = canvas.width * pct;
-        ctx.fillRect(0, canvas.height - 20, barWidthProgress, 20);
-    }
-
-    // Draw spectrum
-    const barWidth = (canvas.width / bufferLength) * 0.9;
-    let x = 0;
-
-    for (let i = 0; i < bufferLength; i++) {
-        // Generate bouncy fake data
-        if (fakeVisualizerActive) {
-            // Randomly jump up, smoothly decay
-            if (Math.random() > 0.8) {
-                fakeHeights[i] = Math.random() * 255;
-            } else {
-                fakeHeights[i] = Math.max(0, fakeHeights[i] - 10);
-            }
-        } else {
-            fakeHeights[i] = Math.max(0, fakeHeights[i] - 15);
-        }
-
-        const barHeight = (fakeHeights[i] / 255) * (canvas.height - 30);
-
-        const gradient = ctx.createLinearGradient(0, canvas.height - 30, 0, 0);
-        gradient.addColorStop(0, '#00ff00');
-        gradient.addColorStop(0.5, '#ffff00');
-        gradient.addColorStop(1, '#ff0000');
-
-        ctx.fillStyle = gradient;
-        ctx.fillRect(x, (canvas.height - 30) - barHeight, barWidth, barHeight);
-
-        x += (canvas.width / bufferLength);
-    }
-}
+// --- Visualizer handled by html-midi-player ---
