@@ -35,7 +35,10 @@ async function init() {
             // Fired when the MIDI file or soundfont finishes loading
             if (shouldAutoplay) {
                 if (typeof player.start === 'function') {
-                    player.start().catch(err => console.log("Autoplay blocked:", err));
+                    const startPromise = player.start();
+                    if (startPromise && typeof startPromise.catch === 'function') {
+                        startPromise.catch(err => console.log("Autoplay blocked:", err));
+                    }
                 }
             } else {
                 updateUIState();
@@ -173,7 +176,10 @@ document.getElementById('btn-play').addEventListener('click', async () => {
         if (player.src) {
             shouldAutoplay = true;
             if (typeof player.start === 'function') {
-                player.start().catch(err => console.log(err));
+                const startPromise = player.start();
+                if (startPromise && typeof startPromise.catch === 'function') {
+                    startPromise.catch(err => console.log(err));
+                }
             }
         } else if (midiList.length > 0) {
             shouldAutoplay = true;
