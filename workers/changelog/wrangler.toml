@@ -1,0 +1,22 @@
+name = "dlz-changelog"
+main = "src/index.js"
+compatibility_date = "2024-11-06"
+
+# One-time provisioning:
+#   wrangler d1 create dlz-changelog          → paste database_id below
+#   wrangler d1 migrations apply dlz-changelog --remote
+#   wrangler secret put WRITER_AUTH_TOKEN     → paste a long random string
+#   wrangler deploy
+# Caching uses the Workers Cache API (caches.default) — no KV namespace required.
+# See CLOUDFLARE_INSTRUCTIONS.md in repo root (changelog section).
+
+[[d1_databases]]
+binding       = "DB"
+database_name = "dlz-changelog"
+database_id   = "d664757b-6254-47e9-95dc-66decf9fb554"
+
+[observability]
+enabled = true
+
+# Secrets (set via `wrangler secret put <NAME>`):
+#   WRITER_AUTH_TOKEN — shared secret the CI script sends in Authorization: Bearer

@@ -1,0 +1,31 @@
+name: Update changelog
+
+on:
+  push:
+    branches: [main]
+
+# Only one push at a time writes to D1. Queued, not cancelled — we want every
+# commit to land in the feed eventually, not get skipped by a later push.
+concurrency:
+  group: changelog-writer
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history so we can see the delta)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Push new commits to dlz-changelog
+        env:
+          CHANGELOG_URL:     ${{ secrets.CHANGELOG_URL }}
+          WRITER_AUTH_TOKEN: ${{ secrets.CHANGELOG_WRITER_TOKEN }}
+        run: node scripts/update-changelog.js

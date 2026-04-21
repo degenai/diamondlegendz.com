@@ -44,13 +44,48 @@ added status field + sell_* fields + closed positions table
 
 ### Rules
 
-- Subject is a user outcome. No conventional-commit prefix (`fix:`, `feat:`, `chore:`, etc.).
-- No function names, file paths, or abbreviations in the subject.
+- Subject is a user outcome. No function names, file paths, or abbreviations in the subject.
 - Body addresses visitors in second person where natural.
 - Body length is whatever it takes to comprehensively cover the change.
 - Technical detail lives after the blank line.
 - Security/compliance commits get a user-facing lead ("Hardened login against a known browser attack") with the attack class or CVE in the tail.
 - Even tidy-up commits that change nothing visible get a body that honestly says so: *"Behind-the-scenes cleanup — no user-visible changes."* That's still better feed material than silence or dev jargon.
+
+### Optional tonal prefix
+
+A conventional-commit prefix (`feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`, `style:`, `perf:`, `build:`, `ci:`, `revert:`) is **allowed** as a tonal hint. The changelog renders it as a colored badge next to the subject so readers can skim by flavor. Write the subject as a user outcome *after* the colon — the prefix never replaces it.
+
+Accepted:
+
+```
+feat: Sell tracker lets you close a position
+fix: Portfolio totals no longer double-count gifted items
+chore: Behind-the-scenes cleanup — no user-visible changes
+Sell tracker lets you close a position   # no prefix — also fine
+```
+
+Rejected (prefix is the whole subject):
+
+```
+feat: add sell tracking
+fix: bug
+```
+
+Badge palette, for reference:
+
+| prefix     | vibe                | badge color     |
+|------------|---------------------|-----------------|
+| `feat`     | new capability      | green           |
+| `fix`      | bug fix             | orange          |
+| `chore`    | housekeeping        | gray            |
+| `refactor` | internal restructure| purple          |
+| `docs`     | text / prose change | yellow          |
+| `test`     | quality work        | cyan            |
+| `style`    | cosmetic            | hot pink        |
+| `perf`     | speed               | red             |
+| `build`    | packaging / deps    | tan             |
+| `ci`       | automation          | sky blue        |
+| `revert`   | undo                | white on black  |
 
 ### Enforcement
 

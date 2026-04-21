@@ -15,9 +15,10 @@ if [ -z "$subject" ]; then
   exit 0
 fi
 
-# conventional-commit prefix
-if printf '%s' "$subject" | grep -Eq '^(feat|fix|chore|refactor|docs|test|style|perf|build|ci|revert)(\([^)]*\))?:'; then
-  warn 'subject starts with a conventional-commit prefix. Prefer user-facing phrasing (see CONTRIBUTING.md).'
+# conventional-commit prefix: allowed as optional tonal hint (renders as a badge in the Dev Ring).
+# The body is still what carries the message. We only warn if the whole subject IS the prefix.
+if printf '%s' "$subject" | grep -Eiq '^(feat|fix|chore|refactor|docs|test|style|perf|build|ci|revert)(\([^)]*\))?:[[:space:]]*$'; then
+  warn 'subject is nothing but a conventional-commit prefix. Add a user-facing outcome after the colon.'
 fi
 
 # jargon / paths / function() in subject

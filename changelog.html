@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self'; connect-src 'self' https://dlz-changelog.alex-adamczyk.workers.dev;">
+    <title>Diamondlegendz Changelog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="alternate" type="application/rss+xml" title="Diamondlegendz Changelog RSS" href="https://dlz-changelog.alex-adamczyk.workers.dev/rss">
+    <style>
+        body {
+            background-image: url('assets/bg.gif');
+            color: #FFFF00;
+            font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+            text-align: center;
+        }
+        a { color: #00FFFF; text-decoration: none; }
+        a:hover { color: #FF00FF; text-decoration: underline; background-color: white; }
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 128, 0.85);
+            border: 10px ridge #FF0000;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.8em;
+            color: #00FF00;
+            text-shadow: 3px 3px #FF00FF;
+        }
+        h2 { color: #00FFFF; border-bottom: 2px dashed #FF00FF; }
+        .meta-line { font-size: 0.9em; color: #AAAAFF; margin-bottom: 20px; }
+
+        .entry {
+            border: 3px inset white;
+            background-color: black;
+            padding: 14px 18px;
+            margin: 18px 0;
+            text-align: left;
+            scroll-margin-top: 20px;
+        }
+        .entry:target { border: 3px solid #FFFF00; box-shadow: 0 0 12px #FFFF00; }
+        .entry-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+        .entry-subject { color: #00FF00; font-size: 1.15em; font-weight: bold; flex: 1 1 auto; }
+        .entry-date { color: #AAAAFF; font-size: 0.85em; }
+        .entry-body { color: #FFFFFF; margin-top: 8px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
+        .entry-tech {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #000040;
+            border-left: 3px solid #00FFFF;
+            color: #AAAAFF;
+            font-family: "Courier New", monospace;
+            font-size: 0.85em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .entry-tech[hidden] { display: none; }
+        .tech-toggle {
+            background: #000040; color: #00FFFF; border: 1px solid #00FFFF;
+            font-family: inherit; font-size: 0.8em; cursor: pointer;
+            padding: 2px 10px; margin-top: 8px;
+        }
+        .tech-toggle:hover { background: #00FFFF; color: black; }
+        .permalink { color: #888888; font-size: 0.8em; font-family: monospace; margin-left: 6px; text-decoration: none; }
+        .permalink:hover { color: #FF00FF; text-decoration: underline; }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.72em;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-prefix-feat     { background:#00FF00; color:black; }
+        .badge-prefix-fix      { background:#FFAA00; color:black; }
+        .badge-prefix-chore    { background:#888888; color:black; }
+        .badge-prefix-refactor { background:#AA66FF; color:black; }
+        .badge-prefix-docs     { background:#FFFF00; color:black; }
+        .badge-prefix-test     { background:#00FFFF; color:black; }
+        .badge-prefix-style    { background:#FF69B4; color:black; }
+        .badge-prefix-perf     { background:#FF3333; color:white; }
+        .badge-prefix-build    { background:#CC9966; color:black; }
+        .badge-prefix-ci       { background:#66CCFF; color:black; }
+        .badge-prefix-revert   { background:#FFFFFF; color:black; border:1px solid #FF00FF; }
+        .badge-author          { background:#FF00FF; color:black; }
+
+        #load-more, .btn {
+            background: linear-gradient(to bottom, #ff0000, #990000);
+            border: 2px outset #ffcccc;
+            color: white;
+            font-family: "Comic Sans MS", sans-serif;
+            font-weight: bold;
+            padding: 6px 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        #load-more:active, .btn:active { border-style: inset; }
+        #load-more[disabled] { opacity: 0.5; cursor: default; }
+
+        .empty, .error-box { color: #FF00FF; padding: 20px; }
+        .error-box { border: 2px solid #FF00FF; background: #200020; margin: 20px 0; }
+        .loading { color: #00FFFF; padding: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <marquee scrollamount="10" bgcolor="#000080" style="border:2px solid cyan; color:#FFFF00; font-weight:bold;">
+        ★ DIAMONDLEGENDZ CHANGELOG ★ COMMIT-DRIVEN ★ D1 BACKED ★ SQUARESPACE AND WIX COULD NEVER ★
+    </marquee>
+
+    <h1>Dev Ring</h1>
+    <p><a href="index.html">&larr; back to the sandbox</a></p>
+
+    <p class="meta-line">
+        Every push to <code>main</code> lands here.
+        User-facing up top, dry technical after the blank line.
+        <a href="https://dlz-changelog.alex-adamczyk.workers.dev/rss">📡 RSS feed</a>
+    </p>
+
+    <h2>Entries</h2>
+    <div id="entries"></div>
+    <div id="status" class="loading">loading…</div>
+    <button id="load-more" style="display:none;">Load more</button>
+
+    <p style="font-size:0.8em; margin-top:30px;">
+        &copy; 1999-2026 DiamondLegendz. Commits by <span class="badge badge-author">DEGENAI</span>
+        and <span class="badge badge-author">ANDRES404</span>.
+    </p>
+</div>
+<script src="changelog/app.js"></script>
+</body>
+</html>
