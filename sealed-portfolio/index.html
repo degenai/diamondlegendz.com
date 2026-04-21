@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self';">
+    <title>Sealed Portfolio Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-image: url('../assets/bg.gif');
+            color: #FFFF00;
+            font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+            text-align: center;
+        }
+        a { color: #00FFFF; text-decoration: none; }
+        a:hover { color: #FF00FF; text-decoration: underline; background-color: white; }
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 128, 0.85);
+            border: 10px ridge #FF0000;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #00FF00;
+            text-shadow: 3px 3px #FF00FF;
+        }
+        h2 {
+            color: #00FFFF;
+            border-bottom: 2px dashed #FF00FF;
+        }
+        .box {
+            border: 3px inset white;
+            background-color: black;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        form label { display: inline-block; min-width: 100px; color: #00FFFF; }
+        form input, form select, form textarea {
+            background: black; color: #FFFF00;
+            border: 1px solid #FF00FF;
+            font-family: inherit; padding: 3px;
+            margin: 3px;
+        }
+        button {
+            background: linear-gradient(to bottom, #ff0000, #990000);
+            border: 2px outset #ffcccc;
+            color: white;
+            font-family: "Comic Sans MS", sans-serif;
+            font-weight: bold;
+            padding: 5px 12px;
+            cursor: pointer;
+        }
+        button:active { border-style: inset; }
+        table {
+            width: 100%;
+            border: 3px solid cyan;
+            background-color: black;
+            color: #FFFF00;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        th, td {
+            border: 1px dashed white;
+            padding: 6px;
+            text-align: center;
+        }
+        th { background: #000080; color: #00FF00; }
+        th[data-sort] { cursor: pointer; user-select: none; }
+        th[data-sort]:hover { background: #000040; }
+        tfoot td { font-weight: bold; color: #00FF00; background: #000040; }
+        small { color: #AAAAFF; }
+        .totals-box {
+            background: black;
+            border: 3px ridge #00FF00;
+            padding: 10px;
+            display: inline-block;
+            margin: 10px;
+        }
+        .badge {
+            display: inline-block;
+            font-size: 0.75em;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: 4px;
+            font-weight: bold;
+        }
+        .badge-gift   { background:#FF00FF; color:black; }
+        .badge-trade  { background:#00FFFF; color:black; }
+        .badge-pull   { background:#FFFF00; color:black; }
+        .badge-cat    { background:#000040; color:#AAAAFF; border:1px solid #AAAAFF; }
+        .badge-modified { background:#FFAA00; color:black; }
+        .badge-added   { background:#00FF00; color:black; }
+        #chart-container svg { display:block; margin:0 auto; max-width:100%; }
+        .chart-legend { text-align:center; font-size:0.85em; margin-top:6px; }
+        .chart-legend span { margin: 0 10px; }
+        tr.row-gift td { background-color: #200020; }
+        .notes-row td { background:#000020; color:#AAAAFF; font-size:0.8em; text-align:left; padding:8px 14px; border-top:none; }
+        .price-history { font-size:0.75em; color:#AAAAFF; margin-top:4px; }
+        .price-history table { width:auto; font-size:0.95em; display:inline-table; }
+        #gift-fields { display:none; padding-left:16px; border-left:2px solid #FF00FF; margin:6px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <marquee scrollamount="10" bgcolor="#000080" style="border:2px solid cyan; color:#FFFF00; font-weight:bold;">
+        ★ SEALED PORTFOLIO MANAGER ★ LOCAL JSON ★ TCGPLAYER CAN'T HIDE YOUR HISTORY HERE ★ SINGLETON RULES ★
+    </marquee>
+
+    <h1>Sealed Portfolio</h1>
+    <p><a href="../index.html">&larr; back to the sandbox</a></p>
+
+    <div class="box" style="border-color:#FF00FF; background:#200020; text-align:center;">
+        <strong style="color:#FF00FF;">⚠ Early testing version.</strong>
+        <span style="color:#FFFF00;">
+            This is Alex's personal sealed collectible ledger — singleton-only, TCG + figures + model kits, no plush.
+            Updates irregularly (only when Alex adds to his own collection). UX is rough and will be polished over time.
+            Feel free to look around; don't expect it to be a product.
+        </span>
+    </div>
+
+    <div class="totals-box">
+        Cost basis: <span id="total-cost">$0.00</span> |
+        Market (logged): <span id="total-market">$0.00</span> |
+        P/L: <span id="total-pl">$0.00</span>
+    </div>
+
+    <h2>Holdings</h2>
+    <div class="box">
+    <table>
+        <thead>
+        <tr>
+            <th data-sort="category">Cat</th>
+            <th data-sort="game">Game / IP</th>
+            <th data-sort="set">Set</th>
+            <th data-sort="product">Product</th>
+            <th data-sort="acquisition">Acq</th>
+            <th data-sort="msrp">MSRP</th>
+            <th data-sort="buy">Buy $</th>
+            <th data-sort="buydate">Date</th>
+            <th data-sort="spot">Latest Spot</th>
+            <th data-sort="cost">Cost Basis</th>
+            <th data-sort="market">Market Val</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="holdings-body"></tbody>
+    </table>
+    </div>
+
+    <h2>Portfolio Value Over Time</h2>
+    <div class="box">
+        <div id="chart-container"></div>
+        <p><small>Cost basis (cyan dashed) vs logged market value (green). One dot per price check across all holdings. Use the <em>+ price</em> button on a row to add points.</small></p>
+    </div>
+
+    <h2>Add Holding</h2>
+    <div class="box">
+    <form id="add-form">
+        <div><label>Product:</label>
+            <select id="catalog-select" required></select>
+        </div>
+        <div><label>Acquisition:</label>
+            <select id="acquisition">
+                <option value="purchase">Purchase</option>
+                <option value="gift">Gift</option>
+                <option value="trade">Trade</option>
+                <option value="pull">Pull / Promo</option>
+            </select>
+            <small>How you got it. Singleton enforced — qty 1 per SKU.</small>
+        </div>
+        <div><label>Qty:</label>
+            <input type="number" id="qty" min="1" value="1" required>
+        </div>
+        <div id="purchase-fields">
+            <div><label>Buy price:</label>
+                <input type="number" step="0.01" id="buy-price" placeholder="per unit">
+            </div>
+            <div><label>Buy date:</label>
+                <input type="date" id="buy-date">
+            </div>
+        </div>
+        <div id="gift-fields">
+            <div><label>From:</label>
+                <input type="text" id="gift-from" size="30" placeholder="name of giver">
+            </div>
+            <div><label>Received:</label>
+                <input type="date" id="gift-date">
+            </div>
+            <div><label>FMV at gift:</label>
+                <input type="number" step="0.01" id="gift-fmv" placeholder="market value when received">
+                <small>tracked separately. Cost basis stays $0.</small>
+            </div>
+        </div>
+        <div><label>Notes:</label>
+            <input type="text" id="notes" size="40">
+        </div>
+        <button type="submit">+ Add to Portfolio</button>
+    </form>
+    <p><small>Product missing from dropdown? Add it in the <em>Manage Catalog</em> section below.</small></p>
+    </div>
+
+    <h2>Manage Catalog</h2>
+    <div class="box">
+        <p><small>Catalog lives in <code>catalog.json</code> shipped with the site. Your edits overlay in browser-local storage. Click <em>Export catalog.json</em> to download the merged file — commit it to the repo to make edits permanent for everyone.</small></p>
+        <form id="catalog-form">
+            <input type="hidden" id="cat-id">
+            <div><label>Category:</label>
+                <select id="cat-category" required>
+                    <option value="tcg">TCG (cards)</option>
+                    <option value="figure">Figure</option>
+                    <option value="model-kit">Model Kit / Gunpla</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div><label>ID:</label>
+                <input type="text" id="cat-id-input" placeholder="e.g. mtg-afr-bundle" size="34" required>
+                <small>lowercase, dash-separated, unique</small>
+            </div>
+            <div><label>Game / IP:</label>
+                <input type="text" id="cat-game" placeholder="MTG / Pokemon / Sailor Moon / Gundam" size="28" required>
+            </div>
+            <div><label>Set:</label>
+                <input type="text" id="cat-set" size="40" required>
+            </div>
+            <div><label>Set code:</label>
+                <input type="text" id="cat-set-code" size="16">
+            </div>
+            <div><label>Product:</label>
+                <input type="text" id="cat-product" placeholder="Booster Box (36 packs)" size="40" required>
+            </div>
+            <div><label>MSRP:</label>
+                <input type="number" step="0.01" id="cat-msrp">
+            </div>
+            <div><label>Release:</label>
+                <input type="date" id="cat-release">
+            </div>
+            <div><label>Notes:</label>
+                <textarea id="cat-notes" rows="2" cols="60"></textarea>
+            </div>
+            <button type="submit" id="cat-submit">+ Add Product</button>
+            <button type="button" id="cat-cancel" style="display:none;">Cancel edit</button>
+        </form>
+        <h3 style="color:#FF00FF; margin-top:14px;">Current Catalog</h3>
+        <table id="catalog-table">
+            <thead><tr>
+                <th>Cat</th><th>ID</th><th>Game</th><th>Set</th><th>Product</th><th>MSRP</th><th>Source</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="catalog-body"></tbody>
+        </table>
+        <div style="margin-top:10px;">
+            <button id="cat-export-btn">Export catalog.json</button>
+            <button id="cat-reset-btn" type="button">Reset overlay (discard local edits)</button>
+        </div>
+    </div>
+
+    <h2>Backup / Restore</h2>
+    <div class="box">
+        <button id="export-btn">Export JSON</button>
+        <label>Import: <input type="file" id="import-file" accept="application/json"></label>
+        <p><small>Portfolio lives in browser localStorage. Export often. Import replaces current data.</small></p>
+    </div>
+
+    <p style="font-size:0.8em; margin-top:30px;">&copy; 1999-2026 DiamondLegendz. Your data. Your JSON. Your rules.</p>
+</div>
+<script src="portfolio.js"></script>
+</body>
+</html>

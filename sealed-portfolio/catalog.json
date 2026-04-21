@@ -1,0 +1,125 @@
+{
+  "products": [
+    {
+      "id": "mtg-afr-collector-hanger",
+      "category": "tcg",
+      "game": "MTG",
+      "set": "Adventures in the Forgotten Realms",
+      "set_code": "AFR",
+      "product_type": "Collector Booster Hanger Pack (single)",
+      "msrp": 26.99,
+      "release_date": "2021-07-23",
+      "notes": "Retail hanger-pack format (Target/Walmart). Single Collector Booster per pack."
+    },
+    {
+      "id": "mtg-afr-bundle",
+      "category": "tcg",
+      "game": "MTG",
+      "set": "Adventures in the Forgotten Realms",
+      "set_code": "AFR",
+      "product_type": "Bundle (10 draft boosters)",
+      "msrp": 39.99,
+      "release_date": "2021-07-23",
+      "notes": "D&D crossover set. Bundle: 10 draft boosters + oversized Spindown d20 + 40 basic lands + foil promo."
+    },
+    {
+      "id": "mtg-znr-set-box",
+      "category": "tcg",
+      "game": "MTG",
+      "set": "Zendikar Rising",
+      "set_code": "ZNR",
+      "product_type": "Set Booster Box (30 packs)",
+      "msrp": 139.99,
+      "release_date": "2020-09-25",
+      "notes": "First-ever Set Booster product (ZNR debuted the line). 30 packs/box, 12 cards/pack."
+    },
+    {
+      "id": "pkm-swsh9-etb",
+      "category": "tcg",
+      "game": "Pokemon",
+      "set": "Brilliant Stars",
+      "set_code": "SWSH9",
+      "product_type": "Elite Trainer Box",
+      "msrp": 44.99,
+      "release_date": "2022-02-25",
+      "notes": "10 booster packs, 65 sleeves, dice, coin, Arceus V promo"
+    },
+    {
+      "id": "pkm-fall2022-collector-chest",
+      "category": "tcg",
+      "game": "Pokemon",
+      "set": "Fall 2022 Collector Chest",
+      "set_code": "CHEST-F22",
+      "product_type": "Collector Chest Tin",
+      "msrp": 24.99,
+      "release_date": "2022-09-16",
+      "notes": "Iconic lid art: Hisuian Growlithe, Sneasel, Voltorb (Legends Arceus crossover). Packaging shows 2+2+1 pack layout. Pink vertical stripe = Fusion Strike (SWSH8). Round blue border = likely Astral Radiance (SWSH10) or Lost Origin (SWSH11). Fifth pack unknown."
+    },
+    {
+      "id": "ws-bd-we35-eb",
+      "category": "tcg",
+      "game": "Weiss Schwarz",
+      "set": "Bang Dream! Extra Booster — Poppin'Party x Roselia",
+      "set_code": "BD/WE35",
+      "product_type": "Extra Booster Box (6 packs)",
+      "msrp": 39.99,
+      "release_date": null,
+      "notes": "English edition. 6 packs/box, 6 cards/pack."
+    },
+    {
+      "id": "ws-bd-we34-eb",
+      "category": "tcg",
+      "game": "Weiss Schwarz",
+      "set": "Bang Dream! Extra Booster — Morfonica x Raise A Suilen",
+      "set_code": "BD/WE34",
+      "product_type": "Extra Booster Box (6 packs)",
+      "msrp": 39.99,
+      "release_date": null,
+      "notes": "English edition. 6 packs/box, 6 cards/pack."
+    },
+    {
+      "id": "ws-ccs-supply-set-en",
+      "category": "tcg",
+      "game": "Weiss Schwarz",
+      "set": "Cardcaptor Sakura: Clear Card",
+      "set_code": "CCS-SS-EN",
+      "product_type": "Supply Set English Edition (5 packs + sleeves + deck case)",
+      "msrp": 49.99,
+      "release_date": null,
+      "notes": "English edition. Contains 5 booster packs + sleeves + deck case (no playmat). Single pack comp ~$14.74 (low volume) = $73.70 in packs alone, plus supplies → $90-120 realistic floor. ILLIQUID — thin secondary market. $500 eBay listing is anchor, not true comp. Hammergirl preorder = near-release comp."
+    },
+    {
+      "id": "ws-knk-we30-1stedition",
+      "category": "tcg",
+      "game": "Weiss Schwarz",
+      "set": "Rent-A-Girlfriend",
+      "set_code": "KNK/WE30",
+      "product_type": "Booster Box 1st Edition (16 packs)",
+      "msrp": 79.99,
+      "release_date": "2022-02-25",
+      "notes": "English edition. 16 packs/box, 9 cards/pack. 1st Edition print run. Wholesale (Potomac) ~$62."
+    },
+    {
+      "id": "ws-bd-we32-premium",
+      "category": "tcg",
+      "game": "Weiss Schwarz",
+      "set": "Bang Dream! Premium Booster — Girls Band Party!",
+      "set_code": "BD/WE32",
+      "product_type": "Premium Booster Box (7 packs)",
+      "msrp": 69.99,
+      "release_date": null,
+      "notes": "English edition. 7 packs/box, 7 cards/pack, all-foil high-rarity."
+    },
+    {
+      "id": "fig-tamashii-buddies-sailor-mercury",
+      "category": "figure",
+      "game": "Sailor Moon",
+      "set": "Tamashii Buddies — Pretty Guardian Sailor Moon",
+      "set_code": "BAN92039",
+      "product_type": "Tamashii Buddies Figure (90mm PVC/ABS)",
+      "msrp": 13.00,
+      "release_date": "2015-05-18",
+      "notes": "Bandai Tamashii Nations. ¥1,500 ex-tax / ¥1,650 inc-tax (~$12-14 USD at 2015 FX). 90mm figure with pedestal + background frame set. Budget-tier Bandai line displaced by Figuarts Mini. Weak secondary — not limited, not chase. Line ran 2013-2017."
+    }
+  ]
+}
