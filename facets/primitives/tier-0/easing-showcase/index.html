@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — easing-showcase</title>
+<!--
+facet:
+  id: easing-showcase
+  tier: 0
+  title: Easing Showcase
+  description: Same motion, six different easing functions side by side.
+  tags: [easing, comparison]
+  apis: [animate]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); display: flex; flex-direction: column; gap: 14px; padding: 20px; box-sizing: border-box; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .label { width: 110px; font-size: 11px; color: #8a8aa0; text-align: right; }
+  .track { flex: 1; height: 20px; position: relative; overflow: hidden; }
+  .track::after { content: ''; position: absolute; left: 75%; top: 0; bottom: 0; width: 1px; background: rgba(126, 242, 195, 0.25); }
+  .dot { width: 20px; height: 20px; border-radius: 50%; background: #7ef2c3; position: absolute; left: 0; top: 0; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script type="module">
+import { animate } from '../../../vendor/anime.esm.min.js';
+
+const EASES = ['linear', 'inQuad', 'outQuad', 'inOutQuad', 'outBounce', 'outElastic(1, 0.3)'];
+const stage = document.getElementById('stage');
+
+const rows = EASES.map(ease => {
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML = `<span class="label">${ease}</span><div class="track"><div class="dot"></div></div>`;
+  stage.appendChild(row);
+  return { row, ease };
+});
+
+requestAnimationFrame(() => {
+  for (const { row, ease } of rows) {
+    const travel = row.querySelector('.track').offsetWidth * 0.75 - 20;
+    animate(row.querySelector('.dot'), {
+      x: [0, travel],
+      ease,
+      duration: 1800,
+      loop: true,
+      alternate: true,
+    });
+  }
+});
+</script>
+</body>
+</html>

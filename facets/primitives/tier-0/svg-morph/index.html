@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — svg-morph</title>
+<!--
+facet:
+  id: svg-morph
+  tier: 0
+  title: SVG Morph
+  description: One path cycles through five shapes. Circle, triangle, square, pentagon, hexagon.
+  tags: [svg, path, morph]
+  apis: [animate, createTimeline, morphTo]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+  svg { width: 60%; height: 60%; }
+  .shape { fill: #7ef2c3; }
+  svg path:not(.shape) { display: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg viewBox="0 0 200 200">
+    <path class="shape"      d="M 100 40 C 133.14 40 160 66.86 160 100 C 160 133.14 133.14 160 100 160 C 66.86 160 40 133.14 40 100 C 40 66.86 66.86 40 100 40 Z"/>
+    <path class="t-triangle" d="M 100 40 L 160 160 L 40 160 Z"/>
+    <path class="t-square"   d="M 50 50 L 150 50 L 150 150 L 50 150 Z"/>
+    <path class="t-pentagon" d="M 100 40 L 157 82 L 135 149 L 65 149 L 43 82 Z"/>
+    <path class="t-hexagon"  d="M 100 40 L 152 70 L 152 130 L 100 160 L 48 130 L 48 70 Z"/>
+    <path class="t-circle"   d="M 100 40 C 133.14 40 160 66.86 160 100 C 160 133.14 133.14 160 100 160 C 66.86 160 40 133.14 40 100 C 40 66.86 66.86 40 100 40 Z"/>
+  </svg>
+</div>
+<script type="module">
+import { createTimeline, morphTo } from '../../../vendor/anime.esm.min.js';
+
+createTimeline({ loop: true, defaults: { duration: 900 } })
+  .add('.shape', { d: morphTo('.t-triangle') })
+  .add('.shape', { d: morphTo('.t-square') })
+  .add('.shape', { d: morphTo('.t-pentagon') })
+  .add('.shape', { d: morphTo('.t-hexagon') })
+  .add('.shape', { d: morphTo('.t-circle') });
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — stagger-grid</title>
+<!--
+facet:
+  id: stagger-grid
+  tier: 0
+  title: Stagger Grid
+  description: N×M cells, delay staggered outward from center.
+  tags: [stagger, grid, 2d]
+  apis: [animate, stagger]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+  .grid { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 6px; }
+  .cell { width: 18px; height: 18px; background: #7ef2c3; }
+</style>
+</head>
+<body>
+<div id="stage"><div class="grid" id="grid"></div></div>
+<script type="module">
+import { animate, stagger } from '../../../vendor/anime.esm.min.js';
+
+const COLS = 8;
+const ROWS = 8;
+const grid = document.getElementById('grid');
+grid.style.setProperty('--cols', COLS);
+for (let i = 0; i < COLS * ROWS; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: 'cell' }));
+
+animate('.cell', {
+  scale: [1, 0.2],
+  delay: stagger(60, { grid: [COLS, ROWS], from: 'center' }),
+  duration: 600,
+  loop: true,
+  alternate: true,
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — timeline-sequence</title>
+<!--
+facet:
+  id: timeline-sequence
+  tier: 0
+  title: Timeline Sequence
+  description: Three chained steps. Translate, rotate, scale — one after the next.
+  tags: [timeline, sequence]
+  apis: [createTimeline]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+  .box { width: 60px; height: 60px; background: #7ef2c3; }
+</style>
+</head>
+<body>
+<div id="stage"><div class="box"></div></div>
+<script type="module">
+import { createTimeline } from '../../../vendor/anime.esm.min.js';
+
+createTimeline({ loop: true, alternate: true })
+  .add('.box', { x: 100, duration: 500 })
+  .add('.box', { rotate: 360, duration: 500 })
+  .add('.box', { scale: 1.6, duration: 500 });
+</script>
+</body>
+</html>

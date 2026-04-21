@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — scroll-scrub</title>
+<!--
+facet:
+  id: scroll-scrub
+  tier: 0
+  title: Scroll Scrub
+  description: Animation progress is tied to scroll position. Scroll up reverses it.
+  tags: [scroll, scrub]
+  apis: [animate, onScroll]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, monospace; }
+  .spacer { height: 60vh; display: grid; place-items: center; color: #6a6a85; font-size: 12px; }
+  .target { height: 200vh; position: relative; }
+  .box { width: 100px; height: 100px; background: #7ef2c3; position: sticky; top: 40vh; margin: 0 auto; }
+</style>
+</head>
+<body>
+<div class="spacer">↓ scroll to scrub ↓</div>
+<div class="target">
+  <div class="box"></div>
+</div>
+<script type="module">
+import { animate, onScroll } from '../../../vendor/anime.esm.min.js';
+
+animate('.box', {
+  rotate: 360,
+  scale: [1, 2],
+  autoplay: onScroll({ sync: true, target: '.target', enter: 'top top', leave: 'bottom bottom' }),
+});
+</script>
+</body>
+</html>

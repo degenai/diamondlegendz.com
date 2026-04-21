@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — svg-draw</title>
+<!--
+facet:
+  id: svg-draw
+  tier: 0
+  title: SVG Draw
+  description: Line drawing along an SVG path via stroke-dasharray.
+  tags: [svg, path, draw]
+  apis: [animate, createDrawable]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+  svg { width: 70%; height: 70%; }
+  .line { stroke: #7ef2c3; stroke-width: 3; fill: none; stroke-linecap: round; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg viewBox="0 0 200 200">
+    <path class="line" d="M 20 180 Q 100 10 180 180"/>
+  </svg>
+</div>
+<script type="module">
+import { animate, createDrawable } from '../../../vendor/anime.esm.min.js';
+
+const [drawable] = createDrawable('.line');
+animate(drawable, {
+  draw: ['0 0', '0 1'],
+  duration: 1800,
+  loop: true,
+  alternate: true,
+});
+</script>
+</body>
+</html>

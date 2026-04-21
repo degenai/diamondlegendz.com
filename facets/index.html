@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facets — Animation Primitive Library</title>
+<style>
+  html, body { margin: 0; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  body { padding: 40px 24px 80px; }
+  header { max-width: 1100px; margin: 0 auto 32px; }
+  h1 { margin: 0 0 8px; font-size: 28px; color: #e0f4ff; letter-spacing: 0.5px; }
+  header p { margin: 0; color: #8a8aa0; font-size: 14px; }
+  header a { color: #7ef2c3; text-decoration: none; }
+  header a:hover { text-decoration: underline; }
+
+  .grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .card { background: #12121a; border: 1px solid #1f1f2e; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+  .card iframe { width: 100%; aspect-ratio: 1 / 1; border: 0; display: block; background: #0a0a0f; }
+  .card .meta { padding: 14px 16px; border-top: 1px solid #1f1f2e; }
+  .card .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .card h2 { margin: 0; font-size: 15px; color: #e0f4ff; font-weight: 600; }
+  .card .tier { font-size: 11px; color: #7ef2c3; }
+  .card p { margin: 6px 0 10px; font-size: 12px; line-height: 1.5; color: #a0a0b8; }
+  .card .apis { font-size: 10px; color: #6a6a85; text-transform: uppercase; letter-spacing: 0.8px; }
+  .card a.open { font-size: 11px; color: #7ef2c3; text-decoration: none; float: right; }
+  .card a.open:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Facets — Animation Primitive Library</h1>
+  <p>Minimal anime.js v4 sketches. One idea per file. <a href="../index.html">← back to Diamondlegendz</a></p>
+</header>
+
+<main class="grid" id="grid"></main>
+
+<script type="module">
+const PRIMITIVES = [
+  { id: 'translate-basic',   tier: 0, title: 'Translate Basic',   desc: 'One element slides left and right.',                             apis: 'animate' },
+  { id: 'rotate-basic',      tier: 0, title: 'Rotate Basic',      desc: 'One element spins 360°.',                                        apis: 'animate' },
+  { id: 'scale-basic',       tier: 0, title: 'Scale Basic',       desc: 'One element pulses bigger and smaller.',                         apis: 'animate' },
+  { id: 'stagger-line',      tier: 0, title: 'Stagger Line',      desc: 'N bars in a row, each delayed by a fixed offset.',               apis: 'animate, stagger' },
+  { id: 'stagger-grid',      tier: 0, title: 'Stagger Grid',      desc: 'N×M cells, delay staggered outward from center.',                apis: 'animate, stagger' },
+  { id: 'timeline-sequence', tier: 0, title: 'Timeline Sequence', desc: 'Three chained steps. Translate, rotate, scale in sequence.',     apis: 'createTimeline' },
+  { id: 'svg-draw',          tier: 0, title: 'SVG Draw',          desc: 'Line drawing along an SVG path via stroke-dasharray.',           apis: 'createDrawable' },
+  { id: 'svg-morph',         tier: 0, title: 'SVG Morph',         desc: 'One path cycles through five shapes. Circle → triangle → square → pentagon → hexagon.', apis: 'createTimeline, morphTo' },
+  { id: 'svg-motionpath',    tier: 0, title: 'SVG Motion Path',   desc: 'A dot follows an SVG path.',                                     apis: 'createMotionPath' },
+  { id: 'draggable-basic',   tier: 0, title: 'Draggable Basic',   desc: 'Pointer-draggable within the stage. Releases with inertia.',     apis: 'createDraggable' },
+  { id: 'scroll-reveal',     tier: 0, title: 'Scroll Reveal',     desc: 'Element fades in when scrolled into view, reverses when scrolled out.', apis: 'animate, IntersectionObserver' },
+  { id: 'scroll-scrub',      tier: 0, title: 'Scroll Scrub',      desc: 'Animation progress tied to scroll position. Scroll up reverses.',apis: 'onScroll' },
+  { id: 'spring-physics',    tier: 0, title: 'Spring Physics',    desc: 'Motion driven by spring solver — stiffness and damping.',        apis: 'createSpring' },
+  { id: 'easing-showcase',   tier: 0, title: 'Easing Showcase',   desc: 'Same motion, six different easing functions side by side.',      apis: 'animate' },
+  { id: 'opacity-basic',     tier: 0, title: 'Opacity Basic',     desc: 'Pure fade. Opacity 0 → 1 and back.',                             apis: 'animate' },
+  { id: 'color-basic',       tier: 0, title: 'Color Basic',       desc: 'Color property interpolation. Background cycles between hues.',  apis: 'animate' },
+  { id: 'keyframes-basic',   tier: 0, title: 'Keyframes Basic',   desc: 'Multi-step values. Array of stops in one prop.',                 apis: 'animate' },
+  { id: 'splittext-basic',   tier: 0, title: 'SplitText Basic',   desc: 'Split text into per-letter spans. Animate each letter.',         apis: 'utils.splitText, animate, stagger' },
+  { id: 'waapi-basic',       tier: 0, title: 'WAAPI Basic',       desc: 'Web Animations API bridge. Browser-native rendering.',           apis: 'animateWeb' },
+  { id: 'scope-basic',       tier: 0, title: 'Scope Basic',       desc: 'Scoped animations with cleanup. createScope + revert.',          apis: 'createScope' },
+  { id: 'utils-set',         tier: 0, title: 'Utils Set',         desc: 'Instant state change. No animation, just writes values.',        apis: 'utils.set' },
+  { id: 'skew-basic',        tier: 0, title: 'Skew Basic',        desc: 'One element tilts with skewX.',                                  apis: 'animate' },
+  { id: 'relative-values',   tier: 0, title: 'Relative Values',   desc: "Additive syntax. x: '+=50' nudges from current value.",          apis: 'animate' },
+  { id: 'function-values',   tier: 0, title: 'Function Values',   desc: 'Per-target values from a function. delay: (el, i) => i * 100.',  apis: 'animate' },
+];
+
+const grid = document.getElementById('grid');
+for (const p of PRIMITIVES) {
+  const url = `primitives/tier-${p.tier}/${p.id}/`;
+  const card = document.createElement('article');
+  card.className = 'card';
+  card.innerHTML = `
+    <iframe src="${url}" loading="lazy" title="${p.id}"></iframe>
+    <div class="meta">
+      <div class="row">
+        <h2>${p.id}</h2>
+        <span class="tier">tier ${p.tier}</span>
+      </div>
+      <p>${p.desc}</p>
+      <span class="apis">${p.apis}</span>
+      <a class="open" href="${url}" target="_blank">open →</a>
+    </div>`;
+  grid.appendChild(card);
+}
+</script>
+</body>
+</html>

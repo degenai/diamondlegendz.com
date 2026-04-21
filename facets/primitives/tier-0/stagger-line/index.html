@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — stagger-line</title>
+<!--
+facet:
+  id: stagger-line
+  tier: 0
+  title: Stagger Line
+  description: N bars in a row. Each delayed by a fixed offset.
+  tags: [stagger, array]
+  apis: [animate, stagger]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; gap: 8px; }
+  .bar { width: 14px; height: 60px; background: #7ef2c3; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script type="module">
+import { animate, stagger } from '../../../vendor/anime.esm.min.js';
+
+const COUNT = 10;
+const stage = document.getElementById('stage');
+for (let i = 0; i < COUNT; i++) stage.appendChild(Object.assign(document.createElement('div'), { className: 'bar' }));
+
+animate('.bar', {
+  y: [0, -50],
+  delay: stagger(80),
+  duration: 600,
+  loop: true,
+  alternate: true,
+});
+</script>
+</body>
+</html>

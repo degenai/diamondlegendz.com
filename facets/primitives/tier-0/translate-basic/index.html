@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — translate-basic</title>
+<!--
+facet:
+  id: translate-basic
+  tier: 0
+  title: Translate Basic
+  description: One element slides left and right. CSS transform translateX.
+  tags: [translate, transform]
+  apis: [animate]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+  .box { width: 80px; height: 40px; background: #7ef2c3; }
+</style>
+</head>
+<body>
+<div id="stage"><div class="box"></div></div>
+<script type="module">
+import { animate } from '../../../vendor/anime.esm.min.js';
+
+const RANGE = 100;
+
+animate('.box', {
+  x: [-RANGE, RANGE],
+  duration: 1600,
+  loop: true,
+  alternate: true,
+});
+</script>
+</body>
+</html>

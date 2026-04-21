@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — svg-motionpath</title>
+<!--
+facet:
+  id: svg-motionpath
+  tier: 0
+  title: SVG Motion Path
+  description: A dot follows an SVG path. Position and rotation tied to path.
+  tags: [svg, path, motion]
+  apis: [animate, createMotionPath]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
+  body { display: grid; place-items: center; }
+  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+  svg { width: 70%; height: 70%; }
+  .track { stroke: #1f1f2e; stroke-width: 2; fill: none; stroke-dasharray: 4 4; }
+  .dot { fill: #7ef2c3; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg viewBox="0 0 200 200">
+    <path class="track" d="M 30 100 C 30 30, 170 30, 170 100 S 30 170, 30 100 Z"/>
+    <circle class="dot" r="8"/>
+  </svg>
+</div>
+<script type="module">
+import { animate, createMotionPath } from '../../../vendor/anime.esm.min.js';
+
+animate('.dot', {
+  ...createMotionPath('.track'),
+  duration: 3000,
+  loop: true,
+  ease: 'linear',
+});
+</script>
+</body>
+</html>

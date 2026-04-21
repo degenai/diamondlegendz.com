@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — scroll-reveal</title>
+<!--
+facet:
+  id: scroll-reveal
+  tier: 0
+  title: Scroll Reveal
+  description: Element fades and slides up when it scrolls into view. Reverses when it scrolls out.
+  tags: [scroll, reveal]
+  apis: [animate, IntersectionObserver]
+  parents: []
+-->
+<style>
+  html, body { margin: 0; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, monospace; }
+  .spacer { height: 120vh; display: grid; place-items: center; color: #6a6a85; font-size: 12px; }
+  .box { width: 120px; height: 120px; background: #7ef2c3; margin: 0 auto; opacity: 0; }
+  .bottom { height: 80vh; }
+</style>
+</head>
+<body>
+<div class="spacer">↓ scroll down ↓</div>
+<div class="box"></div>
+<div class="bottom"></div>
+<script type="module">
+import { animate } from '../../../vendor/anime.esm.min.js';
+
+const box = document.querySelector('.box');
+const anim = animate(box, {
+  y: [60, 0],
+  opacity: [0, 1],
+  duration: 900,
+  autoplay: false,
+});
+
+new IntersectionObserver(([e]) => {
+  if (e.isIntersecting) anim.play();
+  else anim.reverse();
+}, { threshold: 0.15 }).observe(box);
+</script>
+</body>
+</html>

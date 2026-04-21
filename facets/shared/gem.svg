@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="gem" viewBox="-60 -60 120 120" overflow="visible">
+    <polygon points="-25,-34 25,-34 50,-14 0,56 -50,-14" fill="var(--gem-body, #e0f4ff)"/>
+    <path d="M-25,-34 L0,56 M25,-34 L0,56 M-25,-34 L50,-14 M25,-34 L-50,-14"
+          stroke="var(--gem-facets, rgba(10,10,15,0.20))" stroke-width="1.5" fill="none"/>
+  </symbol>
+</svg>
