@@ -92,9 +92,11 @@ const args = parseArgs(process.argv.slice(2));
 
 function readCommits(range) {
   const fmt = ['%H', '%aI', '%an', '%ae', '%P', '%B'].join('%x1f') + '%x1e';
+  // No `-- .` path filter: git silently drops empty commits when any path
+  // filter is present, and empty --allow-empty commits (e.g. workflow
+  // bootstraps) are legitimately feed-worthy.
   const gitArgs = ['log', '--no-merges', '--reverse', `--format=${fmt}`];
   if (range) gitArgs.push(range);
-  gitArgs.push('--', '.');
 
   let raw;
   try {
