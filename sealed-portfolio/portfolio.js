@@ -1,5 +1,8 @@
 const STORAGE_KEY = 'dlz_sealed_portfolio_v1';
 const CATALOG_OVERLAY_KEY = 'dlz_catalog_overlay_v1';
+const SCHEMA_VERSION = 2;
+
+const SELL_VENUES = ['lgs', 'ebay', 'tcgplayer', 'reddit', 'discord', 'whatnot', 'show', 'direct', 'trade-out', 'other'];
 
 let baselineCatalog = { products: [] };
 let catalogOverlay = { added: [], modified: {}, deleted: [] };
@@ -64,6 +67,18 @@ function loadPortfolio() {
     try { portfolio = JSON.parse(raw); } catch { portfolio = { holdings: [] }; }
   }
   if (!portfolio.holdings) portfolio.holdings = [];
+  migratePortfolio();
+}
+
+function migratePortfolio() {
+  // Schema v1 → v2: holdings gain a `status` field; portfolio gains schema_version.
+  // Unknown fields on holdings are preserved untouched.
+  if (!portfolio.schema_version || portfolio.schema_version < 2) {
+    portfolio.schema_version = SCHEMA_VERSION;
+  }
+  for (const h of portfolio.holdings) {
+    if (!h.status) h.status = 'held';
+  }
 }
 
 function savePortfolio() {
@@ -97,7 +112,9 @@ function categoryLabel(c) {
 // ---------- sort ----------
 
 function sortedHoldings() {
-  const indexed = portfolio.holdings.map((h, i) => ({ h, i, p: productById(h.catalog_id) || { category:'?', game:'?', set:'?', product_type:'?', msrp:null } }));
+  const indexed = portfolio.holdings
+    .map((h, i) => ({ h, i, p: productById(h.catalog_id) || { category:'?', game:'?', set:'?', product_type:'?', msrp:null } }))
+    .filter(row => row.h.status !== 'sold');
   if (!sortState.col || !SORT_COLS[sortState.col]) return indexed;
   const cfg = SORT_COLS[sortState.col];
   const dir = sortState.dir;
@@ -138,14 +155,14 @@ function updateSortIndicators() {
 
 function renderCatalogOptions() {
   const sel = document.getElementById('catalog-select');
-  const ownedIds = new Set(portfolio.holdings.map(h => h.catalog_id));
+  const heldIds = new Set(portfolio.holdings.filter(h => h.status !== 'sold').map(h => h.catalog_id));
   sel.innerHTML = '<option value="">-- select product --</option>';
   for (const p of catalog.products) {
     const opt = document.createElement('option');
     opt.value = p.id;
-    const owned = ownedIds.has(p.id) ? ' [already owned]' : '';
+    const owned = heldIds.has(p.id) ? ' [currently held]' : '';
     opt.textContent = `[${categoryLabel(p.category)}] ${p.game} — ${p.set} ${p.product_type}${owned}`;
-    if (ownedIds.has(p.id)) opt.disabled = true;
+    if (heldIds.has(p.id)) opt.disabled = true;
     sel.appendChild(opt);
   }
 }
@@ -166,7 +183,6 @@ function escapeHtml(s) {
 function renderTable() {
   const tbody = document.getElementById('holdings-body');
   tbody.innerHTML = '';
-  let totalCost = 0, totalMarket = 0;
 
   for (const row of sortedHoldings()) {
     const h = row.h, p = row.p, i = row.i;
@@ -174,8 +190,6 @@ function renderTable() {
     const spotVal = spot ? spot.price : null;
     const costBasis = (h.buy_price || 0) * (h.qty || 1);
     const marketVal = (spotVal || 0) * (h.qty || 1);
-    totalCost += costBasis;
-    if (spotVal != null) totalMarket += marketVal;
 
     const isGift = h.acquisition === 'gift';
     const dateDisplay = h.buy_date || h.gift_date || '-';
@@ -197,6 +211,7 @@ function renderTable() {
       <td>
         <button data-idx="${i}" class="btn-price">+ price</button>
         <button data-idx="${i}" class="btn-history">history</button>
+        <button data-idx="${i}" class="btn-sell">sell</button>
         <button data-idx="${i}" class="btn-del">x</button>
       </td>
     `;
@@ -214,15 +229,170 @@ function renderTable() {
 
   updateSortIndicators();
 
-  document.getElementById('total-cost').textContent = fmtMoney(totalCost);
-  document.getElementById('total-market').textContent = fmtMoney(totalMarket);
-  document.getElementById('total-pl').textContent = fmtMoney(totalMarket - totalCost);
-
   tbody.querySelectorAll('.btn-del').forEach(b => b.addEventListener('click', onDelete));
   tbody.querySelectorAll('.btn-price').forEach(b => b.addEventListener('click', onAddPrice));
   tbody.querySelectorAll('.btn-history').forEach(b => b.addEventListener('click', onToggleHistory));
+  tbody.querySelectorAll('.btn-sell').forEach(b => b.addEventListener('click', onToggleSellForm));
 
+  renderClosedTable();
+  renderTotals();
   renderChart();
+}
+
+function renderTotals() {
+  let heldCost = 0, heldMarket = 0;
+  let closedCost = 0, closedGross = 0, closedFees = 0;
+
+  for (const h of portfolio.holdings) {
+    const qty = h.qty || 1;
+    const cost = (h.buy_price || 0) * qty;
+    if (h.status === 'sold') {
+      closedCost += cost;
+      closedGross += (h.sell_price || 0) * qty;
+      closedFees += (h.sell_fees || 0);
+    } else {
+      heldCost += cost;
+      const spot = latestPrice(h);
+      if (spot) heldMarket += spot.price * qty;
+    }
+  }
+  const closedNet = closedGross - closedFees;
+  const realized = closedNet - closedCost;
+  const unrealized = heldMarket - heldCost;
+
+  document.getElementById('total-cost').textContent = fmtMoney(heldCost);
+  document.getElementById('total-market').textContent = fmtMoney(heldMarket);
+  document.getElementById('total-pl').textContent = fmtMoney(unrealized);
+  document.getElementById('closed-cost').textContent = fmtMoney(closedCost);
+  document.getElementById('closed-net').textContent = fmtMoney(closedNet);
+  document.getElementById('closed-pl').textContent = fmtMoney(realized);
+  document.getElementById('lifetime-pl').textContent = fmtMoney(unrealized + realized);
+}
+
+function renderClosedTable() {
+  const tbody = document.getElementById('closed-body');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  const closed = portfolio.holdings
+    .map((h, i) => ({ h, i, p: productById(h.catalog_id) || { category:'?', game:'?', product_type:'?' } }))
+    .filter(r => r.h.status === 'sold')
+    .sort((a, b) => String(b.h.sell_date || '').localeCompare(String(a.h.sell_date || '')));
+
+  for (const row of closed) {
+    const h = row.h, p = row.p, i = row.i;
+    const qty = h.qty || 1;
+    const cost = (h.buy_price || 0) * qty;
+    const gross = (h.sell_price || 0) * qty;
+    const fees = h.sell_fees || 0;
+    const net = gross - fees;
+    const realized = net - cost;
+    const plColor = realized >= 0 ? '#00FF00' : '#FF5555';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${categoryLabel(p.category)}</td>
+      <td>${escapeHtml(p.game)}</td>
+      <td>${escapeHtml(p.product_type)} <small>${escapeHtml(p.set_code || '')}</small></td>
+      <td>${acquisitionBadge(h) || '<small>—</small>'}</td>
+      <td>${fmtMoney(cost)}</td>
+      <td>${h.sell_date || '-'}</td>
+      <td><small>${escapeHtml(h.sell_venue || '-')}</small></td>
+      <td>${fmtMoney(gross)}</td>
+      <td>${fmtMoney(fees)}</td>
+      <td>${fmtMoney(net)}</td>
+      <td style="color:${plColor}; font-weight:bold;">${fmtMoney(realized)}</td>
+      <td>
+        <button data-idx="${i}" class="btn-unsell">unsell</button>
+        <button data-idx="${i}" class="btn-del">x</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    if (h.sell_notes) {
+      const noteTr = document.createElement('tr');
+      noteTr.className = 'notes-row';
+      noteTr.innerHTML = `<td colspan="12"><strong>Sell notes:</strong> ${escapeHtml(h.sell_notes)}</td>`;
+      tbody.appendChild(noteTr);
+    }
+  }
+  tbody.querySelectorAll('.btn-unsell').forEach(b => b.addEventListener('click', onUnsell));
+  tbody.querySelectorAll('.btn-del').forEach(b => b.addEventListener('click', onDelete));
+}
+
+function onToggleSellForm(e) {
+  const i = +e.target.dataset.idx;
+  const rowAbove = e.target.closest('tr');
+  const existing = document.querySelector(`tr.sell-form-row[data-holding-idx="${i}"]`);
+  if (existing) { existing.remove(); return; }
+
+  const today = new Date().toISOString().slice(0,10);
+  const venueOptions = SELL_VENUES.map(v => `<option value="${v}">${v}</option>`).join('');
+  const formRow = document.createElement('tr');
+  formRow.className = 'sell-form-row';
+  formRow.dataset.holdingIdx = i;
+  formRow.innerHTML = `
+    <td colspan="12" style="text-align:left; background:#002020; padding:10px;">
+      <form class="sell-form-inline">
+        <strong style="color:#FF00FF;">Mark as Sold</strong><br>
+        <label>Sell date:</label>
+        <input type="date" name="sell_date" value="${today}" required>
+        <label>Sell $ (per unit):</label>
+        <input type="number" step="0.01" name="sell_price" required>
+        <label>Venue:</label>
+        <select name="sell_venue">${venueOptions}</select>
+        <label>Fees + ship:</label>
+        <input type="number" step="0.01" name="sell_fees" value="0">
+        <br>
+        <label>Notes:</label>
+        <input type="text" name="sell_notes" size="50" placeholder="buyer, condition at sale, anything else">
+        <br>
+        <button type="submit" style="margin-top:6px;">Confirm Sale</button>
+        <button type="button" class="cancel-sell">Cancel</button>
+      </form>
+    </td>
+  `;
+  rowAbove.after(formRow);
+  formRow.querySelector('.sell-form-inline').addEventListener('submit', ev => onSellSubmit(ev, i));
+  formRow.querySelector('.cancel-sell').addEventListener('click', () => formRow.remove());
+}
+
+function onSellSubmit(e, i) {
+  e.preventDefault();
+  const form = e.target;
+  const fd = new FormData(form);
+  const h = portfolio.holdings[i];
+  if (!h) return;
+  h.status = 'sold';
+  h.sell_date = fd.get('sell_date') || null;
+  h.sell_price = parseFloat(fd.get('sell_price'));
+  h.sell_venue = fd.get('sell_venue') || 'other';
+  const fees = parseFloat(fd.get('sell_fees'));
+  h.sell_fees = isNaN(fees) ? 0 : fees;
+  h.sell_notes = fd.get('sell_notes') || '';
+  savePortfolio();
+  renderTable();
+  renderCatalogOptions();
+}
+
+function onUnsell(e) {
+  const i = +e.target.dataset.idx;
+  const h = portfolio.holdings[i];
+  if (!h) return;
+  const dupeHeld = portfolio.holdings.some((other, j) => j !== i && other.catalog_id === h.catalog_id && other.status !== 'sold');
+  if (dupeHeld) {
+    alert('Cannot unsell — you already hold this SKU again. Delete the held record first, or delete this closed one.');
+    return;
+  }
+  if (!confirm('Revert this position to Held? Sell details will be cleared.')) return;
+  h.status = 'held';
+  delete h.sell_date;
+  delete h.sell_price;
+  delete h.sell_venue;
+  delete h.sell_fees;
+  delete h.sell_notes;
+  savePortfolio();
+  renderTable();
+  renderCatalogOptions();
 }
 
 function renderNotesAndHistory(h) {
@@ -281,8 +451,8 @@ function onAddHolding(e) {
   e.preventDefault();
   const id = document.getElementById('catalog-select').value;
   if (!id) { alert('pick a product'); return; }
-  if (portfolio.holdings.some(h => h.catalog_id === id)) {
-    alert('Already own this SKU. Singleton mode — one per product.');
+  if (portfolio.holdings.some(h => h.catalog_id === id && h.status !== 'sold')) {
+    alert('Already hold this SKU. Singleton mode — one per product.');
     return;
   }
   const acquisition = document.getElementById('acquisition').value;
@@ -293,6 +463,7 @@ function onAddHolding(e) {
     catalog_id: id,
     qty,
     acquisition,
+    status: 'held',
     notes: notes || '',
     price_checks: []
   };
@@ -340,9 +511,10 @@ function onImport(e) {
   reader.onload = (ev) => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (!data.holdings) throw new Error('missing holdings');
-      if (!confirm(`Replace current portfolio with imported data (${data.holdings.length} holdings)?`)) return;
+      if (!data.holdings || !Array.isArray(data.holdings)) throw new Error('missing or invalid holdings');
+      if (!confirm(`Replace current portfolio with imported data (${data.holdings.length} holdings, schema v${data.schema_version || 1})?`)) return;
       portfolio = data;
+      migratePortfolio();
       savePortfolio();
       renderTable();
       renderCatalogOptions();
@@ -512,10 +684,11 @@ function onCatalogReset() {
 // ---------- SVG chart ----------
 
 function collectTimeSeries() {
-  // Returns { events: [{date, costDelta, marketUpdate: {holdingIdx, price}}], ... }
-  // We produce two series over time: cumulative cost basis (step), portfolio market snapshot (per-event).
+  // Chart covers currently-held positions only. Sold positions live in the Closed table,
+  // and once sold they don't contribute to "what's this portfolio worth today."
   const events = [];
   portfolio.holdings.forEach((h, idx) => {
+    if (h.status === 'sold') return;
     const costDate = h.buy_date || h.gift_date;
     if (costDate) {
       const cost = (h.buy_price || 0) * (h.qty || 1);
@@ -545,6 +718,7 @@ function buildSeries() {
     let market = 0;
     let haveAny = false;
     portfolio.holdings.forEach((h, idx) => {
+      if (h.status === 'sold') return;
       if (latestPriceByHolding.has(idx)) {
         market += latestPriceByHolding.get(idx) * (h.qty || 1);
         haveAny = true;
@@ -560,6 +734,7 @@ function buildSeries() {
     let market = 0;
     let haveAny = false;
     portfolio.holdings.forEach((h, idx) => {
+      if (h.status === 'sold') return;
       if (latestPriceByHolding.has(idx)) {
         market += latestPriceByHolding.get(idx) * (h.qty || 1);
         haveAny = true;
@@ -575,11 +750,12 @@ function buildSeries() {
 function renderChart() {
   const container = document.getElementById('chart-container');
   if (!container) return;
-  const { costSeries, marketSeries } = buildSeries();
-  if (costSeries.length === 0) {
-    container.innerHTML = '<p style="color:#AAAAFF;">No data yet. Add a holding with a buy date to start the chart.</p>';
+  const hasHeldWithDate = portfolio.holdings.some(h => h.status !== 'sold' && (h.buy_date || h.gift_date));
+  if (!hasHeldWithDate) {
+    container.innerHTML = '<p style="color:#AAAAFF;">No data yet. Add a held position with a buy/gift date to start the chart.</p>';
     return;
   }
+  const { costSeries, marketSeries } = buildSeries();
 
   const W = 900, H = 320;
   const PAD_L = 60, PAD_R = 20, PAD_T = 20, PAD_B = 40;

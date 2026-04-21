@@ -1,0 +1,38 @@
+#!/bin/sh
+# commit-msg hook — warn on deviations from diamondlegendz PR-copy-first style.
+# Warnings only; always exits 0. See CONTRIBUTING.md for the full style.
+
+msg_file="$1"
+warn() { printf '\033[33m[commit-style]\033[0m %s\n' "$1" >&2; }
+
+content=$(grep -v '^#' "$msg_file")
+subject=$(printf '%s\n' "$content" | sed '/^[[:space:]]*$/d' | head -1)
+non_blank=$(printf '%s\n' "$content" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')
+blank_lines=$(printf '%s\n' "$content" | grep -c '^[[:space:]]*$')
+
+if [ -z "$subject" ]; then
+  warn 'empty subject line'
+  exit 0
+fi
+
+# conventional-commit prefix
+if printf '%s' "$subject" | grep -Eq '^(feat|fix|chore|refactor|docs|test|style|perf|build|ci|revert)(\([^)]*\))?:'; then
+  warn 'subject starts with a conventional-commit prefix. Prefer user-facing phrasing (see CONTRIBUTING.md).'
+fi
+
+# jargon / paths / function() in subject
+if printf '%s' "$subject" | grep -Eq '[a-zA-Z_][a-zA-Z0-9_]*\(\)|\.(js|ts|css|html|json|md|py|sh|yml|yaml)\b'; then
+  warn 'subject contains code or path jargon. Move technical detail below the blank line.'
+fi
+
+# too-short message
+if [ "$non_blank" -lt 3 ]; then
+  warn 'message is short. PR-style wants a user-facing body plus technical detail after a blank line.'
+fi
+
+# missing blank separator between body and tech tail
+if [ "$non_blank" -ge 3 ] && [ "$blank_lines" -lt 2 ]; then
+  warn 'no blank-line separator between PR copy and technical details.'
+fi
+
+exit 0

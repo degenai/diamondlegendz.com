@@ -103,6 +103,9 @@
         .price-history { font-size:0.75em; color:#AAAAFF; margin-top:4px; }
         .price-history table { width:auto; font-size:0.95em; display:inline-table; }
         #gift-fields { display:none; padding-left:16px; border-left:2px solid #FF00FF; margin:6px 0; }
+        .sell-form-inline label { color:#FF00FF; margin-left:8px; }
+        .sell-form-inline label:first-of-type { margin-left:0; }
+        tr.sell-form-row td { background:#002020 !important; border:2px solid #FF00FF !important; }
     </style>
 </head>
 <body>
@@ -124,9 +127,20 @@
     </div>
 
     <div class="totals-box">
-        Cost basis: <span id="total-cost">$0.00</span> |
-        Market (logged): <span id="total-market">$0.00</span> |
-        P/L: <span id="total-pl">$0.00</span>
+        <div><strong style="color:#00FFFF;">Held</strong> &mdash;
+            Cost: <span id="total-cost">$0.00</span> |
+            Market: <span id="total-market">$0.00</span> |
+            Unrealized: <span id="total-pl">$0.00</span>
+        </div>
+        <div style="margin-top:6px;"><strong style="color:#FF00FF;">Closed</strong> &mdash;
+            Cost: <span id="closed-cost">$0.00</span> |
+            Net proceeds: <span id="closed-net">$0.00</span> |
+            Realized: <span id="closed-pl">$0.00</span>
+        </div>
+        <div style="margin-top:6px; border-top:1px dashed #00FF00; padding-top:4px;">
+            <strong style="color:#00FF00;">Lifetime P/L:</strong>
+            <span id="lifetime-pl">$0.00</span>
+        </div>
     </div>
 
     <h2>Holdings</h2>
@@ -150,6 +164,30 @@
         </thead>
         <tbody id="holdings-body"></tbody>
     </table>
+    </div>
+
+    <h2>Closed Positions</h2>
+    <div class="box">
+    <table>
+        <thead>
+        <tr>
+            <th>Cat</th>
+            <th>Game / IP</th>
+            <th>Product</th>
+            <th>Acq</th>
+            <th>Cost</th>
+            <th>Sell Date</th>
+            <th>Venue</th>
+            <th>Sell $</th>
+            <th>Fees</th>
+            <th>Net</th>
+            <th>Realized</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="closed-body"></tbody>
+    </table>
+    <p><small>Sold holdings live here. "Unsell" reverts a position back to Held if you logged it by mistake.</small></p>
     </div>
 
     <h2>Portfolio Value Over Time</h2>
