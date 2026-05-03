@@ -63,17 +63,52 @@
             }
         }
 
-        .nav-table {
-            width: 100%;
+        .nav-log {
             border: 5px solid cyan;
             margin-top: 20px;
             background-color: black;
+            padding: 14px 18px;
+            text-align: left;
         }
 
-        .nav-table td {
-            padding: 15px;
-            border: 1px dashed white;
-            font-size: 1.2em;
+        .nav-log h2 {
+            color: #00FF00;
+            font-size: 1.4em;
+            margin: 0 0 10px;
+            border-bottom: 2px dashed #FF00FF;
+            padding-bottom: 6px;
+            text-align: center;
+        }
+
+        .log-entry {
+            border-bottom: 1px dashed #444;
+            padding: 10px 4px;
+        }
+
+        .log-entry:last-child { border-bottom: none; }
+
+        .log-entry .log-date {
+            color: #00FF00;
+            font-family: "Courier New", monospace;
+            font-size: 0.85em;
+            display: inline-block;
+            min-width: 110px;
+        }
+
+        .log-entry .log-title {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .log-entry p.log-desc {
+            margin: 4px 0 0 110px;
+            font-size: 0.9em;
+            color: #FFFFAA;
+        }
+
+        @media (max-width: 600px) {
+            .log-entry .log-date { display: block; min-width: 0; margin-bottom: 2px; }
+            .log-entry p.log-desc { margin-left: 0; }
         }
 
         .counter-box {
@@ -133,68 +168,72 @@
         <!-- Music Player -->
         <button id="music-btn">▶ Play 8-Bit Music</button>
 
-        <!-- Navigation -->
-        <table class="nav-table">
-            <tr>
-                <td>
-                    <p>🎹 <a href="midi-player/index.html">Street Fighter MIDI Player (TURBO)</a> <span class="blink"
-                            style="color:red; font-size:0.8em;">NEW!</span></p>
-                    <p>Visualizers & authentic SF2 tunes!</p>
-                </td>
-                <td>
-                    <p>🤖 <a href="ai-playground/index.html">AI Playground</a></p>
-                    <p>Experiments with Gradio & Local Models.</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>💡 <a href="ideas.html">The Master Plan / Ideas</a></p>
-                    <p>Read about our plans for Guestbooks, Hit Counters, and World Domination.</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>✨ <a href="facets/index.html">Facets — Animation Primitive Library</a> <span class="blink"
-                            style="color:#7ef2c3; font-size:0.8em;">NEW!</span></p>
-                    <p>Minimal anime.js v4 sketches. Spiritual successor to the Generated Gallery.</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>🎨 <a href="generated-gallery/index.html">Generated Assets Gallery</a> <span class="blink"
-                            style="color:lime; font-size:0.8em;">HOT!</span></p>
-                    <p>20 Procedural Masterpieces. Warning: May cause seizures. (Superseded by Facets.)</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>🦄 <a href="sarahs-clubhouse/index.html">Sarah's Club House (NO BOYS ALLOWED)</a> <span
-                            class="blink" style="color:#ff69b4; font-size:0.8em;">~*~NEW~*~</span></p>
-                    <p>GIFs, unicorns, game reviews, and Ed Sheeran MIDI. Enter at your own risk.</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>💎 <a href="sealed-portfolio/index.html">Sealed TCG Portfolio</a> <span class="blink"
-                            style="color:#00FF00; font-size:0.8em;">NEW!</span></p>
-                    <p>Track MTG / Pokemon / Weiss sealed product. Local JSON. No TCGplayer lies.</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>💍 <a href="webring.html">Official Web Ring</a> <span class="blink"
-                            style="color:yellow; font-size:0.8em;">PARTNERS!</span></p>
-                    <p>Check out Peoples-Elbow and Thisisez.com in our affiliate network!</p>
-                </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <p>📜 <a href="changelog.html">Dev Ring / Changelog</a> <span class="blink"
-                            style="color:#00FFFF; font-size:0.8em;">LIVE!</span></p>
-                    <p>Commit-driven patch notes. Every push to main shows up here.</p>
-                </td>
-            </tr>
-        </table>
+        <!-- Navigation — Maddox-style dated log, newest first -->
+        <div class="nav-log">
+            <h2>Latest Updates</h2>
+
+            <div class="log-entry">
+                <span class="log-date">2026-05-03</span>
+                <span class="log-title">🐉 <a href="pokemon-zodiac/index.html">Elemental Zodiac Pokémon Hunt Grid</a></span>
+                <span class="blink" style="color:#00FF00; font-size:0.8em;">NEW!</span>
+                <p class="log-desc">Sixty cells. Wuxing × Chinese zodiac × Pokémon. Click to summon a hunt prompt. Animated with anime.js v4.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-04-21</span>
+                <span class="log-title">✨ <a href="facets/index.html">Facets — Animation Primitive Library</a></span>
+                <p class="log-desc">Minimal anime.js v4 sketches. Spiritual successor to the Generated Gallery.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-04-21</span>
+                <span class="log-title">📜 <a href="changelog.html">Dev Ring / Changelog</a></span>
+                <span class="blink" style="color:#00FFFF; font-size:0.8em;">LIVE!</span>
+                <p class="log-desc">Commit-driven patch notes. Every push to main shows up here.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-04-20</span>
+                <span class="log-title">💎 <a href="sealed-portfolio/index.html">Sealed TCG Portfolio</a></span>
+                <p class="log-desc">Track MTG / Pokemon / Weiss sealed product. Local JSON. No TCGplayer lies.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-03-15</span>
+                <span class="log-title">🎹 <a href="midi-player/index.html">Street Fighter MIDI Player (TURBO)</a></span>
+                <p class="log-desc">Visualizers and authentic SF2 tunes.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-03-15</span>
+                <span class="log-title">💍 <a href="webring.html">Official Web Ring</a></span>
+                <p class="log-desc">Peoples-Elbow and Thisisez.com — affiliate network.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-02-12</span>
+                <span class="log-title">🦄 <a href="sarahs-clubhouse/index.html">Sarah's Club House (NO BOYS ALLOWED)</a></span>
+                <p class="log-desc">GIFs, unicorns, game reviews, and Ed Sheeran MIDI. Enter at your own risk.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-02-11</span>
+                <span class="log-title">🎨 <a href="generated-gallery/index.html">Generated Assets Gallery</a></span>
+                <p class="log-desc">20 procedural masterpieces. Superseded by Facets.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-02-11</span>
+                <span class="log-title">🤖 <a href="ai-playground/index.html">AI Playground</a></span>
+                <p class="log-desc">Experiments with Gradio and local models.</p>
+            </div>
+
+            <div class="log-entry">
+                <span class="log-date">2026-02-11</span>
+                <span class="log-title">💡 <a href="ideas.html">The Master Plan / Ideas</a></span>
+                <p class="log-desc">Guestbooks. Hit counters. World domination.</p>
+            </div>
+        </div>
 
         <!-- Hit Counter -->
         <p>You are visitor number:</p>

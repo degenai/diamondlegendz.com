@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self';">
+<title>Elemental Zodiac Pokémon Hunt Grid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    background-image: url('../assets/bg.gif');
+    color: #FFFF00;
+    font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px 0;
+  }
+  a { color: #00FFFF; text-decoration: none; }
+  a:hover { color: #FF00FF; text-decoration: underline; background-color: white; }
+  .container {
+    width: 95%;
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: rgba(0, 0, 128, 0.85);
+    border: 10px ridge #FF0000;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 2.5em;
+    color: #00FF00;
+    text-shadow: 3px 3px #FF00FF;
+    margin: 0 0 4px;
+  }
+  h1 .ch { display: inline-block; }
+  .subtitle { color: #00FFFF; font-size: 1em; margin-bottom: 12px; }
+  .now-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: black; border: 2px ridge #00FF00; color: #00FF00;
+    padding: 6px 12px; margin: 6px 0 14px; font-weight: bold;
+  }
+  .now-dot { width: 10px; height: 10px; border-radius: 50%; background: #00FF00; }
+  .legend {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
+    background: black; border: 2px inset white;
+    padding: 10px; margin: 0 0 14px; font-size: 0.9em;
+    color: #FFFF00;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .ldot { width: 9px; height: 9px; border-radius: 50%; background: #FFFF00; box-shadow: 0 0 4px rgba(255,255,0,0.5); }
+  .legend .ldot.off { background: #444; box-shadow: none; }
+
+  .dots { display: inline-flex; gap: 3px; align-items: center; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #333; display: inline-block; }
+  .dot.on { background: #FFFF00; box-shadow: 0 0 4px rgba(255,255,0,0.7); }
+
+  .zl-name { flex: 1; }
+  .zl-rowdepth {
+    color: #00FFFF; font-family: "Courier New", monospace; font-size: 0.85em;
+    background: #000; padding: 2px 6px; border: 1px solid #00FFFF;
+    min-width: 22px; text-align: center;
+  }
+
+  .zg {
+    display: grid;
+    grid-template-columns: 90px repeat(5, 1fr);
+    gap: 5px;
+    background: black;
+    padding: 10px;
+    border: 3px solid cyan;
+  }
+  .zh {
+    padding: 10px 6px; text-align: center; font-weight: bold;
+    border: 2px outset white; font-size: 0.95em;
+  }
+  .zl {
+    padding: 8px 6px; font-weight: bold; font-size: 0.95em;
+    display: flex; align-items: center; justify-content: flex-start;
+    color: #FFFF00; gap: 4px;
+  }
+  .zlsub { font-size: 0.8em; color: #00FFFF; font-weight: normal; }
+  .zc {
+    padding: 8px 6px; min-height: 56px;
+    border: 2px outset #ffcccc;
+    cursor: pointer;
+    display: flex; flex-direction: column; justify-content: center; gap: 2px;
+    font-family: inherit;
+    will-change: transform;
+  }
+  .zc:active { border-style: inset; }
+  .zc-now { outline: 3px dashed #00FF00; outline-offset: -3px; }
+  .zn { font-weight: bold; font-size: 0.9em; line-height: 1.15; }
+  .zy { font-size: 0.75em; opacity: 0.8; font-family: "Courier New", monospace; }
+
+  .e-wood  { background: #2C5817; color: #EAF3DE; }
+  .e-fire  { background: #8B2A14; color: #FAECE7; }
+  .e-earth { background: #6B3D0A; color: #FAEEDA; }
+  .e-metal { background: #555552; color: #F1EFE8; }
+  .e-water { background: #154A85; color: #E6F1FB; }
+  .e-open  { background: #1a1a2e; color: #999; font-style: italic; }
+
+  .zh.e-wood, .zh.e-fire, .zh.e-earth, .zh.e-metal, .zh.e-water { color: white; text-shadow: 1px 1px black; }
+
+  #panel {
+    margin: 18px 0 0;
+    background: black;
+    border: 3px ridge #FF00FF;
+    padding: 14px;
+    text-align: left;
+    color: #FFFF00;
+    min-height: 60px;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  #panel .ptitle { color: #00FF00; font-weight: bold; margin-bottom: 6px; font-size: 1.05em; }
+  #panel .pyears { color: #00FFFF; font-family: "Courier New", monospace; font-size: 0.85em; margin-bottom: 8px; }
+  #panel .pdepth { color: #FFFF00; font-size: 0.9em; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #panel .pcount { color: #AAAAFF; font-family: "Courier New", monospace; font-size: 0.85em; }
+  #panel .pmembers { margin: 0; padding-left: 22px; color: #FFFFAA; font-size: 0.9em; line-height: 1.5; }
+  #panel .pmembers li { margin-bottom: 2px; }
+  #panel .pempty { color: #AAAAFF; font-style: italic; font-size: 0.9em; }
+  #panel .ptrio { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #555; color: #FFD700; font-size: 0.85em; }
+  #panel.empty .ptitle { color: #00FFFF; }
+  #panel.empty .pdesc { color: #AAAAFF; font-style: italic; font-size: 0.9em; }
+
+  .back { margin-top: 16px; font-size: 0.9em; }
+
+  .lookup {
+    background: black; border: 3px ridge #00FFFF;
+    padding: 12px; margin: 0 0 14px; text-align: left;
+    color: #FFFF00; font-size: 0.95em;
+  }
+  .lookup-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; }
+  .lookup label { color: #00FFFF; font-weight: bold; }
+  .lookup input {
+    background: black; color: #FFFF00; border: 1px solid #FF00FF;
+    font-family: inherit; padding: 4px 6px; width: 90px; font-size: 1em;
+  }
+  .lookup button {
+    background: linear-gradient(to bottom, #ff0000, #990000);
+    border: 2px outset #ffcccc; color: white;
+    font-family: "Comic Sans MS", sans-serif; font-weight: bold;
+    padding: 5px 14px; cursor: pointer;
+  }
+  .lookup button:active { border-style: inset; }
+  .lookup-out { margin-top: 8px; font-size: 0.9em; color: #00FF00; min-height: 1em; }
+  .lookup-hint { font-size: 0.78em; color: #AAAAFF; margin-top: 6px; text-align: center; font-style: italic; }
+
+  .rules {
+    background: rgba(0,0,0,0.4); border: 1px dashed #00FFFF;
+    padding: 8px 12px; margin: -4px 0 14px;
+    font-size: 0.82em; color: #FFFFAA; line-height: 1.4;
+  }
+  .rules strong { color: #00FF00; }
+  .rules em { color: #FFFF00; font-style: normal; }
+  .rules-sep { color: #555; margin: 0 6px; }
+
+  .zc.trio-hl { outline: 3px solid #FFD700; outline-offset: -3px; z-index: 1; }
+  .zc.trio-hl.trio-swords  { outline-color: #C0C0FF; }
+  .zc.trio-hl.trio-sims    { outline-color: #FF8FB1; }
+  .zc.trio-hl.trio-beasts  { outline-color: #FFD700; }
+  .zc.trio-hl.trio-wolves  { outline-color: #E0E0E0; }
+  .zc.trio-hl.trio-tao     { outline-color: #FF6B35; }
+
+  .trio-toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: black; border: 2px solid #FFD700; color: #FFD700;
+    padding: 8px 14px; font-weight: bold; font-size: 0.9em;
+    pointer-events: none; opacity: 0;
+    z-index: 100;
+  }
+
+  .orphans {
+    margin: 20px 0 0;
+    background: black;
+    border: 3px ridge #00FFFF;
+    padding: 14px 16px;
+    text-align: left;
+    color: #FFFFAA;
+    font-size: 0.85em;
+    line-height: 1.55;
+  }
+  .orphans h3 {
+    color: #00FF00;
+    margin: 0 0 8px;
+    font-size: 1.05em;
+    border-bottom: 2px dashed #FF00FF;
+    padding-bottom: 4px;
+  }
+  .orphans p { margin: 4px 0; }
+  .orphans em { color: #FFFF00; font-style: normal; }
+  .orphans .group { color: #00FFFF; font-weight: bold; }
+  .orphans .lead { color: #FFFFFF; margin-bottom: 10px; }
+
+  @media (max-width: 700px) {
+    .zg { grid-template-columns: 70px repeat(5, 1fr); font-size: 0.8em; }
+    .zl { font-size: 0.8em; }
+    h1 { font-size: 1.6em; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1 id="title">Elemental Zodiac Pokémon Hunt Grid</h1>
+  <div class="subtitle">Wuxing × Chinese zodiac × Pokémon. Sixty cells. Each cell is a thematic cluster you can build a sealed bulk box around. Type-honest — every member must show its element on the card itself, not via future evolution.</div>
+
+  <div class="now-tag" id="nowtag">
+    <span class="now-dot"></span>
+    You are here: Fire Horse, 2026 — Rapidash territory
+  </div>
+
+  <div class="lookup">
+    <div class="lookup-row">
+      <label for="yr">Born in:</label>
+      <input id="yr" type="number" min="1924" max="2043" placeholder="e.g. 1991" />
+      <button id="yrbtn" type="button">Find my cell</button>
+      <span class="lookup-out" id="yrout"></span>
+    </div>
+    <div class="lookup-hint">Born before Lunar New Year (late Jan – mid Feb)? Enter the previous year.</div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dots"><span class="dot on"></span></span> 1 — single Pokémon</span>
+    <span><span class="dots"><span class="dot on"></span><span class="dot on"></span></span> 2 — one full evo line</span>
+    <span><span class="dots"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span> 3 — two lines, or one + legendary</span>
+    <span><span class="dots"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span> 4 — three lines</span>
+    <span><span class="dots"><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span></span> 5 — four+ lines, BCW prize cell</span>
+  </div>
+
+  <div class="rules">
+    <strong>China-max ruleset.</strong> Mainstream Chinese tradition only — no Vietnamese cat (zodiac-orphans Sprigatito, Persian, Espeon, Skitty), no Persian water-beast Dragon. 鼠 = any rodent · 羊 = goat/sheep/ram · 鸡 = chicken specifically.
+    <br>
+    <strong>Wuxing → types:</strong> Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground, Rock, Normal-as-mundane)</em> · Metal = Steel · Water = Water + Ice.
+    <br>
+    <strong>Type-honest:</strong> element must be on THAT card, not a future evolution. <strong>Open-cell honesty:</strong> if no honest match exists, the cell stays open — Wood Dog, Fire Goat, Metal Monkey are real dex gaps. Hover a cell to surface in-game trios.
+  </div>
+
+  <div class="zg" id="grid">
+    <div></div>
+    <div class="zh e-wood">Wood 木</div>
+    <div class="zh e-fire">Fire 火</div>
+    <div class="zh e-earth">Earth 土</div>
+    <div class="zh e-metal">Metal 金</div>
+    <div class="zh e-water">Water 水</div>
+  </div>
+
+  <div id="panel" class="empty">
+    <div class="ptitle">No cell selected</div>
+    <div class="pdesc">Tap a cell to see its full cluster, member lines, and depth rating. Hover to surface in-game trios across cells.</div>
+  </div>
+
+  <div class="trio-toast" id="triotoast"></div>
+
+  <section class="orphans">
+    <h3>Why so many open cells? — Tier 3 footnotes</h3>
+    <p class="lead">Open cells are the most interesting cells. They show where the Pokémon dex went Western, Japanese, or fantastical instead of reaching into Chinese tradition. Honored gaps, not failures.</p>
+
+    <p><span class="group">Domestic cats</span> — zodiac-orphaned per the Great Race myth (Rat tricked Cat off the Ox; cat-rat enmity is canonical). <em>Persian, Espeon, Skitty, Litten line, Sprigatito, Meowth all slot-orphaned.</em></p>
+
+    <p><span class="group">Foxes (狐仙)</span> — supernatural fox-spirit lineage in Chinese folklore, distinct from domestic-dog category. <em>Vulpix, Ninetales, Zorua/Zoroark, Fennekin/Delphox, Nickit, Vaporeon all slot-orphaned.</em></p>
+
+    <p><span class="group">Wolves (狼)</span> — wild predators, antagonist of the shepherd in agrarian symbolism, not a domestic-companion canid. <em>Mightyena, Lycanroc, Zacian/Zamazenta all slot-orphaned.</em></p>
+
+    <p><span class="group">Lions (狮)</span> — Buddhist-imported iconography (guardian-lion statues, lion dance from Indian/Central Asian Buddhism), not native Chinese fauna. <em>Pyroar, Solgaleo, Entei, Suicune, Hisuian Arcanine all slot-orphaned. Tiger row goes fully open as a result — the dex has lots of "big cats" but no actual tigers.</em></p>
+
+    <p><span class="group">Most birds</span> — Rooster slot is chicken-specific in mainstream Chinese tradition; the Pokémon dex's massive avian variety is a structural mismatch with a zodiac that allotted one bird slot to the domestic chicken. <em>Skarmory, Dodrio, all raptors/songbirds/waterfowl/owls slot-orphaned.</em></p>
+
+    <p><span class="group">Pure Electric</span> — Wu Xing has no Air element. Lightning is air-coded in Pokémon (Zapdos Electric/Flying, Tornadus/Thundurus paired wind-lightning genies). Wu Xing's Metal is substantive (refinement, structure, blade), not kinetic. <em>Pikachu, Mareep line, Pawmi, Yamper line all element-orphaned.</em></p>
+
+    <p><span class="group">Pure Flying / Psychic / Dark / Fairy / Ghost</span> — no Five-Phases equivalent. <em>Element-orphaned even when animal-slot eligible.</em></p>
+
+    <p><span class="group">Western dragons</span> — winged fire-breathers, distinct from Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated). <em>Charizard line, Reshiram, Turtonator, Volcarona slot-orphaned despite Dragon-type or fire-bug coding.</em></p>
+
+    <p><span class="group">Kaiju</span> — Japanese mythological tradition, not Chinese. <em>Tyranitar line slot-orphaned. The Dragon row tightens to Water Dragon only — Kingdra (seahorse-loong), Palkia, Gyarados (the carp-dragon transformation, 鯉躍龍門), Dragalge.</em></p>
+
+    <p><span class="group">Non-Chinese fauna</span> — zebras (African — Blitzle/Zebstrika), American bison (Bouffalant — wrong continent), jackals (Egyptian/Mediterranean — Lucario), mammoths/hippos/tapirs all slot-orphaned even when type-honest.</p>
+
+    <p><span class="group">Houndoom</span> specifically — orphaned from both the Goat row (Baphomet/European Christian symbolism, not pastoral Chinese) AND the Dog row (demonic hellhound, not a domestic companion).</p>
+  </section>
+
+  <div class="back">
+    <a href="../index.html">← back to Diamondlegendz</a>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
