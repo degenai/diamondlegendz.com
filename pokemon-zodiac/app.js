@@ -300,6 +300,8 @@ cells.forEach(cell => {
 
 const panel = document.getElementById('panel');
 let selected = null;
+let panelAnim = null;
+let panelLiAnim = null;
 
 function showPanel(cell) {
   if (selected && selected !== cell) {
@@ -320,11 +322,14 @@ function showPanel(cell) {
   const trios = JSON.parse(cell.dataset.trios);
   const memberHTML = members.length
     ? `<ul class="pmembers">${members.map(m => `<li>${m}</li>`).join('')}</ul>`
-    : `<div class="pempty">No clean cluster — open hunt cell. Suggest a stretch and we add it.</div>`;
+    : `<div class="pempty">No qualifying match — cell stays open per R8 (open-cell honesty).</div>`;
 
   const trioHTML = trios.length
     ? `<div class="ptrio">${trios.map(t => TRIO_NAMES[t]).join(' · ')}</div>`
     : '';
+
+  if (panelAnim) panelAnim.pause();
+  if (panelLiAnim) panelLiAnim.pause();
 
   panel.classList.remove('empty');
   panel.innerHTML = `
@@ -335,18 +340,24 @@ function showPanel(cell) {
     ${trioHTML}
   `;
 
-  animate(panel, {
-    opacity: [0, 1], y: [20, 0],
+  utils.set(panel, { opacity: 0, y: 20 });
+
+  panelAnim = animate(panel, {
+    opacity: 1, y: 0,
     duration: 450,
     ease: createSpring({ mass: 1, stiffness: 150, damping: 14 }),
   });
 
-  animate(panel.querySelectorAll('.pmembers li'), {
-    x: [-12, 0], opacity: [0, 1],
-    duration: 350,
-    delay: stagger(40, { start: 150 }),
-    ease: 'outQuad',
-  });
+  const liNodes = panel.querySelectorAll('.pmembers li');
+  if (liNodes.length) {
+    utils.set(liNodes, { x: -12, opacity: 0 });
+    panelLiAnim = animate(liNodes, {
+      x: 0, opacity: 1,
+      duration: 350,
+      delay: stagger(40, { start: 150 }),
+      ease: 'outQuad',
+    });
+  }
 }
 
 cells.forEach(cell => {
