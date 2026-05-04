@@ -46,15 +46,11 @@
     color: #FFFF00;
   }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
-  .legend .ldot { width: 9px; height: 9px; border-radius: 50%; background: #FFFF00; box-shadow: 0 0 4px rgba(255,255,0,0.5); }
-  .legend .ldot.off { background: #444; box-shadow: none; }
 
   .dots { display: inline-flex; gap: 3px; align-items: center; }
   .dot { width: 7px; height: 7px; border-radius: 50%; background: #333; display: inline-block; }
   .dot.on { background: #FFFF00; box-shadow: 0 0 4px rgba(255,255,0,0.7); }
 
-  .zl { cursor: help; transition: background 0.15s; }
-  .zl:hover { background: rgba(255,255,0,0.08); }
   .zl-name { flex: 1; }
   .zl-rowdepth {
     color: #00FFFF; font-family: "Courier New", monospace; font-size: 0.85em;
@@ -78,7 +74,9 @@
     padding: 8px 6px; font-weight: bold; font-size: 0.95em;
     display: flex; align-items: center; justify-content: flex-start;
     color: #FFFF00; gap: 4px;
+    cursor: help; transition: background 0.15s;
   }
+  .zl:hover { background: rgba(255,255,0,0.08); }
   .zlsub { font-size: 0.8em; color: #00FFFF; font-weight: normal; }
   .zc {
     padding: 8px 6px; min-height: 56px;
@@ -89,7 +87,6 @@
     will-change: transform;
   }
   .zc:active { border-style: inset; }
-  .zc-now { outline: 3px dashed #00FF00; outline-offset: -3px; }
   .zn { font-weight: bold; font-size: 0.9em; line-height: 1.15; }
   .zy { font-size: 0.75em; opacity: 0.8; font-family: "Courier New", monospace; }
 
@@ -175,12 +172,66 @@
   .rules em { color: #FFFF00; font-style: normal; }
   .rules-sep { color: #555; margin: 0 6px; }
 
+  .full-rules {
+    background: black;
+    border: 3px ridge #FF00FF;
+    padding: 0;
+    margin: 0 0 14px;
+    text-align: left;
+    color: #FFFFAA;
+    font-size: 0.85em;
+    line-height: 1.5;
+  }
+  .full-rules > summary {
+    cursor: pointer;
+    padding: 10px 14px;
+    color: #00FF00;
+    font-weight: bold;
+    background: #000040;
+    border-bottom: 2px dashed #FF00FF;
+    list-style: none;
+    user-select: none;
+  }
+  .full-rules > summary::-webkit-details-marker { display: none; }
+  .full-rules > summary::before {
+    content: '▶ ';
+    color: #FFFF00;
+    font-size: 0.8em;
+    margin-right: 4px;
+  }
+  .full-rules[open] > summary::before { content: '▼ '; }
+  .full-rules .rules-body { padding: 12px 16px; }
+  .full-rules h4 {
+    color: #00FFFF;
+    margin: 12px 0 6px;
+    font-size: 1em;
+    border-bottom: 1px dashed #555;
+    padding-bottom: 3px;
+  }
+  .full-rules h4:first-child { margin-top: 0; }
+  .full-rules ol { margin: 4px 0 8px; padding-left: 24px; }
+  .full-rules li { margin-bottom: 4px; }
+  .full-rules .r-id { color: #00FF00; font-weight: bold; font-family: "Courier New", monospace; }
+  .full-rules .rule-broad,
+  .full-rules .rule-strict {
+    display: inline-block;
+    font-size: 0.7em;
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-left: 4px;
+    font-weight: bold;
+    font-family: "Courier New", monospace;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+  }
+  .full-rules .rule-broad  { background: #00FF00; color: black; }
+  .full-rules .rule-strict { background: #FF4040; color: white; }
+  .full-rules .crit-anchor { color: #FFFF00; font-weight: bold; }
+  .full-rules em { color: #FFFFFF; font-style: italic; }
+
   .zc.trio-hl { outline: 3px solid #FFD700; outline-offset: -3px; z-index: 1; }
   .zc.trio-hl.trio-swords  { outline-color: #C0C0FF; }
   .zc.trio-hl.trio-sims    { outline-color: #FF8FB1; }
-  .zc.trio-hl.trio-beasts  { outline-color: #FFD700; }
-  .zc.trio-hl.trio-wolves  { outline-color: #E0E0E0; }
-  .zc.trio-hl.trio-tao     { outline-color: #FF6B35; }
 
   .trio-toast {
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
@@ -223,7 +274,7 @@
 <div class="container">
 
   <h1 id="title">Elemental Zodiac Pokémon Hunt Grid</h1>
-  <div class="subtitle">Wuxing × Chinese zodiac × Pokémon. Sixty cells. Each cell is a thematic cluster you can build a sealed bulk box around. Type-honest — every member must show its element on the card itself, not via future evolution.</div>
+  <div class="subtitle">Wuxing × Chinese zodiac × Pokémon. Sixty cells under the functional-agrarian China-max ruleset — type-honest matches only, open cells where the dex went Western, Japanese, or fantastical.</div>
 
   <div class="now-tag" id="nowtag">
     <span class="now-dot"></span>
@@ -233,7 +284,7 @@
   <div class="lookup">
     <div class="lookup-row">
       <label for="yr">Born in:</label>
-      <input id="yr" type="number" min="1924" max="2043" placeholder="e.g. 1991" />
+      <input id="yr" type="number" min="1900" max="2100" placeholder="e.g. 1991" />
       <button id="yrbtn" type="button">Find my cell</button>
       <span class="lookup-out" id="yrout"></span>
     </div>
@@ -249,12 +300,54 @@
   </div>
 
   <div class="rules">
-    <strong>China-max ruleset.</strong> Mainstream Chinese tradition only — no Vietnamese cat (zodiac-orphans Sprigatito, Persian, Espeon, Skitty), no Persian water-beast Dragon. 鼠 = any rodent · 羊 = goat/sheep/ram · 鸡 = chicken specifically.
+    <strong>China-max ruleset.</strong> Mainstream Chinese tradition only — no Vietnamese cat, no Persian water-beast Dragon. <strong>Broad characters:</strong> 鼠 = any rodent · 牛 = all bovines · 兔 = lagomorphs · 羊 = goat/sheep/ram · 猴 = primates · 猪 = suids. <strong>Strict characters:</strong> 虎 = tigers only · 龙 = Chinese loong + carp-dragon · 蛇 = snakes only (eels are 鳗) · 马 = horses only (donkeys are 驴) · 鸡 = chicken only · 狗 = domestic dogs only.
     <br>
-    <strong>Wuxing → types:</strong> Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground, Rock, Normal-as-mundane)</em> · Metal = Steel · Water = Water + Ice.
+    <strong>Wuxing → types:</strong> Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground, Rock, Normal-as-mundane)</em> · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned.
     <br>
-    <strong>Type-honest:</strong> element must be on THAT card, not a future evolution. <strong>Open-cell honesty:</strong> if no honest match exists, the cell stays open — Wood Dog, Fire Goat, Metal Monkey are real dex gaps. Hover a cell to surface in-game trios.
+    <strong>Animal-fit:</strong> 12 functional-agrarian slot criteria — Tiger = actual tigers, Dog = domestic dogs, Dragon = Chinese loong + carp-dragon. Lions, wolves, foxes, jackals, Western dragons, kaiju all slot-orphaned.
+    <br>
+    <strong>Type-honest:</strong> element on THAT card, not a future evolution. <strong>Open-cell honesty:</strong> ~25 of 60 cells stay open — the gaps are features. Hover a row label for the row's note, or a cell for in-game trios.
   </div>
+
+  <details class="full-rules">
+    <summary>Show full ruleset (8 rules + 12 slot criteria)</summary>
+    <div class="rules-body">
+
+      <h4>Tier 1 — Translation rules (Chinese tradition, character semantics)</h4>
+      <ol>
+        <li><span class="r-id">R1.</span> 鼠 (shǔ) = any rodent — rat, mouse, squirrel, beaver, agrarian pest broadly. <span class="rule-broad">BROAD</span></li>
+        <li><span class="r-id">R2.</span> 羊 (yáng) = goat / sheep / ram interchangeable — horned ruminant. <span class="rule-broad">BROAD</span></li>
+        <li><span class="r-id">R3.</span> 鸡 (jī) = chicken specifically — no other birds. <span class="rule-strict">STRICT</span></li>
+        <li><span class="r-id">R4.</span> Lunar New Year date cutoff for birth-year flips — Jan / early Feb births get the previous year.</li>
+      </ol>
+
+      <h4>Tier 2 — Project rubrics</h4>
+      <ol start="5">
+        <li><span class="r-id">R5.</span> Wuxing → Pokémon types: Wood = Grass · Fire = Fire · Earth = Ground / Rock / Normal-as-mundane · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned (Wu Xing has no Air / spirit element).</li>
+        <li><span class="r-id">R6.</span> Animal-slot uses the 12 functional-agrarian design criteria below; element uses type-honest (R5). A Pokémon must pass <em>both</em> matchers to fill a cell.</li>
+        <li><span class="r-id">R7.</span> Cluster depth: 1 single → 2 line → 3 two-lines-or-line+legendary → 4 three-lines → 5 four+lines (BCW prize cell).</li>
+        <li><span class="r-id">R8.</span> Open-cell honesty — no qualifying match means cell stays open. The gaps are annotated features of the source material, not failures.</li>
+      </ol>
+
+      <h4>The 12 functional-agrarian slot criteria</h4>
+      <p>The slot character's Chinese semantics dictate whether the criterion <strong>broadens</strong> (the character covers a family of similar animals) or stays <strong>strict</strong> (the character means that thing specifically). This is the structural ruling: lions and saber-tooths aren't tigers, the same way mice and rats are both rodents and sheep and goats are interchangeable.</p>
+      <ol>
+        <li><span class="crit-anchor">Rat (鼠)</span> <span class="rule-broad">BROAD</span> — small mammals with prominent incisors and a scampering body plan. Mice, rats, squirrels, beavers, hamsters, capybara-types. The agrarian pest broadly. Excludes shrews if not rodent-shaped, excludes rabbits (separate slot).</li>
+        <li><span class="crit-anchor">Ox (牛)</span> <span class="rule-broad">BROAD</span> — 牛 covers all bovines: cattle, water buffalo (水牛), yak (牦牛), wild ox (野牛), bulls, oxen. The agrarian plow animal broadly. Per Bulbapedia, Terrakion is "bovine, quadrupedal" — passes 牛 cleanly. <em>Bouffalant orphans via non-Chinese-fauna (American bison, wrong continent), not via slot-strictness.</em></li>
+        <li><span class="crit-anchor">Tiger (虎)</span> <span class="rule-strict">STRICT</span> — actual tigers. Striped, solitary, predatory big cat with tiger silhouette. <em>Excludes lions (Buddhist-imported iconography, separate Chinese category 狮 — Pyroar, Solgaleo, Entei, Suicune all orphaned). Excludes saber-tooths (Raikou orphaned), leopards/panthers, and all domestic-scaled cats per the Great Race myth. The character does not broaden the way 鼠 and 羊 do.</em></li>
+        <li><span class="crit-anchor">Rabbit (兔)</span> <span class="rule-broad">BROAD</span> — lagomorph: long ears, hopping body plan, herbivore. Rabbits and hares. The moon-rabbit (玉兔) is canonical Chinese imagery — lunar / medicinal / agrarian.</li>
+        <li><span class="crit-anchor">Dragon (龙)</span> <span class="rule-strict">STRICT</span> — Chinese loong specifically, plus the carp-dragon transformation carve-out (鯉躍龍門). Asian-loong-coded designs: serpentine, scaled, whiskered, four-clawed, sky/water-associated. Plus the carp-becomes-dragon lineage (Magikarp → Gyarados). <em>Excludes Western heraldic dragons (Charizard line, winged fire-breathers). Excludes kaiju (Tyranitar line — Japanese tradition, not Chinese). The Dragon row collapses to Water Dragon only as a result.</em></li>
+        <li><span class="crit-anchor">Snake (蛇)</span> <span class="rule-strict">STRICT</span> — legless or near-legless reptiles only. Slithering, coiling body. <em>Eels are 鳗 (with the fish radical 魚) in Chinese tradition — they're fish, not snakes. Eelektross orphans to a separate category. Sea-serpents pass via visual coding only when not carp-dragon-coded (Milotic stays via sea-serpent visual, Gyarados goes to Dragon via carp-myth).</em></li>
+        <li><span class="crit-anchor">Horse (马)</span> <span class="rule-strict">STRICT</span> — 马 means horse specifically. Donkeys are 驴, mules are 骡 — separate characters. Year of the Horse celebrates horses, not equines broadly. <em>Mudbray reads donkey by visual coding, but the Mudbray-Mudsdale line stays via Mudsdale anchor (line-as-unit precedent, same as Mamoswine via Swinub). Zebras orphan via non-Chinese fauna — Blitzle/Zebstrika also pure Electric, doubly orphaned.</em></li>
+        <li><span class="crit-anchor">Goat (羊)</span> <span class="rule-broad">BROAD</span> — horned ruminant: goat, sheep, or ram silhouette interchangeable. 山羊 (mountain 羊 = goat), 绵羊 (cotton 羊 = sheep). The character doesn't distinguish among them. <em>Houndoom orphans structurally — decorative horns are not pastoral-ruminant horns; Houndoom is a hellhound, not a 羊. Stantler / Wyrdeer dropped (deer is 鹿, separate character).</em></li>
+        <li><span class="crit-anchor">Monkey (猴)</span> <span class="rule-broad">BROAD</span> — primate: simian face, hands, climbing or knuckle-walking body. Apes, monkeys, lemurs, orangutans. The Sun Wukong (孫悟空) lineage is foundational — monkey-as-trickster-immortal. Excludes humans-as-monkeys (Mr. Mime — humanoid, separate category).</li>
+        <li><span class="crit-anchor">Rooster (鸡)</span> <span class="rule-strict">STRICT</span> — chicken: galliform body, comb / wattle, dawn-crowing barnyard bird. <em>The dex's massive avian variety is a structural mismatch with a one-bird zodiac slot. Skarmory, Dodrio, all raptors / songbirds / waterfowl / owls slot-orphaned.</em></li>
+        <li><span class="crit-anchor">Dog (狗)</span> <span class="rule-strict">STRICT</span> — domestic dogs only. Companion / guardian / herding canid. Stoutland line, Arcanine line, Yamper line. <em>Excludes wolves (狼 — wild predators, separate Chinese category — Mightyena, Lycanroc, Zacian / Zamazenta orphaned). Excludes foxes (狐仙 — fox-spirit lineage, separate supernatural category — Vulpix, Ninetales, Vaporeon orphaned). Excludes hyenas / jackals (non-Chinese fauna — Lucario orphaned despite jackal coding).</em></li>
+        <li><span class="crit-anchor">Pig (猪)</span> <span class="rule-broad">BROAD</span> — suid: pig, boar, or wild swine silhouette. Snout, optional tusks. Pigs and boars. Mamoswine line passes via Swinub's pig coding (mammoth endpoint accepted as line-as-unit). Excludes hippos (Hippopotas), tapirs, peccaries-as-not-pigs.</li>
+      </ol>
+
+    </div>
+  </details>
 
   <div class="zg" id="grid">
     <div></div>
@@ -282,7 +375,7 @@
 
     <p><span class="group">Wolves (狼)</span> — wild predators, antagonist of the shepherd in agrarian symbolism, not a domestic-companion canid. <em>Mightyena, Lycanroc, Zacian/Zamazenta all slot-orphaned.</em></p>
 
-    <p><span class="group">Lions (狮)</span> — Buddhist-imported iconography (guardian-lion statues, lion dance from Indian/Central Asian Buddhism), not native Chinese fauna. <em>Pyroar, Solgaleo, Entei, Suicune, Hisuian Arcanine all slot-orphaned. Tiger row goes fully open as a result — the dex has lots of "big cats" but no actual tigers.</em></p>
+    <p><span class="group">Lions, saber-tooths, panthers — not tigers</span> — 虎 means tiger specifically. Unlike 鼠 (which broadens to any rodent under R1) and 羊 (which broadens to goat/sheep/ram under R2), the tiger character does not broaden. A lion is not a tiger the way a mouse IS a rodent or a goat IS a sheep. Lions also carry separate Chinese symbolism (狮) — Buddhist-imported iconography from guardian-lion statues and lion dance, not native fauna. <em>Pyroar, Solgaleo, Entei, Suicune (lions), Hisuian Arcanine (lion-tiger), Raikou (saber-tooth) all slot-orphaned. Tiger row goes fully open — the dex has plenty of big cats but no actual striped tigers.</em></p>
 
     <p><span class="group">Most birds</span> — Rooster slot is chicken-specific in mainstream Chinese tradition; the Pokémon dex's massive avian variety is a structural mismatch with a zodiac that allotted one bird slot to the domestic chicken. <em>Skarmory, Dodrio, all raptors/songbirds/waterfowl/owls slot-orphaned.</em></p>
 
@@ -294,9 +387,15 @@
 
     <p><span class="group">Kaiju</span> — Japanese mythological tradition, not Chinese. <em>Tyranitar line slot-orphaned. The Dragon row tightens to Water Dragon only — Kingdra (seahorse-loong), Palkia, Gyarados (the carp-dragon transformation, 鯉躍龍門), Dragalge.</em></p>
 
-    <p><span class="group">Non-Chinese fauna</span> — zebras (African — Blitzle/Zebstrika), American bison (Bouffalant — wrong continent), jackals (Egyptian/Mediterranean — Lucario), mammoths/hippos/tapirs all slot-orphaned even when type-honest.</p>
+    <p><span class="group">Donkeys (驴)</span> — separate character from 马 (horse) in Chinese; mules are 骡, also separate. <em>Mudbray reads donkey by visual coding. Mudbray-Mudsdale line stays in Earth Horse via Mudsdale anchor (line-as-unit precedent — same logic as Mamoswine via Swinub).</em></p>
 
-    <p><span class="group">Houndoom</span> specifically — orphaned from both the Goat row (Baphomet/European Christian symbolism, not pastoral Chinese) AND the Dog row (demonic hellhound, not a domestic companion).</p>
+    <p><span class="group">Deer (鹿)</span> — separate character from 羊 (goat / sheep / ram). Antlers are not pastoral-ruminant horns; deer carry their own Chinese cultural symbolism (longevity, immortality). <em>Stantler / Wyrdeer dropped from Earth Goat under strict 羊 reading.</em></p>
+
+    <p><span class="group">Eels (鳗)</span> — written with the fish radical 魚 in Chinese; eels are fish in Chinese tradition, not snakes (蛇). <em>Eelektross orphans from Water Snake under strict 蛇 reading.</em></p>
+
+    <p><span class="group">Non-Chinese fauna</span> — zebras (African — Blitzle / Zebstrika), American bison (Bouffalant — wrong continent), jackals (Egyptian / Mediterranean — Lucario), mammoths / hippos / tapirs all slot-orphaned even when type-honest.</p>
+
+    <p><span class="group">Houndoom</span> specifically — orphans from both the Goat row (decorative horns aren't pastoral-ruminant horns) AND the Dog row (hellhound, not a domestic companion 狗).</p>
   </section>
 
   <div class="back">

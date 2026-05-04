@@ -67,7 +67,7 @@ const DATA = [
   ['Ox', [
     ['open',  0, 'open',        '1985 / 2045', [], []],
     ['fire',  1, 'Blaze Tauros','1997 / 2057', ['Paldean Blaze Tauros (Fighting/Fire breed)'], []],
-    ['earth', 2, 'Tauros',      '2009 / 2069', ['Tauros (base, Normal-as-mundane bull)', 'Miltank (Normal-as-mundane dairy cow)'], []],
+    ['earth', 3, 'Terrakion',   '2009 / 2069', ['Terrakion (Rock/Fighting — Bulbapedia: "bovine, quadrupedal Pokémon" with charging-bull behavior; Swords of Justice)', 'Tauros (base, Normal-as-mundane bull)', 'Miltank (Normal-as-mundane dairy cow)'], ['swords']],
     ['open',  0, 'open',        '2021 / 2081', [], []],
     ['water', 1, 'Aqua Tauros', '2033 / 2093', ['Paldean Aqua Tauros (Fighting/Water breed)'], []],
   ]],
@@ -97,19 +97,19 @@ const DATA = [
     ['open',  0, 'open',        '2037 / 2097', [], []],
     ['earth', 4, 'Sandaconda',  '1989 / 2049', ['Silicobra-Sandaconda (Ground)', 'Onix-Steelix (Rock/Ground; cross-codes Metal Snake)', 'Ekans-Arbok (Poison-coded but earthbound)', 'Dunsparce-Dudunsparce (Normal-as-mundane)'], []],
     ['metal', 2, 'Steelix',     '2001 / 2061', ['Onix-Steelix (Steel/Ground; cross-codes Earth Snake)'], []],
-    ['water', 3, 'Milotic',     '2013 / 2073', ['Feebas-Milotic (sea-serpent — criterion 6 keeps it here, not Dragon)', 'Tynamo-Eelektrik-Eelektross (eel — criterion 6 explicit)'], []],
+    ['water', 2, 'Milotic',     '2013 / 2073', ['Feebas-Milotic (sea-serpent visual coding, not carp-dragon)'], []],
   ]],
   ['Horse', [
     ['open',  0, 'open',        '2014 / 2074', [], []],
-    ['fire',  2, 'Rapidash',    '2026 / 2086', ['Ponyta-Rapidash (Kantonian Fire Horse, unicorn qualifies per criterion 7)'], [], true],
-    ['earth', 2, 'Mudsdale',    '2038 / 2098', ['Mudbray-Mudsdale (Ground, Draft Horse)'], []],
+    ['fire',  2, 'Rapidash',    '2026 / 2086', ['Ponyta-Rapidash (Fire, single-toed equine, mane — clean 马 fit)'], [], true],
+    ['earth', 2, 'Mudsdale',    '2038 / 2098', ['Mudbray-Mudsdale line — line-as-unit via Mudsdale (Draft Horse, clean 马). Mudbray reads donkey (驴) by visual; same precedent as Mamoswine via Swinub anchor.'], []],
     ['open',  0, 'open',        '1990 / 2050', [], []],
-    ['water', 2, 'Keldeo',      '2002 / 2062', ['Keldeo (Water/Fighting, Resolute + Ordinary forms, Swords of Justice)'], ['swords']],
+    ['water', 2, 'Keldeo',      '2002 / 2062', ['Keldeo (Water/Fighting, pony-with-horn, Swords of Justice)'], ['swords']],
   ]],
   ['Goat', [
     ['wood',  3, 'Gogoat',      '2015 / 2075', ['Skiddo-Gogoat (Grass, horned ruminant)', 'Virizion (Grass/Fighting, Swords of Justice)'], ['swords']],
     ['open',  0, 'open',        '2027 / 2087', [], []],
-    ['earth', 4, 'Terrakion',   '2039 / 2099', ['Terrakion (Rock/Fighting, ram-horned — debatable, leans Ox per criterion 8)', 'Stantler-Wyrdeer (Normal-as-mundane cervid — antlers stretch)', 'Wooloo-Dubwool (Normal-as-mundane sheep)'], ['swords']],
+    ['earth', 2, 'Wooloo',      '2039 / 2099', ['Wooloo-Dubwool (Normal-as-mundane Galar sheep — Terrakion moved to Earth Ox per Bulbapedia "bovine, quadrupedal" classification)'], []],
     ['metal', 2, 'Cobalion',    '1991 / 2051', ['Cobalion (Steel/Fighting, most goat-coded of Swords of Justice — ungulate horned design)'], ['swords']],
     ['water', 2, 'Gastrodon',   '2003 / 2063', ['Shellos-Gastrodon (West Sea form, ram horns per Serebii)'], []],
   ]],
@@ -149,18 +149,18 @@ const TRIO_NAMES = {
 };
 
 const ROW_NOTES = [
-  'Rat — Dense row. Rodent-coded Pokémon are common; Earth Rat builds the deepest cluster on the Normal-as-mundane rule.',
-  'Ox — Bouffalant orphaned (American bison, wrong continent). Paldean Tauros breeds carry Fire and Water cells alone.',
-  'Tiger — Fully open. Lions are Buddhist-imported iconography, not native Chinese fauna. The dex has Pyroar, Solgaleo, Entei, Suicune — but no actual striped tigers.',
-  'Rabbit — Sparse but clean. Lagomorph criterion is unambiguous; long ears beat digger silhouette.',
-  'Dragon — Collapses to Water Dragon only. Western heraldic dragons (Charizard) and kaiju (Tyranitar) are excluded — the slot is Chinese loong + carp-dragon transformation (Gyarados).',
-  'Snake — Solid throughout. Eels qualify per criterion 6; sea-serpents stay here unless explicitly carp-dragon-coded.',
-  'Horse — Equine-strict. Zebras orphaned (African); deer route to Goat or stay orphaned.',
-  'Goat — Houndoom orphaned (Baphomet imagery, European Christian — not pastoral). Swords of Justice trio fills three of five cells.',
-  'Monkey — Primate-clean. Sun Wukong canon. Sim trio fills Wood / Fire / Water in synchrony.',
-  'Rooster — Almost empty. 鸡 = chicken specifically; the dex\'s avian variety is a structural mismatch with a one-bird zodiac slot.',
-  'Dog — Domestic dogs only. Wolves (Mightyena, Lycanroc), foxes (Vaporeon, Vulpix), and jackals (Lucario) all orphaned to separate Chinese categories.',
-  'Pig — Suid-strict. Mamoswine line passes via Swinub\'s pig coding; mammoth endpoint accepted as line-as-unit.',
+  'Rat (BROAD) — 鼠 covers any rodent. 松鼠 (squirrel = "pine rat"), 仓鼠 (hamster = "storage rat"), 老鼠 (mouse/rat). Earth Rat builds the deepest cluster on the Normal-as-mundane rule.',
+  'Ox (BROAD) — 牛 covers all bovines: cattle, water buffalo (水牛), yak (牦牛), wild ox (野牛). Bouffalant still orphans, but via non-Chinese-fauna (American bison), not slot-strictness.',
+  'Tiger (STRICT) — 虎 means tiger specifically. Unlike 鼠 (any rodent) and 羊 (goat/sheep/ram), the tiger character does not broaden — Chinese has separate characters for lion (狮), leopard (豹), cat (猫). A lion is not a tiger the way a mouse IS a rodent. The dex has Pyroar, Solgaleo, Entei, Suicune (lions), Hisuian Arcanine (lion-tiger), Raikou (saber-tooth) — all big cats, none of them tigers. Row fully open.',
+  'Rabbit (BROAD) — 兔 covers lagomorphs (rabbits + hares, 野兔). Long ears beat digger silhouette; Diggersby and Azumarill pass cleanly.',
+  'Dragon (STRICT) — 龙 means Chinese loong + the carp-dragon transformation only (鯉躍龍門). Western heraldic dragons (Charizard) and kaiju (Tyranitar) are orphaned. Row collapses to Water Dragon only — Kingdra, Palkia, Gyarados (carp-dragon), Dragalge.',
+  'Snake (STRICT) — 蛇 means legless reptile specifically. Eels are 鳗 (fish radical 魚), not 蛇 — they\'re fish in Chinese tradition, not snakes. Eelektross dropped from Water Snake to honor this. Sea-serpents pass via visual coding only when not carp-dragon-coded.',
+  'Horse (STRICT) — 马 means horse specifically. Donkeys are 驴, separate character; mules are 骡. Year of the Horse celebrates horses, not equines broadly. Zebras additionally orphan via non-Chinese fauna.',
+  'Goat (BROAD) — 羊 covers goat / sheep / ram interchangeably. 山羊 (mountain 羊 = goat), 绵羊 (cotton 羊 = sheep). Houndoom orphans structurally — decorative horns aren\'t pastoral-ruminant horns. Stantler-Wyrdeer dropped (deer = 鹿, separate character). Cobalion + Virizion carry the Swords of Justice connection across two cells.',
+  'Monkey (BROAD) — 猴 covers any primate. Sun Wukong (美猴王, "Beautiful Monkey King") canon. Sim trio fills Wood / Fire / Water in synchrony.',
+  'Rooster (STRICT) — 鸡 means chicken specifically. Other birds have separate characters (鸭 duck, 鹅 goose, 雁 wild goose, 鹰 eagle). The dex\'s avian variety is a structural mismatch with a one-bird zodiac slot. Row almost entirely empty.',
+  'Dog (STRICT) — 狗 means domestic dogs only. Each related canid has its own character: 狼 (wolf), 狐 (fox), 豺 (jackal/dhole). Wolves (Mightyena, Lycanroc), foxes (Vaporeon, Vulpix), jackals (Lucario) all orphaned to those separate categories.',
+  'Pig (BROAD) — 猪 covers suids broadly. 野猪 (wild boar = "wild 猪"), 家猪 (domestic pig). Mamoswine line passes via Swinub\'s pig coding; mammoth endpoint accepted as line-as-unit.',
 ];
 
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -202,8 +202,6 @@ DATA.forEach((row, rIdx) => {
     cell.dataset.members = JSON.stringify(members);
     cell.dataset.depth = depth;
     cell.dataset.trios = JSON.stringify(trios || []);
-    cell.dataset.row = rIdx;
-    cell.dataset.col = cIdx;
     cell.innerHTML = `
       <div class="zn">${anchor}</div>
       ${dotsHTML(depth)}
@@ -336,7 +334,7 @@ cells.forEach(cell => {
       ease: createSpring({ mass: 0.8, stiffness: 200, damping: 12 }),
     });
     cells.forEach(other => {
-      other.classList.remove('trio-hl', 'trio-swords', 'trio-sims', 'trio-beasts', 'trio-wolves', 'trio-tao');
+      other.classList.remove('trio-hl', 'trio-swords', 'trio-sims');
     });
   });
 });
