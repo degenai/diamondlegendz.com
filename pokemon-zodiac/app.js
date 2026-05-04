@@ -1,4 +1,4 @@
-import { animate, stagger, createSpring, utils } from '../facets/vendor/anime.esm.min.js';
+import { animate, stagger, spring, utils } from '../facets/vendor/anime.esm.min.js';
 
 const CN = ['鼠','牛','虎','兔','龙','蛇','马','羊','猴','鸡','狗','猪'];
 const ELABEL = ['WOOD','FIRE','EARTH','METAL','WATER'];
@@ -232,12 +232,12 @@ if (REDUCED_MOTION) {
     scale: [0, 1], opacity: [0, 1],
     duration: 600,
     delay: stagger(25, { grid: [5, 12], from: 'center', start: 350 }),
-    ease: createSpring({ mass: 1, stiffness: 120, damping: 12 }),
+    ease: spring({ mass: 1, stiffness: 120, damping: 12 }),
   });
   animate('.dot.on', {
     scale: [0, 1], duration: 350,
     delay: stagger(40, { start: 1100 }),
-    ease: createSpring({ mass: 0.6, stiffness: 220, damping: 9 }),
+    ease: spring({ mass: 0.6, stiffness: 220, damping: 9 }),
   });
 }
 
@@ -250,21 +250,13 @@ if (!REDUCED_MOTION) {
   animate(titleEl.querySelectorAll('.ch'), {
     y: [-30, 0], opacity: [0, 1],
     duration: 700, delay: stagger(25),
-    ease: createSpring({ mass: 1, stiffness: 100, damping: 10 }),
+    ease: spring({ mass: 1, stiffness: 100, damping: 10 }),
   });
 }
 
-const nowCell = document.querySelector('.zc-now');
-if (nowCell && !REDUCED_MOTION) {
-  animate(nowCell, {
-    boxShadow: [
-      '0 0 0px 0px rgba(0,255,0,0)',
-      '0 0 18px 4px rgba(0,255,0,0.7)',
-      '0 0 0px 0px rgba(0,255,0,0)',
-    ],
-    duration: 1800, loop: true, ease: 'inOutSine',
-  });
-}
+// Now-cell pulse loop removed — bled into the selection state
+// and never released. The static "You are here" pill at the top
+// conveys present-year cleanly enough.
 
 if (!REDUCED_MOTION) {
   document.querySelectorAll('.zc-deep').forEach(c => {
@@ -312,7 +304,7 @@ cells.forEach(cell => {
   cell.addEventListener('mouseenter', () => {
     animate(cell, {
       scale: 1.06, duration: 400,
-      ease: createSpring({ mass: 0.8, stiffness: 200, damping: 10 }),
+      ease: spring({ mass: 0.8, stiffness: 200, damping: 10 }),
     });
 
     const trios = JSON.parse(cell.dataset.trios);
@@ -331,7 +323,7 @@ cells.forEach(cell => {
   cell.addEventListener('mouseleave', () => {
     animate(cell, {
       scale: 1, duration: 400,
-      ease: createSpring({ mass: 0.8, stiffness: 200, damping: 12 }),
+      ease: spring({ mass: 0.8, stiffness: 200, damping: 12 }),
     });
     cells.forEach(other => {
       other.classList.remove('trio-hl', 'trio-swords', 'trio-sims');
@@ -366,7 +358,7 @@ function showPanel(cell, opts = {}) {
   animate(cell, {
     keyframes: [
       { scale: 0.92, duration: 100 },
-      { scale: 1.08, duration: 200, ease: createSpring({ stiffness: 300, damping: 8 }) },
+      { scale: 1.08, duration: 200, ease: spring({ stiffness: 300, damping: 8 }) },
       { scale: 1.06, duration: 200 },
     ],
   });
@@ -399,7 +391,7 @@ function showPanel(cell, opts = {}) {
   panelAnim = animate(panel, {
     opacity: 1, y: 0,
     duration: 450,
-    ease: createSpring({ mass: 1, stiffness: 150, damping: 14 }),
+    ease: spring({ mass: 1, stiffness: 150, damping: 14 }),
   });
 
   const liNodes = panel.querySelectorAll('.pmembers li');
@@ -449,7 +441,7 @@ function runLookup() {
   cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
   animate(cell, {
     keyframes: [
-      { scale: 1.15, duration: 250, ease: createSpring({ stiffness: 200, damping: 8 }) },
+      { scale: 1.15, duration: 250, ease: spring({ stiffness: 200, damping: 8 }) },
       { scale: 1.0,  duration: 350 },
     ],
   });
