@@ -254,23 +254,10 @@ if (!REDUCED_MOTION) {
   });
 }
 
-// Now-cell pulse loop removed — bled into the selection state
-// and never released. The static "You are here" pill at the top
-// conveys present-year cleanly enough.
-
-if (!REDUCED_MOTION) {
-  document.querySelectorAll('.zc-deep').forEach(c => {
-    animate(c, {
-      boxShadow: [
-        '0 0 0px 0px rgba(255,255,0,0)',
-        '0 0 12px 2px rgba(255,255,0,0.45)',
-        '0 0 0px 0px rgba(255,255,0,0)',
-      ],
-      duration: 2600, loop: true, ease: 'inOutSine',
-      delay: Math.random() * 1000,
-    });
-  });
-}
+// Now-cell and deep-cell pulse loops both removed — they competed
+// with the selection outline and never released. The static
+// "You are here" pill at the top conveys present-year cleanly,
+// and deep cells already stand out via the four/five lit dots.
 
 const toast = document.getElementById('triotoast');
 let toastAnim = null;
