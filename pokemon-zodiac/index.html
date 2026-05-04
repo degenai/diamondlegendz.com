@@ -264,6 +264,43 @@
   .orphans .group { color: #00FFFF; font-weight: bold; }
   .orphans .lead { color: #FFFFFF; margin-bottom: 10px; }
 
+  .findings {
+    margin: 20px 0 0;
+    background: black;
+    border: 3px ridge #FFD700;
+    padding: 14px 16px;
+    text-align: left;
+    color: #FFFFAA;
+    font-size: 0.88em;
+    line-height: 1.6;
+  }
+  .findings h3 {
+    color: #FFD700;
+    margin: 0 0 10px;
+    font-size: 1.1em;
+    border-bottom: 2px dashed #FF00FF;
+    padding-bottom: 4px;
+  }
+  .findings h4 {
+    color: #00FFFF;
+    margin: 16px 0 4px;
+    font-size: 1em;
+  }
+  .findings p { margin: 4px 0 8px; }
+  .findings em { color: #FFFF00; font-style: italic; }
+  .findings strong { color: #00FF00; }
+  .findings a { color: #00FFFF; }
+  .findings a:hover { color: #FF00FF; background: white; text-decoration: underline; }
+  .findings .lead { color: #FFFFFF; margin-bottom: 10px; }
+  .findings .sources {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px dashed #555;
+    font-size: 0.92em;
+    color: #AAAAFF;
+  }
+  .findings .sources strong { color: #FFD700; }
+
   @media (max-width: 700px) {
     .zg { grid-template-columns: 70px repeat(5, 1fr); font-size: 0.8em; }
     .zl { font-size: 0.8em; }
@@ -303,7 +340,7 @@
   <div class="rules">
     <strong>China-max ruleset.</strong> Mainstream Chinese tradition only — no Vietnamese cat, no Persian water-beast Dragon. <strong>Broad characters:</strong> 鼠 = any rodent · 牛 = all bovines · 兔 = lagomorphs · 羊 = goat/sheep/ram · 猴 = primates · 猪 = suids. <strong>Strict characters:</strong> 虎 = tigers only · 龙 = Chinese loong + carp-dragon · 蛇 = snakes only (eels are 鳗) · 马 = horses only (donkeys are 驴) · 鸡 = chicken only · 狗 = domestic dogs only.
     <br>
-    <strong>Wuxing → types:</strong> Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground, Rock, Normal-as-mundane)</em> · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned.
+    <strong>Wuxing → types:</strong> Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground, Rock, Normal-as-mundane, Poison + terrestrial habitat)</em> · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned.
     <br>
     <strong>Animal-fit:</strong> 12 functional-agrarian slot criteria — Tiger = actual tigers, Dog = domestic dogs, Dragon = Chinese loong + carp-dragon. Lions, wolves, foxes, jackals, Western dragons, kaiju all slot-orphaned.
     <br>
@@ -386,7 +423,7 @@
 
     <p><span class="group">Western dragons</span> — winged fire-breathers, distinct from Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated). <em>Charizard line, Reshiram, Turtonator, Volcarona slot-orphaned despite Dragon-type or fire-bug coding.</em></p>
 
-    <p><span class="group">Kaiju</span> — Japanese mythological tradition, not Chinese. <em>Tyranitar line slot-orphaned. The Dragon row tightens to Water Dragon only — Kingdra (seahorse-loong), Palkia, Gyarados (the carp-dragon transformation, 鯉躍龍門), Dragalge.</em></p>
+    <p><span class="group">Kaiju</span> — Japanese mythological tradition, not Chinese. <em>Tyranitar line slot-orphaned. The Dragon row tightens to two cells: Earth Dragon (Drampa, Gen 7's deliberate Zhulong 燭龍 nod) and Water Dragon (Kingdra seahorse-loong, Palkia, and Magikarp-Gyarados — the explicit 鯉躍龍門 carp-dragon transformation).</em></p>
 
     <p><span class="group">Donkeys (驴)</span> — separate character from 马 (horse) in Chinese; mules are 骡, also separate. <em>Mudbray reads donkey by visual coding. Mudbray-Mudsdale line stays in Earth Horse via Mudsdale anchor (line-as-unit precedent — same logic as Mamoswine via Swinub).</em></p>
 
@@ -399,11 +436,35 @@
     <p><span class="group">Houndoom</span> specifically — orphans from both the Goat row (decorative horns aren't pastoral-ruminant horns) AND the Dog row (hellhound, not a domestic companion 狗).</p>
   </section>
 
+  <section class="findings">
+    <h3>Findings — what the grid reveals</h3>
+    <p class="lead">The grid is a map of where the Pokémon dex reached into Chinese tradition versus drew from elsewhere. Four patterns emerge from doing the matching honestly.</p>
+
+    <h4>1. The Dragon roster is overwhelmingly Western-coded</h4>
+    <p>Pokémon's pseudo-legendary Dragon lineage — Dragonite, Salamence, Garchomp, Hydreigon, Goodra, Kommo-o, Dragapult, Baxcalibur — is uniformly Western-heraldic. <strong>Charizard, Reshiram, Turtonator</strong> draw from European fire-breather iconography; <strong>Tyranitar</strong> from Japanese kaiju tradition. Out of 1000+ Pokémon, fewer than ten are recognizable as Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated): Dragonair as a mid-stage, Kingdra (seahorse-loong), Magikarp-Gyarados (the explicit carp-dragon), Rayquaza (sky-serpent flex), and <strong>Drampa</strong> — Gen 7's deliberate 燭龍 (Zhulong, the Chinese torch-dragon) nod. The grid's Dragon row consequently collapses to <em>two filled cells</em>: Earth Dragon (Drampa) and Water Dragon (Kingdra / Palkia / Gyarados). Wood, Fire, and Metal Dragon stay open — not because the dex lacks dragons, but because the dragons it has don't pass the loong test.</p>
+
+    <h4>2. The Tiger row stays fully empty</h4>
+    <p>虎 means tiger specifically; Chinese has separate characters for lion (狮), leopard (豹), and house cat (猫). The dex offers <strong>Pyroar, Solgaleo, Entei, Suicune</strong> (lions), <strong>Hisuian Arcanine</strong> (lion-tiger), and <strong>Raikou</strong> (saber-tooth) — six big cats, none of them tigers. Game Freak invested heavily in big-cat designs but never delivered an actual striped tiger. (Closest near-miss: Persian's tail and Liepard's stripes — but Persian is house-cat-scaled, and Liepard is leopard-coded.) The result: zero filled cells across the entire Tiger row.</p>
+
+    <h4>3. The carp-dragon is the dex's only completed mythological cycle</h4>
+    <p>Magikarp → Gyarados is <em>literally</em> the 鯉躍龍門 ("carp leaps the dragon gate") legend rendered as game mechanics. It's the only piece of Chinese mythology Pokémon adapts as a complete transformation cycle, not a single design reference. The Pokémon Company leans into this commercially: the 2026 Dragon Boat Festival collection pairs Pikachu / Magikarp / Gyarados explicitly. By contrast, Year of the Dragon merchandise in Taiwan and Hong Kong (2024) centers <strong>Charizard</strong> — culturally Western, but commercially the headliner Chinese collectors actually want.</p>
+
+    <h4>4. Trio synchronicities surface intentional Wuxing cluster design</h4>
+    <p>The <strong>Sim Monkey trio</strong> (Pansage / Pansear / Panpour → Simisage / Simisear / Simipour) fills three Wuxing elements in a single zodiac row — deliberate Wood / Fire / Water cluster design, not coincidence. The <strong>Swords of Justice</strong> spreads across four cells in three rows: Cobalion's "Iron Will" naming and Steel/Fighting typing (Metal Goat), Terrakion's bovine "Cavern Pokémon" classification per Bulbapedia (Earth Ox), Virizion's Grass/Fighting (Wood Goat), and Keldeo's Water/Fighting unicorn coding (Water Horse). The grid's hover-trio highlight surfaces these patterns visually; the design intent is hard to argue away once you see them lit up together.</p>
+
+    <p class="sources"><strong>Sources.</strong>
+      Bulbapedia: <a href="https://bulbapedia.bulbagarden.net/wiki/Terrakion_(Pok%C3%A9mon)" target="_blank" rel="noopener">Terrakion</a> ("bovine, quadrupedal Pokémon"), <a href="https://bulbapedia.bulbagarden.net/wiki/Drampa_(Pok%C3%A9mon)" target="_blank" rel="noopener">Drampa</a> (Zhulong origin) ·
+      <a href="https://bulbagarden.net/threads/pokemon-so-chinese-infleunced.29920/" target="_blank" rel="noopener">Bulbagarden thread (2008)</a> on Pokémon's multicultural mythological diffusion ·
+      <a href="https://marinagarrow.home.blog/2019/07/15/gyarados-the-chinese-dragon/" target="_blank" rel="noopener">Marina Garrow</a> on Gyarados as Chinese dragon ·
+      The Pokémon Company merchandise releases (Year of the Dragon Charizard EX, Taiwan / Hong Kong, 2024; Dragon Boat Festival 2026 collection).
+    </p>
+  </section>
+
   <div class="back">
     <a href="../index.html">← back to Diamondlegendz</a>
   </div>
 </div>
 
-<script type="module" src="app.js?v=2"></script>
+<script type="module" src="app.js?v=4"></script>
 </body>
 </html>

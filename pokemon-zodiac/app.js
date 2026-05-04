@@ -15,6 +15,11 @@ const ELABEL = ['WOOD','FIRE','EARTH','METAL','WATER'];
 //   R5. Wuxing → types: Wood=Grass, Fire=Fire, Earth=Ground/Rock/Normal-as-mundane,
 //       Metal=Steel only (NOT Electric — Wu Xing has no Air), Water=Water+Ice.
 //       Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned.
+//       R5 extension: Poison-type Pokémon with terrestrial-habitat coding (cobras,
+//       skunks, sludge piles) extend to Earth — toxin is a lifecycle adaptation,
+//       not an elemental realm; Wu Xing has no poison phase, terrestrial poisons
+//       are chthonic / 土-coded by tradition. Aquatic, aerial, gaseous, and
+//       ghostly Poison-types do NOT get this extension.
 //   R6. Animal-slot uses functional-agrarian design criteria (the 12 below);
 //       element uses type-honest (R5). Pokémon must pass BOTH matchers to fill a cell.
 //   R7. Cluster depth: 1 single · 2 line · 3 two-lines/line+legend · 4 three-lines · 5 four+
@@ -88,14 +93,14 @@ const DATA = [
   ['Dragon', [
     ['open',  0, 'open',        '2024 / 2084', [], []],
     ['open',  0, 'open',        '2036 / 2096', [], []],
-    ['open',  0, 'open',        '1988 / 2048', [], []],
+    ['earth', 1, 'Drampa',      '1988 / 2048', ['Drampa (Normal/Dragon — modeled on the Zhulong 燭龍, Chinese torch-dragon. Long-bodied, whiskered, serpentine — clean loong. Normal-as-mundane lands the element.)'], []],
     ['open',  0, 'open',        '2000 / 2060', [], []],
-    ['water', 4, 'Kingdra',     '2012 / 2072', ['Horsea-Seadra-Kingdra (seahorse-loong, whiskered, serpentine)', 'Palkia (Water/Dragon, sky/water-associated)', 'Magikarp-Gyarados (carp-dragon transformation, 鯉躍龍門 — explicit per criterion 5)', 'Dragalge (sea-dragon visual, borderline loong)'], []],
+    ['water', 4, 'Kingdra',     '2012 / 2072', ['Horsea-Seadra-Kingdra (Water/Dragon — seahorse-loong, whiskered, serpentine)', 'Palkia (Water/Dragon, sky/water-associated)', 'Magikarp-Gyarados (Water/Flying — carp-dragon transformation, 鯉躍龍門, explicit per criterion 5)'], []],
   ]],
   ['Snake', [
     ['wood',  2, 'Serperior',   '2025 / 2085', ['Snivy-Servine-Serperior (Grass, Royal Pokémon, Unova starter)'], []],
     ['open',  0, 'open',        '2037 / 2097', [], []],
-    ['earth', 4, 'Sandaconda',  '1989 / 2049', ['Silicobra-Sandaconda (Ground)', 'Onix-Steelix (Rock/Ground; cross-codes Metal Snake)', 'Ekans-Arbok (Poison-coded but earthbound)', 'Dunsparce-Dudunsparce (Normal-as-mundane)'], []],
+    ['earth', 4, 'Sandaconda',  '1989 / 2049', ['Silicobra-Sandaconda (Ground)', 'Onix-Steelix (Rock/Ground; cross-codes Metal Snake)', 'Ekans-Arbok (Poison + terrestrial habitat — R5 extension; cobras are chthonic ground-dwellers)', 'Dunsparce-Dudunsparce (Normal-as-mundane)'], []],
     ['metal', 2, 'Steelix',     '2001 / 2061', ['Onix-Steelix (Steel/Ground; cross-codes Earth Snake)'], []],
     ['water', 2, 'Milotic',     '2013 / 2073', ['Feebas-Milotic (sea-serpent visual coding, not carp-dragon)'], []],
   ]],
@@ -154,7 +159,7 @@ const ROW_NOTES = [
   'Tiger (STRICT) — 虎 means tiger specifically. Unlike 鼠 (any rodent) and 羊 (goat/sheep/ram), the tiger character does not broaden — Chinese has separate characters for lion (狮), leopard (豹), cat (猫). A lion is not a tiger the way a mouse IS a rodent. The dex has Pyroar, Solgaleo, Entei, Suicune (lions), Hisuian Arcanine (lion-tiger), Raikou (saber-tooth) — all big cats, none of them tigers. Row fully open.',
   'Rabbit (BROAD) — 兔 covers lagomorphs (rabbits + hares, 野兔). Long ears beat digger silhouette; Diggersby and Azumarill pass cleanly.',
   'Dragon (STRICT) — 龙 means Chinese loong + the carp-dragon transformation only (鯉躍龍門). Western heraldic dragons (Charizard) and kaiju (Tyranitar) are orphaned. Row collapses to Water Dragon only — Kingdra, Palkia, Gyarados (carp-dragon), Dragalge.',
-  'Snake (STRICT) — 蛇 means legless reptile specifically. Eels are 鳗 (fish radical 魚), not 蛇 — they\'re fish in Chinese tradition, not snakes. Eelektross dropped from Water Snake to honor this. Sea-serpents pass via visual coding only when not carp-dragon-coded.',
+  'Snake (STRICT) — 蛇 means legless reptile specifically. Eels are 鳗 (fish radical 魚), not 蛇 — fish in Chinese tradition, not snakes. Arbok stays in Earth Snake via R5 extension (Poison + terrestrial habitat → Earth; cobras are chthonic ground-dwellers).',
   'Horse (STRICT) — 马 means horse specifically. Donkeys are 驴, separate character; mules are 骡. Year of the Horse celebrates horses, not equines broadly. Zebras additionally orphan via non-Chinese fauna.',
   'Goat (BROAD) — 羊 covers goat / sheep / ram interchangeably. 山羊 (mountain 羊 = goat), 绵羊 (cotton 羊 = sheep). Houndoom orphans structurally — decorative horns aren\'t pastoral-ruminant horns. Stantler-Wyrdeer dropped (deer = 鹿, separate character). Cobalion + Virizion carry the Swords of Justice connection across two cells.',
   'Monkey (BROAD) — 猴 covers any primate. Sun Wukong (美猴王, "Beautiful Monkey King") canon. Sim trio fills Wood / Fire / Water in synchrony.',
