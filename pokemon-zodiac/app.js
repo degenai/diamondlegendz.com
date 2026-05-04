@@ -148,6 +148,23 @@ const TRIO_NAMES = {
   sims:    'Sim Monkey trio — Simisage · Simisear · Simipour',
 };
 
+const ROW_NOTES = [
+  'Rat — Dense row. Rodent-coded Pokémon are common; Earth Rat builds the deepest cluster on the Normal-as-mundane rule.',
+  'Ox — Bouffalant orphaned (American bison, wrong continent). Paldean Tauros breeds carry Fire and Water cells alone.',
+  'Tiger — Fully open. Lions are Buddhist-imported iconography, not native Chinese fauna. The dex has Pyroar, Solgaleo, Entei, Suicune — but no actual striped tigers.',
+  'Rabbit — Sparse but clean. Lagomorph criterion is unambiguous; long ears beat digger silhouette.',
+  'Dragon — Collapses to Water Dragon only. Western heraldic dragons (Charizard) and kaiju (Tyranitar) are excluded — the slot is Chinese loong + carp-dragon transformation (Gyarados).',
+  'Snake — Solid throughout. Eels qualify per criterion 6; sea-serpents stay here unless explicitly carp-dragon-coded.',
+  'Horse — Equine-strict. Zebras orphaned (African); deer route to Goat or stay orphaned.',
+  'Goat — Houndoom orphaned (Baphomet imagery, European Christian — not pastoral). Swords of Justice trio fills three of five cells.',
+  'Monkey — Primate-clean. Sun Wukong canon. Sim trio fills Wood / Fire / Water in synchrony.',
+  'Rooster — Almost empty. 鸡 = chicken specifically; the dex\'s avian variety is a structural mismatch with a one-bird zodiac slot.',
+  'Dog — Domestic dogs only. Wolves (Mightyena, Lycanroc), foxes (Vaporeon, Vulpix), and jackals (Lucario) all orphaned to separate Chinese categories.',
+  'Pig — Suid-strict. Mamoswine line passes via Swinub\'s pig coding; mammoth endpoint accepted as line-as-unit.',
+];
+
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 const grid = document.getElementById('grid');
 
 function dotsHTML(depth) {
@@ -201,37 +218,46 @@ const cells = document.querySelectorAll('.zc');
 const headers = document.querySelectorAll('.zh');
 const labels = document.querySelectorAll('.zl');
 
-utils.set(cells, { scale: 0, opacity: 0 });
-utils.set(headers, { y: -16, opacity: 0 });
-utils.set(labels, { x: -16, opacity: 0 });
+if (REDUCED_MOTION) {
+  utils.set(cells, { scale: 1, opacity: 1 });
+  utils.set(headers, { y: 0, opacity: 1 });
+  utils.set(labels, { x: 0, opacity: 1 });
+  utils.set('.dot.on', { scale: 1 });
+} else {
+  utils.set(cells, { scale: 0, opacity: 0 });
+  utils.set(headers, { y: -16, opacity: 0 });
+  utils.set(labels, { x: -16, opacity: 0 });
 
-animate(headers, { y: 0, opacity: 1, duration: 500, delay: stagger(60), ease: 'outQuad' });
-animate(labels, { x: 0, opacity: 1, duration: 500, delay: stagger(50, { start: 200 }), ease: 'outQuad' });
-animate(cells, {
-  scale: [0, 1], opacity: [0, 1],
-  duration: 600,
-  delay: stagger(25, { grid: [5, 12], from: 'center', start: 350 }),
-  ease: createSpring({ mass: 1, stiffness: 120, damping: 12 }),
-});
-animate('.dot.on', {
-  scale: [0, 1], duration: 350,
-  delay: stagger(40, { start: 1100 }),
-  ease: createSpring({ mass: 0.6, stiffness: 220, damping: 9 }),
-});
+  animate(headers, { y: 0, opacity: 1, duration: 500, delay: stagger(60), ease: 'outQuad' });
+  animate(labels, { x: 0, opacity: 1, duration: 500, delay: stagger(50, { start: 200 }), ease: 'outQuad' });
+  animate(cells, {
+    scale: [0, 1], opacity: [0, 1],
+    duration: 600,
+    delay: stagger(25, { grid: [5, 12], from: 'center', start: 350 }),
+    ease: createSpring({ mass: 1, stiffness: 120, damping: 12 }),
+  });
+  animate('.dot.on', {
+    scale: [0, 1], duration: 350,
+    delay: stagger(40, { start: 1100 }),
+    ease: createSpring({ mass: 0.6, stiffness: 220, damping: 9 }),
+  });
+}
 
 const titleEl = document.getElementById('title');
 const titleText = titleEl.textContent;
 titleEl.innerHTML = titleText.split('').map(c =>
   c === ' ' ? '<span class="ch">&nbsp;</span>' : `<span class="ch">${c}</span>`
 ).join('');
-animate(titleEl.querySelectorAll('.ch'), {
-  y: [-30, 0], opacity: [0, 1],
-  duration: 700, delay: stagger(25),
-  ease: createSpring({ mass: 1, stiffness: 100, damping: 10 }),
-});
+if (!REDUCED_MOTION) {
+  animate(titleEl.querySelectorAll('.ch'), {
+    y: [-30, 0], opacity: [0, 1],
+    duration: 700, delay: stagger(25),
+    ease: createSpring({ mass: 1, stiffness: 100, damping: 10 }),
+  });
+}
 
 const nowCell = document.querySelector('.zc-now');
-if (nowCell) {
+if (nowCell && !REDUCED_MOTION) {
   animate(nowCell, {
     boxShadow: [
       '0 0 0px 0px rgba(0,255,0,0)',
@@ -242,22 +268,30 @@ if (nowCell) {
   });
 }
 
-document.querySelectorAll('.zc-deep').forEach(c => {
-  animate(c, {
-    boxShadow: [
-      '0 0 0px 0px rgba(255,255,0,0)',
-      '0 0 12px 2px rgba(255,255,0,0.45)',
-      '0 0 0px 0px rgba(255,255,0,0)',
-    ],
-    duration: 2600, loop: true, ease: 'inOutSine',
-    delay: Math.random() * 1000,
+if (!REDUCED_MOTION) {
+  document.querySelectorAll('.zc-deep').forEach(c => {
+    animate(c, {
+      boxShadow: [
+        '0 0 0px 0px rgba(255,255,0,0)',
+        '0 0 12px 2px rgba(255,255,0,0.45)',
+        '0 0 0px 0px rgba(255,255,0,0)',
+      ],
+      duration: 2600, loop: true, ease: 'inOutSine',
+      delay: Math.random() * 1000,
+    });
   });
-});
+}
 
 const toast = document.getElementById('triotoast');
-function showToast(msg) {
+let toastAnim = null;
+function showToast(msg, sticky = false) {
+  if (toastAnim) toastAnim.pause();
   toast.textContent = msg;
-  animate(toast, {
+  if (sticky) {
+    utils.set(toast, { opacity: 1 });
+    return;
+  }
+  toastAnim = animate(toast, {
     keyframes: [
       { opacity: 1, duration: 200 },
       { opacity: 1, duration: 1400 },
@@ -266,6 +300,15 @@ function showToast(msg) {
     ease: 'outQuad',
   });
 }
+function hideToast() {
+  if (toastAnim) toastAnim.pause();
+  utils.set(toast, { opacity: 0 });
+}
+
+document.querySelectorAll('.zl').forEach((label, idx) => {
+  label.addEventListener('mouseenter', () => showToast(ROW_NOTES[idx], true));
+  label.addEventListener('mouseleave', () => hideToast());
+});
 
 cells.forEach(cell => {
   cell.addEventListener('mouseenter', () => {
@@ -303,11 +346,24 @@ let selected = null;
 let panelAnim = null;
 let panelLiAnim = null;
 
-function showPanel(cell) {
+function cellSlug(cell) {
+  return `${cell.dataset.animal}-${cell.dataset.element}`.toLowerCase().replace(/\s+/g, '-');
+}
+
+function showPanel(cell, opts = {}) {
   if (selected && selected !== cell) {
+    selected.classList.remove('zc-selected');
     animate(selected, { scale: 1, duration: 250, ease: 'outQuad' });
   }
   selected = cell;
+  cell.classList.add('zc-selected');
+
+  if (opts.pushHash !== false) {
+    const slug = cellSlug(cell);
+    if (location.hash.replace('#', '') !== slug) {
+      history.replaceState(null, '', `#${slug}`);
+    }
+  }
 
   animate(cell, {
     keyframes: [
@@ -390,6 +446,7 @@ function runLookup() {
   const animal = DATA[animalIdx][0];
   const element = ELABEL[elementIdx];
   yrOut.innerHTML = `${year} → <strong>${element} ${animal}</strong> — ${cell.dataset.anchor}`;
+  history.replaceState(null, '', `#${year}`);
 
   cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
   animate(cell, {
@@ -398,8 +455,37 @@ function runLookup() {
       { scale: 1.0,  duration: 350 },
     ],
   });
-  setTimeout(() => showPanel(cell), 400);
+  setTimeout(() => showPanel(cell, { pushHash: false }), 400);
 }
 
 yrBtn.addEventListener('click', runLookup);
 yrInput.addEventListener('keydown', e => { if (e.key === 'Enter') runLookup(); });
+
+// --- Hash deeplinks ---
+function findCellBySlug(slug) {
+  for (const cell of cells) {
+    if (cellSlug(cell) === slug) return cell;
+  }
+  return null;
+}
+
+function applyHash() {
+  const raw = location.hash.replace('#', '').trim();
+  if (!raw) return;
+  if (/^\d{4}$/.test(raw)) {
+    yrInput.value = raw;
+    runLookup();
+    return;
+  }
+  const cell = findCellBySlug(raw.toLowerCase());
+  if (cell) {
+    cell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => showPanel(cell, { pushHash: false }), 200);
+  }
+}
+
+window.addEventListener('hashchange', applyHash);
+
+// Wait for entrance animation to settle before honoring an inbound hash.
+const initialDelay = REDUCED_MOTION ? 0 : 1100;
+setTimeout(applyHash, initialDelay);

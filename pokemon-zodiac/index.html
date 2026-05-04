@@ -53,6 +53,8 @@
   .dot { width: 7px; height: 7px; border-radius: 50%; background: #333; display: inline-block; }
   .dot.on { background: #FFFF00; box-shadow: 0 0 4px rgba(255,255,0,0.7); }
 
+  .zl { cursor: help; transition: background 0.15s; }
+  .zl:hover { background: rgba(255,255,0,0.08); }
   .zl-name { flex: 1; }
   .zl-rowdepth {
     color: #00FFFF; font-family: "Courier New", monospace; font-size: 0.85em;
@@ -96,7 +98,26 @@
   .e-earth { background: #6B3D0A; color: #FAEEDA; }
   .e-metal { background: #555552; color: #F1EFE8; }
   .e-water { background: #154A85; color: #E6F1FB; }
-  .e-open  { background: #1a1a2e; color: #999; font-style: italic; }
+  .e-open  {
+    background-color: #1a1a2e;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent 0px,
+      transparent 6px,
+      rgba(255,255,255,0.04) 6px,
+      rgba(255,255,255,0.04) 12px
+    );
+    color: #888; font-style: italic;
+    border-color: #444;
+  }
+  .e-open .zn { color: #777; }
+
+  .zc.zc-selected {
+    outline: 3px solid #FFFF00 !important;
+    outline-offset: -3px !important;
+    z-index: 2;
+  }
+  .zc.zc-selected .zn { color: #FFFF00; }
 
   .zh.e-wood, .zh.e-fire, .zh.e-earth, .zh.e-metal, .zh.e-water { color: white; text-shadow: 1px 1px black; }
 
