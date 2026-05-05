@@ -249,6 +249,27 @@
       Feed in MIDI, get out playable charts for the diatonic button accordion. <strong>Three output tiers</strong>, user picks the friction level: <em>universal</em> standard notation (transfers across instruments), <em>harmony tab</em> (treble standard + left-hand button mapping — the original insight), and <em>full tab</em> (both hands as button + bellows). Andy's framing: low-friction options matter; tab is "guitar hero notation," fast on-ramp but locks you in. Standard notation is harder up-front but transfers anywhere.
     </div>
 
+    <h2>🎚️ Genre scope — narrow, on purpose</h2>
+    <div class="panel">
+      <p><strong>In scope:</strong> norteño · cumbia · conjunto · Tex-Mex · vallenato — diatonic-button-accordion-led repertoire from the Mexican / Latin-American tradition. Andy's actual playing world.</p>
+      <p><strong>Out of scope:</strong> everything else. Rock with accordion (System of a Down, Modest Mouse, Arcade Fire) — won't work, accordion isn't the lead. Zydeco / Cajun — different tradition, different button conventions. Polish / Italian / Eastern European folk polka — different repertoire. Generic Western pop — accordion isn't there. Trying to be a universal MIDI-to-tab tool dilutes the model and the dataset; staying narrow is the value proposition.</p>
+      <p>Tuning the basic-pitch params, picking the source-separation model, building the button-map dataset, choosing the quantization grid — every decision optimizes for <strong>norteño / cumbia</strong>. Accordion-led, ~120-150 BPM, polka-ish or cumbia-ish rhythmic feel, GCF tuning as the canonical instrument.</p>
+    </div>
+
+    <h2>🎛️ Pedal chain — chain stages, swap models</h2>
+    <p>Each stage of the pipeline is a swappable pedal. The chain order is the build sequence; individual pedals get tuned, swapped, or A/B-tested without touching the rest. This isn't an architectural diagram — it's a working metaphor for how the project gets built.</p>
+    <pre>[Source audio]
+  → [2: Normalize → 22kHz mono WAV]
+  → [3: Source-sep htdemucs → "other" stem]                    audio → audio
+  ── (optional) [3.5: UVR Mel-Band Roformer cleanup pass]      audio → audio
+  → [4: Transcribe basic-pitch → raw MIDI]                     audio → MIDI
+  ── (optional) [4.5: Quantize to detected beat grid]          MIDI → MIDI
+  → [5: Configure (tuning + tier + hand assignment)]
+  → [6: Map (LLM + button-map dataset)]
+  → [7: Render (VexFlow staff + tab strip SVG)]
+  → [8: Export (PDF / MusicXML / ABC)]</pre>
+    <p>Stages 3.5 (UVR audio cleanup, before transcribe) and 4.5 (MIDI quantize, after transcribe) are <em>optional</em> pedals — turn on / off per song. Default ON for norteño / cumbia where they help; default OFF for clean studio recordings where they may hurt. The decimal label tells you which domain the pedal operates in: 3.5 is in the audio domain (htdemucs and basic-pitch sandwich it), 4.5 is in the MIDI domain (basic-pitch produces it, configure consumes it).</p>
+
     <h2>🎵 Reference instrument</h2>
     <div class="panel">
       <strong>Hohner Panther in GCF</strong> (Andy's, confirmed 2026-05-04). 3-row diatonic button accordion, the conjunto / norteño workhorse. 31 treble buttons across 3 rows, 12 bass buttons. Bisonoric — each button plays a different pitch on push vs pull, both sides. Mexicans call this configuration <em>"Sol"</em> because G/Sol is the dominant outer row. Hohner sells it as the entry-level standard; in Andy's words, <em>"the best beginner to intermediate accordion."</em> If we serve Andy, we serve the modal user.
@@ -408,8 +429,37 @@
           <p>Tool: <strong>Demucs</strong> (Meta, open source). Runs the <code>htdemucs</code> model: separates a mix into <em>vocals · drums · bass · other</em>. The "other" stem is mostly accordion + bajo sexto for conjunto recordings. Feed THAT to basic-pitch.</p>
           <pre>python -m demucs --two-stems=other -o stems/ in.wav
 # → stems/htdemucs/in/other.wav (the accordion-ish stem)</pre>
-          <p>CLI-tested 2026-05-04 against EZ Band La Chona: 5:56 runtime on the 3:23 audio, isolated stem fed back through basic-pitch produced 1114 note-on events vs 1743 from the full mix (36% fewer events) with the pitch floor up from MIDI 28→40 (drums and bass no longer captured). Audible quality pending listener verdict.</p>
-          <p class="stage-future"><strong>Future on page:</strong> demucs.js (browser TF.js port) or call back to a Cloudflare Worker. Heavier model, may need server-side for large files; Workers may not be the right fit, could end up on Render or a Pages Function instead.</p>
+          <p>CLI-tested 2026-05-04 against EZ Band La Chona: 5:56 runtime on the 3:23 audio. Isolated stem fed back through basic-pitch produced 1114 note-on events vs 1743 from the full mix (36% fewer events) with the pitch floor up from MIDI 28→40 (drums and bass no longer captured). First listener verdict: <em>melody drifted on repeated phrases.</em> Currently exploring stricter basic-pitch params (Stage 4) and the heavier <code>htdemucs_ft</code> model (4-stem, fine-tuned, ~4× slower) before considering alternatives.</p>
+
+          <p><strong>Source-separation landscape (verified 2026-05-04):</strong></p>
+          <table style="font-size:0.85em;">
+            <tr><th>Project</th><th>Status (2024-26)</th><th>Browser</th><th>License</th><th>Pick</th></tr>
+            <tr><td>Demucs / htdemucs</td><td>upstream archived Jan 2025; fork at <a href="https://github.com/adefossez/demucs" target="_blank" rel="noopener">adefossez/demucs</a> live</td><td>yes — Mixxx GSoC 2025 ONNX export shipping</td><td>MIT (code + weights)</td><td>✅ default</td></tr>
+            <tr><td>UVR + MDX-Net / Mel-Band Roformer</td><td>very active</td><td>no (Python only)</td><td>mixed; many weights non-commercial</td><td>⚠️ great offline, license-audit per model</td></tr>
+            <tr><td>BS-Roformer / Mel-Band Roformer</td><td>active monthly weight drops</td><td>not verified in browser</td><td>MIT code / NC weights</td><td>⚠️ best SDR but no clean commercial+browser path yet</td></tr>
+            <tr><td>Spleeter</td><td>dormant (dep bumps only, no new models since 2019)</td><td>partial, unofficial</td><td>MIT</td><td>❌ outdated</td></tr>
+            <tr><td>Open-Unmix</td><td>low activity</td><td>stale TF.js</td><td>MIT code / NC for high-perf weights</td><td>❌ outdated</td></tr>
+            <tr><td>LALAL.AI / Moises / AudioShake</td><td>active commercial</td><td>server-side only</td><td>proprietary, per-stem billing</td><td>⚠️ fallback if client-side stalls</td></tr>
+          </table>
+          <p style="font-size:0.88em;color:#BFAFCF;"><em>Community-report-only (not formally benchmarked):</em> two-stage pipeline of <code>htdemucs</code> → UVR Mel-Band Roformer "instrumental" model on the "other" stem reportedly preserves reed/wind timbres better for non-Western instruments. May test as Stage 3.5 if htdemucs_ft alone falls short.</p>
+
+          <p class="stage-future"><strong>Future on page:</strong> Mixxx GSoC 2025 produced a clean ONNX export of htdemucs (October 2025) — that's the browser upgrade path. Run via <code>onnxruntime-web</code> with WebGPU/WASM. For now: server-side via Cloudflare Pages Function or Render. Demucs CPU-bound, RAM-heavy on long files.</p>
+        </div>
+      </div>
+
+      <div class="stage placeholder" id="stage-3-5">
+        <div class="stage-num">3.5</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">UVR Mel-Band Roformer cleanup pass <em style="color:#BFAFCF;font-weight:normal;">(optional audio-domain pedal)</em></span>
+            <span class="stage-status">🚧 Placeholder</span>
+          </div>
+          <p>Audio-to-audio cleanup. Community two-stage trick: feed the <code>htdemucs</code> "other" stem into a UVR <strong>Mel-Band Roformer instrumental</strong> model for a second separation pass. Reportedly preserves reed/wind timbres better than htdemucs alone — accordion lead lines come out sharper, bajo sexto bleed gets reduced.</p>
+          <p>Status placeholder until we test against EZ Band La Chona. The licensing path needs auditing — many UVR community-trained weights are CC-BY-NC, not commercial. If the quality bump is real, may pay for that constraint with separate hosting.</p>
+          <pre>python -m audio_separator stems/htdemucs/.../other.wav \
+  --model_filename "Kim_MelBandRoformer_FT.ckpt" \
+  --output_dir stems-roformer/</pre>
+          <p class="stage-future"><strong>Future on page:</strong> off-by-default toggle. Add to chain only when norteño / cumbia material has heavy bajo sexto bleed in the htdemucs stem.</p>
         </div>
       </div>
 
@@ -429,7 +479,28 @@ onnx = os.path.join(os.path.dirname(basic_pitch.__file__),
     'saved_models', 'icassp_2022', 'nmp.onnx')
 predict_and_save(['stems/htdemucs/in/other.wav'], '.', True, False, False, False, onnx)
 "</pre>
-          <p class="stage-future"><strong>Future on page:</strong> <code>@spotify/basic-pitch</code> (TS port, browser TF.js). Drop-in for the CLI command, runs entirely in the page.</p>
+          <p>Tunable inference params matter on accordion: <code>onset_threshold</code>, <code>frame_threshold</code>, <code>minimum_note_length</code>, <code>multiple_pitch_bends=False</code>, <code>min/max_frequency</code>. First test with default (loose) params produced melody drift on repeated phrases — the model picks up bellows-pressure micro-pitch shifts and reed-chorus harmonics, transcribing identical phrases differently each repeat. Stricter thresholds (0.7-0.85 onset, 0.5-0.6 frame, 200ms min length, 130-1500 Hz band) drop note count 40-90% but cure the drift. Optimal params per repertoire is an open tuning question.</p>
+
+          <p><strong>Alt to explore: <a href="https://github.com/MTG/essentia" target="_blank" rel="noopener">Melodia</a></strong> (MTG / Essentia) — monophonic melody-tracking algorithm, decades old but still robust for single-instrument lead lines. If basic-pitch's polyphonic detection keeps producing drift on accordion melody, Melodia on a vocal-stem-isolated track would be a cleaner fallback for the right-hand melody specifically (left-hand harmony still needs polyphonic for chord work). Test pending; basic-pitch parameter tuning comes first.</p>
+
+          <p class="stage-future"><strong>Future on page:</strong> <code>@spotify/basic-pitch</code> (TS port, browser TF.js). Drop-in for the CLI command, runs entirely in the page. Param sliders exposed as advanced UI for users who want to tune for their instrument.</p>
+        </div>
+      </div>
+
+      <div class="stage tested" id="stage-4-5">
+        <div class="stage-num">4.5</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Quantize MIDI to detected beat grid <em style="color:#BFAFCF;font-weight:normal;">(optional MIDI-domain pedal)</em></span>
+            <span class="stage-status">🔬 CLI-tested</span>
+          </div>
+          <p><strong>Our own pedal — not in any other audio-to-MIDI tool we've seen.</strong> basic-pitch outputs notes with sample-accurate timing, which means jitter on every onset. Identical phrases get rendered slightly differently each repeat — the sound of "drift" the user heard on first audition.</p>
+          <p>Fix: detect tempo + beat grid from the source audio (<code>librosa.beat.beat_track</code>), then snap every MIDI note's onset and offset to the nearest sub-beat grid tick. Drop notes shorter than ~80ms (transcription noise). Merge same-pitch notes within a 30ms gap. Works because cumbia and norteño have stable tempo and clean onsets — beat tracking is reliable on this repertoire (genre-scope dependency: would NOT work on rubato art-music).</p>
+          <pre>python scripts/quantize.py audio.wav input.mid output.mid --subdiv 4
+# subdiv=4 → 16th-note grid at detected tempo
+# subdiv=8 → real 16ths when tracker grabbed half-tempo (common on cumbia)</pre>
+          <p>CLI-tested 2026-05-04 against EZ Band La Chona stems. htdemucs stem (medium params): 645 → 527 notes (subdiv=4, 18% reduction). htdemucs_ft stem (medium params): 692 → 563 (subdiv=4) / 692 → 391 (subdiv=2 = quarter grid) / 692 → 571 (subdiv=8 = real 16ths). Per-genre subdiv defaults TBD — cumbia 16ths straight, norteño polka 8ths or 16ths, vals/waltz triplet feel.</p>
+          <p class="stage-future"><strong>Future on page:</strong> grid-subdiv slider (8th / 16th / 32nd / triplet), tempo override box (skip auto-detect), drop-short and merge-window sliders. Live A/B preview against the un-quantized output.</p>
         </div>
       </div>
 

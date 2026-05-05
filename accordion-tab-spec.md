@@ -1,9 +1,11 @@
 # Accordion-Tab Forge — Engineering Spec (v0, feasibility)
 
 **Working title:** placeholder — final name TBD next session.
-**Status:** feasibility research only. No code written.
+**Status:** feasibility research, CLI experiments running, page placeholder stages building.
 **Origin:** Andy convo, 2026-05-04, accordion sheet music for *Gallo de Pelea* (commonly transcribed in Mi/E, conjunto-norteño tradition). Google AI Mode kicked the request to YouTube tutorials, no usable sheet music returned.
 **Reference instrument:** Hohner Panther in **GCF** (Andy's, confirmed 2026-05-04). 3 rows, 31 treble buttons, 12 bass buttons. The conjunto / norteño workhorse. Panther GCF is also called "Sol" in Mexican accordion parlance — G/Sol is the dominant outer row.
+**Genre scope:** narrow on purpose — **norteño · cumbia · conjunto · Tex-Mex · vallenato**. Diatonic-button-accordion-led repertoire from the Mexican / Latin-American tradition. Not a generic MIDI-to-tab tool. Every tuning decision (basic-pitch params, source-separation model choice, button-map, quantization grid) optimizes for this repertoire. Out of scope: rock-with-accordion (System of a Down etc.), zydeco, Cajun, Polish / Italian / Eastern European folk polka, generic Western pop. Staying narrow IS the value proposition.
+**Architecture model:** **pedal chain.** Each pipeline stage is a swappable pedal; chain order is the build sequence; individual pedals get tuned, swapped, or A/B-tested without touching the rest. Stages 3.5 (MIDI quantize) and 3.7 (UVR secondary pass) are *optional pedals* — turn on/off per song.
 
 ---
 
@@ -77,38 +79,36 @@ User picks a tier per song or per session. The system always computes the underl
 | **Harmony tab** | Treble standard + left-hand bass clef mapped to one of the 12 button presses | Players who can read treble but get stuck decoding bass-clef chord stacks into buttons. The original Andy insight. | **Medium** — requires the LLM mapping work, but only for one hand. The actual differentiator. |
 | **Full tab** | Both hands as button + bellows tab, "guitar hero" style | Lowest-friction first-play, but locks the player into one instrument. Power-user / fastest on-ramp. | **Hard** — bellows-direction planning across phrases is the hardest sub-problem. Ship last. |
 
-## 6. Pipeline (audio-or-MIDI in, all client-side except the LLM call)
+## 6. Pipeline — pedal chain
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│ 0. (Optional) User rips YouTube via Cobalt or yt-dlp,            │
-│    or grabs a Spotify-Premium download / personal recording.    │
-│    All off-tool — DLz never touches YouTube.                    │
-│                                                                 │
-│ 1. User drops an audio file (.wav / .mp3 / .ogg) OR a MIDI      │
-│    file. Tool detects format.                                   │
-│                                                                 │
-│ 2a. If audio: basic-pitch (TensorFlow.js, browser-side) →       │
-│     MIDI. Audio never leaves the machine.                       │
-│ 2b. If MIDI: parse via @tonejs/midi → note list per track.      │
-│                                                                 │
-│ 3. User picks:                                                  │
-│    - tuning (GCF default — Andy's Panther)                      │
-│    - rows (3-row default — Panther)                             │
-│    - output tier (Universal / Harmony tab / Full tab)           │
-│    - right-hand track, left-hand track (or "auto-split")        │
-│                                                                 │
-│ 4. Send compact JSON {notes, tuning, rows, tier} to Claude API  │
-│    via a Cloudflare Worker (keeps the API key off the page).    │
-│                                                                 │
-│ 5. Claude returns the appropriate-tier output (validated        │
-│    against the GCF button-map dataset).                         │
-│                                                                 │
-│ 6. Browser renders via VexFlow + custom tab-strip SVG.          │
-│                                                                 │
-│ 7. Export: print-to-PDF, or download MusicXML for MuseScore.    │
-└─────────────────────────────────────────────────────────────────┘
+[Source audio]
+  → [Stage 2: Normalize → 22kHz mono WAV]
+  → [Stage 3: Source-sep htdemucs → "other" stem]               audio → audio
+  ── (optional) → [Stage 3.5: UVR Mel-Band Roformer cleanup]    audio → audio
+  → [Stage 4: Transcribe basic-pitch → raw MIDI]                audio → MIDI
+  ── (optional) → [Stage 4.5: Quantize to detected beat grid]   MIDI → MIDI
+  → [Stage 5: Configure (tuning + tier + hand assignment)]
+  → [Stage 6: Map (LLM + button-map dataset)]
+  → [Stage 7: Render (VexFlow staff + tab strip SVG)]
+  → [Stage 8: Export (PDF / MusicXML / ABC)]
 ```
+
+Decimal labels carry the domain: 3.5 is in the audio domain (htdemucs and basic-pitch sandwich it), 4.5 is in the MIDI domain (basic-pitch produces it, configure consumes it). Both are optional pedals — toggle per song. Default ON for norteño / cumbia where they help; default OFF for clean studio recordings where they may hurt.
+
+### Stage 3.5: UVR Mel-Band Roformer cleanup pass (optional, audio-domain)
+
+Community two-stage trick: feed the `htdemucs` "other" stem into a UVR Mel-Band Roformer instrumental model. Reportedly preserves reed/wind timbres better than htdemucs alone — accordion lead sharper, bajo sexto bleed reduced. Licensing audit required (many UVR weights are CC-BY-NC, not commercial). Off-by-default until quality bump is verified for our repertoire.
+
+### Stage 4.5: MIDI quantize (our own pedal, MIDI-domain)
+
+Not in any other audio-to-MIDI tool surveyed. basic-pitch outputs sample-accurate timings — every onset has a few-ms jitter, so identical phrases get transcribed slightly differently each repeat. The audible result is "drift" — the listener hears the same melodic figure rendered as different notes/durations across reps.
+
+Fix: detect tempo + beat grid from the source audio (`librosa.beat.beat_track`), then snap every MIDI note's onset and offset to the nearest sub-beat tick. Drop notes shorter than ~80ms (transcription noise). Merge same-pitch notes within a 30ms gap.
+
+Works because cumbia and norteño have stable tempo and clean onsets — beat tracking is reliable on this repertoire. Wouldn't work on rubato art-music or tempo-changing material, which is fine — those aren't in scope.
+
+CLI-tested 2026-05-04: 645 → 527 notes (htdemucs stem, medium params, subdiv=4). 692 → 391 notes (htdemucs_ft stem, medium params, subdiv=2 = quarter-note grid). Per-genre subdiv defaults TBD: cumbia = 16ths straight, norteño polka = 8ths or 16ths, vals/waltz = triplet feel.
 
 The Claude call is the only server hop. Everything else is browser-side, including basic-pitch inference. CSP-safe, no DB, no auth, fits DLz infra.
 
@@ -193,13 +193,14 @@ Andy's foundational learning song is **La Chona** — *"my Twinkle Twinkle Littl
 
 ## 13. Out of scope for this spec
 
-- ~~Audio→MIDI transcription~~ — **moved into scope** Phase 2 via basic-pitch
-- YouTube ripping on our domain (link out to Cobalt or yt-dlp instead)
-- Audio-source-separation (extracting just the accordion track from a multi-instrument recording — basic-pitch is polyphonic but doesn't isolate-by-instrument; user supplies clean-ish audio)
-- Chromatic button accordion (different instrument, different problem)
-- Piano accordion (Stradella bass system; entirely different left-hand)
-- Real-time playing assistance / app
-- Anything beyond Western-tonal music (microtonal accordion traditions exist in some folk styles — out of scope)
+- ~~Audio→MIDI transcription~~ — **moved into scope** Phase 2 via basic-pitch.
+- ~~Source separation~~ — **moved into scope** Phase 2 via Demucs (htdemucs / htdemucs_ft).
+- YouTube ripping on our domain (link out to Cobalt or yt-dlp instead).
+- Genres outside norteño / cumbia / conjunto / Tex-Mex / vallenato — see §1 Genre Scope. Not optimizing for rock-with-accordion, zydeco, Cajun, Polish / Italian / Eastern European folk polka, generic Western pop, or anywhere accordion isn't the lead instrument.
+- Chromatic button accordion (different instrument, different problem).
+- Piano accordion (Stradella bass system; entirely different left-hand).
+- Real-time playing assistance / app.
+- Microtonal accordion traditions outside Western tonal music.
 
 ---
 
