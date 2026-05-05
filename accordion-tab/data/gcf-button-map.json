@@ -1,0 +1,79 @@
+{
+  "instrument": "Hohner Panther GCF (3-row diatonic button accordion)",
+  "tuning": "GCF",
+  "rows": {
+    "outer": {
+      "key": "G",
+      "name": "Sol / outer row (highest pitch row)",
+      "buttons": [
+        { "n": 1,  "push": "B3",  "pull": "G3" },
+        { "n": 2,  "push": "D4",  "pull": "A3" },
+        { "n": 3,  "push": "G4",  "pull": "B3" },
+        { "n": 4,  "push": "B4",  "pull": "D4" },
+        { "n": 5,  "push": "D5",  "pull": "F#4" },
+        { "n": 6,  "push": "G5",  "pull": "A4" },
+        { "n": 7,  "push": "B5",  "pull": "C5" },
+        { "n": 8,  "push": "D6",  "pull": "E5" },
+        { "n": 9,  "push": "G6",  "pull": "F#5" },
+        { "n": 10, "push": "B6",  "pull": "A5" },
+        { "n": 11, "push": "D7",  "pull": "C6" }
+      ]
+    },
+    "middle": {
+      "key": "C",
+      "name": "Do / middle row",
+      "buttons": [
+        { "n": 1,  "push": "E4",  "pull": "G3" },
+        { "n": 2,  "push": "G4",  "pull": "B3" },
+        { "n": 3,  "push": "C5",  "pull": "D4" },
+        { "n": 4,  "push": "E5",  "pull": "F4" },
+        { "n": 5,  "push": "G5",  "pull": "A4" },
+        { "n": 6,  "push": "C6",  "pull": "B4" },
+        { "n": 7,  "push": "E6",  "pull": "D5" },
+        { "n": 8,  "push": "G6",  "pull": "F5" },
+        { "n": 9,  "push": "C7",  "pull": "A5" },
+        { "n": 10, "push": "E7",  "pull": "B5" },
+        { "n": 11, "push": "G7",  "pull": "D6" }
+      ]
+    },
+    "inner": {
+      "key": "F",
+      "name": "Fa / inner row (lowest pitch row)",
+      "buttons": [
+        { "n": 1,  "push": "A3",  "pull": "C4" },
+        { "n": 2,  "push": "C4",  "pull": "E4" },
+        { "n": 3,  "push": "F4",  "pull": "G4" },
+        { "n": 4,  "push": "A4",  "pull": "Bb4" },
+        { "n": 5,  "push": "C5",  "pull": "D5" },
+        { "n": 6,  "push": "F5",  "pull": "E5" },
+        { "n": 7,  "push": "A5",  "pull": "G5" },
+        { "n": 8,  "push": "C6",  "pull": "Bb5" },
+        { "n": 9,  "push": "F6",  "pull": "D6" }
+      ]
+    }
+  },
+  "left_hand": {
+    "name": "12-button bass / chord side",
+    "note": "Each button plays a bass note + chord on push, often a different bass+chord on pull. This stub only covers root+chord push values; pull TBD.",
+    "buttons": [
+      { "n": 1,  "push": "F+Fmaj",  "pull": "C+Cmaj" },
+      { "n": 2,  "push": "C+Cmaj",  "pull": "G+Gmaj" },
+      { "n": 3,  "push": "G+Gmaj",  "pull": "D+Dmaj" },
+      { "n": 4,  "push": "Bb+Bbmaj", "pull": "Eb+Ebmaj" },
+      { "n": 5,  "push": "F+Fmaj",  "pull": "C+Cmaj" },
+      { "n": 6,  "push": "C+Cmaj",  "pull": "G+Gmaj" },
+      { "n": 7,  "push": "G+Gmaj",  "pull": "D+Dmaj" },
+      { "n": 8,  "push": "Bb+Bbmaj", "pull": "Eb+Ebmaj" },
+      { "n": 9,  "push": "F+F7",    "pull": "C+C7" },
+      { "n": 10, "push": "C+C7",    "pull": "G+G7" },
+      { "n": 11, "push": "G+G7",    "pull": "D+D7" },
+      { "n": 12, "push": "Bb+Bb7",  "pull": "Eb+Eb7" }
+    ]
+  },
+  "_meta": {
+    "status": "stub-for-deepseek-hello-world",
+    "warning": "These mappings are illustrative — verify against Andy's actual Hohner Panther chart before shipping. Push/pull conventions vary by manufacturer year and tuning. Phase 1 deliverable is the verified version of this file.",
+    "version": "0.1-stub",
+    "created": "2026-05-05"
+  }
+}

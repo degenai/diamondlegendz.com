@@ -286,6 +286,155 @@ function renderTab(notes, tier, tuning) {
     tabEl.innerHTML = lines.join('');
 }
 
+// === DeepSeek mapping (Stage 6, alpha) =====================================
+// Sends notes + button-map dataset to DeepSeek's chat-completion API. The user
+// provides their own API key via the page-side input (saved to localStorage only).
+// For production, swap this for a Cloudflare Worker that holds the key server-side.
+
+const keyInput = document.getElementById('forge-deepseek-key');
+const mapBtn = document.getElementById('forge-map-btn');
+const mapStatus = document.getElementById('forge-map-status');
+const llmHeading = document.getElementById('forge-llm-heading');
+const llmMeta = document.getElementById('forge-llm-meta');
+const llmEl = document.getElementById('forge-llm');
+
+const KEY_STORAGE = 'forge_deepseek_key_v1';
+
+if (keyInput) {
+    keyInput.value = localStorage.getItem(KEY_STORAGE) || '';
+    keyInput.addEventListener('input', () => {
+        localStorage.setItem(KEY_STORAGE, keyInput.value.trim());
+    });
+}
+
+let buttonMap = null;
+fetch('data/gcf-button-map.json')
+    .then(r => r.json())
+    .then(d => { buttonMap = d; })
+    .catch(e => console.error('Button-map load failed:', e));
+
+if (mapBtn) {
+    mapBtn.addEventListener('click', mapWithDeepSeek);
+}
+
+async function mapWithDeepSeek() {
+    const key = (keyInput.value || '').trim();
+    if (!key.startsWith('sk-')) {
+        mapStatus.textContent = '❌ Need a DeepSeek API key (sk-...) — paste above';
+        mapStatus.style.color = '#FF6666';
+        return;
+    }
+    if (!currentMidi) {
+        mapStatus.textContent = '❌ Drop a MIDI first';
+        mapStatus.style.color = '#FF6666';
+        return;
+    }
+    if (!buttonMap) {
+        mapStatus.textContent = '❌ Button-map dataset still loading';
+        mapStatus.style.color = '#FF6666';
+        return;
+    }
+
+    mapBtn.disabled = true;
+    mapBtn.textContent = '🤖 THINKING...';
+    mapStatus.textContent = 'Calling DeepSeek (deepseek-chat)…';
+    mapStatus.style.color = '#FFD700';
+
+    const tier = currentTier();
+    const tuning = tuningSelect.value;
+
+    // Compact note list — first 32 to keep the round-trip fast and the prompt small.
+    const allNotes = currentMidi.tracks.flatMap(t => t.notes).sort((a, b) => a.time - b.time);
+    const notes = allNotes.slice(0, 32).map((n, i) => ({
+        i: i + 1,
+        pitch: pitchName(n.midi),
+        midi: n.midi,
+        beat: +(n.time / (60 / (currentMidi.header.tempos[0]?.bpm || 120))).toFixed(2),
+    }));
+
+    const systemPrompt = `You are an assistant that maps MIDI notes to button presses on a Hohner Panther GCF diatonic button accordion. The instrument has 3 right-hand rows (outer/G, middle/C, inner/F). Each button plays one pitch when the bellows push (closed) and a different pitch when the bellows pull (open).
+
+Rules:
+1. Use the button-map dataset provided. Pick the row + button that matches each note's pitch.
+2. Bellows direction must be continuous within a phrase — minimize push/pull alternation. Group consecutive same-direction notes when possible.
+3. If a note appears on multiple rows, prefer the row that maintains current bellows direction.
+4. If a note isn't in the dataset (out of range, accidental missing), output "skip" for that note.
+5. Output ONE LINE PER NOTE in this format: "<index>. <pitch> -> row <outer/middle/inner> button <n> <P|U>" (P=push closed, U=pull open).
+6. After the note list, add a one-paragraph summary of bellows changes and any problem notes.
+
+Be concise. No preamble. Start directly with note 1.`;
+
+    const userPrompt = `Tier: ${tier}
+Tuning: ${tuning}
+
+Button-map (right-hand rows):
+${JSON.stringify(buttonMap.rows, null, 2)}
+
+Notes to map:
+${notes.map(n => `${n.i}. ${n.pitch} (MIDI ${n.midi}) at beat ${n.beat}`).join('\n')}`;
+
+    const t0 = performance.now();
+    try {
+        const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'deepseek-chat',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt },
+                ],
+                temperature: 0.2,
+                max_tokens: 2000,
+            }),
+        });
+        const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+        if (!resp.ok) {
+            const txt = await resp.text();
+            throw new Error(`HTTP ${resp.status}: ${txt.slice(0, 200)}`);
+        }
+        const data = await resp.json();
+        const content = data.choices?.[0]?.message?.content || '(empty)';
+        const usage = data.usage || {};
+        const cached = usage.prompt_cache_hit_tokens || 0;
+        const total = usage.total_tokens || 0;
+
+        llmHeading.style.display = 'block';
+        llmEl.style.display = 'block';
+        llmMeta.textContent = `· ${elapsed}s · ${total} tokens (${cached} cached) · model: ${data.model || 'deepseek-chat'}`;
+        llmEl.innerHTML = formatLlmOutput(content);
+
+        mapStatus.textContent = `✅ Done in ${elapsed}s · ${total} tokens · ${cached} cached`;
+        mapStatus.style.color = '#00FF00';
+
+        if (!REDUCED_MOTION) {
+            utils.set(llmEl, { opacity: 0, y: 12 });
+            animate(llmEl, { opacity: [0, 1], y: [12, 0], duration: 500, ease: 'outQuad' });
+        }
+    } catch (err) {
+        mapStatus.textContent = `❌ ${err.message}`;
+        mapStatus.style.color = '#FF6666';
+    } finally {
+        mapBtn.disabled = false;
+        mapBtn.textContent = '🤖 MAP WITH DEEPSEEK';
+    }
+}
+
+function formatLlmOutput(text) {
+    // Render the LLM's plain-text-with-arrows output into colored tab-line divs.
+    const lines = text.split('\n').filter(l => l.trim());
+    return lines.map(line => {
+        const m = line.match(/^(\d+)\.\s*([A-G][#b]?\d+)\s*->?\s*(.+)$/i);
+        if (m) {
+            return `<div class="tab-line"><span class="ix">${m[1].padStart(2, '0')}</span><span class="pn">${m[2].padEnd(4)}</span><span class="bn">${m[3]}</span></div>`;
+        }
+        return `<div class="tab-line" style="color:#BFAFCF;font-style:italic;border-bottom:none;">${line}</div>`;
+    }).join('');
+}
+
 // === anime.js entrance for the forge section ===
 const forgeSection = document.getElementById('forge');
 if (forgeSection && !REDUCED_MOTION) {

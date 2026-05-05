@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' blob:; worker-src 'self' blob:; img-src 'self' data:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com blob:; media-src 'self' blob: https://storage.googleapis.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' blob:; worker-src 'self' blob:; img-src 'self' data:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://api.deepseek.com blob:; media-src 'self' blob: https://storage.googleapis.com;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accordion-Tab Forge — feasibility / DLz</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23000080'/><text x='50%25' y='52%25' text-anchor='middle' dominant-baseline='middle' font-family='Comic Sans MS,sans-serif' font-size='42' fill='%23FFFF00'>🪗</text></svg>">
@@ -460,6 +460,13 @@
         </div>
       </div>
 
+      <details class="forge-key-block" style="margin:14px 0;background:#0f0820;border:1px dashed #5A3F8C;padding:10px 14px;color:#BFAFCF;font-size:0.88em;">
+        <summary style="color:#FFD700;cursor:pointer;">🤖 LLM mapping (DeepSeek) — set your API key</summary>
+        <p style="margin-top:8px;">Paste your DeepSeek API key (<code>sk-...</code>) to enable Stage 6 mapping. Stored in <code>localStorage</code> only — never committed to the repo, never sent anywhere except <code>api.deepseek.com</code>.</p>
+        <input type="password" id="forge-deepseek-key" placeholder="sk-..." style="width:100%;background:#1a0f2c;color:#00FFAA;border:1px solid #5A3F8C;font-family:inherit;padding:6px 8px;box-sizing:border-box;">
+        <p style="margin-top:6px;font-size:0.82em;">Want production-grade? Replace this with a Cloudflare Worker holding the key — page-side input is the dev shortcut.</p>
+      </details>
+
       <div class="forge-stage-out" id="forge-out">
         <div class="forge-meta" id="forge-meta"></div>
 
@@ -480,6 +487,16 @@
 
         <h3 style="color:#FFD700;text-align:left;margin-top:18px;">🎛️ Tab strip <span style="font-size:0.7em;color:#BFAFCF;">(button mapping placeholder — needs Phase 1 dataset)</span></h3>
         <div class="tab-frame" id="forge-tab"></div>
+
+        <div style="margin-top:18px;display:flex;gap:10px;align-items:center;">
+          <button id="forge-map-btn" style="background:#1a0f2c;color:#FFFF00;border:2px solid #FFFF00;font-family:inherit;padding:10px 20px;cursor:pointer;font-weight:bold;letter-spacing:1px;">
+            🤖 MAP WITH DEEPSEEK
+          </button>
+          <span id="forge-map-status" style="color:#BFAFCF;font-size:0.88em;">Stub button-map dataset (v0.1) loaded. Drop a MIDI + set your DeepSeek key + click to round-trip.</span>
+        </div>
+
+        <h3 style="color:#FFD700;text-align:left;margin-top:18px;display:none;" id="forge-llm-heading">🤖 DeepSeek mapping <span style="font-size:0.7em;color:#BFAFCF;" id="forge-llm-meta"></span></h3>
+        <div class="tab-frame" id="forge-llm" style="display:none;"></div>
       </div>
     </section>
 
