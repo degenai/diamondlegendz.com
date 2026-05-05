@@ -108,7 +108,13 @@ Fix: detect tempo + beat grid from the source audio (`librosa.beat.beat_track`),
 
 Works because cumbia and norteño have stable tempo and clean onsets — beat tracking is reliable on this repertoire. Wouldn't work on rubato art-music or tempo-changing material, which is fine — those aren't in scope.
 
-CLI-tested 2026-05-04: 645 → 527 notes (htdemucs stem, medium params, subdiv=4). 692 → 391 notes (htdemucs_ft stem, medium params, subdiv=2 = quarter-note grid). Per-genre subdiv defaults TBD: cumbia = 16ths straight, norteño polka = 8ths or 16ths, vals/waltz = triplet feel.
+CLI-tested 2026-05-04 across multiple grid resolutions on the EZ Band La Chona reference. htdemucs stem (medium basic-pitch params): 645 → 527 (subdiv=4) / 532 (subdiv=8, real 16ths since librosa grabbed half-tempo) / 528 (subdiv=16, real 32nds). htdemucs_ft stem: 692 → 563 / 391 / 571 / 571. Note count plateaus past 16ths because the 80ms drop-short floor caps how short a note can be regardless of grid resolution.
+
+**Listener finding (2026-05-04):** 32nd grid sounds more natural than 16th. The tab strip itself is largely rhythmless (button-press order matters more than exact timing), but 32nd quantization preserves the order of pickup notes / anacrusis / fast runs that 16th grid loses by snapping them onto the wrong beat. Per-tier defaults:
+- **Tab tiers (Harmony / Full):** `subdiv=16` (real 32nds) default — preserves pickup-note order.
+- **Universal tier (standard staff):** `subdiv=8` (real 16ths) default for cleaner staff readability; `subdiv=16` available as advanced option for ornament-heavy material.
+
+Per-rhythmic-feel defaults still apply on top: cumbia and norteño polka are duple-grid (above), vals/waltz is triplet feel (subdiv=3 or 6 instead of 4 / 8 / 16).
 
 The Claude call is the only server hop. Everything else is browser-side, including basic-pitch inference. CSP-safe, no DB, no auth, fits DLz infra.
 
