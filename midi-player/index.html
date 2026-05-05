@@ -27,8 +27,33 @@
             min-height: 100vh;
             margin: 0;
             padding: 30px 0;
+            overflow-x: hidden;
             background-image: linear-gradient(0deg, transparent 24%, var(--scanline) 25%, var(--scanline) 26%, transparent 27%, transparent 74%, var(--scanline) 75%, var(--scanline) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, var(--scanline) 25%, var(--scanline) 26%, transparent 27%, transparent 74%, var(--scanline) 75%, var(--scanline) 76%, transparent 77%, transparent);
             background-size: 30px 30px;
+        }
+
+        .vis-frame {
+            width: 100%;
+            height: 320px;
+            border: 2px solid #555;
+            background: #000;
+            overflow: auto;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .vis-frame::-webkit-scrollbar { height: 8px; width: 8px; }
+        .vis-frame::-webkit-scrollbar-track { background: #1a1a1a; }
+        .vis-frame::-webkit-scrollbar-thumb {
+            background: var(--neon-green);
+            border-radius: 4px;
+            box-shadow: 0 0 6px var(--neon-green);
+        }
+        midi-visualizer {
+            display: block;
+            background: transparent;
+        }
+        midi-visualizer svg {
+            display: block;
         }
 
         midi-player {
@@ -37,13 +62,6 @@
             --midi-player-progress-bar-color: var(--neon-green);
             --midi-player-control-color: var(--neon-green);
             --midi-player-control-active-color: var(--neon-pink);
-        }
-        midi-visualizer {
-            display: block;
-            width: 100%;
-            height: 150px;
-            background: #000;
-            border: 2px solid #555;
         }
 
         .arcade-cabinet {
@@ -194,11 +212,13 @@
             <h1>STREET FIGHTER II<br>TURBO MIDI PLAYER</h1>
         </header>
 
-        <midi-visualizer
-            id="visualizer"
-            type="piano-roll"
-            config='{"noteRGB":"57,255,20","activeNoteRGB":"255,0,255","pixelsPerTimeStep":18}'>
-        </midi-visualizer>
+        <div class="vis-frame">
+            <midi-visualizer
+                id="visualizer"
+                type="piano-roll"
+                config='{"noteRGB":"57,255,20","activeNoteRGB":"255,0,255","pixelsPerTimeStep":18}'>
+            </midi-visualizer>
+        </div>
 
         <div class="controls-area">
             <!-- Left Panel: Lists -->

@@ -8,7 +8,7 @@ import librosa
 import numpy as np
 import pretty_midi
 
-def quantize(audio_path, midi_in, midi_out, subdiv=4, drop_short_ms=80, merge_window_ms=30, program=21):
+def quantize(audio_path, midi_in, midi_out, subdiv=4, drop_short_ms=80, merge_window_ms=30, program=21, dedupe_octaves=False, dedupe_tol_ms=0, min_pitch=0, max_pitch=127):
     print(f"Loading {audio_path}...")
     y, sr = librosa.load(audio_path, sr=22050)
     print(f"Beat-tracking {len(y)/sr:.1f}s of audio...")
@@ -65,6 +65,36 @@ def quantize(audio_path, midi_in, midi_out, subdiv=4, drop_short_ms=80, merge_wi
     instr.notes = merged
     instr.notes.sort(key=lambda n: n.start)
 
+    # Pitch-band filter — drop notes outside the expected range for the source
+    # (e.g. min_pitch=48 cuts sub-bass bleed below C3 in vocal stems).
+    if min_pitch > 0 or max_pitch < 127:
+        before = len(instr.notes)
+        instr.notes = [n for n in instr.notes if min_pitch <= n.pitch <= max_pitch]
+        print(f"Pitch-band [{min_pitch}, {max_pitch}]: {before} -> {len(instr.notes)} (-{before - len(instr.notes)})")
+
+    # Octave-dedupe pass — drop high notes that are 2nd-harmonic ghosts of an
+    # overlapping (or nearly-overlapping) note one octave below. Common artifact
+    # when basic-pitch is run on a vocal stem.
+    if dedupe_octaves:
+        tol = dedupe_tol_ms / 1000.0
+        notes_sorted = sorted(instr.notes, key=lambda n: n.start)
+        to_keep = [True] * len(notes_sorted)
+        for i, n in enumerate(notes_sorted):
+            for j, parent in enumerate(notes_sorted):
+                if i == j or not to_keep[j]:
+                    continue
+                if parent.pitch != n.pitch - 12:
+                    continue
+                # Time overlap with optional tolerance: parent's window can end up
+                # to `tol` seconds before ghost begins, or start `tol` after ghost ends.
+                if parent.start - tol < n.end and parent.end + tol > n.start:
+                    to_keep[i] = False
+                    break
+        before = len(notes_sorted)
+        instr.notes = [n for i, n in enumerate(notes_sorted) if to_keep[i]]
+        instr.notes.sort(key=lambda n: n.start)
+        print(f"Octave-dedupe (tol {dedupe_tol_ms}ms): {before} -> {len(instr.notes)} (-{before - len(instr.notes)} ghosts)")
+
     out.instruments.append(instr)
     out.write(midi_out)
     print(f"Output notes: {len(instr.notes)} -> {midi_out}")
@@ -76,5 +106,9 @@ if __name__ == "__main__":
     ap.add_argument("--drop-short", type=float, default=80, help="drop notes shorter than this (ms)")
     ap.add_argument("--merge-window", type=float, default=30, help="merge same-pitch notes within this gap (ms)")
     ap.add_argument("--program", type=int, default=21, help="GM program: 21=accordion, 73=flute, 74=recorder, 75=pan flute")
+    ap.add_argument("--dedupe-octaves", action='store_true', help="drop notes that are 2nd-harmonic ghosts of an overlapping note one octave below (vocals)")
+    ap.add_argument("--dedupe-tol-ms", type=float, default=0, help="dedupe tolerance: ghost can be N ms apart from parent's window")
+    ap.add_argument("--min-pitch", type=int, default=0, help="drop notes below this MIDI pitch (e.g. 48 = floor at C3 for vocals)")
+    ap.add_argument("--max-pitch", type=int, default=127, help="drop notes above this MIDI pitch")
     a = ap.parse_args()
-    quantize(a.audio, a.midi_in, a.midi_out, a.subdiv, a.drop_short, a.merge_window, a.program)
+    quantize(a.audio, a.midi_in, a.midi_out, a.subdiv, a.drop_short, a.merge_window, a.program, a.dedupe_octaves, a.dedupe_tol_ms, a.min_pitch, a.max_pitch)
