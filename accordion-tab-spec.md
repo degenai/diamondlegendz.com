@@ -38,15 +38,20 @@ Andy doesn't actually want tab-only output. He wants standard music notation, wi
 
 LLMs are good at this kind of mapping when given the button-layout table as fixed reference.
 
-## 3. Why MIDI in, not audio in
+## 3. Audio in IS in scope — basic-pitch precedent
 
-Andy already worked this out in the convo:
+Original spec (early 2026-05-04) treated audio-in as Phase-N+ with separate legal review. The thinking was: audio→MIDI looks like a derivative-work generator, MIDI→sheet music is just format conversion, so we'd start with MIDI-only and revisit audio later.
 
-- **Audio → sheet music** runs straight into copyright. You're effectively transcribing a recording. Even if the underlying composition is public domain, the recording isn't, and audio-source-separation pipelines look an awful lot like derivative-work generators to the labels.
-- **MIDI → sheet music** is a **format conversion**. The user supplies the MIDI; the tool reformats it. This is the same legal posture as MuseScore, Sibelius, or any DAW. The user is responsible for the legality of their source material; the tool is a utility.
-- Public-domain repertoire (pre-1925 traditional norteño, conjunto, vallenato folk songs) is large. There are MIDI archives on the open internet; quality varies but raw material exists.
+Then Spotify's [**basic-pitch**](https://basicpitch.spotify.com) surfaced (2022, open-source: [github.com/spotify/basic-pitch-ts](https://github.com/spotify/basic-pitch-ts)). It's a free audio-to-MIDI transcriber that runs entirely in the browser via TensorFlow.js — audio never leaves the user's machine. Same legal posture as MuseScore: user supplies the source, tool transforms. Spotify (a major label-adjacent company) shipped it openly without legal blowback. **The "audio→MIDI is risky" framing was wrong.**
 
-Audio-front-end can be a Phase-N follow-up. Phase 1 is MIDI-only.
+Real-world MIDI hunt experience confirmed why audio-in matters: Karaoplay's *La Chona* MIDI had an audible flat note, MuseScore charged Pro for export, free archives are sparse for niche repertoire. Asking users to find a clean MIDI is asking them to do work that doesn't scale. Audio is what they actually have — YouTube tutorials, Spotify-Premium downloads, their own recordings.
+
+**Revised posture (still defensible):**
+- **Audio in:** user-supplied; we run basic-pitch client-side. Same legal model as a DAW that imports audio. User is responsible for source legality; tool is a utility.
+- **MIDI in:** also accepted, for users who already have clean MIDI from MuseScore / a DAW / a karaoke vendor.
+- **YouTube ripping:** *not on our domain.* That's the actual legal hot zone (YouTube ToS). We link out to [Cobalt](https://cobalt.tools) (open-source, public, takes the risk) or document `yt-dlp` for power users. The audio file then comes back into our tool client-side.
+
+Public-domain repertoire (pre-1925 traditional norteño, conjunto, vallenato) is large. So is the universe of user-recorded practice tapes and licensed downloads. The audio-in front door dramatically widens the source funnel.
 
 ## 4. Prior art (existing tools — what's solved, what isn't)
 
@@ -72,25 +77,51 @@ User picks a tier per song or per session. The system always computes the underl
 | **Harmony tab** | Treble standard + left-hand bass clef mapped to one of the 12 button presses | Players who can read treble but get stuck decoding bass-clef chord stacks into buttons. The original Andy insight. | **Medium** — requires the LLM mapping work, but only for one hand. The actual differentiator. |
 | **Full tab** | Both hands as button + bellows tab, "guitar hero" style | Lowest-friction first-play, but locks the player into one instrument. Power-user / fastest on-ramp. | **Hard** — bellows-direction planning across phrases is the hardest sub-problem. Ship last. |
 
-## 6. Pipeline (proposed, all client-side except the LLM call)
+## 6. Pipeline (audio-or-MIDI in, all client-side except the LLM call)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ 1. User uploads MIDI (file picker) OR pastes URL                │
-│ 2. Browser parses MIDI → note list per track                    │
+│ 0. (Optional) User rips YouTube via Cobalt or yt-dlp,            │
+│    or grabs a Spotify-Premium download / personal recording.    │
+│    All off-tool — DLz never touches YouTube.                    │
+│                                                                 │
+│ 1. User drops an audio file (.wav / .mp3 / .ogg) OR a MIDI      │
+│    file. Tool detects format.                                   │
+│                                                                 │
+│ 2a. If audio: basic-pitch (TensorFlow.js, browser-side) →       │
+│     MIDI. Audio never leaves the machine.                       │
+│ 2b. If MIDI: parse via @tonejs/midi → note list per track.      │
+│                                                                 │
 │ 3. User picks:                                                  │
 │    - tuning (GCF default — Andy's Panther)                      │
 │    - rows (3-row default — Panther)                             │
 │    - output tier (Universal / Harmony tab / Full tab)           │
 │    - right-hand track, left-hand track (or "auto-split")        │
+│                                                                 │
 │ 4. Send compact JSON {notes, tuning, rows, tier} to Claude API  │
-│ 5. Claude returns the appropriate-tier output                   │
-│ 6. Browser renders via VexFlow + custom tab-strip SVG           │
-│ 7. Export: print to PDF, or download MusicXML for MuseScore     │
+│    via a Cloudflare Worker (keeps the API key off the page).    │
+│                                                                 │
+│ 5. Claude returns the appropriate-tier output (validated        │
+│    against the GCF button-map dataset).                         │
+│                                                                 │
+│ 6. Browser renders via VexFlow + custom tab-strip SVG.          │
+│                                                                 │
+│ 7. Export: print-to-PDF, or download MusicXML for MuseScore.    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-The Claude call is the only server hop. Everything else is browser-side. CSP-safe, no DB, no auth, fits DLz infra.
+The Claude call is the only server hop. Everything else is browser-side, including basic-pitch inference. CSP-safe, no DB, no auth, fits DLz infra.
+
+### YouTube ingestion sub-flow (off-tool)
+
+Two recommended paths, both link-outs not embeds:
+
+| Path | For | How |
+|------|-----|-----|
+| **Cobalt** | Casual users, one-click rips | https://cobalt.tools — paste YouTube URL, get MP3, drop into our tool |
+| **yt-dlp** | Power users, batch, archival | `yt-dlp -x --audio-format mp3 <url>` — the modern youtube-dl fork, Python or binary install, handles 1000+ sites |
+
+**Why not host YouTube ripping ourselves:** YouTube's ToS forbids it; Google DMCAs the big ripper sites regularly (yt1s, ytmp3 keep getting nuked); Cloudflare bans yt-dlp on Workers. Cobalt + yt-dlp let other people own that legal risk while our tool stays clean.
 
 ## 7. Tech stack hypothesis (subject to revision)
 
@@ -140,25 +171,31 @@ This dataset is the moat. Once it exists, the LLM call is a thin wrapper. Withou
 
 ## 12. Phasing (proposed for next session — not committed)
 
-Phasing follows the tier order — ship the easy tier first, prove the loop, then layer the differentiator.
+Phasing follows the tier order — ship the easy tier first, prove the loop, then layer the differentiator. Audio-in is now in-scope from Phase 2 thanks to basic-pitch.
 
 | Phase | Tier | Deliverable | Estimate |
 |-------|------|-------------|----------|
 | 1 | — | GCF Panther button-map dataset (right + left hand) | 1 sitting |
-| 2 | Universal | Browser MIDI upload → note-list display (no rendering) | 1 sitting |
-| 3 | Universal | VexFlow standard-staff rendering | 1 sitting |
-| 4 | Universal | PDF export + ship as v0.1 | 1 sitting |
-| 5 | Harmony tab | Claude prompt: bass-clef chord → 1-of-12 left-hand button | 1 sitting |
-| 6 | Harmony tab | Render harmony-tab strip below treble staff | 1 sitting |
-| 7 | Full tab | Right-hand button + bellows assignment (LLM + validator) | 2 sittings |
-| 8 | Full tab | Bellows-continuity post-processor | 1 sitting |
-| 9 | — | Add FBbEb / EAD tunings as demand surfaces | 1 sitting per tuning |
-| 10 | — | Spanish UI mode | 1 sitting |
-| N | — | Audio → MIDI front-end (separate project, separate legal review) | TBD |
+| 2 | Ingestion | Browser drop-zone: accept .mp3 / .wav (basic-pitch in TF.js) AND .mid (@tonejs/midi). Display extracted note list. | 2 sittings |
+| 3 | — | Document the YouTube → MP3 path: Cobalt link button on the page; yt-dlp instructions snippet for power users. No ripping on our domain. | 1 sitting |
+| 4 | Universal | VexFlow standard-staff rendering of the note list | 1 sitting |
+| 5 | Universal | PDF export, ship as v0.1 | 1 sitting |
+| 6 | Harmony tab | Claude prompt: bass-clef chord → 1-of-12 left-hand button | 1 sitting |
+| 7 | Harmony tab | Render harmony-tab strip below treble staff | 1 sitting |
+| 8 | Full tab | Right-hand button + bellows assignment (LLM + validator) | 2 sittings |
+| 9 | Full tab | Bellows-continuity post-processor | 1 sitting |
+| 10 | — | Add FBbEb / EAD tunings as demand surfaces | 1 sitting per tuning |
+| 11 | — | Spanish UI mode | 1 sitting |
+
+### First-test material (Phase 1 acceptance)
+
+Andy's foundational learning song is **La Chona** — *"my Twinkle Twinkle Little Star"* — Los Tucanes de Tijuana original, but Andy specifically prefers the **EZ Band** cover for our reference test. That's the audio file to run end-to-end through the Phase-2 pipeline once it's standing up: EZ Band La Chona (audio) → basic-pitch (MIDI) → Universal-tier render (standard staff). If the staff output reads as recognizably "La Chona" to Andy, Phase 2 is acceptance-tested.
 
 ## 13. Out of scope for this spec
 
-- Audio-source-separation / audio→MIDI transcription
+- ~~Audio→MIDI transcription~~ — **moved into scope** Phase 2 via basic-pitch
+- YouTube ripping on our domain (link out to Cobalt or yt-dlp instead)
+- Audio-source-separation (extracting just the accordion track from a multi-instrument recording — basic-pitch is polyphonic but doesn't isolate-by-instrument; user supplies clean-ish audio)
 - Chromatic button accordion (different instrument, different problem)
 - Piano accordion (Stradella bass system; entirely different left-hand)
 - Real-time playing assistance / app

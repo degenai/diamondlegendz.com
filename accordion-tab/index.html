@@ -277,29 +277,48 @@
       <p><strong>The Spanish-tutorial barrier.</strong> Andy's other observation in the convo: <em>"a ton of tutorial vids are in Spanish."</em> This is a real friction point for English-dominant self-learners. Written notation outputs are language-neutral — that's a feature, not a bug. A Spanish UI mode is a low-effort stretch goal that doubles the addressable audience in the other direction (Spanish-dominant players also lack a high-quality MIDI-to-notation tool tuned to their repertoire).</p>
     </div>
 
-    <h2>⚖️ The IP posture</h2>
-    <p>Andy already worked this out in the convo:</p>
+    <h2>⚖️ The IP posture (revised — audio-in IS in scope)</h2>
+    <div class="panel idea">
+      <p>Original spec treated audio-in as Phase-N+ with legal review. Then Spotify's <a href="https://basicpitch.spotify.com" target="_blank" rel="noopener"><strong>basic-pitch</strong></a> surfaced — a free, open-source audio-to-MIDI transcriber that runs entirely in the browser via TensorFlow.js. Audio never leaves the user's machine. Spotify (a major label-adjacent company) shipped it openly and didn't get sued. <strong>The "audio-in is risky" framing was wrong.</strong> Same legal posture as a DAW that imports audio: user supplies the source, tool transforms.</p>
+      <p>Real-world MIDI hunt experience confirmed why this matters: Karaoplay's <em>La Chona</em> MIDI had an audible flat note, MuseScore charged Pro for export, free archives are sparse for niche repertoire. Asking users to find a clean MIDI is asking them to do work that doesn't scale. Audio is what they actually have.</p>
+    </div>
     <ul>
-      <li><strong>Audio → sheet music</strong> = transcription of a recording. Even when the underlying composition is public domain, the recording isn't, and audio-source-separation looks an awful lot like a derivative-work generator. Avoided.</li>
-      <li><strong>MIDI → sheet music</strong> = format conversion. The user supplies the MIDI; the tool reformats it. Same legal posture as MuseScore. The user is responsible for source-material legality; the tool is a utility.</li>
-      <li>Public-domain repertoire (pre-1925 traditional) is large. MIDI archives exist on the open web; quality varies, raw material exists.</li>
+      <li><strong>Audio in</strong> — accepted, runs through basic-pitch client-side. Same legal posture as MuseScore.</li>
+      <li><strong>MIDI in</strong> — also accepted, for users who already have clean MIDI from a DAW, MuseScore, or a karaoke vendor.</li>
+      <li><strong>YouTube ripping</strong> — <em>not on our domain.</em> That's the actual legal hot zone (YouTube ToS). We link out: <a href="https://cobalt.tools" target="_blank" rel="noopener">Cobalt</a> for casual one-click rips, <code>yt-dlp</code> for power users. The audio comes back into our tool client-side.</li>
     </ul>
-    <p><strong>Phase 1 is MIDI-in only.</strong> Audio-in is a much later phase, if ever, with extra legal review.</p>
 
-    <h2>🛠️ Proposed pipeline (everything client-side except one LLM hop)</h2>
+    <h2>🛠️ Proposed pipeline (audio-or-MIDI in, all client-side except one LLM hop)</h2>
     <pre>┌──────────────────────────────────────────────────────────────┐
-│ 1. User uploads MIDI (file picker) OR pastes URL             │
-│ 2. Browser parses MIDI → note list per track                 │
+│ 0. (Optional) Rip YouTube via Cobalt / yt-dlp, or grab a     │
+│    Spotify download / personal recording. Off-tool.          │
+│                                                              │
+│ 1. User drops audio (.wav / .mp3 / .ogg) OR MIDI (.mid).     │
+│                                                              │
+│ 2a. If audio: basic-pitch (TensorFlow.js, in browser) →      │
+│     MIDI. Audio never leaves the machine.                    │
+│ 2b. If MIDI: parse via @tonejs/midi → note list.             │
+│                                                              │
 │ 3. User picks:                                               │
 │    - tuning (GCF default — Andy's Panther)                   │
 │    - rows (3-row default — Panther)                          │
 │    - output tier (Universal / Harmony tab / Full tab)        │
 │    - right-hand track, left-hand track (or "auto-split")     │
-│ 4. Send compact JSON {notes, tuning, rows, tier} to Claude   │
-│ 5. Claude returns the appropriate-tier output                │
-│ 6. Browser renders: VexFlow staff + custom tab-strip SVG     │
-│ 7. Export: print-to-PDF, or MusicXML download for MuseScore  │
+│                                                              │
+│ 4. Send compact JSON to Claude API via Cloudflare Worker.    │
+│ 5. Claude returns the appropriate-tier output (validated     │
+│    against the GCF button-map dataset).                      │
+│ 6. Browser renders: VexFlow staff + custom tab-strip SVG.    │
+│ 7. Export: print-to-PDF, or MusicXML for MuseScore.          │
 └──────────────────────────────────────────────────────────────┘</pre>
+
+    <h2>📺 YouTube ingestion sub-flow (off-tool)</h2>
+    <table>
+      <tr><th>Path</th><th>For</th><th>How</th></tr>
+      <tr><td><strong>Cobalt</strong></td><td>Casual users, one-click rips</td><td><a href="https://cobalt.tools" target="_blank" rel="noopener">cobalt.tools</a> — paste URL, get MP3, drop into our tool</td></tr>
+      <tr><td><strong>yt-dlp</strong></td><td>Power users, batch, archival</td><td><code>yt-dlp -x --audio-format mp3 &lt;url&gt;</code> — modern youtube-dl fork, Python or binary install</td></tr>
+    </table>
+    <p><em>Why not host YouTube ripping ourselves:</em> YouTube's ToS forbids it; Google DMCAs the big ripper sites regularly; Cloudflare bans yt-dlp on Workers. Cobalt + yt-dlp let other people own that legal risk while our tool stays clean.</p>
 
     <h2>🧪 Tech stack hypothesis</h2>
     <table>
@@ -344,25 +363,32 @@
     </div>
 
     <h2>🪜 Phasing (proposed, not committed)</h2>
-    <p>Phasing follows the tier order — ship the easy tier first, prove the loop, then layer the differentiator.</p>
+    <p>Phasing follows the tier order — ship the easy tier first, prove the loop, then layer the differentiator. Audio-in is now in-scope from Phase 2 thanks to basic-pitch.</p>
     <table>
       <tr><th>Phase</th><th>Tier</th><th>Deliverable</th><th>Estimate</th></tr>
       <tr><td>1</td><td>—</td><td>GCF Panther button-map dataset (right + left hand)</td><td>1 sitting</td></tr>
-      <tr><td>2</td><td>Universal</td><td>Browser MIDI upload → note-list display</td><td>1 sitting</td></tr>
-      <tr><td>3</td><td>Universal</td><td>VexFlow standard-staff rendering</td><td>1 sitting</td></tr>
-      <tr><td>4</td><td>Universal</td><td>PDF export, ship as v0.1</td><td>1 sitting</td></tr>
-      <tr><td>5</td><td>Harmony tab</td><td>Claude prompt: bass-clef chord → 1-of-12 button</td><td>1 sitting</td></tr>
-      <tr><td>6</td><td>Harmony tab</td><td>Render harmony-tab strip below treble staff</td><td>1 sitting</td></tr>
-      <tr><td>7</td><td>Full tab</td><td>Right-hand button + bellows assignment (LLM + validator)</td><td>2 sittings</td></tr>
-      <tr><td>8</td><td>Full tab</td><td>Bellows-continuity post-processor</td><td>1 sitting</td></tr>
-      <tr><td>9</td><td>—</td><td>Add FBbEb / EAD tunings as demand surfaces</td><td>1 sitting per tuning</td></tr>
-      <tr><td>10</td><td>—</td><td>Spanish UI mode</td><td>1 sitting</td></tr>
-      <tr><td>N</td><td>—</td><td>Audio → MIDI front-end (separate, separate legal review)</td><td>TBD</td></tr>
+      <tr><td>2</td><td>Ingestion</td><td>Browser drop-zone: accept .mp3 / .wav (basic-pitch TF.js) AND .mid (@tonejs/midi). Show note-list extracted.</td><td>2 sittings</td></tr>
+      <tr><td>3</td><td>—</td><td>Cobalt link button + yt-dlp instructions snippet on the page. No ripping on our domain.</td><td>1 sitting</td></tr>
+      <tr><td>4</td><td>Universal</td><td>VexFlow standard-staff rendering</td><td>1 sitting</td></tr>
+      <tr><td>5</td><td>Universal</td><td>PDF export, ship as v0.1</td><td>1 sitting</td></tr>
+      <tr><td>6</td><td>Harmony tab</td><td>Claude prompt: bass-clef chord → 1-of-12 button</td><td>1 sitting</td></tr>
+      <tr><td>7</td><td>Harmony tab</td><td>Render harmony-tab strip below treble staff</td><td>1 sitting</td></tr>
+      <tr><td>8</td><td>Full tab</td><td>Right-hand button + bellows assignment (LLM + validator)</td><td>2 sittings</td></tr>
+      <tr><td>9</td><td>Full tab</td><td>Bellows-continuity post-processor</td><td>1 sitting</td></tr>
+      <tr><td>10</td><td>—</td><td>Add FBbEb / EAD tunings as demand surfaces</td><td>1 sitting per tuning</td></tr>
+      <tr><td>11</td><td>—</td><td>Spanish UI mode</td><td>1 sitting</td></tr>
     </table>
+
+    <h2>🐔 First-test material — Andy's Twinkle Twinkle</h2>
+    <div class="panel idea">
+      <p>Andy's foundational learning song is <strong>La Chona</strong> — Los Tucanes de Tijuana, 1995. <em>"My Twinkle Twinkle Little Star,"</em> in his words. He specifically prefers the <strong>EZ Band</strong> cover for our reference test (recent, but his pick). That audio file is the Phase 2 acceptance test: EZ Band La Chona (audio) → basic-pitch (MIDI) → Universal-tier render (standard staff). If the output reads as recognizably "La Chona" to Andy, Phase 2 is acceptance-tested.</p>
+    </div>
 
     <h2>🚫 Out of scope</h2>
     <ul>
-      <li>Audio-source-separation / audio-to-MIDI transcription (Phase N+, separate legal review).</li>
+      <li><s>Audio-to-MIDI transcription</s> — <strong>moved into scope</strong> Phase 2 via basic-pitch.</li>
+      <li>YouTube ripping on our domain (link out to Cobalt or yt-dlp instead).</li>
+      <li>Audio-source-separation by instrument (basic-pitch is polyphonic but doesn't isolate-by-instrument; user supplies clean-ish audio).</li>
       <li>Chromatic button accordion (different instrument, different problem).</li>
       <li>Piano accordion with Stradella bass (entirely different left-hand system).</li>
       <li>Real-time playing assistance / native app.</li>

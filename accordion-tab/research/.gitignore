@@ -1,0 +1,14 @@
+# Local research material — never commit (audio/MIDI is user-supplied source, IP-cloudy)
+*.mp3
+*.mp4
+*.m4a
+*.wav
+*.ogg
+*.flac
+*.opus
+*.mid
+*.midi
+*.kar
+*.zip
+*.pdf
+
