@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' ../assets/;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accordion-Tab Forge — feasibility / DLz</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23000080'/><text x='50%25' y='52%25' text-anchor='middle' dominant-baseline='middle' font-family='Comic Sans MS,sans-serif' font-size='42' fill='%23FFFF00'>🪗</text></svg>">
+  <style>
+    body {
+      background-color: #000080;
+      color: #FFFF00;
+      font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px 0 60px;
+    }
+    .container {
+      width: 90%;
+      max-width: 880px;
+      margin: 0 auto;
+      background-color: rgba(0, 0, 0, 0.75);
+      border: 6px ridge #FF00FF;
+      padding: 24px 28px;
+    }
+    h1 {
+      color: #00FF00;
+      text-shadow: 2px 2px #FF0000;
+      font-size: 2.2em;
+      margin: 0 0 4px;
+    }
+    h1 .acc { font-size: 1.4em; vertical-align: middle; }
+    .subtitle {
+      color: #FFAAFF;
+      font-size: 0.95em;
+      margin: 0 0 18px;
+    }
+    .stamp {
+      display: inline-block;
+      transform: rotate(-4deg);
+      border: 3px double #FF6666;
+      color: #FF6666;
+      padding: 4px 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin: 8px 0 18px;
+      font-size: 0.85em;
+    }
+    h2 {
+      color: #00FFFF;
+      border-bottom: 2px dashed #FF00FF;
+      padding-bottom: 4px;
+      text-align: left;
+      margin-top: 24px;
+    }
+    h3 {
+      color: #FFD700;
+      text-align: left;
+      margin: 18px 0 4px;
+    }
+    .panel {
+      background: #1a0f2c;
+      border: 2px solid #5A3F8C;
+      padding: 14px 18px;
+      text-align: left;
+      margin: 14px 0;
+      color: #ECE0F7;
+      line-height: 1.55;
+    }
+    .panel.warn {
+      border-color: #FF6666;
+      background: #2a0f0f;
+    }
+    .panel.idea {
+      border-color: #00FF00;
+      background: #0a1f0a;
+    }
+    p { line-height: 1.6; }
+    code {
+      background: #1a1a2e;
+      color: #FF99CC;
+      padding: 1px 5px;
+      font-family: "Courier New", monospace;
+      font-size: 0.92em;
+    }
+    pre {
+      background: #0a0a18;
+      color: #00FFAA;
+      padding: 12px;
+      border: 1px solid #5A3F8C;
+      overflow-x: auto;
+      text-align: left;
+      font-family: "Courier New", monospace;
+      font-size: 0.85em;
+      line-height: 1.4;
+    }
+    ul, ol {
+      text-align: left;
+      padding-left: 24px;
+    }
+    li { margin-bottom: 4px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    th, td {
+      border: 1px solid #5A3F8C;
+      padding: 6px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #2D1B4A; color: #FFD700; }
+    td { color: #ECE0F7; }
+    a { color: #00FFFF; }
+    a:hover { color: #FF00FF; background: white; }
+    .back {
+      margin-top: 32px;
+      text-align: center;
+    }
+    .convo-quote {
+      border-left: 4px solid #00FF00;
+      padding: 8px 14px;
+      margin: 12px 0;
+      background: #0a0518;
+      color: #BFE6BF;
+      font-style: italic;
+    }
+    .convo-quote strong { color: #FFD700; font-style: normal; }
+    .scroll-marquee {
+      background: #FF0000;
+      color: #FFFF00;
+      font-weight: bold;
+      letter-spacing: 1px;
+      padding: 4px 0;
+      margin: 0 0 18px;
+    }
+    .yellow-tape {
+      height: 24px;
+      background: repeating-linear-gradient(
+        45deg,
+        #FFD700,
+        #FFD700 14px,
+        #000 14px,
+        #000 28px
+      );
+      margin: 18px 0;
+      border: 2px solid #FF0000;
+    }
+    .button-art {
+      font-family: "Courier New", monospace;
+      color: #00FFAA;
+      font-size: 0.9em;
+      line-height: 1.3;
+      white-space: pre;
+      display: inline-block;
+      text-align: left;
+      background: #0a0a18;
+      padding: 10px 14px;
+      border: 1px dashed #5A3F8C;
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <marquee class="scroll-marquee" scrollamount="8">🪗 FEASIBILITY DOC — NO CODE YET — RETURN NEXT SESSION FOR THE BUILD 🪗 ANDY'S IDEA, ALEX'S BUILD, DLz'S PROBLEM 🪗</marquee>
+
+    <h1><span class="acc">🪗</span> Accordion-Tab Forge</h1>
+    <p class="subtitle"><em>working title — name TBD next session</em><br>
+    MIDI in. Diatonic-button-accordion sheet music + tablature out.</p>
+
+    <div class="stamp">STATUS: feasibility research only · 2026-05-04</div>
+
+    <div class="yellow-tape"></div>
+
+    <h2>🎯 The pitch in one breath</h2>
+    <div class="panel idea">
+      Feed in MIDI, get out playable charts for the diatonic button accordion. <strong>Three output tiers</strong>, user picks the friction level: <em>universal</em> standard notation (transfers across instruments), <em>harmony tab</em> (treble standard + left-hand button mapping — the original insight), and <em>full tab</em> (both hands as button + bellows). Andy's framing: low-friction options matter; tab is "guitar hero notation," fast on-ramp but locks you in. Standard notation is harder up-front but transfers anywhere.
+    </div>
+
+    <h2>🎵 Reference instrument</h2>
+    <div class="panel">
+      <strong>Hohner Panther in GCF</strong> (Andy's, confirmed 2026-05-04). 3-row diatonic button accordion, the conjunto / norteño workhorse. 31 treble buttons across 3 rows, 12 bass buttons. Bisonoric — each button plays a different pitch on push vs pull, both sides. Mexicans call this configuration <em>"Sol"</em> because G/Sol is the dominant outer row. Hohner sells it as the entry-level standard; in Andy's words, <em>"the best beginner to intermediate accordion."</em> If we serve Andy, we serve the modal user.
+    </div>
+
+    <h2>📱 The convo that started it (two threads, both 2026-05-04)</h2>
+    <p>Andy texted from a stalled Google AI Mode session — he was looking for sheet music for <em>Gallo de Pelea</em> (commonly transcribed in Mi/E). Google's AI Mode kicked him to YouTube tutorials. No usable sheet music returned.</p>
+
+    <h3>Thread 1 — IP / copyright (resolved early)</h3>
+    <div class="convo-quote">
+      <strong>Andy:</strong> Apparently AI can't make sheet music for diatonic accordion music.<br>
+      <strong>Alex:</strong> Claude will make it, it has tools. The problem is it won't violate IP. Deepseek doesn't care about IP, you could get the raw MIDI transcript from that and then ask Claude to turn it into PDF sheet music with a skill it may have.<br>
+      <strong>Andy:</strong> Copyright is hard… It could help you convert a MIDI to sheet music if you find the raw music.<br>
+      <strong>Alex:</strong> I bet MIDI to sheet music pipelines exist already, it's probably easy. But here's the cool new thing — instead of giving you 3 notes of bass-clef harmony, it can just tell you which left-hand harmony button to press.
+    </div>
+
+    <h3>Thread 2 — output format (the spec turn, a few hours later)</h3>
+    <div class="convo-quote">
+      <strong>Andy:</strong> Oh yeah I got the default Mexican accordion that's known as the best beginner to intermediate accordion.<br>
+      <strong>Alex:</strong> Ok so I assumed it was a keyboard but it's a dang honeycomb. So you need tablature?<br>
+      <strong>Andy:</strong> Diatonic is what they call it. <em>Not sure what you mean by tablature.</em><br>
+      <strong>Alex:</strong> I think at least for harmony you may wanna learn how to read normal music notation for melody. Tablature is just guitar hero notation.<br>
+      <strong>Andy:</strong> <strong>Normal music notation sounds good. And universal.</strong><br>
+      <strong>Alex:</strong> Ok I may go with a few options, we will start with universal and from there I'll make two tablature options. One for harmony and one full tab. … Idk what's best, I just gravitate to low friction options.<br>
+      <strong>Andy:</strong> Another problem I'm facing is like a ton of tutorial vids are in Spanish.<br>
+      <strong>Alex:</strong> That's annoying yeah bro me too.
+    </div>
+
+    <p><strong>Two product decisions emerged.</strong> First, output isn't tab-only — it's <em>tiered</em>, user picks the friction level. Second, Spanish-language tutorial dominance is the real underlying barrier for English-dominant self-learners; written notation outputs are language-neutral, that's a feature.</p>
+
+    <h2>🎚️ The three output tiers</h2>
+    <p>User picks per song or per session. The system always computes the underlying button mapping; the rendering layer chooses what to show.</p>
+    <table>
+      <tr><th>Tier</th><th>Output</th><th>Audience</th><th>Build</th></tr>
+      <tr>
+        <td><strong>Universal</strong></td>
+        <td>Standard treble + bass clef notation, no tab</td>
+        <td>Players who want notation transferable across instruments. Andy's stated preference. Highest learning curve, highest long-term reward.</td>
+        <td><strong>Easy</strong> — existing tools (MuseScore, VexFlow) already do this. Ship first.</td>
+      </tr>
+      <tr>
+        <td><strong>Harmony tab</strong></td>
+        <td>Treble standard + left-hand bass clef mapped to one of 12 button presses</td>
+        <td>Players who can read treble but get stuck decoding bass-clef chord stacks into button presses. The original Andy insight.</td>
+        <td><strong>Medium</strong> — LLM mapping work, but only for one hand. The actual differentiator.</td>
+      </tr>
+      <tr>
+        <td><strong>Full tab</strong></td>
+        <td>Both hands as button + bellows tab, "guitar hero" style</td>
+        <td>Lowest-friction first-play. Locks the player into one instrument. Power-user / fastest on-ramp.</td>
+        <td><strong>Hard</strong> — bellows-direction planning across phrases is the hardest sub-problem. Ship last.</td>
+      </tr>
+    </table>
+
+    <h2>🪗 Why this is non-trivial (and why LLMs help)</h2>
+    <p>A diatonic button accordion is not a piano. Each button plays:</p>
+    <ul>
+      <li>One note when the bellows <strong>push</strong> (closed).</li>
+      <li>A different note when the bellows <strong>pull</strong> (open).</li>
+    </ul>
+    <p>So a given pitch may be reachable on row-2 button-3 push <em>and also</em> on row-1 button-5 pull. The player has to plan bellows direction across whole phrases — you cannot reverse the bellows on every sixteenth note. This is a <strong>constraint-satisfaction problem</strong> keyed on the instrument's tuning, the available buttons, and the bellows-continuity rule.</p>
+    <p>LLMs are good at this kind of constrained-mapping work when you give them the button-layout table as fixed reference. The dataset is the moat; the LLM is the thin wrapper.</p>
+
+    <div class="button-art">
+       Hohner Panther GCF — 3-row treble side (illustrative)
+       ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐
+       │..│..│..│..│..│..│..│..│..│..│..│  inner row  (F)
+       ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤
+       │..│..│..│..│..│..│..│..│..│..│..│  middle row (C)
+       ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤
+       │..│..│..│..│..│..│..│..│..│..│..│  outer row  (G / Sol)
+       └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘
+       Each cell holds two pitches: push / pull.
+       Real layout gets nailed down in the
+       Phase 1 GCF button-map dataset.
+    </div>
+
+    <h2>📜 Prior art — what's already solved (don't rebuild)</h2>
+    <ul>
+      <li><strong>MIDI parsing</strong> — trivial. <code>@tonejs/midi</code> in browser, <code>mido</code> in Python.</li>
+      <li><strong>Standard sheet music rendering</strong> — VexFlow, abcjs, Verovio (web), MuseScore / LilyPond (desktop).</li>
+      <li><strong>MIDI → standard sheet music (no tab)</strong> — MuseScore 4 does this for free, decently.</li>
+    </ul>
+
+    <h2>🎯 Prior art — what isn't solved (this is the gap)</h2>
+    <ul>
+      <li><strong>MIDI → diatonic-button-accordion harmony or full tab</strong>, keyed to the player's tuning, with bellows-direction planning. (Universal-tier output is solved by existing tools — that's why we ship it first as v0.1, easy proof-of-loop.)</li>
+      <li>The closest existing tools are manual-entry (Tap-N-Tab) or community plugins (a basic MuseScore DBA plugin) that don't plan bellows continuity.</li>
+      <li>"First of its kind" claim is plausible for the harmony and full-tab tiers — the big notation companies have not chased this audience because the Western-art-music market doesn't include conjunto / norteño / vallenato. The accordion world is huge in Latin America, Eastern Europe, and the diaspora.</li>
+    </ul>
+
+    <h2>🌎 Audience &amp; the Spanish-language angle</h2>
+    <div class="panel">
+      <p><strong>Primary persona:</strong> beginner-to-intermediate diatonic-button-accordion players, particularly self-taught conjunto / norteño / Tex-Mex players in the U.S. and diaspora. The Hohner Panther in GCF is the canonical entry-level instrument; if we serve Andy, we serve the modal user.</p>
+      <p><strong>The Spanish-tutorial barrier.</strong> Andy's other observation in the convo: <em>"a ton of tutorial vids are in Spanish."</em> This is a real friction point for English-dominant self-learners. Written notation outputs are language-neutral — that's a feature, not a bug. A Spanish UI mode is a low-effort stretch goal that doubles the addressable audience in the other direction (Spanish-dominant players also lack a high-quality MIDI-to-notation tool tuned to their repertoire).</p>
+    </div>
+
+    <h2>⚖️ The IP posture</h2>
+    <p>Andy already worked this out in the convo:</p>
+    <ul>
+      <li><strong>Audio → sheet music</strong> = transcription of a recording. Even when the underlying composition is public domain, the recording isn't, and audio-source-separation looks an awful lot like a derivative-work generator. Avoided.</li>
+      <li><strong>MIDI → sheet music</strong> = format conversion. The user supplies the MIDI; the tool reformats it. Same legal posture as MuseScore. The user is responsible for source-material legality; the tool is a utility.</li>
+      <li>Public-domain repertoire (pre-1925 traditional) is large. MIDI archives exist on the open web; quality varies, raw material exists.</li>
+    </ul>
+    <p><strong>Phase 1 is MIDI-in only.</strong> Audio-in is a much later phase, if ever, with extra legal review.</p>
+
+    <h2>🛠️ Proposed pipeline (everything client-side except one LLM hop)</h2>
+    <pre>┌──────────────────────────────────────────────────────────────┐
+│ 1. User uploads MIDI (file picker) OR pastes URL             │
+│ 2. Browser parses MIDI → note list per track                 │
+│ 3. User picks:                                               │
+│    - tuning (GCF default — Andy's Panther)                   │
+│    - rows (3-row default — Panther)                          │
+│    - output tier (Universal / Harmony tab / Full tab)        │
+│    - right-hand track, left-hand track (or "auto-split")     │
+│ 4. Send compact JSON {notes, tuning, rows, tier} to Claude   │
+│ 5. Claude returns the appropriate-tier output                │
+│ 6. Browser renders: VexFlow staff + custom tab-strip SVG     │
+│ 7. Export: print-to-PDF, or MusicXML download for MuseScore  │
+└──────────────────────────────────────────────────────────────┘</pre>
+
+    <h2>🧪 Tech stack hypothesis</h2>
+    <table>
+      <tr><th>Layer</th><th>Pick</th><th>Why</th></tr>
+      <tr><td>Frontend rendering</td><td>VexFlow + custom tab-strip SVG</td><td>Well-maintained, the tab strip is custom anyway.</td></tr>
+      <tr><td>MIDI parsing</td><td><code>@tonejs/midi</code></td><td>ESM, no build step, clean API.</td></tr>
+      <tr><td>LLM</td><td>Claude API + prompt caching</td><td>Button-map tables are static — cache them so each song call is cheap.</td></tr>
+      <tr><td>API key gate</td><td>Cloudflare Worker</td><td>Already DLz infra. Keeps the key off the page.</td></tr>
+      <tr><td>PDF export</td><td>Browser print first</td><td>Zero work. Upgrade to <code>pdf-lib</code> only if quality is bad.</td></tr>
+    </table>
+
+    <h2>📊 The button-map dataset (the actual moat)</h2>
+    <p>Product quality is gated on accurate button-layout data per tuning. Manual data entry, but small in scale:</p>
+    <ul>
+      <li>GCF 3-row Panther (Andy's, Phase 1 target): ~31 right-hand buttons × 2 directions = 62 entries</li>
+      <li>Plus 12 left-hand bass buttons × 2 directions = 24 entries</li>
+      <li><strong>Per tuning: ~86 entries</strong></li>
+      <li>Five common Panther tunings (GCF, FBbEb, EAD, ADG, plus one): a few hundred entries total</li>
+    </ul>
+    <p>A weekend of careful data entry from manufacturer charts (Hohner, Gabbanelli) and community resources. Without this dataset, hallucination risk is too high to ship. <strong>Phase 1 = GCF only.</strong> Other tunings added one at a time as audience demand surfaces.</p>
+
+    <h2>❓ Open questions for next session</h2>
+    <ol>
+      <li><strong>Hand assignment.</strong> Manual user marking, octave heuristic, or both?</li>
+      <li><strong>Bellows planning.</strong> Single LLM call, deterministic post-processor, or both?</li>
+      <li><strong>Quantization.</strong> Pre-quantize live-recorded MIDI before LLM, or trust the model?</li>
+      <li><strong>Headline output format.</strong> PDF for the player, MusicXML for the tinkerer, ABC for the embed — which is the lead?</li>
+      <li><strong>Validation UX.</strong> When the LLM proposes a non-existent button, how do we surface it?</li>
+      <li><strong>Free vs paid.</strong> Free-on-DLz, Claude-passthrough, or subscription?</li>
+      <li><strong>Audience reach.</strong> Where do we tell first? r/accordion, r/buttonaccordion, conjunto Facebook groups, YouTube tutorial comment sections?</li>
+    </ol>
+
+    <h2>⚠️ Risks</h2>
+    <div class="panel warn">
+      <ul>
+        <li><strong>LLM hallucinates buttons</strong> — mitigation: validator pass against the button-map rejects non-existent buttons.</li>
+        <li><strong>Physically infeasible bellows</strong> — mitigation: post-processor detects rapid reversals and rebudgets.</li>
+        <li><strong>MIDI quality varies wildly</strong> — mitigation: pre-flight checks ("this MIDI has 12 tracks — pick the melody"), front-end quantizer.</li>
+        <li><strong>Niche audience by Western-music-software standards</strong> — counterpoint: not niche by Latin American / diaspora accordion standards. Right comparison is "Spotify for ranchera," not "Sibelius for jazz."</li>
+        <li><strong>IP creep</strong> — Phase 1 stays MIDI-in-only on purpose. Audio-in stays Phase N+ with separate legal review.</li>
+      </ul>
+    </div>
+
+    <h2>🪜 Phasing (proposed, not committed)</h2>
+    <p>Phasing follows the tier order — ship the easy tier first, prove the loop, then layer the differentiator.</p>
+    <table>
+      <tr><th>Phase</th><th>Tier</th><th>Deliverable</th><th>Estimate</th></tr>
+      <tr><td>1</td><td>—</td><td>GCF Panther button-map dataset (right + left hand)</td><td>1 sitting</td></tr>
+      <tr><td>2</td><td>Universal</td><td>Browser MIDI upload → note-list display</td><td>1 sitting</td></tr>
+      <tr><td>3</td><td>Universal</td><td>VexFlow standard-staff rendering</td><td>1 sitting</td></tr>
+      <tr><td>4</td><td>Universal</td><td>PDF export, ship as v0.1</td><td>1 sitting</td></tr>
+      <tr><td>5</td><td>Harmony tab</td><td>Claude prompt: bass-clef chord → 1-of-12 button</td><td>1 sitting</td></tr>
+      <tr><td>6</td><td>Harmony tab</td><td>Render harmony-tab strip below treble staff</td><td>1 sitting</td></tr>
+      <tr><td>7</td><td>Full tab</td><td>Right-hand button + bellows assignment (LLM + validator)</td><td>2 sittings</td></tr>
+      <tr><td>8</td><td>Full tab</td><td>Bellows-continuity post-processor</td><td>1 sitting</td></tr>
+      <tr><td>9</td><td>—</td><td>Add FBbEb / EAD tunings as demand surfaces</td><td>1 sitting per tuning</td></tr>
+      <tr><td>10</td><td>—</td><td>Spanish UI mode</td><td>1 sitting</td></tr>
+      <tr><td>N</td><td>—</td><td>Audio → MIDI front-end (separate, separate legal review)</td><td>TBD</td></tr>
+    </table>
+
+    <h2>🚫 Out of scope</h2>
+    <ul>
+      <li>Audio-source-separation / audio-to-MIDI transcription (Phase N+, separate legal review).</li>
+      <li>Chromatic button accordion (different instrument, different problem).</li>
+      <li>Piano accordion with Stradella bass (entirely different left-hand system).</li>
+      <li>Real-time playing assistance / native app.</li>
+      <li>Microtonal folk traditions outside Western tonal music.</li>
+    </ul>
+
+    <h2>📄 Full spec</h2>
+    <p>The engineering spec lives at <a href="../accordion-tab-spec.md"><code>accordion-tab-spec.md</code></a> in the repo root. Same content, less HTML.</p>
+
+    <div class="yellow-tape"></div>
+
+    <div class="back">
+      <a href="../">← back to Diamond Legendz</a> · <a href="../ideas.html">other ideas</a>
+    </div>
+  </div>
+</body>
+</html>
