@@ -4,6 +4,7 @@ let currentMidiIndex = 0;
 let isPlaying = false;
 let fakeVisualizerActive = false;
 let startTime = 0;
+let lastDropUrl = null;
 
 // --- Elements ---
 const elTrackSelect = document.getElementById('track-select');
@@ -154,11 +155,13 @@ dropZone.addEventListener('drop', (e) => {
     const file = e.dataTransfer.files[0];
     if (!file) return;
 
-    if (file.name.toLowerCase().endsWith('.mid')) {
+    const lower = file.name.toLowerCase();
+    if (lower.endsWith('.mid') || lower.endsWith('.midi')) {
         elStatus.textContent = "LOADING CUSTOM MIDI...";
 
-        // Create an object URL from the dropped file to play locally
+        if (lastDropUrl) URL.revokeObjectURL(lastDropUrl);
         const url = URL.createObjectURL(file);
+        lastDropUrl = url;
 
         MIDIjs.play(url);
         isPlaying = true;
@@ -168,7 +171,7 @@ dropZone.addEventListener('drop', (e) => {
         elTrackInfo.textContent = file.name.toUpperCase();
         startTime = Date.now();
     } else {
-        elStatus.textContent = "INVALID FILE (.MID ONLY)";
+        elStatus.textContent = "INVALID FILE (.MID / .MIDI ONLY)";
     }
 });
 
