@@ -69,6 +69,18 @@ Public-domain repertoire (pre-1925 traditional norteño, conjunto, vallenato) is
   - Various PDF tab books — hand-engraved per song, not generative.
 - "First of its kind" claim is plausible. The big notation software companies have not chased this because the audience is small *in their target markets* (Western art-music, jazz, rock). The accordion world is huge in Latin America, Eastern Europe, and the diaspora — but underserved by the dominant tools.
 
+## 4.5. Tab is measureless on purpose — locked decision
+
+Listener finding 2026-05-05 while auditioning the Forge alpha. Question raised: *"musicians ever say fuck it to measures?"* Yes — guitar tab, accordion tab, blues / folk lead-sheet traditions all routinely drop measures and time signatures, presenting the music as a sequence of presses with phrase breaks for orientation. Pickup notes / anacrusis require no special handling because there's no downbeat for them to fall before.
+
+This is also what makes tab *forgiving of messy transcription*. basic-pitch's per-onset jitter and demucs's stem bleed introduce timing imperfections that look bad on a measured staff but are invisible in tab — the tab reader cares about button order, not which 16th-of-which-beat. Our pipeline (basic-pitch → quantize → tab) plays well into this: even when the transcription is rough, the tab output reads cleanly because it doesn't claim measure-perfection.
+
+**Locked behavior:**
+- **Tab tiers (Harmony, Full):** measureless. Phrase break every 16 notes for visual orientation. No time signature, no barlines, no anacrusis logic.
+- **Universal tier (standard staff):** measured. 4/4 default, barlines per measure, anacrusis bar handling for pickups.
+
+This pulls the project further toward "tab-first" framing for product purposes. The Universal tier exists for users who want notation that transfers to other instruments; tab tiers exist for accordion players who want to play the song.
+
 ## 5. Three output tiers (the spec's organizing principle)
 
 User picks a tier per song or per session. The system always computes the underlying button mapping; the rendering layer chooses what to show.

@@ -138,61 +138,97 @@ function renderStaff(notes) {
         return;
     }
     staffEl.innerHTML = '';
-    const slice = notes.slice(0, 32);
-    if (!slice.length) {
+    if (!notes.length) {
         staffEl.innerHTML = '<p style="color:#900;">No notes to render</p>';
         return;
     }
 
     const bpm = currentMidi.header.tempos[0]?.bpm || 120;
+    const beatSec = 60 / bpm;
+    const measureSec = beatSec * 4; // 4/4 default
+    const slice = notes.slice(0, 64);
     const isHigh = (n) => n.midi >= 60;
-    const trebleNotes = slice.filter(isHigh);
-    const bassNotes = slice.filter(n => !isHigh(n));
 
+    // Group notes into measures by start-time. Pickup notes (anything before
+    // the first downbeat at t=0) collapse into measure 0 as an anacrusis bar.
+    const measures = []; // [{start, end, treble:[], bass:[]}]
+    const totalSpan = slice[slice.length - 1].time + slice[slice.length - 1].duration;
+    const numMeasures = Math.max(1, Math.ceil(totalSpan / measureSec));
+    for (let m = 0; m < numMeasures; m++) {
+        measures.push({
+            start: m * measureSec,
+            end: (m + 1) * measureSec,
+            treble: [],
+            bass: [],
+        });
+    }
+    slice.forEach(n => {
+        const m = Math.min(numMeasures - 1, Math.floor(n.time / measureSec));
+        (isHigh(n) ? measures[m].treble : measures[m].bass).push(n);
+    });
+
+    // Render each measure as its own pair of staves side-by-side so barlines
+    // come naturally from the stave's own end-bar.
+    const measureWidth = 220;
+    const totalWidth = Math.max(800, 60 + measureWidth * Math.min(measures.length, 8));
+    const visibleMeasures = measures.slice(0, 8);
     const renderer = new VF.Renderer(staffEl, VF.Renderer.Backends.SVG);
-    const w = Math.max(800, slice.length * 30);
-    renderer.resize(w, 240);
+    renderer.resize(totalWidth, 240);
     const ctx = renderer.getContext();
 
-    const trebleStave = new VF.Stave(10, 10, w - 20).addClef('treble').addTimeSignature('4/4');
-    const bassStave = new VF.Stave(10, 110, w - 20).addClef('bass');
-    trebleStave.setContext(ctx).draw();
-    bassStave.setContext(ctx).draw();
+    let x = 10;
+    visibleMeasures.forEach((meas, idx) => {
+        const w = idx === 0 ? measureWidth + 60 : measureWidth;
+        const trebleStave = new VF.Stave(x, 10, w);
+        const bassStave = new VF.Stave(x, 110, w);
+        if (idx === 0) {
+            trebleStave.addClef('treble').addTimeSignature('4/4');
+            bassStave.addClef('bass');
+        }
+        trebleStave.setContext(ctx).draw();
+        bassStave.setContext(ctx).draw();
 
-    const buildVoice = (arr, clef) => {
-        if (!arr.length) {
-            const rest = new VF.StaveNote({ keys: ['b/4'], duration: 'wr', clef });
+        const fillVoice = (arr, clef) => {
             const v = new VF.Voice({ num_beats: 4, beat_value: 4 });
             v.setMode(VF.Voice.Mode.SOFT);
-            v.addTickables([rest]);
-            return v;
-        }
-        const tickables = arr.slice(0, 16).map(n => {
-            try {
-                return new VF.StaveNote({
-                    keys: [midiToVexKey(n.midi)],
-                    duration: durationToVfDur(n.duration, bpm),
-                    clef,
-                });
-            } catch (e) {
-                return new VF.StaveNote({ keys: ['b/4'], duration: 'q', clef });
+            if (!arr.length) {
+                v.addTickables([new VF.StaveNote({ keys: ['b/4'], duration: 'wr', clef })]);
+                return v;
             }
-        });
-        const v = new VF.Voice({ num_beats: 4, beat_value: 4 });
-        v.setMode(VF.Voice.Mode.SOFT);
-        v.addTickables(tickables);
-        return v;
-    };
+            const tickables = arr.slice(0, 8).map(n => {
+                try {
+                    return new VF.StaveNote({
+                        keys: [midiToVexKey(n.midi)],
+                        duration: durationToVfDur(n.duration, bpm),
+                        clef,
+                    });
+                } catch (e) {
+                    return new VF.StaveNote({ keys: ['b/4'], duration: 'q', clef });
+                }
+            });
+            v.addTickables(tickables);
+            return v;
+        };
 
-    try {
-        const trebleVoice = buildVoice(trebleNotes, 'treble');
-        const bassVoice = buildVoice(bassNotes, 'bass');
-        new VF.Formatter().joinVoices([trebleVoice]).format([trebleVoice], w - 100);
-        new VF.Formatter().joinVoices([bassVoice]).format([bassVoice], w - 100);
-        trebleVoice.draw(ctx, trebleStave);
-        bassVoice.draw(ctx, bassStave);
-    } catch (e) {
-        staffEl.innerHTML = `<p style="color:#900;">Render error: ${e.message}</p>`;
+        try {
+            const tv = fillVoice(meas.treble, 'treble');
+            const bv = fillVoice(meas.bass, 'bass');
+            new VF.Formatter().joinVoices([tv]).format([tv], w - 30);
+            new VF.Formatter().joinVoices([bv]).format([bv], w - 30);
+            tv.draw(ctx, trebleStave);
+            bv.draw(ctx, bassStave);
+        } catch (e) {
+            // Non-fatal — skip the measure if VexFlow chokes.
+        }
+
+        x += w;
+    });
+
+    if (measures.length > 8) {
+        const note = document.createElement('p');
+        note.style.cssText = 'color:#5A3F8C;font-style:italic;margin-top:6px;';
+        note.textContent = `Showing 8 of ${measures.length} measures · first ${slice.length} of ${notes.length} notes`;
+        staffEl.appendChild(note);
     }
 }
 
@@ -216,14 +252,23 @@ function buttonPlaceholder(midiNum, tuning) {
 }
 
 function renderTab(notes, tier, tuning) {
-    const slice = notes.slice(0, 60);
-    const lines = slice.map((n, i) => {
+    // Tab is measure-less by tradition — like guitar tab. No bar lines, no time
+    // signature. Just sequential button-press order with section dividers every
+    // 16 notes for visual orientation. Pickup notes need no special handling
+    // because there's no downbeat for them to fall before.
+    const slice = notes.slice(0, 96);
+    const bpm = currentMidi.header.tempos[0]?.bpm || 120;
+    const lines = [];
+    slice.forEach((n, i) => {
+        if (i > 0 && i % 16 === 0) {
+            lines.push(`<div class="tab-line" style="text-align:center;color:#5A3F8C;border-top:2px solid #2a2a3e;border-bottom:none;padding-top:6px;">— phrase ${Math.floor(i / 16) + 1} —</div>`);
+        }
         const ix = String(i + 1).padStart(2, '0');
         const pn = pitchName(n.midi).padEnd(4);
-        const startBeat = (n.time / (60 / (currentMidi.header.tempos[0]?.bpm || 120))).toFixed(2);
         let line;
         if (tier === 'universal') {
-            line = `<span class="ix">${ix}</span><span class="pn">${pn}</span> at beat ${startBeat}, dur ${n.duration.toFixed(2)}s`;
+            const startBeat = (n.time / (60 / bpm)).toFixed(2);
+            line = `<span class="ix">${ix}</span><span class="pn">${pn}</span> beat ${startBeat}, dur ${n.duration.toFixed(2)}s`;
         } else if (tier === 'harmony') {
             const isLeft = n.midi < 60;
             const where = isLeft
@@ -233,10 +278,10 @@ function renderTab(notes, tier, tuning) {
         } else {
             line = `<span class="ix">${ix}</span><span class="pn">${pn}</span> <span class="bn">${buttonPlaceholder(n.midi, tuning)}</span> · bellows ?`;
         }
-        return `<div class="tab-line">${line}</div>`;
+        lines.push(`<div class="tab-line">${line}</div>`);
     });
     if (slice.length < notes.length) {
-        lines.push(`<div class="tab-line" style="opacity:0.6;font-style:italic;">… ${notes.length - slice.length} more notes (full tab needs the Phase 1 button-map dataset)</div>`);
+        lines.push(`<div class="tab-line" style="opacity:0.6;font-style:italic;text-align:center;">… ${notes.length - slice.length} more notes — full tab needs the Phase 1 button-map dataset</div>`);
     }
     tabEl.innerHTML = lines.join('');
 }

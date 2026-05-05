@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' blob:; worker-src 'self' blob:; img-src 'self' data: ../assets/; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com blob:; media-src 'self' blob: https://storage.googleapis.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline' blob:; worker-src 'self' blob:; img-src 'self' data:; font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com blob:; media-src 'self' blob: https://storage.googleapis.com;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accordion-Tab Forge — feasibility / DLz</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%23000080'/><text x='50%25' y='52%25' text-anchor='middle' dominant-baseline='middle' font-family='Comic Sans MS,sans-serif' font-size='42' fill='%23FFFF00'>🪗</text></svg>">
@@ -533,6 +533,13 @@
     </div>
 
     <p><strong>Two product decisions emerged.</strong> First, output isn't tab-only — it's <em>tiered</em>, user picks the friction level. Second, Spanish-language tutorial dominance is the real underlying barrier for English-dominant self-learners; written notation outputs are language-neutral, that's a feature.</p>
+
+    <h2>🪕 Tab is measureless on purpose — that's a feature</h2>
+    <div class="panel idea">
+      <p>Listener finding 2026-05-05 while auditioning the Forge alpha: <em>"musicians ever say fuck it to measures?"</em> Yes, they do — and it's the right move for tab tiers. Guitar tab, accordion tab, blues / folk lead-sheet traditions all routinely drop measures and time signatures, presenting the music as a <strong>sequence of presses</strong> with phrase breaks for orientation. Pickup notes / anacrusis require no special handling because there's no downbeat for them to fall before.</p>
+      <p>This is also what makes tab <em>forgiving of messy transcription</em>. basic-pitch's per-onset jitter and demucs's stem bleed introduce timing imperfections that look bad on a measured staff but are invisible in tab — the tab reader cares about button order, not which 16th-of-which-beat. Our pipeline (basic-pitch → quantize → tab) plays well into this: even when the transcription is rough, the tab output reads cleanly because it doesn't claim measure-perfection.</p>
+      <p><strong>Locked decision:</strong> tab tiers (Harmony, Full) render measureless with a phrase break every 16 notes for visual orientation. Universal tier (standard staff) keeps measures and time signatures — that's where formal notation rules apply. Pickups in the Universal tier still need special handling (anacrusis bar shorter than the time signature implies); pickups in tab tiers do not.</p>
+    </div>
 
     <h2>🎚️ The three output tiers</h2>
     <p>User picks per song or per session. The system always computes the underlying button mapping; the rendering layer chooses what to show.</p>
