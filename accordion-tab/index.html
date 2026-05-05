@@ -161,6 +161,75 @@
       border: 1px dashed #5A3F8C;
       margin: 8px 0;
     }
+
+    .stages { display: grid; gap: 12px; margin: 14px 0; }
+    .stage {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      gap: 14px;
+      background: #0a0518;
+      border: 2px solid #5A3F8C;
+      padding: 12px 16px;
+    }
+    .stage.tested  { border-color: #FFD700; }
+    .stage.wired   { border-color: #00FFFF; }
+    .stage.live    { border-color: #00FF00; }
+    .stage-num {
+      font-family: "Courier New", monospace;
+      font-size: 2.4em;
+      color: #FFD700;
+      text-align: center;
+      line-height: 1;
+      align-self: center;
+    }
+    .stage-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-bottom: 1px dashed #5A3F8C;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+    .stage-title { color: #00FFFF; font-weight: bold; font-size: 1.05em; }
+    .stage-status {
+      font-size: 0.75em;
+      padding: 2px 8px;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+    }
+    .stage.tested .stage-status { color: #FFD700; }
+    .stage.wired  .stage-status { color: #00FFFF; }
+    .stage.live   .stage-status { color: #00FF00; }
+    .stage.placeholder .stage-status { color: #BBAACC; }
+    .stage-body p { margin: 6px 0; line-height: 1.5; font-size: 0.95em; }
+    .stage-body pre {
+      background: #1a1a2e;
+      border: 1px solid #2D1B4A;
+      padding: 8px 12px;
+      font-family: "Courier New", monospace;
+      font-size: 0.78em;
+      overflow-x: auto;
+      color: #00FFAA;
+      margin: 6px 0;
+    }
+    .stage-future {
+      color: #BFAFCF;
+      font-style: italic;
+      font-size: 0.88em !important;
+      padding-top: 4px;
+      border-top: 1px dotted #2D1B4A;
+      margin-top: 8px !important;
+    }
+    .stage-future strong { color: #FFAA66; font-style: normal; }
+    .legend {
+      font-size: 0.8em;
+      color: #BFAFCF;
+      text-align: center;
+      margin: 4px 0 14px;
+    }
+    .legend span { margin: 0 8px; }
   </style>
 </head>
 <body>
@@ -288,44 +357,141 @@
       <li><strong>YouTube ripping</strong> — <em>not on our domain.</em> That's the actual legal hot zone (YouTube ToS). We link out: <a href="https://cobalt.tools" target="_blank" rel="noopener">Cobalt</a> for casual one-click rips, <code>yt-dlp</code> for power users. The audio comes back into our tool client-side.</li>
     </ul>
 
-    <h2>🛠️ Proposed pipeline (audio-or-MIDI in, all client-side except one LLM hop)</h2>
-    <pre>┌──────────────────────────────────────────────────────────────┐
-│ 0. (Optional) Rip YouTube via Cobalt / yt-dlp, or grab a     │
-│    Spotify download / personal recording. Off-tool.          │
-│                                                              │
-│ 1. User drops audio (.wav / .mp3 / .ogg) OR MIDI (.mid).     │
-│                                                              │
-│ 2a. If audio: basic-pitch (TensorFlow.js, in browser) →      │
-│     MIDI. Audio never leaves the machine.                    │
-│ 2b. If MIDI: parse via @tonejs/midi → note list.             │
-│                                                              │
-│ 3. User picks:                                               │
-│    - tuning (GCF default — Andy's Panther)                   │
-│    - rows (3-row default — Panther)                          │
-│    - output tier (Universal / Harmony tab / Full tab)        │
-│    - right-hand track, left-hand track (or "auto-split")     │
-│                                                              │
-│ 4. Send compact JSON to Claude API via Cloudflare Worker.    │
-│ 5. Claude returns the appropriate-tier output (validated     │
-│    against the GCF button-map dataset).                      │
-│ 6. Browser renders: VexFlow staff + custom tab-strip SVG.    │
-│ 7. Export: print-to-PDF, or MusicXML for MuseScore.          │
-└──────────────────────────────────────────────────────────────┘</pre>
+    <h2>🔧 Pipeline — eight stages, staged on this page</h2>
+    <p>The build strategy: each stage gets CLI-tested first, then ported to the page once it works. Statuses below are live as of <strong>2026-05-04</strong>.</p>
+    <p class="legend">
+      <span style="color:#BBAACC;">🚧 Placeholder</span>
+      <span style="color:#FFD700;">🔬 CLI-tested</span>
+      <span style="color:#00FFFF;">🚀 Wired-up</span>
+      <span style="color:#00FF00;">✅ Live</span>
+    </p>
 
-    <h2>📺 YouTube ingestion sub-flow (off-tool)</h2>
-    <table>
-      <tr><th>Path</th><th>For</th><th>How</th></tr>
-      <tr><td><strong>Cobalt</strong></td><td>Casual users, one-click rips</td><td><a href="https://cobalt.tools" target="_blank" rel="noopener">cobalt.tools</a> — paste URL, get MP3, drop into our tool</td></tr>
-      <tr><td><strong>yt-dlp</strong></td><td>Power users, batch, archival</td><td><code>yt-dlp -x --audio-format mp3 &lt;url&gt;</code> — modern youtube-dl fork, Python or binary install</td></tr>
-    </table>
-    <p><em>Why not host YouTube ripping ourselves:</em> YouTube's ToS forbids it; Google DMCAs the big ripper sites regularly; Cloudflare bans yt-dlp on Workers. Cobalt + yt-dlp let other people own that legal risk while our tool stays clean.</p>
+    <div class="stages">
+
+      <div class="stage tested">
+        <div class="stage-num">1</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Get audio</span>
+            <span class="stage-status">🔬 CLI-tested</span>
+          </div>
+          <p>User-supplied audio. Source from anywhere: YouTube via <a href="https://cobalt.tools" target="_blank" rel="noopener">Cobalt</a> (one-click) or <code>yt-dlp</code> (power users). Spotify-Premium download. Personal recording. Owned MP3.</p>
+          <p><em>Why off-tool:</em> YouTube ToS forbids ripping on our domain. Cobalt + yt-dlp let other people own that legal risk while our tool stays clean.</p>
+          <pre>yt-dlp -f 18 \
+  --extractor-args "youtube:player_client=android,ios,tv_embedded" \
+  -o "in.%(ext)s" "&lt;youtube-url&gt;"</pre>
+          <p class="stage-future"><strong>Future on page:</strong> file drop-zone (mp3/mp4/m4a/wav/ogg) + Cobalt deep-link button + yt-dlp instructions snippet.</p>
+        </div>
+      </div>
+
+      <div class="stage tested">
+        <div class="stage-num">2</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Normalize audio</span>
+            <span class="stage-status">🔬 CLI-tested</span>
+          </div>
+          <p>Convert whatever format we got (mp4 from YouTube, m4a from Spotify, etc.) into a known-good WAV: 22.05 kHz, mono, 16-bit PCM. This is what basic-pitch expects natively, and it cuts file size for the client.</p>
+          <pre>ffmpeg -y -i in.mp4 -vn -acodec pcm_s16le -ar 22050 -ac 1 out.wav</pre>
+          <p class="stage-future"><strong>Future on page:</strong> bundled <code>imageio-ffmpeg</code> binary (Python) on the worker side, or <code>ffmpeg.wasm</code> client-side. Browser-side is preferred (audio stays local).</p>
+        </div>
+      </div>
+
+      <div class="stage tested" id="stage-3">
+        <div class="stage-num">3</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Source separation</span>
+            <span class="stage-status">🔬 CLI-tested</span>
+          </div>
+          <p><strong>This is the differentiator.</strong> Almost any YouTube video should work because we isolate the accordion stem from the full mix before transcribing. Without this stage, basic-pitch returns chord-salad MIDI for full-band recordings (vocals + drums + bass + accordion all mashed together — confirmed against EZ Band La Chona, output was unusable).</p>
+          <p>Tool: <strong>Demucs</strong> (Meta, open source). Runs the <code>htdemucs</code> model: separates a mix into <em>vocals · drums · bass · other</em>. The "other" stem is mostly accordion + bajo sexto for conjunto recordings. Feed THAT to basic-pitch.</p>
+          <pre>python -m demucs --two-stems=other -o stems/ in.wav
+# → stems/htdemucs/in/other.wav (the accordion-ish stem)</pre>
+          <p>CLI-tested 2026-05-04 against EZ Band La Chona: 5:56 runtime on the 3:23 audio, isolated stem fed back through basic-pitch produced 1114 note-on events vs 1743 from the full mix (36% fewer events) with the pitch floor up from MIDI 28→40 (drums and bass no longer captured). Audible quality pending listener verdict.</p>
+          <p class="stage-future"><strong>Future on page:</strong> demucs.js (browser TF.js port) or call back to a Cloudflare Worker. Heavier model, may need server-side for large files; Workers may not be the right fit, could end up on Render or a Pages Function instead.</p>
+        </div>
+      </div>
+
+      <div class="stage tested">
+        <div class="stage-num">4</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Transcribe to MIDI</span>
+            <span class="stage-status">🔬 CLI-tested</span>
+          </div>
+          <p>Run <a href="https://basicpitch.spotify.com" target="_blank" rel="noopener">basic-pitch</a> (Spotify, open source) on the isolated accordion stem. Polyphonic note detection, runs on TensorFlow.js or ONNX runtime. Audio never leaves the machine.</p>
+          <p>CLI tested against EZ Band La Chona full mix this session: 14.4KB output, 1743 note-on events over 201 seconds, MIDI 28-89 pitch range. The technical pipeline works; quality was poor because we hadn't separated stems yet (see Stage 3).</p>
+          <pre>python -c "
+from basic_pitch.inference import predict_and_save
+import basic_pitch, os
+onnx = os.path.join(os.path.dirname(basic_pitch.__file__),
+    'saved_models', 'icassp_2022', 'nmp.onnx')
+predict_and_save(['stems/htdemucs/in/other.wav'], '.', True, False, False, False, onnx)
+"</pre>
+          <p class="stage-future"><strong>Future on page:</strong> <code>@spotify/basic-pitch</code> (TS port, browser TF.js). Drop-in for the CLI command, runs entirely in the page.</p>
+        </div>
+      </div>
+
+      <div class="stage placeholder">
+        <div class="stage-num">5</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Configure</span>
+            <span class="stage-status">🚧 Placeholder</span>
+          </div>
+          <p>User picks: tuning (GCF default — Andy's Panther), rows (3-row default — Panther), output tier (Universal / Harmony tab / Full tab), and hand-track assignment (auto-split by octave or manual marking).</p>
+          <p class="stage-future"><strong>Future on page:</strong> form panel with selects + radio buttons. State persists across runs via localStorage so the user doesn't reconfigure every song.</p>
+        </div>
+      </div>
+
+      <div class="stage placeholder">
+        <div class="stage-num">6</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Map to instrument</span>
+            <span class="stage-status">🚧 Placeholder</span>
+          </div>
+          <p>The LLM API hop — provider-agnostic by design. Send <code>{notes, tuning, rows, tier}</code> + the GCF button-map dataset. Model returns: right-hand button + bellows assignments, left-hand 12-button assignments, notation as ABC or MusicXML.</p>
+          <p>Validator pass rejects buttons that don't exist on the user's instrument; a deterministic post-processor repairs physically-infeasible bellows reversals.</p>
+          <p><strong>Provider default: DeepSeek</strong> (V3 / Coder). Auto-prompt-caching, ~10x cheaper than Claude for this kind of structured constraint-mapping at parity quality. <strong>Premium fallback: Claude</strong> (Sonnet or Haiku) when DeepSeek's output validation fails or for higher-stakes Full-tab work where bellows planning is gnarly. Both are OpenAI-or-Anthropic-shaped APIs; the worker is a thin switch.</p>
+          <p class="stage-future"><strong>Future on page:</strong> single <code>fetch()</code> to a Cloudflare Worker that holds the API keys (multi-provider). Prompt-cache the button-map (static per tuning) — DeepSeek caches automatically, Anthropic with <code>cache_control</code>. Blocks on Stage 1 of phasing — the GCF button-map dataset (~86 entries) needs to exist first.</p>
+        </div>
+      </div>
+
+      <div class="stage placeholder">
+        <div class="stage-num">7</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Render</span>
+            <span class="stage-status">🚧 Placeholder</span>
+          </div>
+          <p>VexFlow paints the standard staff (treble + bass clef). Custom SVG paints the tablature strip below: numbered buttons + push/pull arrows for the right hand, 1-of-12 button index for the left hand. Layout matches the user's selected tier.</p>
+          <p class="stage-future"><strong>Future on page:</strong> <code>&lt;div id="staff"&gt;</code> for VexFlow, <code>&lt;div id="tab"&gt;</code> for the tab-strip SVG. Side-by-side print layout for paper output.</p>
+        </div>
+      </div>
+
+      <div class="stage placeholder">
+        <div class="stage-num">8</div>
+        <div class="stage-body">
+          <div class="stage-head">
+            <span class="stage-title">Export</span>
+            <span class="stage-status">🚧 Placeholder</span>
+          </div>
+          <p>Browser print-to-PDF (zero work, looks fine on letter / A4). MusicXML download for users who want to load into MuseScore for further editing. ABC notation copy-button for embeds.</p>
+          <p class="stage-future"><strong>Future on page:</strong> three buttons. Print is just <code>window.print()</code> with print-stylesheet. MusicXML is <code>Blob</code> + <code>download</code> attribute. ABC is clipboard.</p>
+        </div>
+      </div>
+
+    </div>
 
     <h2>🧪 Tech stack hypothesis</h2>
     <table>
       <tr><th>Layer</th><th>Pick</th><th>Why</th></tr>
       <tr><td>Frontend rendering</td><td>VexFlow + custom tab-strip SVG</td><td>Well-maintained, the tab strip is custom anyway.</td></tr>
       <tr><td>MIDI parsing</td><td><code>@tonejs/midi</code></td><td>ESM, no build step, clean API.</td></tr>
-      <tr><td>LLM</td><td>Claude API + prompt caching</td><td>Button-map tables are static — cache them so each song call is cheap.</td></tr>
+      <tr><td>LLM (default)</td><td>DeepSeek API (V3 / Coder)</td><td>Auto-prompt-caching, ~10x cheaper than Claude for structured constraint-mapping. Cost matters at hobby-project scale.</td></tr>
+      <tr><td>LLM (fallback)</td><td>Claude API (Sonnet / Haiku)</td><td>Premium tier for Full-tab bellows planning where DeepSeek validation fails. Worker switches providers on retry.</td></tr>
       <tr><td>API key gate</td><td>Cloudflare Worker</td><td>Already DLz infra. Keeps the key off the page.</td></tr>
       <tr><td>PDF export</td><td>Browser print first</td><td>Zero work. Upgrade to <code>pdf-lib</code> only if quality is bad.</td></tr>
     </table>

@@ -127,7 +127,7 @@ Two recommended paths, both link-outs not embeds:
 
 - **Frontend rendering:** VexFlow for standard staff, custom SVG for the tab strip (numbered buttons + push/pull arrows). VexFlow is well-maintained; abcjs is also acceptable. Verovio is heavyweight and probably overkill.
 - **MIDI parsing:** `@tonejs/midi` — clean API, ESM, no build step required.
-- **LLM:** Claude API. Skill bundles the button-map tables as part of the system prompt. **Prompt caching** essential here — the per-tuning button maps are static and large; cache them so each song call is cheap.
+- **LLM:** Provider-agnostic by design. **Default: DeepSeek** (V3 / Coder) for cost — auto-prompt-caching, ~10x cheaper than Claude for structured constraint-mapping at parity quality. **Premium fallback: Claude** (Sonnet / Haiku) when DeepSeek validation fails or for higher-stakes Full-tab bellows planning. Worker switches providers on retry. The button-map dataset is static per tuning and goes in the cached prefix — both providers cache, DeepSeek automatically, Anthropic via `cache_control`.
 - **Hosting:** Cloudflare Pages (already DLz infra). Worker for the Claude call so the API key isn't exposed.
 - **PDF export:** browser print-to-PDF first (zero work). Real PDF export via `pdf-lib` or `jsPDF` only if print quality is bad.
 
