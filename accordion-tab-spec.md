@@ -98,7 +98,11 @@ Decimal labels carry the domain: 3.5 is in the audio domain (htdemucs and basic-
 
 ### Stage 3.5: UVR Mel-Band Roformer cleanup pass (optional, audio-domain)
 
-Community two-stage trick: feed the `htdemucs` "other" stem into a UVR Mel-Band Roformer instrumental model. Reportedly preserves reed/wind timbres better than htdemucs alone — accordion lead sharper, bajo sexto bleed reduced. Licensing audit required (many UVR weights are CC-BY-NC, not commercial). Off-by-default until quality bump is verified for our repertoire.
+Community two-stage trick: feed the `htdemucs` "other" stem into a UVR Mel-Band Roformer instrumental model. Reportedly preserves reed/wind timbres better than htdemucs alone. Licensing audit required (many UVR weights are CC-BY-NC, not commercial). Off-by-default until quality bump is verified for our repertoire.
+
+**Don't over-clean (2026-05-04 listener finding):** the htdemucs "other" stem includes bajo sexto + rhythm guitar alongside accordion, and that's *useful*. A solo player practicing along to the chart needs harmonic context — they're not going to play the accordion melody against silence. The MIDI captures the rhythm-string parts as a backing scaffold, the player adapts and takes the voice they're filling. Goal of separation is "minus vocals + drums" (so the player can hear themselves over the practice track), NOT "isolate accordion lead in pristine isolation." Tune Stage 3.5 with the same restraint.
+
+**Architecture note:** Mel-Band Roformer V2 hit a known bug in `audio-separator` 0.18 (`IndexError` in `spec_utils.normalize`, stem-name mismatch on Inst V2 output). Falling back to MDX-Net Kim Inst (ONNX, ~10× faster than Mel-Band Roformer on CPU, no V2 bug). CLI-tested 2026-05-04 against EZ Band La Chona htdemucs stem: Kim Inst pass produced 651-note basic-pitch output (vs 645 from htdemucs alone), 536-note quantize-32nds output (vs 528 htdemucs-only). Note count comparable; the difference is *which* notes get detected — residual vocal artifacts removed, real accordion notes preserved.
 
 ### Stage 4.5: MIDI quantize (our own pedal, MIDI-domain)
 

@@ -23,12 +23,27 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 30px 0;
             background-image: linear-gradient(0deg, transparent 24%, var(--scanline) 25%, var(--scanline) 26%, transparent 27%, transparent 74%, var(--scanline) 75%, var(--scanline) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, var(--scanline) 25%, var(--scanline) 26%, transparent 27%, transparent 74%, var(--scanline) 75%, var(--scanline) 76%, transparent 77%, transparent);
             background-size: 30px 30px;
+        }
+
+        midi-player {
+            width: 100%;
+            margin-top: 5px;
+            --midi-player-progress-bar-color: var(--neon-green);
+            --midi-player-control-color: var(--neon-green);
+            --midi-player-control-active-color: var(--neon-pink);
+        }
+        midi-visualizer {
+            display: block;
+            width: 100%;
+            height: 150px;
+            background: #000;
+            border: 2px solid #555;
         }
 
         .arcade-cabinet {
@@ -179,9 +194,11 @@
             <h1>STREET FIGHTER II<br>TURBO MIDI PLAYER</h1>
         </header>
 
-        <div class="visualizer-container">
-            <canvas id="visualizer"></canvas>
-        </div>
+        <midi-visualizer
+            id="visualizer"
+            type="piano-roll"
+            config='{"noteRGB":"57,255,20","activeNoteRGB":"255,0,255","pixelsPerTimeStep":18}'>
+        </midi-visualizer>
 
         <div class="controls-area">
             <!-- Left Panel: Lists -->
@@ -194,35 +211,24 @@
 
             <!-- Right Panel: Controls -->
             <div class="panel">
-                <h3>CONTROLS</h3>
-                <div id="track-info" style="font-size: 0.6rem; margin-bottom: 15px; min-height: 30px;">
+                <h3>NOW PLAYING</h3>
+                <div id="track-info" style="font-size: 0.6rem; margin-bottom: 10px; min-height: 30px;">
                     READY PLAYER ONE
                 </div>
 
-                <div class="playback-controls">
-                    <button id="btn-prev">⏮</button>
-                    <button id="btn-play">▶</button>
-                    <button id="btn-stop">⬛</button>
-                    <button id="btn-next">⏭</button>
-                </div>
+                <midi-player id="player" sound-font visualizer="#visualizer"></midi-player>
 
                 <div style="margin-top: 15px; border: 2px dashed #555; padding: 10px; text-align: center; color: #777; font-size: 0.6rem;"
                     id="drop-zone">
-                    DROP .MID FILES HERE
+                    DROP .MID / .MIDI FILES HERE
                 </div>
             </div>
         </div>
 
         <div class="status-bar" id="status-bar">INSERT COIN</div>
-
-        <!-- Start Overlay -->
-        <div id="start-overlay" class="loading-overlay">
-            <h2 class="blink">INSERT COIN</h2>
-            <p style="font-size: 0.6rem; margin-top: 20px;">(CLICK TO START)</p>
-        </div>
     </div>
 
-    <script type="text/javascript" src="https://www.midijs.net/lib/midi.js"></script>
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
     <script type="module" src="app.js"></script>
 
     <style>

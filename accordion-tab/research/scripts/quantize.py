@@ -8,7 +8,7 @@ import librosa
 import numpy as np
 import pretty_midi
 
-def quantize(audio_path, midi_in, midi_out, subdiv=4, drop_short_ms=80, merge_window_ms=30):
+def quantize(audio_path, midi_in, midi_out, subdiv=4, drop_short_ms=80, merge_window_ms=30, program=21):
     print(f"Loading {audio_path}...")
     y, sr = librosa.load(audio_path, sr=22050)
     print(f"Beat-tracking {len(y)/sr:.1f}s of audio...")
@@ -35,7 +35,7 @@ def quantize(audio_path, midi_in, midi_out, subdiv=4, drop_short_ms=80, merge_wi
         return float(grid[idx])
 
     out = pretty_midi.PrettyMIDI(initial_tempo=tempo)
-    instr = pretty_midi.Instrument(program=21)  # accordion in GM
+    instr = pretty_midi.Instrument(program=program)  # 21 accordion, 73 flute, 74 recorder, 75 pan flute
     for src in pm.instruments:
         for n in src.notes:
             new_start = snap(n.start)
@@ -75,5 +75,6 @@ if __name__ == "__main__":
     ap.add_argument("--subdiv", type=int, default=4)
     ap.add_argument("--drop-short", type=float, default=80, help="drop notes shorter than this (ms)")
     ap.add_argument("--merge-window", type=float, default=30, help="merge same-pitch notes within this gap (ms)")
+    ap.add_argument("--program", type=int, default=21, help="GM program: 21=accordion, 73=flute, 74=recorder, 75=pan flute")
     a = ap.parse_args()
-    quantize(a.audio, a.midi_in, a.midi_out, a.subdiv, a.drop_short, a.merge_window)
+    quantize(a.audio, a.midi_in, a.midi_out, a.subdiv, a.drop_short, a.merge_window, a.program)
