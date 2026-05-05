@@ -61,7 +61,7 @@
 
   .zg {
     display: grid;
-    grid-template-columns: 90px repeat(5, 1fr);
+    grid-template-columns: 90px repeat(5, 1fr) minmax(0, 1.05fr);
     gap: 5px;
     background: black;
     padding: 10px;
@@ -96,6 +96,17 @@
   .e-earth { background: #6B3D0A; color: #FAEEDA; }
   .e-metal { background: #555552; color: #F1EFE8; }
   .e-water { background: #154A85; color: #E6F1FB; }
+  .e-agnostic {
+    background: #3D2A5C;
+    color: #ECE0F7;
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0px,
+      transparent 8px,
+      rgba(255,255,255,0.035) 8px,
+      rgba(255,255,255,0.035) 16px
+    );
+  }
   .e-open  {
     background-color: #1a1a2e;
     background-image: repeating-linear-gradient(
@@ -117,7 +128,7 @@
   }
   .zc.zc-selected .zn { color: #FFFF00; }
 
-  .zh.e-wood, .zh.e-fire, .zh.e-earth, .zh.e-metal, .zh.e-water { color: white; text-shadow: 1px 1px black; }
+  .zh.e-wood, .zh.e-fire, .zh.e-earth, .zh.e-metal, .zh.e-water, .zh.e-agnostic { color: white; text-shadow: 1px 1px black; }
 
   #panel {
     margin: 18px 0 0;
@@ -301,8 +312,66 @@
   }
   .findings .sources strong { color: #FFD700; }
 
+  .case-files {
+    list-style: none; padding: 0; margin: 8px 0 0;
+    display: grid; gap: 4px;
+  }
+  .case-toggle {
+    width: 100%; text-align: left;
+    background: #1a0f2c; color: #FFFFAA;
+    border: 1px solid #5A3F8C;
+    font-family: inherit; font-size: 0.88em;
+    padding: 8px 12px; cursor: pointer;
+    transition: background 0.12s, border-color 0.12s;
+  }
+  .case-toggle:hover { background: #2D1B4A; border-color: #9D7FCC; color: #FFFF66; }
+  .case-toggle.active { background: #4A2D7A; border-color: #FFD700; color: #FFD700; }
+  .case-panel {
+    margin-top: 10px; background: #0a0518;
+    border: 2px ridge #9D7FCC; padding: 14px 18px;
+    color: #ECE0F7; line-height: 1.6;
+  }
+  .case-panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px dashed #5A3F8C; padding-bottom: 6px; margin-bottom: 10px;
+  }
+  .case-title { color: #FFD700; font-weight: bold; font-size: 1em; }
+  .case-close {
+    background: black; color: #FF66CC; border: 1px solid #FF66CC;
+    font-family: inherit; font-size: 1.1em; line-height: 1;
+    width: 28px; height: 28px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .case-close:hover { background: #FF66CC; color: black; }
+  .case-body h1 { font-size: 1.15em; color: #00FF00; text-shadow: none; margin: 0 0 8px; }
+  .case-body h2 { font-size: 1em; color: #00FFFF; border-bottom: 1px dashed #555; padding-bottom: 3px; margin: 14px 0 6px; }
+  .case-body h3 { font-size: 0.95em; color: #FFD700; margin: 10px 0 4px; }
+  .case-body p { margin: 6px 0; font-size: 0.9em; }
+  .case-body ul, .case-body ol { padding-left: 22px; font-size: 0.9em; margin: 6px 0; }
+  .case-body li { margin-bottom: 3px; }
+  .case-body code { background: #1a1a2e; color: #FF99CC; padding: 1px 4px; font-family: "Courier New", monospace; font-size: 0.88em; }
+  .case-body strong { color: #00FF00; }
+  .case-body em { color: #FFFF00; font-style: italic; }
+  .case-body a { color: #00FFFF; }
+  .case-body a:hover { color: #FF00FF; background: white; }
+  .case-body hr { border: none; border-top: 1px dashed #5A3F8C; margin: 14px 0; }
+  .case-body table {
+    border-collapse: collapse; margin: 8px 0; font-size: 0.85em; width: 100%;
+  }
+  .case-body th, .case-body td {
+    border: 1px solid #5A3F8C; padding: 4px 8px; text-align: left;
+    vertical-align: top;
+  }
+  .case-body th { background: #2D1B4A; color: #FFD700; }
+  .case-body blockquote {
+    border-left: 3px solid #9D7FCC; padding-left: 10px;
+    color: #BFAFCF; margin: 8px 0; font-style: italic;
+  }
+  .case-body .case-loading { color: #AAAAFF; font-style: italic; }
+  .case-body .case-error { color: #FF6666; }
+
   @media (max-width: 700px) {
-    .zg { grid-template-columns: 70px repeat(5, 1fr); font-size: 0.8em; }
+    .zg { grid-template-columns: 70px repeat(5, 1fr) minmax(0, 1.05fr); font-size: 0.78em; }
     .zl { font-size: 0.8em; }
     h1 { font-size: 1.6em; }
   }
@@ -342,13 +411,13 @@
     <br>
     <strong>Wuxing → types:</strong> Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground, Rock, Normal-as-mundane, Poison + terrestrial habitat)</em> · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned.
     <br>
-    <strong>Animal-fit:</strong> 12 functional-agrarian slot criteria — Tiger = actual tigers, Dog = domestic dogs, Dragon = Chinese loong + carp-dragon. Lions, wolves, foxes, jackals, Western dragons, kaiju all slot-orphaned.
+    <strong>Animal-fit:</strong> 12 functional-agrarian slot criteria with the <strong>R9 market-acceptance override</strong> — when TPC ships a Pokémon under official Year-of-X framing and the AAPI community doesn't push back, the placement is ratified. Western dragons (Charizard for Year of Dragon 2024), wolves (Lycanroc), foxes (Vaporeon eeveelution), American bison (Bouffalant), and Houndoom all <em>restored</em> under R9. Lions and Vulpix-kitsune stay orphan: TPC also declined those, so strict and market agree.
     <br>
-    <strong>Type-honest:</strong> element on THAT card, not a future evolution. <strong>Open-cell honesty:</strong> ~25 of 60 cells stay open — the gaps are features. Hover a row label for the row's note, or a cell for in-game trios.
+    <strong>Type-honest:</strong> element on THAT card, not a future evolution. <strong>Open-cell honesty:</strong> the gaps are features, not failures. Hover a row label for the row's note, or a cell for in-game trios.
   </div>
 
   <details class="full-rules">
-    <summary>Show full ruleset (8 rules + 12 slot criteria)</summary>
+    <summary>Show full ruleset (9 rules + 12 slot criteria)</summary>
     <div class="rules-body">
 
       <h4>Tier 1 — Translation rules (Chinese tradition, character semantics)</h4>
@@ -361,26 +430,27 @@
 
       <h4>Tier 2 — Project rubrics</h4>
       <ol start="5">
-        <li><span class="r-id">R5.</span> Wuxing → Pokémon types: Wood = Grass · Fire = Fire · Earth = Ground / Rock / Normal-as-mundane · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned (Wu Xing has no Air / spirit element).</li>
+        <li><span class="r-id">R5.</span> Wuxing → Pokémon types: Wood = Grass · Fire = Fire · <em>Earth = of-the-earth, terrestrial life (Ground / Rock / Normal-as-mundane / Poison + terrestrial habitat)</em> · Metal = Steel only · Water = Water + Ice. Pure Electric, Flying, Psychic, Dark, Fairy, Ghost are elementally orphaned (Wu Xing has no Air / spirit element). <em>R5 extension:</em> Poison-type Pokémon with terrestrial-habitat coding (cobras, skunks, sludge piles) extend to Earth — toxin is a lifecycle adaptation, not an elemental realm; Wu Xing has no poison phase, terrestrial poisons are chthonic / 土-coded by tradition. Aquatic, aerial, gaseous, and ghostly Poison-types do NOT get this extension.</li>
         <li><span class="r-id">R6.</span> Animal-slot uses the 12 functional-agrarian design criteria below; element uses type-honest (R5). A Pokémon must pass <em>both</em> matchers to fill a cell.</li>
         <li><span class="r-id">R7.</span> Cluster depth: 1 single → 2 line → 3 two-lines-or-line+legendary → 4 three-lines → 5 four+lines (BCW prize cell).</li>
         <li><span class="r-id">R8.</span> Open-cell honesty — no qualifying match means cell stays open. The gaps are annotated features of the source material, not failures.</li>
+        <li><span class="r-id">R9.</span> <strong>Market-acceptance test (Tier 3 override).</strong> When The Pokémon Company ships a Pokémon under official zodiac / Wuxing framing — Pokémon GO Lunar New Year events, Year-of-X TCG product, Pokémon Center merchandise, Sword/Shield Max Raid events — and the AAPI community doesn't push back, the placement is ratified. TPC has access to cultural consultants the project doesn't; absence of community objection counts as positive ratification. <em>Examples:</em> Bouffalant in Year of the Ox 2021 SwSh Max Raid · Charizard as Year of the Dragon 2024 flagship (Taiwan / HK exclusive) · Poochyena, Eevee, Growlithe, Snubbull, Electrike all bundled in Year of the Dog 2018 Pokémon GO event · Sandshrew counted as rodent in Year of the Rat 2020 spawn list. <em>Limits:</em> R9 overrides Tier 3 fauna / cultural exclusions but does NOT override R5 element rules — Wuxing element constraints are structural, not cultural. Pure Electric (Pikachu, Mareep), pure Dark (Mightyena), pure Ghost stay element-orphaned even when TPC bundles them in Year-of-X events. R9 also doesn't apply when the AAPI community would object — Vulpix-Ninetales stays orphan because kitsune (Japanese 狐仙) is sacred-category cross-cultural, not just Chinese.</li>
       </ol>
 
       <h4>The 12 functional-agrarian slot criteria</h4>
       <p>The slot character's Chinese semantics dictate whether the criterion <strong>broadens</strong> (the character covers a family of similar animals) or stays <strong>strict</strong> (the character means that thing specifically). This is the structural ruling: lions and saber-tooths aren't tigers, the same way mice and rats are both rodents and sheep and goats are interchangeable.</p>
       <ol>
         <li><span class="crit-anchor">Rat (鼠)</span> <span class="rule-broad">BROAD</span> — small mammals with prominent incisors and a scampering body plan. Mice, rats, squirrels, beavers, hamsters, capybara-types. The agrarian pest broadly. Excludes shrews if not rodent-shaped, excludes rabbits (separate slot).</li>
-        <li><span class="crit-anchor">Ox (牛)</span> <span class="rule-broad">BROAD</span> — 牛 covers all bovines: cattle, water buffalo (水牛), yak (牦牛), wild ox (野牛), bulls, oxen. The agrarian plow animal broadly. Per Bulbapedia, Terrakion is "bovine, quadrupedal" — passes 牛 cleanly. <em>Bouffalant orphans via non-Chinese-fauna (American bison, wrong continent), not via slot-strictness.</em></li>
+        <li><span class="crit-anchor">Ox (牛)</span> <span class="rule-broad">BROAD</span> — 牛 covers all bovines: cattle, water buffalo (水牛), yak (牦牛), wild ox (野牛 — includes 北美野牛, North American bison), bulls, oxen. The agrarian plow animal broadly. Per Bulbapedia, Terrakion is "bovine, quadrupedal" — passes 牛 cleanly. <em>Bouffalant restored to Earth Ox under R9 — TPC ran Bouffalant as a Year-of-Ox 2021 SwSh Max Raid boss alongside Tauros and Miltank; AAPI community accepted, ratification stands.</em></li>
         <li><span class="crit-anchor">Tiger (虎)</span> <span class="rule-strict">STRICT</span> — actual tigers. Striped, solitary, predatory big cat with tiger silhouette. <em>Excludes lions (Buddhist-imported iconography, separate Chinese category 狮 — Pyroar, Solgaleo, Entei, Suicune all orphaned). Excludes saber-tooths (Raikou orphaned), leopards/panthers, and all domestic-scaled cats per the Great Race myth. The character does not broaden the way 鼠 and 羊 do.</em></li>
         <li><span class="crit-anchor">Rabbit (兔)</span> <span class="rule-broad">BROAD</span> — lagomorph: long ears, hopping body plan, herbivore. Rabbits and hares. The moon-rabbit (玉兔) is canonical Chinese imagery — lunar / medicinal / agrarian.</li>
-        <li><span class="crit-anchor">Dragon (龙)</span> <span class="rule-strict">STRICT</span> — Chinese loong specifically, plus the carp-dragon transformation carve-out (鯉躍龍門). Asian-loong-coded designs: serpentine, scaled, whiskered, four-clawed, sky/water-associated. Plus the carp-becomes-dragon lineage (Magikarp → Gyarados). <em>Excludes Western heraldic dragons (Charizard line, winged fire-breathers). Excludes kaiju (Tyranitar line — Japanese tradition, not Chinese). The Dragon row collapses to Water Dragon only as a result.</em></li>
+        <li><span class="crit-anchor">Dragon (龙)</span> <span class="rule-strict">STRICT</span> with <span class="rule-broad">R9 OVERRIDE</span> — Chinese loong specifically, plus the carp-dragon transformation carve-out (鯉躍龍門). Asian-loong-coded designs: serpentine, scaled, whiskered, four-clawed, sky/water-associated. Plus the carp-becomes-dragon lineage (Magikarp → Gyarados). <em>Strict reading orphans Western heraldic dragons (Charizard line) and kaiju (Tyranitar) — but R9 restores them: TPC's 2024 Year of the Dragon Charizard EX Premium Collection (Taiwan / HK exclusive, February 2024) is direct publisher-level ratification of Charizard as the Chinese-market Year-of-Dragon flagship. Row goes from 2 cells to 5 — Wood (Sceptile / Flapple), Fire (Charizard / Reshiram / Turtonator), Earth (Drampa / Tyranitar / Garchomp / Flygon), Metal (Dialga / Duraludon / H-Goodra), Water (Kingdra / Palkia / Gyarados). The Findings section preserves the cultural-design observation that the dex over-indexes Western dragons; the grid follows R9 for collector utility.</em></li>
         <li><span class="crit-anchor">Snake (蛇)</span> <span class="rule-strict">STRICT</span> — legless or near-legless reptiles only. Slithering, coiling body. <em>Eels are 鳗 (with the fish radical 魚) in Chinese tradition — they're fish, not snakes. Eelektross orphans to a separate category. Sea-serpents pass via visual coding only when not carp-dragon-coded (Milotic stays via sea-serpent visual, Gyarados goes to Dragon via carp-myth).</em></li>
         <li><span class="crit-anchor">Horse (马)</span> <span class="rule-strict">STRICT</span> — 马 means horse specifically. Donkeys are 驴, mules are 骡 — separate characters. Year of the Horse celebrates horses, not equines broadly. <em>Mudbray reads donkey by visual coding, but the Mudbray-Mudsdale line stays via Mudsdale anchor (line-as-unit precedent, same as Mamoswine via Swinub). Zebras orphan via non-Chinese fauna — Blitzle/Zebstrika also pure Electric, doubly orphaned.</em></li>
-        <li><span class="crit-anchor">Goat (羊)</span> <span class="rule-broad">BROAD</span> — horned ruminant: goat, sheep, or ram silhouette interchangeable. 山羊 (mountain 羊 = goat), 绵羊 (cotton 羊 = sheep). The character doesn't distinguish among them. <em>Houndoom orphans structurally — decorative horns are not pastoral-ruminant horns; Houndoom is a hellhound, not a 羊. Stantler / Wyrdeer dropped (deer is 鹿, separate character).</em></li>
+        <li><span class="crit-anchor">Goat (羊)</span> <span class="rule-broad">BROAD</span> — horned ruminant: goat, sheep, or ram silhouette interchangeable. 山羊 (mountain 羊 = goat), 绵羊 (cotton 羊 = sheep). The character doesn't distinguish among them. <em>Houndoom is NOT 羊 — predatory canid silhouette with decorative horns; horns are flourish, not ruminant anatomy. Moved to Fire Dog under R9. Stantler / Wyrdeer dropped (deer is 鹿, separate character).</em></li>
         <li><span class="crit-anchor">Monkey (猴)</span> <span class="rule-broad">BROAD</span> — primate: simian face, hands, climbing or knuckle-walking body. Apes, monkeys, lemurs, orangutans. The Sun Wukong (孫悟空) lineage is foundational — monkey-as-trickster-immortal. Excludes humans-as-monkeys (Mr. Mime — humanoid, separate category).</li>
         <li><span class="crit-anchor">Rooster (鸡)</span> <span class="rule-strict">STRICT</span> — chicken: galliform body, comb / wattle, dawn-crowing barnyard bird. <em>The dex's massive avian variety is a structural mismatch with a one-bird zodiac slot. Skarmory, Dodrio, all raptors / songbirds / waterfowl / owls slot-orphaned.</em></li>
-        <li><span class="crit-anchor">Dog (狗)</span> <span class="rule-strict">STRICT</span> — domestic dogs only. Companion / guardian / herding canid. Stoutland line, Arcanine line, Yamper line. <em>Excludes wolves (狼 — wild predators, separate Chinese category — Mightyena, Lycanroc, Zacian / Zamazenta orphaned). Excludes foxes (狐仙 — fox-spirit lineage, separate supernatural category — Vulpix, Ninetales, Vaporeon orphaned). Excludes hyenas / jackals (non-Chinese fauna — Lucario orphaned despite jackal coding).</em></li>
+        <li><span class="crit-anchor">Dog (狗)</span> <span class="rule-strict">STRICT</span> with <span class="rule-broad">R9 OVERRIDE</span> — domestic dogs strict (companion / guardian / herding canid: Stoutland, Arcanine, Yamper), BUT R9 restores related canids via TPC's Year of the Dog 2018 Pokémon GO event, which bundled Poochyena (wolf / hyena), Eevee (fox-coded eeveelution base), Growlithe, Snubbull, and Electrike all as canonical Year-of-Dog spawns. <em>Restored under R9: Lycanroc (Rock — Wolf Pokémon, Earth Dog), Vaporeon (Water — fox-coded eeveelution, Water Dog), Houndoom (Dark/Fire — hellhound, Fire Dog). Mightyena stays element-orphan (pure Dark, R5 structural — R9 doesn't override R5). Vulpix-Ninetales stays orphan: kitsune is Japanese 狐仙 sacred-category, AAPI cross-cultural objection blocks R9. Lucario (jackal) market-acceptable in Metal Dog as iconic global Pokémon.</em></li>
         <li><span class="crit-anchor">Pig (猪)</span> <span class="rule-broad">BROAD</span> — suid: pig, boar, or wild swine silhouette. Snout, optional tusks. Pigs and boars. Mamoswine line passes via Swinub's pig coding (mammoth endpoint accepted as line-as-unit). Excludes hippos (Hippopotas), tapirs, peccaries-as-not-pigs.</li>
       </ol>
 
@@ -394,6 +464,7 @@
     <div class="zh e-earth">Earth 土</div>
     <div class="zh e-metal">Metal 金</div>
     <div class="zh e-water">Water 水</div>
+    <div class="zh e-agnostic" title="Element-agnostic 12-year column — R9 zodiac aura without a Wuxing element home. Off the 60-year cycle.">Aura 灵</div>
   </div>
 
   <div id="panel" class="empty">
@@ -409,39 +480,39 @@
 
     <p><span class="group">Domestic cats</span> — zodiac-orphaned per the Great Race myth (Rat tricked Cat off the Ox; cat-rat enmity is canonical). <em>Persian, Espeon, Skitty, Litten line, Sprigatito, Meowth all slot-orphaned.</em></p>
 
-    <p><span class="group">Foxes (狐仙)</span> — supernatural fox-spirit lineage in Chinese folklore, distinct from domestic-dog category. <em>Vulpix, Ninetales, Zorua/Zoroark, Fennekin/Delphox, Nickit, Vaporeon all slot-orphaned.</em></p>
+    <p><span class="group">Foxes (狐仙) — split ruling under R9</span> — supernatural fox-spirit lineage in Chinese folklore. Strict reading orphans, but R9 restores the eeveelution route: TPC bundled Eevee in Year of the Dog 2018 Pokémon GO event. <em>Vaporeon restored to Water Dog. Vulpix / Ninetales stay orphan: kitsune is Japanese 狐仙 sacred-category — AAPI cross-cultural objection would block R9. Zorua / Zoroark, Fennekin / Delphox, Nickit stay orphan (no R9 precedent).</em></p>
 
-    <p><span class="group">Wolves (狼)</span> — wild predators, antagonist of the shepherd in agrarian symbolism, not a domestic-companion canid. <em>Mightyena, Lycanroc, Zacian/Zamazenta all slot-orphaned.</em></p>
+    <p><span class="group">Wolves (狼) — restored under R9</span> — wild predators, antagonist of the shepherd in agrarian symbolism. Strict reading orphans, but TPC's Year of the Dog 2018 event explicitly featured Poochyena (hyena/wolf-coded) as a canonical Year-of-Dog spawn. <em>Lycanroc restored to Earth Dog (Rock = Earth, clean wolf coding). Mightyena stays R5 element-orphan (pure Dark — R9 doesn't override structural Wuxing constraints). Zacian / Zamazenta already slot via Steel typing (Metal Dog).</em></p>
 
     <p><span class="group">Lions, saber-tooths, panthers — not tigers</span> — 虎 means tiger specifically. Unlike 鼠 (which broadens to any rodent under R1) and 羊 (which broadens to goat/sheep/ram under R2), the tiger character does not broaden. A lion is not a tiger the way a mouse IS a rodent or a goat IS a sheep. Lions also carry separate Chinese symbolism (狮) — Buddhist-imported iconography from guardian-lion statues and lion dance, not native fauna. <em>Pyroar, Solgaleo, Entei, Suicune (lions), Hisuian Arcanine (lion-tiger), Raikou (saber-tooth) all slot-orphaned. Tiger row goes fully open — the dex has plenty of big cats but no actual striped tigers.</em></p>
 
     <p><span class="group">Most birds</span> — Rooster slot is chicken-specific in mainstream Chinese tradition; the Pokémon dex's massive avian variety is a structural mismatch with a zodiac that allotted one bird slot to the domestic chicken. <em>Skarmory, Dodrio, all raptors/songbirds/waterfowl/owls slot-orphaned.</em></p>
 
-    <p><span class="group">Pure Electric</span> — Wu Xing has no Air element. Lightning is air-coded in Pokémon (Zapdos Electric/Flying, Tornadus/Thundurus paired wind-lightning genies). Wu Xing's Metal is substantive (refinement, structure, blade), not kinetic. <em>Pikachu, Mareep line, Pawmi, Yamper line all element-orphaned.</em></p>
+    <p><span class="group">Pure Electric</span> — Wu Xing has no Air element. Lightning is air-coded in Pokémon (Zapdos Electric/Flying, Tornadus/Thundurus paired wind-lightning genies). Wu Xing's Metal is substantive (refinement, structure, blade), not kinetic. <em>Pikachu, Mareep line, Pawmi, Yamper line all element-orphaned even under R9 — TPC bundled Pikachu (Year of the Rat 2020), Mareep (Year of the Sheep 2015 fan tradition), Electrike (Year of the Dog 2018) in zodiac events, but R9 doesn't override R5: Wuxing element constraints are structural, not cultural. Honorable-mentions for collectors building animal-row boxes outside the Wuxing slicing.</em></p>
 
     <p><span class="group">Pure Flying / Psychic / Dark / Fairy / Ghost</span> — no Five-Phases equivalent. <em>Element-orphaned even when animal-slot eligible.</em></p>
 
-    <p><span class="group">Western dragons</span> — winged fire-breathers, distinct from Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated). <em>Charizard line, Reshiram, Turtonator, Volcarona slot-orphaned despite Dragon-type or fire-bug coding.</em></p>
+    <p><span class="group">Western dragons — restored under R9</span> — winged fire-breathers, distinct from Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated). Strict reading orphans, but TPC's <a href="https://www.tcghobby.com/products/chinese-new-pokemon-charizard-ex-premium-collection-box-exclusive-taiwan-release" target="_blank" rel="noopener">2024 Year of the Dragon Charizard EX Premium Collection</a> (Taiwan / HK exclusive, February 2024) is direct publisher-level ratification. <em>Charizard line, Reshiram, Turtonator restored to Fire Dragon. Volcarona stays orphan (fire-bug, not dragon-coded silhouette).</em></p>
 
-    <p><span class="group">Kaiju</span> — Japanese mythological tradition, not Chinese. <em>Tyranitar line slot-orphaned. The Dragon row tightens to two cells: Earth Dragon (Drampa, Gen 7's deliberate Zhulong 燭龍 nod) and Water Dragon (Kingdra seahorse-loong, Palkia, and Magikarp-Gyarados — the explicit 鯉躍龍門 carp-dragon transformation).</em></p>
+    <p><span class="group">Kaiju — restored under R9</span> — Japanese mythological tradition, not Chinese. Tyranitar line is Godzilla-coded per designer commentary, but the dex's Dragon roster has so few loong-coded mons that R9 restoration applies pragmatically. <em>Tyranitar restored to Earth Dragon (Rock = Earth, kaiju-as-earth-dragon flex). Garchomp (Dragon/Ground) joins Earth Dragon; Dialga, Duraludon-Archaludon, Hisuian Goodra (Steel/Dragon) anchor Metal Dragon; Sceptile / Flapple / Appletun anchor Wood Dragon. Drampa (Gen 7's deliberate Zhulong 燭龍 nod) keeps the cultural-design honor in Earth Dragon.</em></p>
 
     <p><span class="group">Donkeys (驴)</span> — separate character from 马 (horse) in Chinese; mules are 骡, also separate. <em>Mudbray reads donkey by visual coding. Mudbray-Mudsdale line stays in Earth Horse via Mudsdale anchor (line-as-unit precedent — same logic as Mamoswine via Swinub).</em></p>
 
     <p><span class="group">Deer (鹿)</span> — separate character from 羊 (goat / sheep / ram). Antlers are not pastoral-ruminant horns; deer carry their own Chinese cultural symbolism (longevity, immortality). <em>Stantler / Wyrdeer dropped from Earth Goat under strict 羊 reading.</em></p>
 
-    <p><span class="group">Eels (鳗)</span> — written with the fish radical 魚 in Chinese; eels are fish in Chinese tradition, not snakes (蛇). <em>Eelektross orphans from Water Snake under strict 蛇 reading.</em></p>
+    <p><span class="group">Eels (鳗) — split ruling</span> — written with the fish radical 魚 in Chinese; eels are fish in Chinese tradition, not snakes (蛇). <em>Eelektross would pass animal-fit under R9 (TPC's 2025 Year of the Snake Pokémon Center collection bundled Gorebyss / Huntail sea-serpent fish and Giratina Origin Forme — visual-coding precedent for non-蛇 sea-serpents in the Snake row), BUT Eelektross stays element-orphan via R5 structural constraint (pure Electric — Wuxing has no Air phase). The animal passes; the element doesn't. R9 cannot rescue.</em></p>
 
-    <p><span class="group">Non-Chinese fauna</span> — zebras (African — Blitzle / Zebstrika), American bison (Bouffalant — wrong continent), jackals (Egyptian / Mediterranean — Lucario), mammoths / hippos / tapirs all slot-orphaned even when type-honest.</p>
+    <p><span class="group">Non-Chinese fauna under R9</span>: animals not in pre-Han Chinese cultural canon survive when TPC has shipped them under official zodiac framing and the AAPI community has accepted. <em>American bison (Bouffalant) restored to Earth Ox via 2021 SwSh Year-of-Ox Max Raid. Mammoths via Mamoswine via Swinub-as-pig anchor. Jackals (Lucario) market-acceptable in Metal Dog as iconic global Pokémon. Pangolins (Sandshrew) restored to Earth Rat — TPC bundled in Year of the Rat 2020 spawn list. Hippos, tapirs, kangaroos still orphaned (no zodiac slot fits and the design isn't market-readable as another listed animal; TPC has not promoted them under any Year-of-X framing).</em></p>
 
-    <p><span class="group">Houndoom</span> specifically — orphans from both the Goat row (decorative horns aren't pastoral-ruminant horns) AND the Dog row (hellhound, not a domestic companion 狗).</p>
+    <p><span class="group">Houndoom — restored under R9</span> — earlier dual-orphan ruling (decorative horns ≠ pastoral-ruminant horns; hellhound ≠ domestic 狗) is replaced by R9 placement in Fire Dog. Houndoom is unambiguously canine-bodied with horns as design flourish, Fire types lands the element via R5 directly, and Chinese collector forums broadly accept Houndoom as 火狗 (fire-dog). The European hellhound origin lore is Tier 3 cultural memory — R9 overrides.</p>
   </section>
 
   <section class="findings">
     <h3>Findings — what the grid reveals</h3>
     <p class="lead">The grid is a map of where the Pokémon dex reached into Chinese tradition versus drew from elsewhere. Four patterns emerge from doing the matching honestly.</p>
 
-    <h4>1. The Dragon roster is overwhelmingly Western-coded</h4>
-    <p>Pokémon's pseudo-legendary Dragon lineage — Dragonite, Salamence, Garchomp, Hydreigon, Goodra, Kommo-o, Dragapult, Baxcalibur — is uniformly Western-heraldic. <strong>Charizard, Reshiram, Turtonator</strong> draw from European fire-breather iconography; <strong>Tyranitar</strong> from Japanese kaiju tradition. Out of 1000+ Pokémon, fewer than ten are recognizable as Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated): Dragonair as a mid-stage, Kingdra (seahorse-loong), Magikarp-Gyarados (the explicit carp-dragon), Rayquaza (sky-serpent flex), and <strong>Drampa</strong> — Gen 7's deliberate 燭龍 (Zhulong, the Chinese torch-dragon) nod. The grid's Dragon row consequently collapses to <em>two filled cells</em>: Earth Dragon (Drampa) and Water Dragon (Kingdra / Palkia / Gyarados). Wood, Fire, and Metal Dragon stay open — not because the dex lacks dragons, but because the dragons it has don't pass the loong test.</p>
+    <h4>1. The Dragon roster is overwhelmingly Western-coded — and the market doesn't care</h4>
+    <p>Pokémon's pseudo-legendary Dragon lineage — Dragonite, Salamence, Garchomp, Hydreigon, Goodra, Kommo-o, Dragapult, Baxcalibur — is uniformly Western-heraldic. <strong>Charizard, Reshiram, Turtonator</strong> draw from European fire-breather iconography; <strong>Tyranitar</strong> from Japanese kaiju tradition. Out of 1000+ Pokémon, fewer than ten are recognizable as Chinese loong (serpentine, whiskered, four-clawed, sky/water-associated): Dragonair as a mid-stage, Kingdra (seahorse-loong), Magikarp-Gyarados (the explicit carp-dragon), Rayquaza (sky-serpent flex), and <strong>Drampa</strong> — Gen 7's deliberate 燭龍 (Zhulong, the Chinese torch-dragon) nod. <em>Both true at once:</em> the dex over-indexes Western dragons (cultural-design observation), AND The Pokémon Company's <a href="https://www.tcghobby.com/products/chinese-new-pokemon-charizard-ex-premium-collection-box-exclusive-taiwan-release" target="_blank" rel="noopener">2024 Year of the Dragon Charizard EX Premium Collection</a> shipped Charizard as the Chinese-market flagship (Taiwan / HK exclusive, February 2024). The grid follows R9 — five filled Dragon cells for collector use — while this finding preserves the loong-scarcity scholarship as a fact about the dex itself, separate from its market-merchandised use.</p>
 
     <h4>2. The Tiger row stays fully empty</h4>
     <p>虎 means tiger specifically; Chinese has separate characters for lion (狮), leopard (豹), and house cat (猫). The dex offers <strong>Pyroar, Solgaleo, Entei, Suicune</strong> (lions), <strong>Hisuian Arcanine</strong> (lion-tiger), and <strong>Raikou</strong> (saber-tooth) — six big cats, none of them tigers. Game Freak invested heavily in big-cat designs but never delivered an actual striped tiger. (Closest near-miss: Persian's tail and Liepard's stripes — but Persian is house-cat-scaled, and Liepard is leopard-coded.) The result: zero filled cells across the entire Tiger row.</p>
@@ -452,12 +523,36 @@
     <h4>4. Trio synchronicities surface intentional Wuxing cluster design</h4>
     <p>The <strong>Sim Monkey trio</strong> (Pansage / Pansear / Panpour → Simisage / Simisear / Simipour) fills three Wuxing elements in a single zodiac row — deliberate Wood / Fire / Water cluster design, not coincidence. The <strong>Swords of Justice</strong> spreads across four cells in three rows: Cobalion's "Iron Will" naming and Steel/Fighting typing (Metal Goat), Terrakion's bovine "Cavern Pokémon" classification per Bulbapedia (Earth Ox), Virizion's Grass/Fighting (Wood Goat), and Keldeo's Water/Fighting unicorn coding (Water Horse). The grid's hover-trio highlight surfaces these patterns visually; the design intent is hard to argue away once you see them lit up together.</p>
 
+    <h4>5. TPC's 2018–2026 zodiac merchandising is the master ledger for R9</h4>
+    <p>The Pokémon Company has shipped official Year-of-X product every cycle from 2018 forward, and the pattern is unambiguous: <em>animal-fit by silhouette beats strict character semantics</em>. <strong>2018 Year of the Dog</strong> (Pokémon GO event) bundled Poochyena (hyena/wolf), Eevee (fox-eeveelution base), Growlithe, Snubbull, Electrike — wolves and foxes counted as 狗 at publisher level, with no AAPI community pushback. <strong>2019 Year of the Pig</strong> (Pokémon GO 12-zodiac spawn list) is TPC's most explicit one-Pokémon-per-zodiac mapping: Electabuzz for Tiger (picked for stripes despite humanoid shape and pure Electric), Mareep for Goat (vindicating fan tradition since 2015), Poochyena for Dog. <strong>2020 Year of the Rat</strong> bundled Sandshrew despite pangolin/armadillo silhouette. <strong>2021 Year of the Ox</strong> (SwSh Max Raid) shipped Tauros, Miltank, AND Bouffalant — direct ratification of American bison as 牛. <strong>2022 Year of the Tiger</strong>: TPC declined to fake a tiger pick, no Pokémon GO event with explicit tiger spawns documented — strongest negative evidence that the Tiger row should stay empty. <strong>2024 Year of the Dragon</strong>: <a href="https://www.tcghobby.com/products/chinese-new-pokemon-charizard-ex-premium-collection-box-exclusive-taiwan-release" target="_blank" rel="noopener">Charizard EX Premium Collection</a> Taiwan/HK exclusive — Western heraldic dragon as the Chinese-market flagship. <strong>2025 Year of the Snake</strong>: <a href="https://www.pokemon.com/us/pokemon-news/celebrate-the-lunar-new-year-with-pokemon-center" target="_blank" rel="noopener">Pokémon Center collection</a> bundled Gorebyss / Huntail (sea-serpent fish, 鳗 not 蛇) and Giratina Origin Forme (Ghost/Dragon, not snake) — visual coding over typing. <em>The grid encodes this ledger as R9: when TPC ships and the AAPI community accepts, the placement is ratified.</em></p>
+
     <p class="sources"><strong>Sources.</strong>
-      Bulbapedia: <a href="https://bulbapedia.bulbagarden.net/wiki/Terrakion_(Pok%C3%A9mon)" target="_blank" rel="noopener">Terrakion</a> ("bovine, quadrupedal Pokémon"), <a href="https://bulbapedia.bulbagarden.net/wiki/Drampa_(Pok%C3%A9mon)" target="_blank" rel="noopener">Drampa</a> (Zhulong origin) ·
-      <a href="https://bulbagarden.net/threads/pokemon-so-chinese-infleunced.29920/" target="_blank" rel="noopener">Bulbagarden thread (2008)</a> on Pokémon's multicultural mythological diffusion ·
+      Bulbapedia: <a href="https://bulbapedia.bulbagarden.net/wiki/Terrakion_(Pok%C3%A9mon)" target="_blank" rel="noopener">Terrakion</a> ("bovine, quadrupedal Pokémon"), <a href="https://bulbapedia.bulbagarden.net/wiki/Drampa_(Pok%C3%A9mon)" target="_blank" rel="noopener">Drampa</a> (Zhulong origin), <a href="https://bulbapedia.bulbagarden.net/wiki/Charizard_(Pok%C3%A9mon)" target="_blank" rel="noopener">Charizard</a>, <a href="https://bulbapedia.bulbagarden.net/wiki/Houndoom_(Pok%C3%A9mon)" target="_blank" rel="noopener">Houndoom</a>, <a href="https://bulbapedia.bulbagarden.net/wiki/Lycanroc_(Pok%C3%A9mon)" target="_blank" rel="noopener">Lycanroc</a>, <a href="https://bulbapedia.bulbagarden.net/wiki/Vaporeon_(Pok%C3%A9mon)" target="_blank" rel="noopener">Vaporeon</a> ·
+      TPC publisher events: <a href="https://pokemonblog.com/2018/02/15/you-can-now-celebrate-the-year-of-the-dog-in-pokemon-go-during-the-lunar-new-year-event-featuring-shiny-poochyena-poochyena-growlithe-eevee-snubbull-and-electrike-with-bonus-stardust/" target="_blank" rel="noopener">Year of the Dog 2018</a>, <a href="https://pokemongo.com/post/lunar-2019" target="_blank" rel="noopener">Year of the Pig 2019</a>, <a href="https://pokemongo.com/post/lunar-2020" target="_blank" rel="noopener">Year of the Rat 2020</a>, <a href="https://www.gamespot.com/articles/pokemon-sword-and-shield-lunar-new-year-event-now-live-features-shiny-tauros/1100-6486629/" target="_blank" rel="noopener">Year of the Ox 2021 SwSh Max Raid</a>, <a href="https://www.tcghobby.com/products/chinese-new-pokemon-charizard-ex-premium-collection-box-exclusive-taiwan-release" target="_blank" rel="noopener">Year of the Dragon 2024 Charizard EX (Taiwan/HK)</a>, <a href="https://www.pokemon.com/us/pokemon-news/celebrate-the-lunar-new-year-with-pokemon-center" target="_blank" rel="noopener">Year of the Snake 2025</a> ·
       <a href="https://marinagarrow.home.blog/2019/07/15/gyarados-the-chinese-dragon/" target="_blank" rel="noopener">Marina Garrow</a> on Gyarados as Chinese dragon ·
-      The Pokémon Company merchandise releases (Year of the Dragon Charizard EX, Taiwan / Hong Kong, 2024; Dragon Boat Festival 2026 collection).
+      <a href="https://bulbagarden.net/threads/pokemon-so-chinese-infleunced.29920/" target="_blank" rel="noopener">Bulbagarden thread (2008)</a> on Pokémon's multicultural mythological diffusion.
     </p>
+
+    <h4 id="case-files-heading">Case files — full research notes</h4>
+    <p class="lead">Each edge-case ruling on the grid has a sourced research file: design lore, strict-rule verdict, market evidence, recommendation. Click to expand any case in place.</p>
+    <ul class="case-files" id="case-files">
+      <li><button type="button" class="case-toggle" data-case="01-bouffalant-bison">01 — Bouffalant / American bison → Earth Ox</button></li>
+      <li><button type="button" class="case-toggle" data-case="02-lions-tiger-row">02 — Lions in the Tiger row (Pyroar, Solgaleo, Entei, Suicune, H-Arcanine)</button></li>
+      <li><button type="button" class="case-toggle" data-case="03-western-dragons">03 — Western dragons (Charizard, Reshiram, Tyranitar) → Dragon row</button></li>
+      <li><button type="button" class="case-toggle" data-case="04-wolves-foxes-dog-row">04 — Wolves and foxes in the Dog row (Mightyena, Lycanroc, Vaporeon)</button></li>
+      <li><button type="button" class="case-toggle" data-case="05-houndoom-placement">05 — Houndoom: Fire Goat or Fire Dog?</button></li>
+      <li><button type="button" class="case-toggle" data-case="06-eels-snake-row">06 — Eels (Eelektross) in the Snake row — even market can't rescue</button></li>
+      <li><button type="button" class="case-toggle" data-case="07-pure-electric-orphan">07 — Pure Electric (Mareep, Pikachu, Yamper) — element-orphan rule</button></li>
+      <li><button type="button" class="case-toggle" data-case="08-domestic-cats">08 — Domestic cats (Litten, Persian, Skitty) — no zodiac slot</button></li>
+      <li><button type="button" class="case-toggle" data-case="09-tpc-zodiac-track-record">09 — TPC's official zodiac track record (2018–2026) — the master ledger</button></li>
+    </ul>
+    <div class="case-panel" id="case-panel" hidden>
+      <div class="case-panel-head">
+        <span class="case-title" id="case-title"></span>
+        <button type="button" class="case-close" id="case-close" aria-label="Close case file">×</button>
+      </div>
+      <article class="case-body" id="case-body"></article>
+    </div>
   </section>
 
   <div class="back">
@@ -465,6 +560,6 @@
   </div>
 </div>
 
-<script type="module" src="app.js?v=4"></script>
+<script type="module" src="app.js?v=8"></script>
 </body>
 </html>

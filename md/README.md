@@ -22,7 +22,8 @@ The grid's purpose is collection-building — scholarship serves the market. A P
 - **R5** — Wuxing → Pokémon types (Wood=Grass, Fire=Fire, Earth=Ground/Rock/Normal-as-mundane/Poison-with-terrestrial-habitat, Metal=Steel only, Water=Water+Ice)
 - **R6** — Animal-slot via 12 functional-agrarian criteria; element via R5; both must pass
 - **R7** — Cluster depth 1–5
-- **R8** — Open-cell honesty when no qualifying match exists, BUT tempered by market-acceptance test (R9, implicit)
+- **R8** — Open-cell honesty when no qualifying match exists
+- **R9** — Market-acceptance test (Tier 3 override). When TPC ships a Pokémon under official zodiac/Wuxing framing and the AAPI community doesn't push back, the placement is ratified. Overrides Tier 3 fauna/cultural exclusions but does NOT override R5 element rules — Wuxing element constraints are structural, not cultural. Pure Electric / Dark / Ghost stay element-orphan even when TPC bundles them in Year-of-X events. Now an explicit rule, surfaced in the Aura column on the grid for R9-recognized but R5-orphan Pokémon (Pikachu, Mareep, Mightyena, Spoink, etc.).
 
 ## Source-type legend
 
