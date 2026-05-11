@@ -127,6 +127,50 @@
     display: inline-block;
   }
 
+  /* CHECKOUT BUTTON */
+  .checkout-row {
+    margin-top: 14px; padding-top: 14px;
+    border-top: 2px dotted #00FF00;
+    text-align: center;
+  }
+  .buy-button {
+    display: inline-block;
+    background: #00FF00; color: #000080;
+    font-family: inherit; font-size: 1.25em; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 12px 32px;
+    border: 3px outset #FFFF00;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #000;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .buy-button:hover {
+    background: #FFFF00;
+    color: #000080;
+    text-decoration: none;
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 #000;
+  }
+  .buy-button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
+  }
+  .buy-button-disabled {
+    display: inline-block;
+    background: #444; color: #888;
+    font-family: inherit; font-size: 1em;
+    padding: 10px 24px;
+    border: 2px solid #666;
+    cursor: not-allowed;
+  }
+  .checkout-meta {
+    margin-top: 8px; color: #AAA; font-size: 0.85em; font-style: italic;
+  }
+  .checkout-secured {
+    margin-top: 4px; color: #00FFFF; font-size: 0.8em;
+  }
+
   /* PRICING */
   .pricing {
     background: rgba(0, 0, 0, 0.5); border: 3px ridge #00FF00;
@@ -230,6 +274,7 @@
     <table class="pricing-table" id="pricing-table"></table>
     <div class="pricing-justification" id="pricing-justification"></div>
     <div class="pricing-shipping-note" id="pricing-shipping-note"></div>
+    <div class="checkout-row" id="checkout-row"></div>
   </div>
 
   <div class="metadata" id="metadata"></div>

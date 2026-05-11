@@ -123,6 +123,11 @@
     "color_identities_present": ["mono-white", "multicolor-white-black", "multicolor-white-blue"],
     "set_diversity": ["Throne of Eldraine", "War of the Spark", "Ravnica Allegiance", "Dragon's Maze", "Mystery Booster Cards", "Theros Beyond Death", "Core Set 2021"]
   },
+  "checkout": {
+    "stripe_payment_url": "https://buy.stripe.com/PLACEHOLDER_tithe",
+    "stripe_price_id": null,
+    "checkout_provider": "stripe-payment-link"
+  },
   "pricing": {
     "card_value_subtotal_usd": 1.61,
     "labor_and_sleeve_per_card_usd": 0.10,

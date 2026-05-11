@@ -63,6 +63,7 @@ function render(bundle) {
   renderCardGrid(bundle.cards || []);
   renderCohesion(bundle.cohesion || {});
   renderPricing(bundle.pricing || null);
+  renderCheckout(bundle.checkout || null, bundle.pricing || null, bundle.title || '');
   renderMetadata(bundle.metadata || {}, (bundle.cards || []).length);
 
   // Entrance animations after DOM is populated.
@@ -225,6 +226,45 @@ function renderPricing(p) {
   if (p.estimated_shipping_usd != null) shipParts.push('est. ' + fmtUsd(p.estimated_shipping_usd) + ' PWE');
   shipEl.textContent = shipParts.length ? ('+ shipping — ' + shipParts.join(' · ')) : '';
   shipEl.style.display = shipParts.length ? '' : 'none';
+}
+
+function renderCheckout(c, pricing, title) {
+  const row = document.getElementById('checkout-row');
+  row.innerHTML = '';
+  const url = c && c.stripe_payment_url;
+  const price = pricing && pricing.bundle_list_price_usd;
+  if (url && /^https:\/\//.test(url) && !/PLACEHOLDER/i.test(url)) {
+    const btn = document.createElement('a');
+    btn.className = 'buy-button';
+    btn.href = url;
+    btn.target = '_blank';
+    btn.rel = 'noopener noreferrer';
+    btn.textContent = price != null ? `Buy — ${fmtUsd(price)}` : 'Buy this bundle';
+    row.appendChild(btn);
+
+    const meta = document.createElement('div');
+    meta.className = 'checkout-meta';
+    meta.textContent = `+ shipping at checkout · ${title || 'this bundle'} is edition 1 of 1`;
+    row.appendChild(meta);
+
+    const sec = document.createElement('div');
+    sec.className = 'checkout-secured';
+    sec.textContent = 'secured by Stripe';
+    row.appendChild(sec);
+    return;
+  }
+  if (url && /PLACEHOLDER/i.test(url)) {
+    const disabled = document.createElement('span');
+    disabled.className = 'buy-button-disabled';
+    disabled.textContent = price != null ? `Buy — ${fmtUsd(price)} (Stripe link pending)` : 'Buy (Stripe link pending)';
+    row.appendChild(disabled);
+    const meta = document.createElement('div');
+    meta.className = 'checkout-meta';
+    meta.textContent = 'Stripe Payment Link not configured yet for this bundle. Fill in checkout.stripe_payment_url to enable.';
+    row.appendChild(meta);
+    return;
+  }
+  // No checkout block at all; render nothing.
 }
 
 function fmtUsd(n) {

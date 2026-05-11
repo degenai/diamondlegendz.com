@@ -135,6 +135,11 @@
     "color_identities_present": ["mono-green", "multicolor-green-blue", "multicolor-red-green"],
     "set_diversity": ["Mystery Booster Cards", "Theros Beyond Death", "Gatecrash", "Ravnica Allegiance", "Commander Legends", "War of the Spark", "Core Set 2021", "Throne of Eldraine"]
   },
+  "checkout": {
+    "stripe_payment_url": "https://buy.stripe.com/PLACEHOLDER_forest_remembers",
+    "stripe_price_id": null,
+    "checkout_provider": "stripe-payment-link"
+  },
   "pricing": {
     "card_value_subtotal_usd": 8.18,
     "labor_and_sleeve_per_card_usd": 0.10,
