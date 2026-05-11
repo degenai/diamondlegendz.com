@@ -141,7 +141,11 @@ function renderCardGrid(cards) {
     meta.className = 'card-meta';
     const metaParts = [card.set, card.collector_number && `#${card.collector_number}`].filter(Boolean);
     if (card.market_price_usd != null) {
-      metaParts.push(`mkt ${fmtUsd(card.market_price_usd)}`);
+      let mktStr = `mkt ${fmtUsd(card.market_price_usd)}`;
+      if (card.market_price_as_of) {
+        mktStr += ` (as of ${card.market_price_as_of})`;
+      }
+      metaParts.push(mktStr);
     }
     meta.textContent = metaParts.join(' · ');
     tile.appendChild(meta);
