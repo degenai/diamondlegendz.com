@@ -1,0 +1,152 @@
+{
+  "schema_version": "0.2",
+  "title": "Tithe",
+  "subtitle": "the men they send",
+  "narrative": "Every institution has a face it shows when it arrives to collect. Sometimes the face is a noble standing over the servant who scrubs his floor. Sometimes it's two knights at the door, polearms raised, here to extract charity. Sometimes it's the pontiff in a gold mask blessing the take, or the aristocrat unleashing cracked-light judgment, or the lawmages binding a captive in marble robes. Sometimes it just announces itself as authority arriving at the scene. Ten cards. Six uniforms. The takers depicted as the takers, for once, instead of the backdrop dignity they usually pass as.",
+  "hubs": ["labor"],
+  "anchor_tags": ["authority", "hierarchy", "priest", "tax-collector", "noble"],
+  "intent_tags": ["authority", "hierarchy", "priest", "priesthood", "tax-collector", "noble", "aristocrat", "cleric", "pontiff", "judge", "judgment", "law", "lawmage", "inquisitor", "knight", "soldier", "arrest", "restraint", "imprisonment", "procession", "uniform", "robed-figure", "armor", "polearm", "spear"],
+  "cards": [
+    {
+      "name": "Wicked Guardian",
+      "set": "Throne of Eldraine",
+      "collector_number": "109",
+      "image_url": "https://cards.scryfall.io/png/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.png",
+      "tags_matched": ["noble", "hierarchy", "servant"],
+      "why_it_fits": "Flavor text reads: \"Some are born to greatness. You were born to scrub greatness's floors.\" The noble stands; the servant scrubs. Class as costume, position as office. Anchor card.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.07,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Charity Extractor",
+      "set": "War of the Spark",
+      "collector_number": "81",
+      "image_url": "https://cards.scryfall.io/png/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.png",
+      "tags_matched": ["tax-collector", "knight", "armor", "polearm"],
+      "why_it_fits": "Two fully armored knights with polearms, faces hidden under plate. \"Extracting charity\" is the medieval euphemism for armed taxation. The men they send when the giving has to happen on time.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.04,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Pitiless Pontiff",
+      "set": "Ravnica Allegiance",
+      "collector_number": "194",
+      "image_url": "https://cards.scryfall.io/png/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.png",
+      "tags_matched": ["priest", "priesthood", "cleric", "authority"],
+      "why_it_fits": "Vampire cleric in a gold mask with a blade. The Orzhov frame. Priesthood as extraction made literal: the church is also the bank, and the rites are also the receipts.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.20,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Mortify",
+      "set": "Ravnica Allegiance",
+      "collector_number": "192",
+      "image_url": "https://cards.scryfall.io/png/front/e/b/ebf6c0dc-5c7b-4170-99bc-2637ea44e716.png",
+      "tags_matched": ["aristocrat", "judgment", "authority"],
+      "why_it_fits": "Stern aristocrat in dark formal attire unleashing a radial burst of cracked light. Judicial extraction rendered as righteous execution. The office, doing what offices do, with no apology. White-black palette matches the Pontiff.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.34,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Tithe Drinker",
+      "set": "Dragon's Maze",
+      "collector_number": "109",
+      "image_url": "https://cards.scryfall.io/png/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.png",
+      "tags_matched": ["aristocrat", "noble", "tax-collector"],
+      "why_it_fits": "Vampire aristocrat. The card name does the bundle's work in two words. Tithe is what the tithe drinker drinks, the receiver as a name for the receiving. Read it slowly.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.30,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Lawmage's Binding",
+      "set": "Ravnica Allegiance",
+      "collector_number": "190",
+      "image_url": "https://cards.scryfall.io/png/front/a/8/a8a7be1f-3fba-4ff2-a4f1-aebd3d20da8f.png",
+      "tags_matched": ["lawmage", "law", "restraint", "arrest", "imprisonment"],
+      "why_it_fits": "Two lawmages in marble robes binding a horned figure with chains of magic. The carceral apparatus made concrete. The uniform here is the robe, the polearm is the spell.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.15,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Lunarch Mantle",
+      "set": "Mystery Booster Cards",
+      "collector_number": "24",
+      "image_url": "https://cards.scryfall.io/png/front/b/6/b6eb3c20-e853-4399-a107-c3308b2e5d4e.png",
+      "tags_matched": ["inquisitor", "judgment", "knight"],
+      "why_it_fits": "White-armored inquisitor under angelic wings. Inquisition as office, judgment as wardrobe. The cleanest depiction of authority-as-radiance in the bundle.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.15,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Reverent Hoplite",
+      "set": "Theros Beyond Death",
+      "collector_number": "33",
+      "image_url": "https://cards.scryfall.io/png/front/5/4/54153b9c-483e-4e5c-a1ab-b1c8a7a657d4.png",
+      "tags_matched": ["procession", "soldier", "spear"],
+      "why_it_fits": "Ceremonial procession of armored hoplites. Military authority as pageantry. The uniform of office walking past the temple in step, blade raised, banner flying. The institution at parade rest is still the institution.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.26,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    },
+    {
+      "name": "Secure the Scene",
+      "set": "Core Set 2021",
+      "collector_number": "35",
+      "image_url": "https://cards.scryfall.io/png/front/d/6/d6467d96-e43a-4b1e-b6ce-578d991077b5.png",
+      "tags_matched": ["arrest", "authority", "knight", "law", "soldier"],
+      "why_it_fits": "Five hub overlap, the strongest match in the bundle. Knights arriving at a scene to lock it down. The institutional response made literal: when something happens, this is who shows up. Doubled because we have two copies and the institution rarely arrives alone.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.05,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
+    }
+  ],
+  "cohesion": {
+    "mood": "authoritative",
+    "register": "uniformed / institutional",
+    "palette_hex": ["#d4c290", "#8a6a3a", "#3a2a15", "#5a4a8a", "#1a1208"],
+    "color_identities_present": ["mono-white", "multicolor-white-black", "multicolor-white-blue"],
+    "set_diversity": ["Throne of Eldraine", "War of the Spark", "Ravnica Allegiance", "Dragon's Maze", "Mystery Booster Cards", "Theros Beyond Death", "Core Set 2021"]
+  },
+  "pricing": {
+    "card_value_subtotal_usd": 1.61,
+    "labor_and_sleeve_per_card_usd": 0.10,
+    "labor_and_sleeve_total_usd": 1.00,
+    "cost_basis_usd": 2.61,
+    "diy_seller_count_estimate": 3,
+    "diy_shipping_per_seller_usd": 1.50,
+    "diy_alternative_usd": 6.11,
+    "diy_alternative_note": "Ten cards across seven sets means ~3-4 TCGplayer sellers minimum at plain-envelope rates. Realistic floor; could be higher.",
+    "bundle_price_floor_usd": 5.00,
+    "bundle_list_price_usd": 5.00,
+    "shipping_policy": "buyer-paid, itemized separately at checkout; never included in list price",
+    "estimated_shipping_usd": 1.50,
+    "narrative_premium_usd": 2.39,
+    "buyer_savings_vs_diy_usd": 1.11,
+    "buyer_savings_vs_diy_pct": 18,
+    "premium_justification": "The $2.39 above cost basis pays for the thesis. Ten cards of common bulk add up to $1.61 of paper. The bundle's value is the framing: six different institutions caught in the same act, named for what they're doing, presented in a sequence that builds. The writing is what you're buying."
+  },
+  "metadata": {
+    "generated_by": "manual-curation-v0",
+    "generated_at": "2026-05-11",
+    "edition_size": "1 of 1",
+    "card_count": 10,
+    "rarity_distribution": {"common": 7, "uncommon": 3, "rare": 0, "mythic": 0},
+    "notes": "v4 recast. Theme tightened from 'Sleep when you're dead' (interior labor experience) to 'Tithe' (the apparatus of extraction, the men they send). Anchors: Wicked Guardian, Charity Extractor, Pitiless Pontiff. Dropped Mind Rot (interior body-horror) and Deafening Silence (victims rather than face of institution). Added Mortify, Tithe Drinker, Lunarch Mantle, Reverent Hoplite, Secure the Scene (2x). Secure the Scene at 2x leverages the only multi-copy candidate in the match set."
+  }
+}
