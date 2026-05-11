@@ -29,6 +29,12 @@
 
   /* HERO */
   .hero { text-align: center; padding: 16px 8px 24px; border-bottom: 3px dashed #00FFFF; margin-bottom: 24px; }
+  .catalog-line {
+    color: #AAA; font-size: 0.85em; letter-spacing: 0.2em;
+    text-transform: uppercase; margin: 0 0 6px;
+  }
+  .catalog-line .series-label { color: #FF00FF; }
+  .catalog-line .catalog-id { color: #00FFFF; }
   .hub-badges {
     display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
   }
@@ -180,16 +186,29 @@
     color: #00FF00; font-size: 1.15em; margin: 0 0 12px;
     text-transform: uppercase; letter-spacing: 0.1em;
   }
-  .pricing-table { width: 100%; border-collapse: collapse; }
-  .pricing-table td {
-    padding: 4px 8px; border-bottom: 1px dotted #444;
-    color: #FFFFFF; font-size: 0.95em;
+  .receipt {
+    font-family: "Courier New", "Lucida Console", monospace;
+    font-size: 0.95em;
   }
-  .pricing-table td.label { color: #00FFFF; }
-  .pricing-table td.value { text-align: right; font-family: "Courier New", monospace; }
-  .pricing-table tr.subtle td { color: #AAA; font-size: 0.85em; }
-  .pricing-table tr.headline td { color: #FFFF00; font-weight: bold; font-size: 1.1em; background: rgba(255,255,0,0.08); }
-  .pricing-table tr.savings td { color: #00FF00; font-weight: bold; }
+  .receipt-section {
+    color: #00FFFF; font-size: 0.78em; text-transform: uppercase;
+    letter-spacing: 0.18em; margin: 10px 0 4px;
+  }
+  .receipt-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 3px 0; color: #FFFFFF; gap: 12px;
+  }
+  .receipt-row.subtle { color: #AAA; font-size: 0.88em; padding-left: 14px; }
+  .receipt-row.subtotal { color: #FFFFFF; padding-top: 5px; border-top: 1px dotted #555; margin-top: 2px; }
+  .receipt-row.headline {
+    color: #FFFF00; font-weight: bold; font-size: 1.18em;
+    padding: 10px 0;
+    border-top: 2px solid #FFFF00; border-bottom: 2px solid #FFFF00;
+    margin: 10px 0;
+  }
+  .receipt-row.savings { color: #00FF00; font-weight: bold; }
+  .receipt-label { flex: 1; }
+  .receipt-value { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .pricing-justification {
     margin-top: 12px; padding: 10px 12px;
     background: rgba(255, 0, 255, 0.12); border-left: 3px solid #FF00FF;
@@ -246,6 +265,7 @@
   <div id="error-slot"></div>
 
   <div class="hero">
+    <div class="catalog-line" id="catalog-line"></div>
     <div class="hub-badges" id="hub-badges"></div>
     <h1 class="title" id="title"></h1>
     <p class="subtitle" id="subtitle"></p>
@@ -271,7 +291,7 @@
 
   <div class="pricing" id="pricing-panel">
     <h3>Pricing &mdash; show the receipts</h3>
-    <table class="pricing-table" id="pricing-table"></table>
+    <div class="receipt" id="receipt"></div>
     <div class="pricing-justification" id="pricing-justification"></div>
     <div class="pricing-shipping-note" id="pricing-shipping-note"></div>
     <div class="checkout-row" id="checkout-row"></div>

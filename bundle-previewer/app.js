@@ -55,6 +55,7 @@ function render(bundle) {
     return;
   }
 
+  renderCatalogLine(bundle.series_label, bundle.catalog_id);
   renderHubBadges(bundle.hubs || []);
   renderTitle(bundle.title);
   document.getElementById('subtitle').textContent = bundle.subtitle || '';
@@ -68,6 +69,19 @@ function render(bundle) {
 
   // Entrance animations after DOM is populated.
   animateEntrance();
+}
+
+function renderCatalogLine(seriesLabel, catalogId) {
+  const el = document.getElementById('catalog-line');
+  if (!seriesLabel && !catalogId) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = '';
+  const parts = [];
+  if (seriesLabel) parts.push(`<span class="series-label">${escapeHtml(seriesLabel)}</span>`);
+  if (catalogId) parts.push(`<span class="catalog-id">${escapeHtml(catalogId)}</span>`);
+  el.innerHTML = parts.join(' &middot; ');
 }
 
 function renderHubBadges(hubs) {
@@ -195,7 +209,7 @@ function renderCohesion(c) {
 
 function renderPricing(p) {
   const panel = document.getElementById('pricing-panel');
-  const tableEl = document.getElementById('pricing-table');
+  const receiptEl = document.getElementById('receipt');
   const justEl = document.getElementById('pricing-justification');
   const shipEl = document.getElementById('pricing-shipping-note');
   if (!p) {
@@ -203,24 +217,51 @@ function renderPricing(p) {
     return;
   }
   panel.style.display = '';
-  tableEl.innerHTML = '';
-  const rows = [
-    { label: 'Card value subtotal', value: fmtUsd(p.card_value_subtotal_usd), cls: '' },
-    { label: 'Labor + sleeve (' + fmtUsd(p.labor_and_sleeve_per_card_usd) + ' × cards)', value: fmtUsd(p.labor_and_sleeve_total_usd), cls: 'subtle' },
-    { label: 'Cost basis', value: fmtUsd(p.cost_basis_usd), cls: 'subtle' },
-    { label: 'DIY alternative (TCGplayer w/ ' + (p.diy_seller_count_estimate || '?') + ' sellers × ' + fmtUsd(p.diy_shipping_per_seller_usd) + ' ship)', value: fmtUsd(p.diy_alternative_usd), cls: 'subtle' },
-    { label: 'Bundle list price (floor ' + fmtUsd(p.bundle_price_floor_usd || 5) + ')', value: fmtUsd(p.bundle_list_price_usd), cls: 'headline' },
-    { label: 'Narrative premium (curation labor)', value: fmtUsd(p.narrative_premium_usd), cls: '' },
-    { label: 'Buyer savings vs DIY', value: fmtUsd(p.buyer_savings_vs_diy_usd) + (p.buyer_savings_vs_diy_pct != null ? '  (' + p.buyer_savings_vs_diy_pct + '%)' : ''), cls: 'savings' },
-  ];
-  rows.forEach(r => {
-    if (r.value === '$NaN' || r.value === '$undefined') return;
-    const tr = document.createElement('tr');
-    if (r.cls) tr.className = r.cls;
-    const lt = document.createElement('td'); lt.className = 'label'; lt.textContent = r.label;
-    const vt = document.createElement('td'); vt.className = 'value'; vt.textContent = r.value;
-    tr.appendChild(lt); tr.appendChild(vt); tableEl.appendChild(tr);
-  });
+  receiptEl.innerHTML = '';
+
+  const addSection = (label) => {
+    const s = document.createElement('div');
+    s.className = 'receipt-section';
+    s.textContent = label;
+    receiptEl.appendChild(s);
+  };
+  const addRow = (label, value, cls) => {
+    if (value === '' || value == null) return;
+    const row = document.createElement('div');
+    row.className = 'receipt-row' + (cls ? ' ' + cls : '');
+    const l = document.createElement('span'); l.className = 'receipt-label'; l.textContent = label;
+    const v = document.createElement('span'); v.className = 'receipt-value'; v.textContent = value;
+    row.appendChild(l); row.appendChild(v);
+    receiptEl.appendChild(row);
+  };
+
+  // Section 1: what BBL puts into it
+  addSection('what BBL puts in');
+  addRow('Card value subtotal', fmtUsd(p.card_value_subtotal_usd));
+  addRow(`Labor + sleeve (${p.card_count || ''} × ${fmtUsd(p.labor_and_sleeve_per_card_usd)})`.replace('(  × ', '('), fmtUsd(p.labor_and_sleeve_total_usd), 'subtle');
+  addRow('Cost basis', fmtUsd(p.cost_basis_usd), 'subtotal');
+
+  // Section 2: what DIY would cost
+  addSection('what DIY would cost');
+  const diyLabel = p.diy_seller_count_estimate
+    ? `Cards + ${p.diy_seller_count_estimate}-seller shipping at ${fmtUsd(p.diy_shipping_per_seller_usd)}`
+    : 'DIY alternative';
+  addRow(diyLabel, fmtUsd(p.diy_alternative_usd));
+
+  // Section 3: the headline + breakdown
+  addRow(
+    `BUNDLE LIST PRICE${p.bundle_price_floor_usd ? ' (floor ' + fmtUsd(p.bundle_price_floor_usd) + ')' : ''}`,
+    fmtUsd(p.bundle_list_price_usd),
+    'headline'
+  );
+
+  addSection('breakdown');
+  addRow('Narrative premium (curation)', fmtUsd(p.narrative_premium_usd));
+  addRow(
+    'Buyer savings vs DIY',
+    fmtUsd(p.buyer_savings_vs_diy_usd) + (p.buyer_savings_vs_diy_pct != null ? `  (${p.buyer_savings_vs_diy_pct}%)` : ''),
+    'savings'
+  );
 
   justEl.textContent = p.premium_justification || '';
   justEl.style.display = p.premium_justification ? '' : 'none';
@@ -228,7 +269,7 @@ function renderPricing(p) {
   const shipParts = [];
   if (p.shipping_policy) shipParts.push(p.shipping_policy);
   if (p.estimated_shipping_usd != null) shipParts.push('est. ' + fmtUsd(p.estimated_shipping_usd) + ' PWE');
-  shipEl.textContent = shipParts.length ? ('+ shipping — ' + shipParts.join(' · ')) : '';
+  shipEl.textContent = shipParts.length ? ('+ shipping: ' + shipParts.join(' · ')) : '';
   shipEl.style.display = shipParts.length ? '' : 'none';
 }
 
