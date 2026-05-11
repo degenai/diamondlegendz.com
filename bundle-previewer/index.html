@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' https://cards.scryfall.io data:;">
+<title>BBL Bundle Previewer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000080'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='%23FFFF00' font-family='monospace'%3E%E2%9C%82%3C/text%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    background-image: url('../assets/bg.gif');
+    color: #FFFF00;
+    font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+    margin: 0;
+    padding: 20px 0;
+  }
+  a { color: #00FFFF; text-decoration: none; }
+  a:hover { color: #FF00FF; text-decoration: underline; background-color: white; }
+
+  .container {
+    width: 95%;
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: rgba(0, 0, 128, 0.88);
+    border: 10px ridge #FF0000;
+    padding: 24px;
+  }
+
+  /* HERO */
+  .hero { text-align: center; padding: 16px 8px 24px; border-bottom: 3px dashed #00FFFF; margin-bottom: 24px; }
+  .hub-badges {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .hub-badge {
+    background: #FF00FF; color: #FFFF00;
+    border: 2px outset #FFFF00;
+    padding: 4px 12px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.1em;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .title {
+    font-size: 3.2em; line-height: 1.05;
+    color: #FFFF00; text-shadow: 4px 4px 0 #FF0000, 8px 8px 0 #000;
+    margin: 8px 0 4px; font-weight: bold;
+  }
+  .title .char { display: inline-block; }
+  .subtitle {
+    font-size: 1.2em; color: #00FFFF; font-style: italic;
+    margin: 0 0 18px;
+  }
+  .narrative {
+    color: #FFFFFF; font-size: 1.05em; line-height: 1.55;
+    max-width: 780px; margin: 0 auto;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.35); padding: 14px 18px; border-left: 4px solid #FF00FF;
+  }
+
+  /* ANCHOR TAGS */
+  .anchors-row {
+    text-align: center; margin: 18px 0;
+  }
+  .anchors-label { color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px; }
+  .anchor-tag {
+    display: inline-block; margin: 3px 4px;
+    background: #00FF00; color: #000080;
+    border: 2px outset #FFFFFF;
+    padding: 3px 10px; font-size: 0.95em; font-weight: bold;
+  }
+
+  /* CARD GRID */
+  .grid-section-label {
+    color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.15em;
+    text-align: center; margin: 28px 0 12px;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin: 0 0 24px;
+  }
+  .card-tile {
+    background: #FFFAF0; color: #000;
+    border: 4px ridge #FFFF00;
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    transform-origin: center;
+  }
+  .card-tile img {
+    width: 100%; aspect-ratio: 488 / 680; object-fit: cover;
+    background: #DDD;
+    border: 2px solid #000;
+    display: block;
+  }
+  .card-name { font-size: 1.15em; font-weight: bold; color: #800000; margin: 0; }
+  .card-meta { font-size: 0.85em; color: #444; font-style: italic; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .card-tag {
+    background: #FFFF00; color: #000; font-size: 0.75em;
+    padding: 1px 6px; border: 1px solid #800000;
+  }
+  .why-it-fits {
+    background: #FFE4E1; border-left: 3px solid #FF0000;
+    padding: 8px 10px; font-size: 0.9em; color: #200;
+    line-height: 1.45; margin-top: 4px;
+  }
+  .qty-pill {
+    align-self: flex-start;
+    background: #000080; color: #FFFF00;
+    font-size: 0.75em; padding: 2px 8px;
+    border: 1px solid #FFFF00;
+  }
+
+  /* COHESION PANEL */
+  .cohesion {
+    background: rgba(0, 0, 0, 0.4); border: 2px dashed #00FFFF;
+    padding: 16px 20px; margin-top: 24px;
+  }
+  .cohesion h3 {
+    color: #FF00FF; font-size: 1.1em; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .cohesion-row { display: flex; align-items: center; gap: 12px; margin: 6px 0; flex-wrap: wrap; }
+  .cohesion-label { color: #00FFFF; min-width: 80px; font-size: 0.9em; }
+  .cohesion-value { color: #FFFFFF; font-size: 0.95em; }
+  .palette { display: inline-flex; gap: 4px; }
+  .swatch {
+    width: 28px; height: 28px; border: 2px solid #FFFFFF;
+    display: inline-block;
+  }
+
+  /* METADATA */
+  .metadata {
+    margin-top: 18px; padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.25); border-top: 2px dotted #FFFF00;
+    font-size: 0.85em; color: #AAA;
+  }
+  .metadata strong { color: #FFFF00; }
+
+  /* LOAD CONTROLS */
+  .load-controls {
+    text-align: center; margin: 0 0 20px; padding: 8px 0;
+    border-bottom: 1px dotted #00FFFF;
+  }
+  .load-controls label {
+    color: #00FFFF; font-size: 0.9em; margin-right: 8px;
+  }
+  .load-controls input[type="file"] {
+    color: #FFFF00; background: #000080; border: 2px ridge #FFFF00; padding: 4px;
+    font-family: inherit; font-size: 0.9em;
+  }
+  .error {
+    color: #FF8888; background: rgba(80,0,0,0.5); padding: 8px 12px;
+    border: 2px solid #FF0000; margin: 12px 0;
+  }
+
+  /* FOOTER NAV */
+  .footer-nav { text-align: center; margin-top: 22px; padding: 12px 0 4px; border-top: 1px solid #00FFFF; }
+  .footer-nav a { font-size: 0.9em; }
+
+  @media (max-width: 600px) {
+    .title { font-size: 2.2em; }
+    .container { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="load-controls">
+    <label for="bundle-file">Load a bundle JSON:</label>
+    <input type="file" id="bundle-file" accept=".json,application/json">
+    <span style="color:#888; font-size:0.85em; margin-left:8px;">(default: Sleep when you're dead)</span>
+  </div>
+
+  <div id="error-slot"></div>
+
+  <div class="hero">
+    <div class="hub-badges" id="hub-badges"></div>
+    <h1 class="title" id="title"></h1>
+    <p class="subtitle" id="subtitle"></p>
+    <div class="narrative" id="narrative"></div>
+  </div>
+
+  <div class="anchors-row">
+    <div class="anchors-label">Anchor tags</div>
+    <div id="anchor-tags"></div>
+  </div>
+
+  <div class="grid-section-label" id="grid-label">The bundle</div>
+  <div class="card-grid" id="card-grid"></div>
+
+  <div class="cohesion" id="cohesion-panel">
+    <h3>Cohesion</h3>
+    <div class="cohesion-row"><span class="cohesion-label">Mood:</span><span class="cohesion-value" id="cohesion-mood"></span></div>
+    <div class="cohesion-row"><span class="cohesion-label">Register:</span><span class="cohesion-value" id="cohesion-register"></span></div>
+    <div class="cohesion-row"><span class="cohesion-label">Palette:</span><span class="palette" id="cohesion-palette"></span></div>
+    <div class="cohesion-row"><span class="cohesion-label">Sets:</span><span class="cohesion-value" id="cohesion-sets"></span></div>
+    <div class="cohesion-row"><span class="cohesion-label">Colors:</span><span class="cohesion-value" id="cohesion-colors"></span></div>
+  </div>
+
+  <div class="metadata" id="metadata"></div>
+
+  <div class="footer-nav">
+    <a href="../index.html">← back to {Diamond Legendz}</a>
+    &nbsp; · &nbsp;
+    <a href="../pokemon-zodiac/index.html">pokemon-zodiac</a>
+  </div>
+
+</div>
+
+<!-- Bundle JSON gets loaded by app.js. Default sample lives at
+     sample-bundles/sleep-when-youre-dead.json. -->
+<script id="default-bundle-path" type="application/json">"sample-bundles/sleep-when-youre-dead.json"</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
