@@ -5,125 +5,228 @@
   "title": "Tithe",
   "subtitle": "the men they send",
   "narrative": "Every institution has a face it shows when it comes to collect. A noble standing while a servant scrubs the floor behind her. A knight extending a collection plate. A vampire priest seated with the back of her hand offered to a kneeling supplicant. A mage being dissolved in a swirl of grey and white. The bundle holds ten cards. Different guilds, different blocks, same job description. Most TCG art lets these figures pass as background dignity. This one does not.",
-  "hubs": ["labor"],
-  "anchor_tags": ["authority", "hierarchy", "priest", "tax-collector", "noble"],
-  "intent_tags": ["authority", "hierarchy", "priest", "priesthood", "tax-collector", "noble", "aristocrat", "cleric", "pontiff", "judge", "judgment", "law", "lawmage", "inquisitor", "knight", "soldier", "arrest", "restraint", "imprisonment", "procession", "uniform", "robed-figure", "armor", "polearm", "spear"],
+  "hubs": [
+    "labor"
+  ],
+  "anchor_tags": [
+    "authority",
+    "hierarchy",
+    "priest",
+    "tax-collector",
+    "noble"
+  ],
+  "intent_tags": [
+    "authority",
+    "hierarchy",
+    "priest",
+    "priesthood",
+    "tax-collector",
+    "noble",
+    "aristocrat",
+    "cleric",
+    "pontiff",
+    "judge",
+    "judgment",
+    "law",
+    "lawmage",
+    "inquisitor",
+    "knight",
+    "soldier",
+    "arrest",
+    "restraint",
+    "imprisonment",
+    "procession",
+    "uniform",
+    "robed-figure",
+    "armor",
+    "polearm",
+    "spear"
+  ],
   "cards": [
     {
       "name": "Wicked Guardian",
       "set": "Throne of Eldraine",
       "collector_number": "109",
       "image_url": "https://cards.scryfall.io/png/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.png",
-      "tags_matched": ["noble", "hierarchy", "servant"],
+      "tags_matched": [
+        "noble",
+        "hierarchy",
+        "servant"
+      ],
       "why_it_fits": "A noble in deep purple robes stands stiffly upright, her hands cradling a small bat-faced pet with bulging eyes, wide ears, and visible fangs, dressed up in a cute poofy dog shirt. Behind her, a second figure in muted clothes kneels on the stone floor with a cleaning cloth. The architecture is grand, but the real structure of the place is the vertical distance between the standing authority and the one scrubbing underneath it. \"Some are born to greatness. You were born to scrub greatness's floors.\"",
       "qty_in_bundle": 1,
       "market_price_usd": 0.07,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.jpg"
     },
     {
       "name": "Charity Extractor",
       "set": "War of the Spark",
       "collector_number": "81",
       "image_url": "https://cards.scryfall.io/png/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.png",
-      "tags_matched": ["tax-collector", "knight", "armor", "polearm"],
+      "tags_matched": [
+        "tax-collector",
+        "knight",
+        "armor",
+        "polearm"
+      ],
       "why_it_fits": "A knight in riveted gold-green armor extends a sparse pan with several bundles of coins on it. A locked strongbox, gold and ornate, sits attached to the saddle in front of him. His helmet is faceless and winged with a single eye-slit; keys hang around his neck. The other hand rests on the stirrups. The strongbox is locked because the collection isn't finished. \"War or no war, your donations are due, as always.\"",
       "qty_in_bundle": 1,
       "market_price_usd": 0.04,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg"
     },
     {
       "name": "Pitiless Pontiff",
       "set": "Ravnica Allegiance",
       "collector_number": "194",
       "image_url": "https://cards.scryfall.io/png/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.png",
-      "tags_matched": ["priest", "priesthood", "cleric", "authority"],
+      "tags_matched": [
+        "priest",
+        "priesthood",
+        "cleric",
+        "authority"
+      ],
       "why_it_fits": "A pale cleric in black and white sits cross-legged on a throne backed by the Orzhov Signet, the syndicate's eclipsed-sun emblem worn by masters as a medallion and tattooed on slaves as a brand. To her left, a buzz-cut supplicant in navy robes kneels with a line of coins dangling from his shoulder; the back of her hand rests on his head, the two figures connected by her trailing lacey sleeve. To her right, another supplicant wears the same coin-line as a headband, leaning in between her chalice and her face as if consulting. \"Pay in gold. Pay in blood. Pay with the servitude of your spirit kin. But pay you must.\"",
       "qty_in_bundle": 1,
-      "market_price_usd": 0.20,
+      "market_price_usd": 0.2,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.jpg"
     },
     {
       "name": "Mortify",
       "set": "Ravnica Allegiance",
       "collector_number": "192",
       "image_url": "https://cards.scryfall.io/png/front/e/b/ebf6c0dc-5c7b-4170-99bc-2637ea44e716.png",
-      "tags_matched": ["aristocrat", "judgment", "authority"],
+      "tags_matched": [
+        "aristocrat",
+        "judgment",
+        "authority"
+      ],
       "why_it_fits": "A woman in dark garments with a red-lined collar is being dissolved by a swirl of grey and white, her body fragmenting at the edges. Her face stays composed, her hands open and empty. The dissolution reads as bureaucratic unmaking, a physical erasure from the institution's ledger. \"Your debt is erased.\" –Hilgur, Orzhov euthanist",
       "qty_in_bundle": 1,
       "market_price_usd": 0.34,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/b/ebf6c0dc-5c7b-4170-99bc-2637ea44e716.jpg"
     },
     {
       "name": "Tithe Drinker",
       "set": "Dragon's Maze",
       "collector_number": "109",
       "image_url": "https://cards.scryfall.io/png/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.png",
-      "tags_matched": ["aristocrat", "noble", "tax-collector"],
+      "tags_matched": [
+        "aristocrat",
+        "noble",
+        "tax-collector"
+      ],
       "why_it_fits": "A seated woman with dark hair holds a golden goblet on a throne backed by the same Orzhov Signet that backs the Pitiless Pontiff in this bundle. A hunched stone figure behind her pours a dark stream from a pitcher. Two gargoyle-like attendants flank the throne, their stone bodies built into the architecture of the room. The cup is not empty: it receives, and the woman sits ready to receive again.",
       "qty_in_bundle": 1,
-      "market_price_usd": 0.30,
+      "market_price_usd": 0.3,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.jpg"
     },
     {
       "name": "Lawmage's Binding",
       "set": "Ravnica Allegiance",
       "collector_number": "190",
       "image_url": "https://cards.scryfall.io/png/front/a/8/a8a7be1f-3fba-4ff2-a4f1-aebd3d20da8f.png",
-      "tags_matched": ["lawmage", "law", "restraint", "arrest", "imprisonment"],
+      "tags_matched": [
+        "lawmage",
+        "law",
+        "restraint",
+        "arrest",
+        "imprisonment"
+      ],
       "why_it_fits": "Two large hands clad in blue and silver gauntlets reach from the edges of the frame, gripping a binding ring of blue energy that encircles the arms of a smaller, horned figure in red armor. The captive stands upright but immobile, held in place by the gauntleted hands rather than chains or bars. The authority is in the frame but only barely: just the two hands, doing the work.",
       "qty_in_bundle": 1,
       "market_price_usd": 0.15,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/a/8/a8a7be1f-3fba-4ff2-a4f1-aebd3d20da8f.jpg"
     },
     {
       "name": "Lunarch Mantle",
       "set": "The List",
       "collector_number": "24",
       "image_url": "https://cards.scryfall.io/png/front/b/6/b6eb3c20-e853-4399-a107-c3308b2e5d4e.png",
-      "tags_matched": ["inquisitor", "judgment", "knight"],
+      "tags_matched": [
+        "inquisitor",
+        "judgment",
+        "knight"
+      ],
       "why_it_fits": "A single armored figure stands in the dark, raising a bloodied white wing high in his right hand. The long sword in his left is stowed point-down, the blade catching light from above; his visored helmet catches the same light. The wing is what makes him an enforcer of one. \"A boon from the angels should never be cast aside.\" –Manfried Ulmach, Chief Inquisitor",
       "qty_in_bundle": 1,
       "market_price_usd": 0.15,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/b/6/b6eb3c20-e853-4399-a107-c3308b2e5d4e.jpg"
     },
     {
       "name": "Reverent Hoplite",
       "set": "Theros Beyond Death",
       "collector_number": "33",
       "image_url": "https://cards.scryfall.io/png/front/5/4/54153b9c-483e-4e5c-a1ab-b1c8a7a657d4.png",
-      "tags_matched": ["procession", "soldier", "spear"],
+      "tags_matched": [
+        "procession",
+        "soldier",
+        "spear"
+      ],
       "why_it_fits": "A soldier in blue and bronze stands on the wide marble stairs, sword raised to the bright light at the top of the hall and shield held firm at his side. Behind him, a row of similarly armed figures waits on the tiered steps. The formation does the work the individual could not. \"Zeal is the sharpest blade, and piety the strongest shield.\"",
       "qty_in_bundle": 1,
       "market_price_usd": 0.26,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/5/4/54153b9c-483e-4e5c-a1ab-b1c8a7a657d4.jpg"
     },
     {
       "name": "Secure the Scene",
       "set": "Core Set 2021",
       "collector_number": "35",
       "image_url": "https://cards.scryfall.io/png/front/d/6/d6467d96-e43a-4b1e-b6ce-578d991077b5.png",
-      "tags_matched": ["arrest", "authority", "knight", "law", "soldier"],
+      "tags_matched": [
+        "arrest",
+        "authority",
+        "knight",
+        "law",
+        "soldier"
+      ],
       "why_it_fits": "A soldier in grey-blue armor stands squarely, one hand gripping a long ceremonial staff while the other rests near a row of cylinders at his waist. Behind him, a web of luminous blue beams and chains stretches across the sky. The arrest isn't just the soldier; it's the mesh of light around him. \"You know it's a great show when the Azorius arrest the props, too!\" –Judith, the Scourge Diva",
       "qty_in_bundle": 2,
       "market_price_usd": 0.05,
       "market_price_as_of": "2026-05-10",
-      "market_price_source": "collectr"
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/d/6/d6467d96-e43a-4b1e-b6ce-578d991077b5.jpg"
     }
   ],
   "cohesion": {
     "mood": "authoritative",
     "register": "uniformed / institutional",
-    "palette_hex": ["#d4c290", "#8a6a3a", "#3a2a15", "#5a4a8a", "#1a1208"],
-    "color_identities_present": ["mono-white", "multicolor-white-black", "multicolor-white-blue"],
-    "set_diversity": ["Throne of Eldraine", "War of the Spark", "Ravnica Allegiance", "Dragon's Maze", "Mystery Booster Cards", "Theros Beyond Death", "Core Set 2021"]
+    "palette_hex": [
+      "#d4c290",
+      "#8a6a3a",
+      "#3a2a15",
+      "#5a4a8a",
+      "#1a1208"
+    ],
+    "color_identities_present": [
+      "mono-white",
+      "multicolor-white-black",
+      "multicolor-white-blue"
+    ],
+    "set_diversity": [
+      "Throne of Eldraine",
+      "War of the Spark",
+      "Ravnica Allegiance",
+      "Dragon's Maze",
+      "Mystery Booster Cards",
+      "Theros Beyond Death",
+      "Core Set 2021"
+    ]
   },
   "checkout": {
     "stripe_payment_url": "https://buy.stripe.com/PLACEHOLDER_tithe",
@@ -132,28 +235,35 @@
   },
   "pricing": {
     "card_value_subtotal_usd": 1.61,
-    "labor_and_sleeve_per_card_usd": 0.10,
-    "labor_and_sleeve_total_usd": 1.00,
+    "labor_and_sleeve_per_card_usd": 0.1,
+    "labor_and_sleeve_total_usd": 1.0,
     "cost_basis_usd": 2.61,
-    "diy_seller_count_estimate": 3,
-    "diy_shipping_per_seller_usd": 1.50,
-    "diy_alternative_usd": 6.11,
-    "diy_alternative_note": "Ten cards across seven sets means ~3-4 TCGplayer sellers minimum at plain-envelope rates. Realistic floor; could be higher.",
-    "bundle_price_floor_usd": 5.00,
-    "bundle_list_price_usd": 5.00,
+    "diy_seller_count_estimate": 5,
+    "diy_shipping_per_seller_usd": 1.31,
+    "diy_shipping_rate_note": "$1.31 matches TCGplayer's standard Plain Envelope rate as of 2026-05-11.",
+    "diy_alternative_usd": 8.16,
+    "diy_alternative_note": "Ten cards across seven sets (Throne of Eldraine, War of the Spark, Ravnica Allegiance, Dragon's Maze, The List, Theros Beyond Death, Core Set 2021) realistically routes through 5 TCGplayer sellers minimum at $1.31 plain-envelope shipping each.",
+    "bundle_price_floor_usd": 5.0,
+    "bundle_list_price_usd": 5.0,
     "shipping_policy": "buyer-paid, itemized separately at checkout; never included in list price",
-    "estimated_shipping_usd": 1.50,
+    "estimated_shipping_usd": 1.31,
+    "shipping_rate_note": "Matches TCGplayer Plain Envelope rate ($1.31). One envelope, one stamp; we eat the difference if the carrier's actual stamp cost runs over.",
     "narrative_premium_usd": 2.39,
-    "buyer_savings_vs_diy_usd": 1.11,
-    "buyer_savings_vs_diy_pct": 18,
-    "premium_justification": "The $2.39 above cost basis pays for the framing. Ten cards of common bulk are $1.61 of paper. The bundle's value is reading the cards in sequence with the title doing the lifting."
+    "buyer_savings_vs_diy_usd": 1.85,
+    "buyer_savings_vs_diy_pct": 23,
+    "premium_justification": "The $2.39 above cost basis pays for the curation. Ten cards of common bulk are $1.61 of paper. The bundle's value is reading the cards in sequence with the title doing the lifting."
   },
   "metadata": {
     "generated_by": "manual-curation-v0",
     "generated_at": "2026-05-11",
     "edition_size": "1 of 1",
     "card_count": 10,
-    "rarity_distribution": {"common": 7, "uncommon": 3, "rare": 0, "mythic": 0},
+    "rarity_distribution": {
+      "common": 7,
+      "uncommon": 3,
+      "rare": 0,
+      "mythic": 0
+    },
     "notes": "v4 recast. Theme tightened from 'Sleep when you're dead' (interior labor experience) to 'Tithe' (the apparatus of extraction, the men they send). Anchors: Wicked Guardian, Charity Extractor, Pitiless Pontiff. Dropped Mind Rot (interior body-horror) and Deafening Silence (victims rather than face of institution). Added Mortify, Tithe Drinker, Lunarch Mantle, Reverent Hoplite, Secure the Scene (2x). Secure the Scene at 2x leverages the only multi-copy candidate in the match set."
   }
 }

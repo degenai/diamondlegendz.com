@@ -61,6 +61,7 @@ function render(bundle) {
   document.getElementById('subtitle').textContent = bundle.subtitle || '';
   document.getElementById('narrative').textContent = bundle.narrative || '';
   renderAnchorTags(bundle.anchor_tags || []);
+  renderArtCarousel(bundle.cards || []);
   renderCardGrid(bundle.cards || []);
   renderCohesion(bundle.cohesion || {});
   renderPricing(bundle.pricing || null);
@@ -116,6 +117,310 @@ function renderAnchorTags(tags) {
     el.textContent = t;
     container.appendChild(el);
   });
+}
+
+// ── Art carousel ───────────────────────────────────────────────────────────
+//
+// Layers, in order of priority (later overrides earlier):
+//   1. Auto-marquee: a manual rAF loop scrolling track left at MARQUEE_SPEED px/s.
+//   2. Hover-pause: mouse over carousel halts the marquee for reading.
+//   3. Drag: pointerdown + move > DRAG_THRESHOLD_PX takes manual control of
+//      translateX. Resumes auto-marquee on release UNLESS hover-paused.
+//   4. Click / tap (no drag): opens the lightbox with the full-size art_crop.
+//      Single gesture, same on PC and mobile. The drag-threshold is what
+//      distinguishes "click on a slide" from "start dragging the carousel."
+//
+// We replaced the anime.js-driven marquee with a manual rAF loop because anime.js
+// timelines don't compose well with the interrupting drag gesture: pausing mid-
+// loop and snapping the transform via direct style writes loses anime.js's
+// internal position, and resuming would jump. Manual rAF gives us a single
+// authoritative `currentTranslateX` that drag and marquee both write/read.
+// anime.js v4 is still used for the entrance animations elsewhere in this file
+// — that surface is unchanged.
+
+const MARQUEE_SPEED_PX_S = 60;
+const DRAG_THRESHOLD_PX = 4;
+
+let currentCarouselCards = [];  // source data, indexed by slide.dataset.sourceIdx
+let currentTranslateX = 0;
+let halfTrackWidth = 0;
+let isMarqueeRunning = false;
+let isHoverPaused = false;
+let marqueeRafId = null;
+let lastMarqueeFrameTime = 0;
+
+let dragState = null;
+let activeLightbox = null;
+
+function renderArtCarousel(cards) {
+  const section = document.getElementById('art-carousel-section');
+  const track = document.getElementById('art-carousel-track');
+  const carousel = track ? track.parentElement : null;
+  if (!track || !carousel) return;
+
+  stopMarquee();
+  closeLightbox();
+  dragState = null;
+  carousel.classList.remove('is-dragging');
+  currentTranslateX = 0;
+  track.style.transform = '';
+  track.innerHTML = '';
+
+  // Only include cards that have an art_crop_url. MTG cards have these via
+  // Scryfall; Pokémon cards do not yet (no equivalent API endpoint).
+  const slidesData = cards.filter(c => c.art_crop_url);
+  if (!slidesData.length) {
+    section.style.display = 'none';
+    currentCarouselCards = [];
+    return;
+  }
+  section.style.display = '';
+  currentCarouselCards = slidesData.slice();
+
+  // Duplicate the slide list so the marquee loops seamlessly: we wrap by
+  // adding +halfTrackWidth whenever currentTranslateX drops below -halfTrackWidth.
+  // The clones' dataset.idx points at the same source-card index modulo length.
+  const sequence = [...slidesData, ...slidesData];
+  sequence.forEach((card, idx) => {
+    const slide = document.createElement('div');
+    slide.className = 'art-carousel-slide';
+    slide.dataset.idx = idx;
+    slide.dataset.sourceIdx = String(idx % slidesData.length);
+    slide.tabIndex = 0;
+
+    const img = document.createElement('img');
+    img.src = card.art_crop_url;
+    img.alt = card.name || '';
+    img.loading = 'lazy';
+    img.draggable = false;
+    img.onerror = () => { slide.style.background = '#400'; };
+    slide.appendChild(img);
+
+    const caption = document.createElement('div');
+    caption.className = 'slide-caption';
+    const nm = document.createElement('span');
+    nm.className = 'slide-name';
+    nm.textContent = card.name || '';
+    caption.appendChild(nm);
+    if (card.artist) {
+      const art = document.createElement('span');
+      art.className = 'slide-artist';
+      art.textContent = card.artist;
+      caption.appendChild(art);
+    }
+    slide.appendChild(caption);
+    track.appendChild(slide);
+  });
+
+  bindCarouselInteractions(carousel, track);
+}
+
+// Bound once per page lifetime. Listeners attach to the carousel container
+// and use event delegation to reach individual slides — this way the slides
+// can be replaced wholesale by renderArtCarousel's `track.innerHTML = ''` reset
+// without losing the bindings. A `data-bound` sentinel guards against the
+// container-level listeners stacking up across bundle reloads.
+function bindCarouselInteractions(carousel, track) {
+  if (carousel.dataset.bound === 'yes') return;
+  carousel.dataset.bound = 'yes';
+
+  carousel.addEventListener('mouseenter', () => {
+    isHoverPaused = true;
+    isMarqueeRunning = false;
+  });
+  carousel.addEventListener('mouseleave', () => {
+    isHoverPaused = false;
+    if (!dragState) resumeMarquee();
+  });
+
+  carousel.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    const slide = e.target.closest('.art-carousel-slide');
+    if (!slide) return;
+    dragState = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      trackXAtStart: currentTranslateX,
+      isDragging: false,
+      slideClicked: slide,
+    };
+    try { carousel.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  carousel.addEventListener('pointermove', (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+    const dx = e.clientX - dragState.startX;
+    if (!dragState.isDragging && Math.abs(dx) > DRAG_THRESHOLD_PX) {
+      dragState.isDragging = true;
+      carousel.classList.add('is-dragging');
+      isMarqueeRunning = false;
+    }
+    if (dragState.isDragging) {
+      currentTranslateX = wrapTranslateX(dragState.trackXAtStart + dx);
+      applyTrackTransform();
+      e.preventDefault();
+    }
+  });
+
+  const endDrag = (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+    const wasDragging = dragState.isDragging;
+    const slide = dragState.slideClicked;
+    try { carousel.releasePointerCapture(e.pointerId); } catch (_) {}
+    dragState = null;
+    carousel.classList.remove('is-dragging');
+    if (wasDragging) {
+      if (!isHoverPaused) resumeMarquee();
+      return;
+    }
+    // No-drag pointer-up on a slide = click/tap → open the lightbox. Single
+    // gesture, same behavior on PC mouse and mobile touch.
+    if (slide) openLightbox(slide);
+  };
+  carousel.addEventListener('pointerup', endDrag);
+  carousel.addEventListener('pointercancel', endDrag);
+}
+
+function wrapTranslateX(x) {
+  if (halfTrackWidth <= 0) return x;
+  while (x > 0) x -= halfTrackWidth;
+  while (x < -halfTrackWidth) x += halfTrackWidth;
+  return x;
+}
+
+function applyTrackTransform() {
+  const track = document.getElementById('art-carousel-track');
+  if (track) track.style.transform = `translateX(${currentTranslateX}px)`;
+}
+
+function startMarquee() {
+  const track = document.getElementById('art-carousel-track');
+  if (!track || !track.children.length) return;
+  // Defer one frame so images have laid out and scrollWidth is real.
+  requestAnimationFrame(() => {
+    halfTrackWidth = track.scrollWidth / 2;
+    if (!halfTrackWidth) return;
+    isMarqueeRunning = true;
+    lastMarqueeFrameTime = performance.now();
+    if (marqueeRafId === null) {
+      marqueeRafId = requestAnimationFrame(marqueeStep);
+    }
+  });
+}
+
+function stopMarquee() {
+  isMarqueeRunning = false;
+  if (marqueeRafId !== null) {
+    cancelAnimationFrame(marqueeRafId);
+    marqueeRafId = null;
+  }
+  halfTrackWidth = 0;
+}
+
+function resumeMarquee() {
+  const track = document.getElementById('art-carousel-track');
+  if (!track || !track.children.length) return;
+  // Recompute halfTrackWidth in case layout changed (rare, but cheap).
+  halfTrackWidth = track.scrollWidth / 2;
+  if (!halfTrackWidth) return;
+  currentTranslateX = wrapTranslateX(currentTranslateX);
+  isMarqueeRunning = true;
+  lastMarqueeFrameTime = performance.now();
+  if (marqueeRafId === null) {
+    marqueeRafId = requestAnimationFrame(marqueeStep);
+  }
+}
+
+function marqueeStep(t) {
+  marqueeRafId = requestAnimationFrame(marqueeStep);
+  if (!isMarqueeRunning) {
+    lastMarqueeFrameTime = t;
+    return;
+  }
+  const dt = (t - lastMarqueeFrameTime) / 1000;
+  lastMarqueeFrameTime = t;
+  currentTranslateX = wrapTranslateX(currentTranslateX - MARQUEE_SPEED_PX_S * dt);
+  applyTrackTransform();
+}
+
+function openLightbox(slide) {
+  const sourceIdx = parseInt(slide.dataset.sourceIdx, 10);
+  // Idempotent on the same slide: if a lightbox is already up for this
+  // sourceIdx, do nothing. Defensive — there's only one code path triggering
+  // openLightbox now (single-click on a non-dragged slide), but the guard
+  // keeps the function safe to call from anywhere.
+  if (activeLightbox && activeLightbox.dataset.sourceIdx === String(sourceIdx)) {
+    return;
+  }
+  closeLightbox();
+  const data = currentCarouselCards[sourceIdx];
+  if (!data) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.dataset.sourceIdx = String(sourceIdx);
+
+  const img = document.createElement('img');
+  img.className = 'lightbox-image';
+  img.src = data.art_crop_url;
+  img.alt = data.name || '';
+  overlay.appendChild(img);
+
+  const caption = document.createElement('div');
+  caption.className = 'lightbox-caption';
+  const nm = document.createElement('span');
+  nm.className = 'lb-name';
+  nm.textContent = data.name || '';
+  caption.appendChild(nm);
+  if (data.artist) {
+    const art = document.createElement('span');
+    art.className = 'lb-artist';
+    art.textContent = data.artist;
+    caption.appendChild(art);
+  }
+  const metaParts = [data.set, data.collector_number && `#${data.collector_number}`].filter(Boolean);
+  if (metaParts.length) {
+    const meta = document.createElement('span');
+    meta.className = 'lb-meta';
+    meta.textContent = metaParts.join(' · ');
+    caption.appendChild(meta);
+  }
+  overlay.appendChild(caption);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'lightbox-close';
+  closeBtn.setAttribute('aria-label', 'Close');
+  closeBtn.textContent = '×';
+  overlay.appendChild(closeBtn);
+
+  // Click anywhere on the overlay closes; clicks on the image or caption
+  // shouldn't bubble up to trigger close.
+  overlay.addEventListener('click', closeLightbox);
+  img.addEventListener('click', (e) => e.stopPropagation());
+  caption.addEventListener('click', (e) => e.stopPropagation());
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+
+  document.body.appendChild(overlay);
+  activeLightbox = overlay;
+  document.addEventListener('keydown', lightboxKeyHandler);
+
+  // Pause the marquee while lightbox is open; resume on close.
+  isMarqueeRunning = false;
+}
+
+function closeLightbox() {
+  if (!activeLightbox) return;
+  activeLightbox.remove();
+  activeLightbox = null;
+  document.removeEventListener('keydown', lightboxKeyHandler);
+  // Only resume if the carousel isn't currently hovered or being dragged.
+  if (!isHoverPaused && !dragState) resumeMarquee();
+}
+
+function lightboxKeyHandler(e) {
+  if (e.key === 'Escape') closeLightbox();
 }
 
 function renderCardGrid(cards) {
@@ -380,6 +685,31 @@ function animateEntrance() {
       delay: stagger(60, { start: 800 }),
       ease: 'outBack',
     });
+  }
+
+  // Art carousel: fade the whole section in, then kick off the marquee.
+  const carouselSection = document.getElementById('art-carousel-section');
+  if (carouselSection && carouselSection.style.display !== 'none') {
+    animate('.art-carousel-section', {
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 600,
+      delay: 900,
+      ease: 'outQuad',
+    });
+    // Slides themselves zoom in slightly before the marquee starts moving.
+    const slides = document.querySelectorAll('.art-carousel-slide');
+    if (slides.length) {
+      animate(slides, {
+        opacity: [0, 1],
+        scale: [0.85, 1],
+        duration: 500,
+        delay: stagger(40, { start: 1000 }),
+        ease: 'outQuad',
+      });
+    }
+    // Defer the marquee until the entrance animations clear.
+    setTimeout(() => { startMarquee(); }, 1800);
   }
 
   // Card tiles stagger in from the grid center.

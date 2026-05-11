@@ -73,6 +73,128 @@
     padding: 3px 10px; font-size: 0.95em; font-weight: bold;
   }
 
+  /* ART CAROUSEL */
+  .art-carousel-section {
+    margin: 22px 0;
+    border-top: 2px dashed #FF00FF;
+    border-bottom: 2px dashed #FF00FF;
+    padding: 10px 0;
+    background: rgba(0, 0, 0, 0.45);
+  }
+  .art-carousel-label {
+    color: #FF00FF; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.18em;
+    text-align: center; margin: 0 0 8px;
+  }
+  .art-carousel {
+    overflow: hidden;
+    width: 100%;
+    height: 220px;
+    position: relative;
+    padding: 6px 0;  /* breathing room so drop-shadow + ridge don't clip */
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-y;  /* allow vertical page scroll, capture horizontal */
+  }
+  .art-carousel.is-dragging { cursor: grabbing; }
+  .art-carousel-track {
+    display: flex;
+    gap: 16px;
+    height: 100%;
+    width: max-content;
+    will-change: transform;
+    align-items: center;
+  }
+  .art-carousel-slide img { pointer-events: none; -webkit-user-drag: none; }
+
+  /* LIGHTBOX */
+  .lightbox-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px;
+    padding: 32px;
+    cursor: zoom-out;
+    animation: lightbox-fade-in 0.25s ease;
+  }
+  @keyframes lightbox-fade-in {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  .lightbox-image {
+    max-width: min(95vw, 1400px);
+    max-height: 80vh;
+    border: 4px ridge #FFFF00;
+    box-shadow: 0 0 32px rgba(255, 0, 255, 0.5),
+                0 0 60px rgba(255, 255, 0, 0.25);
+    background: #111;
+    display: block;
+  }
+  .lightbox-caption {
+    color: #FFFF00; text-align: center;
+    font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+    text-shadow: 2px 2px 0 #000;
+  }
+  .lightbox-caption .lb-name {
+    font-size: 1.5em; font-weight: bold; display: block; margin-bottom: 4px;
+  }
+  .lightbox-caption .lb-artist { color: #00FFFF; font-style: italic; }
+  .lightbox-caption .lb-meta { color: #AAA; font-size: 0.85em; margin-top: 6px; display: block; }
+  .lightbox-close {
+    position: absolute; top: 18px; right: 24px;
+    background: #FF00FF; color: #FFFF00;
+    border: 3px outset #FFFF00;
+    font-family: inherit; font-size: 1.4em; font-weight: bold;
+    width: 44px; height: 44px;
+    cursor: pointer; line-height: 1;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .lightbox-close:hover { background: #FFFF00; color: #FF00FF; }
+  .art-carousel-slide {
+    flex: 0 0 auto;
+    height: 100%;
+    aspect-ratio: 626 / 457;
+    border: 3px ridge #FFFF00;
+    background: #111;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;  /* keep border inside the height allocation */
+    box-shadow:
+      4px 4px 0 #000,
+      0 0 14px rgba(255, 0, 255, 0.45);
+    transition: transform 0.22s ease, box-shadow 0.22s ease,
+                border-color 0.22s ease, filter 0.22s ease;
+    cursor: pointer;
+    filter: saturate(0.92);
+  }
+  .art-carousel-slide:hover,
+  .art-carousel-slide:focus-visible {
+    transform: translateY(-6px) scale(1.04);
+    border-color: #FF00FF;
+    box-shadow:
+      6px 8px 0 #000,
+      0 0 22px rgba(255, 255, 0, 0.6),
+      0 0 30px rgba(255, 0, 255, 0.45);
+    filter: saturate(1.15) brightness(1.06);
+    z-index: 3;
+  }
+  .art-carousel-slide:active {
+    transform: translateY(-2px) scale(1.02);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .art-carousel-slide img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  .art-carousel-slide .slide-caption {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.88) 30%, rgba(0,0,0,0));
+    color: #FFFF00; font-size: 0.8em;
+    padding: 22px 10px 8px; text-align: left;
+    text-shadow: 1px 1px 0 #000;
+    pointer-events: none;
+  }
+  .art-carousel-slide .slide-caption .slide-name { font-weight: bold; display: block; }
+  .art-carousel-slide .slide-caption .slide-artist { color: #00FFFF; font-style: italic; font-size: 0.9em; }
+
   /* CARD GRID */
   .grid-section-label {
     color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.15em;
@@ -275,6 +397,13 @@
   <div class="anchors-row">
     <div class="anchors-label">Anchor tags</div>
     <div id="anchor-tags"></div>
+  </div>
+
+  <div class="art-carousel-section" id="art-carousel-section">
+    <div class="art-carousel-label">the art alone</div>
+    <div class="art-carousel">
+      <div class="art-carousel-track" id="art-carousel-track"></div>
+    </div>
   </div>
 
   <div class="grid-section-label" id="grid-label">The bundle</div>
