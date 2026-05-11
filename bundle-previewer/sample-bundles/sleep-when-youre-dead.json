@@ -1,20 +1,23 @@
 {
-  "schema_version": "0.1",
+  "schema_version": "0.2",
   "title": "Sleep when you're dead",
   "subtitle": "for the figures who never stop working",
-  "narrative": "The card art is honest about who pays. The inventor slumped over the workbench at 3am. The servant scrubbing greatness's floor. The tax-collector knocking with armed escort. The cultist channeling a ritual she didn't write. The vow-monks with their mouths stitched shut so they don't ruin the ceremony. Most TCG art treats labor as backdrop ornament — ambient unfreedom you're meant to look past. This bundle puts the backdrop in the foreground. Six cards. Six people working past the point you'd say sleep, if anyone was asking.",
+  "narrative": "The card art is honest about who pays. The mind being eaten alive by parasitic demands. The servant scrubbing greatness's floor. The tax-collector knocking with armed escort. The cultist channeling a ritual she didn't write. The vow-monks with their mouths stitched shut so they don't ruin the ceremony. Most TCG art treats labor as backdrop ornament — ambient unfreedom you're meant to look past. This bundle puts the backdrop in the foreground. Six cards. Six people working past the point you'd say sleep, if anyone was asking.",
   "hubs": ["labor"],
   "anchor_tags": ["labor", "exhaustion", "servant", "drudgery"],
-  "intent_tags": ["labor", "exhaustion", "servant", "drudgery", "tax-collector", "scrubbing", "burnout", "vow", "ritual", "captive", "coercion", "robed-figure", "hooded-figure"],
+  "intent_tags": ["labor", "exhaustion", "servant", "drudgery", "tax-collector", "scrubbing", "burnout", "vow", "ritual", "captive", "coercion", "robed-figure", "hooded-figure", "body-horror"],
   "cards": [
     {
       "name": "Mind Rot",
       "set": "Mystery Booster Cards",
       "collector_number": "7",
       "image_url": "https://cards.scryfall.io/png/front/2/8/284afe0e-0e0e-44eb-ad75-08d4b6fc338d.png",
-      "tags_matched": ["inventor", "burnout", "exhaustion", "labor"],
-      "why_it_fits": "Sea McKenzie's M21 art: an inventor face-down on the workbench, tools scattered, work unfinished. The most literal labor-collapse depiction in the corpus. Anchor card.",
-      "qty_in_bundle": 1
+      "tags_matched": ["body-horror", "burnout", "exhaustion", "labor"],
+      "why_it_fits": "Steve Luke's Welcome Deck 2016 art (reprinted via The List in Mystery Booster): a figure screaming as vines and parasitic growths erupt from their skull. The labor register here is body-horror — what burnout looks like when rendered as physiology. The parasitic growths are the deadlines that won't stop arriving. Anchor card.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.20,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
     },
     {
       "name": "Wicked Guardian",
@@ -23,7 +26,10 @@
       "image_url": "https://cards.scryfall.io/png/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.png",
       "tags_matched": ["servant", "labor", "hierarchy", "scrubbing"],
       "why_it_fits": "Flavor text: \"Some are born to greatness. You were born to scrub greatness's floors.\" The noble stands; the servant scrubs. The art renders class violence as house cleaning. Counter-anchor card.",
-      "qty_in_bundle": 1
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.07,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
     },
     {
       "name": "Charity Extractor",
@@ -32,7 +38,10 @@
       "image_url": "https://cards.scryfall.io/png/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.png",
       "tags_matched": ["tax-collector", "labor", "coercion", "armor"],
       "why_it_fits": "Two fully-armored knights with polearms, faces hidden under plate. The card title says it all — \"extracting charity\" is the medieval euphemism for armed taxation. The labor here is the obligation, not the depicted figures.",
-      "qty_in_bundle": 1
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.04,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
     },
     {
       "name": "Deafening Silence",
@@ -41,7 +50,10 @@
       "image_url": "https://cards.scryfall.io/png/front/6/0/6072d9b0-d3c7-46f4-bd24-095bb13c4dea.png",
       "tags_matched": ["vow", "ritual", "robed-figure", "monks"],
       "why_it_fits": "Three robed monks with their mouths literally stitched shut. The labor is consent under duress — a vow that punishes the body for speaking. Reads as ambient horror at first, as institutional discipline on second look.",
-      "qty_in_bundle": 1
+      "qty_in_bundle": 1,
+      "market_price_usd": 2.50,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
     },
     {
       "name": "Discordant Piper",
@@ -50,7 +62,10 @@
       "image_url": "https://cards.scryfall.io/png/front/a/8/a8cce294-f6ee-4b18-8b65-7d01d0317b00.png",
       "tags_matched": ["satyr", "musician", "undead", "ritual"],
       "why_it_fits": "Undead satyr piping in the underworld. The labor extends past death — the musician still has to play. Read as wage-bondage's logical conclusion: even dying doesn't end the shift.",
-      "qty_in_bundle": 1
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.10,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
     },
     {
       "name": "Crush Dissent",
@@ -59,7 +74,10 @@
       "image_url": "https://cards.scryfall.io/png/front/9/4/94c70f23-0ca9-425e-a53a-6c09921c0075.png",
       "tags_matched": ["oppression", "coercion", "silencing", "imperial"],
       "why_it_fits": "Negative-space framing — included not because the figure here is laboring but because the bundle needs to show what gets done TO people who organize. Flavor: \"All is simple in obedience. — Nicol Bolas.\" The boot, not the foot.",
-      "qty_in_bundle": 1
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.24,
+      "market_price_as_of": "2026-05-10",
+      "market_price_source": "collectr"
     }
   ],
   "cohesion": {
@@ -69,13 +87,30 @@
     "color_identities_present": ["mono-black", "mono-white", "multicolor-white-black", "mono-blue"],
     "set_diversity": ["Mystery Booster Cards", "Throne of Eldraine", "War of the Spark", "Theros Beyond Death"]
   },
+  "pricing": {
+    "card_value_subtotal_usd": 3.15,
+    "labor_and_sleeve_per_card_usd": 0.10,
+    "labor_and_sleeve_total_usd": 0.60,
+    "cost_basis_usd": 3.75,
+    "diy_seller_count_estimate": 2,
+    "diy_shipping_per_seller_usd": 1.50,
+    "diy_alternative_usd": 6.15,
+    "diy_alternative_note": "Assumes 2-3 TCGplayer sellers covering the list at plain-envelope rates. Realistic floor; could be higher if cards spread across more sellers.",
+    "bundle_price_floor_usd": 5.00,
+    "bundle_list_price_usd": 5.00,
+    "shipping_policy": "buyer-paid, itemized separately at checkout; never included in list price",
+    "estimated_shipping_usd": 1.50,
+    "narrative_premium_usd": 1.25,
+    "buyer_savings_vs_diy_usd": 1.15,
+    "buyer_savings_vs_diy_pct": 19,
+    "premium_justification": "The $1.25 above cost basis pays for the writing, the framing, the thesis. The buyer is not buying $3.15 of cards — they're buying a zine with cards stapled in."
+  },
   "metadata": {
     "generated_by": "manual-curation-v0",
     "generated_at": "2026-05-11",
     "edition_size": "1 of 1",
-    "price_floor_usd": 25,
     "card_count": 6,
-    "rarity_distribution": {"common": 4, "uncommon": 2, "rare": 0, "mythic": 0},
-    "notes": "First sample bundle for the previewer. Cards chosen from the 630-enriched BBL corpus by hand to validate the Sleep-when-you're-dead narrative seed. Real lair architect will generate JSON of this shape."
+    "rarity_distribution": {"common": 5, "uncommon": 1, "rare": 0, "mythic": 0},
+    "notes": "First sample bundle for the previewer. Cards chosen from the 630-enriched BBL corpus by hand to validate the Sleep-when-you're-dead narrative seed. Real lair architect (`bbl-bundler` subagent, spec-only as of 2026-05-11) will generate JSON of this shape."
   }
 }

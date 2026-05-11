@@ -62,6 +62,7 @@ function render(bundle) {
   renderAnchorTags(bundle.anchor_tags || []);
   renderCardGrid(bundle.cards || []);
   renderCohesion(bundle.cohesion || {});
+  renderPricing(bundle.pricing || null);
   renderMetadata(bundle.metadata || {}, (bundle.cards || []).length);
 
   // Entrance animations after DOM is populated.
@@ -137,7 +138,11 @@ function renderCardGrid(cards) {
 
     const meta = document.createElement('div');
     meta.className = 'card-meta';
-    meta.textContent = [card.set, card.collector_number && `#${card.collector_number}`].filter(Boolean).join(' · ');
+    const metaParts = [card.set, card.collector_number && `#${card.collector_number}`].filter(Boolean);
+    if (card.market_price_usd != null) {
+      metaParts.push(`mkt ${fmtUsd(card.market_price_usd)}`);
+    }
+    meta.textContent = metaParts.join(' · ');
     tile.appendChild(meta);
 
     if (card.tags_matched && card.tags_matched.length) {
@@ -181,6 +186,52 @@ function renderCohesion(c) {
   if (!(c.palette_hex || []).length) {
     paletteEl.textContent = '(unset)';
   }
+}
+
+function renderPricing(p) {
+  const panel = document.getElementById('pricing-panel');
+  const tableEl = document.getElementById('pricing-table');
+  const justEl = document.getElementById('pricing-justification');
+  const shipEl = document.getElementById('pricing-shipping-note');
+  if (!p) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+  tableEl.innerHTML = '';
+  const rows = [
+    { label: 'Card value subtotal', value: fmtUsd(p.card_value_subtotal_usd), cls: '' },
+    { label: 'Labor + sleeve (' + fmtUsd(p.labor_and_sleeve_per_card_usd) + ' × cards)', value: fmtUsd(p.labor_and_sleeve_total_usd), cls: 'subtle' },
+    { label: 'Cost basis', value: fmtUsd(p.cost_basis_usd), cls: 'subtle' },
+    { label: 'DIY alternative (TCGplayer w/ ' + (p.diy_seller_count_estimate || '?') + ' sellers × ' + fmtUsd(p.diy_shipping_per_seller_usd) + ' ship)', value: fmtUsd(p.diy_alternative_usd), cls: 'subtle' },
+    { label: 'Bundle list price (floor ' + fmtUsd(p.bundle_price_floor_usd || 5) + ')', value: fmtUsd(p.bundle_list_price_usd), cls: 'headline' },
+    { label: 'Narrative premium (curation labor)', value: fmtUsd(p.narrative_premium_usd), cls: '' },
+    { label: 'Buyer savings vs DIY', value: fmtUsd(p.buyer_savings_vs_diy_usd) + (p.buyer_savings_vs_diy_pct != null ? '  (' + p.buyer_savings_vs_diy_pct + '%)' : ''), cls: 'savings' },
+  ];
+  rows.forEach(r => {
+    if (r.value === '$NaN' || r.value === '$undefined') return;
+    const tr = document.createElement('tr');
+    if (r.cls) tr.className = r.cls;
+    const lt = document.createElement('td'); lt.className = 'label'; lt.textContent = r.label;
+    const vt = document.createElement('td'); vt.className = 'value'; vt.textContent = r.value;
+    tr.appendChild(lt); tr.appendChild(vt); tableEl.appendChild(tr);
+  });
+
+  justEl.textContent = p.premium_justification || '';
+  justEl.style.display = p.premium_justification ? '' : 'none';
+
+  const shipParts = [];
+  if (p.shipping_policy) shipParts.push(p.shipping_policy);
+  if (p.estimated_shipping_usd != null) shipParts.push('est. ' + fmtUsd(p.estimated_shipping_usd) + ' PWE');
+  shipEl.textContent = shipParts.length ? ('+ shipping — ' + shipParts.join(' · ')) : '';
+  shipEl.style.display = shipParts.length ? '' : 'none';
+}
+
+function fmtUsd(n) {
+  if (n === null || n === undefined || n === '') return '';
+  const num = typeof n === 'number' ? n : parseFloat(n);
+  if (!isFinite(num)) return '';
+  return '$' + num.toFixed(2);
 }
 
 function renderMetadata(m, cardCount) {
@@ -259,7 +310,7 @@ function animateEntrance() {
     });
   }
 
-  // Cohesion panel slide-up.
+  // Cohesion + pricing panels slide-up in sequence.
   animate('.cohesion', {
     opacity: [0, 1],
     translateY: [20, 0],
@@ -267,6 +318,16 @@ function animateEntrance() {
     delay: 1400,
     ease: 'outQuad',
   });
+
+  if (document.getElementById('pricing-panel').style.display !== 'none') {
+    animate('.pricing', {
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 500,
+      delay: 1600,
+      ease: 'outQuad',
+    });
+  }
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
