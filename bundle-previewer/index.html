@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' https://cards.scryfall.io data:;">
-<title>BBL Bundle Previewer</title>
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' https://cards.scryfall.io https://archives.bulbagarden.net https://images.pokemontcg.io data:;">
+<title>Discrete Lairs · BBL Catalog</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000080'/%3E%3Ctext x='8' y='12' font-size='10' text-anchor='middle' fill='%23FFFF00' font-family='monospace'%3E%E2%9C%82%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -28,405 +28,221 @@
   }
 
   /* HERO */
-  .hero { text-align: center; padding: 16px 8px 24px; border-bottom: 3px dashed #00FFFF; margin-bottom: 24px; }
-  .catalog-line {
+  .hero {
+    text-align: center;
+    padding: 16px 8px 26px;
+    border-bottom: 3px dashed #00FFFF;
+    margin-bottom: 24px;
+  }
+  .label-line {
     color: #AAA; font-size: 0.85em; letter-spacing: 0.2em;
     text-transform: uppercase; margin: 0 0 6px;
   }
-  .catalog-line .series-label { color: #FF00FF; }
-  .catalog-line .catalog-id { color: #00FFFF; }
-  .hub-badges {
-    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
-  }
-  .hub-badge {
-    background: #FF00FF; color: #FFFF00;
-    border: 2px outset #FFFF00;
-    padding: 4px 12px; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.1em;
-    box-shadow: 2px 2px 0 #000;
-  }
+  .label-line .label { color: #FF00FF; }
   .title {
-    font-size: 3.2em; line-height: 1.05;
-    color: #FFFF00; text-shadow: 4px 4px 0 #FF0000, 8px 8px 0 #000;
+    font-size: 3.4em; line-height: 1.0;
+    color: #FFFF00;
+    text-shadow: 4px 4px 0 #FF0000, 8px 8px 0 #000;
     margin: 8px 0 4px; font-weight: bold;
+    letter-spacing: 0.04em;
   }
-  .title .char { display: inline-block; }
   .subtitle {
-    font-size: 1.2em; color: #00FFFF; font-style: italic;
-    margin: 0 0 18px;
+    color: #00FFFF; font-style: italic;
+    margin: 8px 0 18px; font-size: 1.05em;
   }
-  .narrative {
-    color: #FFFFFF; font-size: 1.05em; line-height: 1.55;
-    max-width: 780px; margin: 0 auto;
+  .tagline {
+    color: #FFFFFF; font-size: 1.0em; line-height: 1.55;
+    max-width: 760px; margin: 0 auto;
     text-align: left;
-    background: rgba(0, 0, 0, 0.35); padding: 14px 18px; border-left: 4px solid #FF00FF;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 14px 18px;
+    border-left: 4px solid #FF00FF;
   }
+  .tagline strong { color: #FFFF00; }
+  .tagline em { color: #00FFFF; font-style: italic; }
 
-  /* ANCHOR TAGS */
-  .anchors-row {
-    text-align: center; margin: 18px 0;
+  /* LAIR GRID */
+  .grid-label {
+    color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.18em;
+    text-align: center; margin: 28px 0 14px;
   }
-  .anchors-label { color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 6px; }
-  .anchor-tag {
-    display: inline-block; margin: 3px 4px;
-    background: #00FF00; color: #000080;
-    border: 2px outset #FFFFFF;
-    padding: 3px 10px; font-size: 0.95em; font-weight: bold;
-  }
-
-  /* ART CAROUSEL */
-  .art-carousel-section {
-    margin: 22px 0;
-    border-top: 2px dashed #FF00FF;
-    border-bottom: 2px dashed #FF00FF;
-    padding: 10px 0;
-    background: rgba(0, 0, 0, 0.45);
-  }
-  .art-carousel-label {
-    color: #FF00FF; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.18em;
-    text-align: center; margin: 0 0 8px;
-  }
-  .art-carousel {
-    overflow: hidden;
-    width: 100%;
-    height: 220px;
-    position: relative;
-    padding: 6px 0;  /* breathing room so drop-shadow + ridge don't clip */
-    cursor: grab;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: pan-y;  /* allow vertical page scroll, capture horizontal */
-  }
-  .art-carousel.is-dragging { cursor: grabbing; }
-  .art-carousel-track {
-    display: flex;
-    gap: 16px;
-    height: 100%;
-    width: max-content;
-    will-change: transform;
-    align-items: center;
-  }
-  .art-carousel-slide img { pointer-events: none; -webkit-user-drag: none; }
-
-  /* LIGHTBOX */
-  .lightbox-overlay {
-    position: fixed; inset: 0; z-index: 9999;
-    background: rgba(0, 0, 0, 0.92);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 14px;
-    padding: 32px;
-    cursor: zoom-out;
-    animation: lightbox-fade-in 0.25s ease;
-  }
-  @keyframes lightbox-fade-in {
-    from { opacity: 0; } to { opacity: 1; }
-  }
-  .lightbox-image {
-    max-width: min(95vw, 1400px);
-    max-height: 80vh;
-    border: 4px ridge #FFFF00;
-    box-shadow: 0 0 32px rgba(255, 0, 255, 0.5),
-                0 0 60px rgba(255, 255, 0, 0.25);
-    background: #111;
-    display: block;
-  }
-  .lightbox-caption {
-    color: #FFFF00; text-align: center;
-    font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
-    text-shadow: 2px 2px 0 #000;
-  }
-  .lightbox-caption .lb-name {
-    font-size: 1.5em; font-weight: bold; display: block; margin-bottom: 4px;
-  }
-  .lightbox-caption .lb-artist { color: #00FFFF; font-style: italic; }
-  .lightbox-caption .lb-meta { color: #AAA; font-size: 0.85em; margin-top: 6px; display: block; }
-  .lightbox-close {
-    position: absolute; top: 18px; right: 24px;
-    background: #FF00FF; color: #FFFF00;
-    border: 3px outset #FFFF00;
-    font-family: inherit; font-size: 1.4em; font-weight: bold;
-    width: 44px; height: 44px;
-    cursor: pointer; line-height: 1;
-    box-shadow: 3px 3px 0 #000;
-  }
-  .lightbox-close:hover { background: #FFFF00; color: #FF00FF; }
-  .art-carousel-slide {
-    flex: 0 0 auto;
-    height: 100%;
-    aspect-ratio: 626 / 457;
-    border: 3px ridge #FFFF00;
-    background: #111;
-    overflow: hidden;
-    position: relative;
-    box-sizing: border-box;  /* keep border inside the height allocation */
-    box-shadow:
-      4px 4px 0 #000,
-      0 0 14px rgba(255, 0, 255, 0.45);
-    transition: transform 0.22s ease, box-shadow 0.22s ease,
-                border-color 0.22s ease, filter 0.22s ease;
-    cursor: pointer;
-    filter: saturate(0.92);
-  }
-  .art-carousel-slide:hover,
-  .art-carousel-slide:focus-visible {
-    transform: translateY(-6px) scale(1.04);
-    border-color: #FF00FF;
-    box-shadow:
-      6px 8px 0 #000,
-      0 0 22px rgba(255, 255, 0, 0.6),
-      0 0 30px rgba(255, 0, 255, 0.45);
-    filter: saturate(1.15) brightness(1.06);
-    z-index: 3;
-  }
-  .art-carousel-slide:active {
-    transform: translateY(-2px) scale(1.02);
-    transition: transform 0.08s ease, box-shadow 0.08s ease;
-  }
-  .art-carousel-slide img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
-  }
-  .art-carousel-slide .slide-caption {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.88) 30%, rgba(0,0,0,0));
-    color: #FFFF00; font-size: 0.8em;
-    padding: 22px 10px 8px; text-align: left;
-    text-shadow: 1px 1px 0 #000;
-    pointer-events: none;
-  }
-  .art-carousel-slide .slide-caption .slide-name { font-weight: bold; display: block; }
-  .art-carousel-slide .slide-caption .slide-artist { color: #00FFFF; font-style: italic; font-size: 0.9em; }
-
-  /* CARD GRID */
-  .grid-section-label {
-    color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.15em;
-    text-align: center; margin: 28px 0 12px;
-  }
-  .card-grid {
+  .lair-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 22px;
     margin: 0 0 24px;
   }
-  .card-tile {
+  .lair-tile {
     background: #FFFAF0; color: #000;
-    border: 4px ridge #FFFF00;
-    padding: 12px;
-    display: flex; flex-direction: column; gap: 8px;
-    transform-origin: center;
-  }
-  .card-tile img {
-    width: 100%; aspect-ratio: 488 / 680; object-fit: cover;
-    background: #DDD;
-    border: 2px solid #000;
-    display: block;
-  }
-  .card-name { font-size: 1.15em; font-weight: bold; color: #800000; margin: 0; }
-  .card-meta { font-size: 0.85em; color: #444; font-style: italic; }
-  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-  .card-tag {
-    background: #FFFF00; color: #000; font-size: 0.75em;
-    padding: 1px 6px; border: 1px solid #800000;
-  }
-  .why-it-fits {
-    background: #FFE4E1; border-left: 3px solid #FF0000;
-    padding: 8px 10px; font-size: 0.9em; color: #200;
-    line-height: 1.45; margin-top: 4px;
-  }
-  .qty-pill {
-    align-self: flex-start;
-    background: #000080; color: #FFFF00;
-    font-size: 0.75em; padding: 2px 8px;
-    border: 1px solid #FFFF00;
-  }
-
-  /* COHESION PANEL */
-  .cohesion {
-    background: rgba(0, 0, 0, 0.4); border: 2px dashed #00FFFF;
-    padding: 16px 20px; margin-top: 24px;
-  }
-  .cohesion h3 {
-    color: #FF00FF; font-size: 1.1em; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.1em;
-  }
-  .cohesion-row { display: flex; align-items: center; gap: 12px; margin: 6px 0; flex-wrap: wrap; }
-  .cohesion-label { color: #00FFFF; min-width: 80px; font-size: 0.9em; }
-  .cohesion-value { color: #FFFFFF; font-size: 0.95em; }
-  .palette { display: inline-flex; gap: 4px; }
-  .swatch {
-    width: 28px; height: 28px; border: 2px solid #FFFFFF;
-    display: inline-block;
-  }
-
-  /* CHECKOUT BUTTON */
-  .checkout-row {
-    margin-top: 14px; padding-top: 14px;
-    border-top: 2px dotted #00FF00;
-    text-align: center;
-  }
-  .buy-button {
-    display: inline-block;
-    background: #00FF00; color: #000080;
-    font-family: inherit; font-size: 1.25em; font-weight: bold;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    padding: 12px 32px;
-    border: 3px outset #FFFF00;
-    text-decoration: none;
+    border: 5px ridge #FFFF00;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 10px;
     cursor: pointer;
-    box-shadow: 4px 4px 0 #000;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
-  .buy-button:hover {
-    background: #FFFF00;
-    color: #000080;
+    box-shadow: 5px 5px 0 #000, 0 0 18px rgba(255, 0, 255, 0.35);
+    transition: transform 0.2s ease, box-shadow 0.2s ease,
+                border-color 0.2s ease, filter 0.2s ease;
     text-decoration: none;
-    transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0 #000;
   }
-  .buy-button:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 #000;
+  .lair-tile:hover,
+  .lair-tile:focus-visible {
+    transform: translateY(-4px) scale(1.015);
+    border-color: #FF00FF;
+    box-shadow: 7px 9px 0 #000, 0 0 28px rgba(255, 255, 0, 0.55);
+    filter: brightness(1.04);
+    background: white;
+    text-decoration: none;
   }
-  .buy-button-disabled {
-    display: inline-block;
-    background: #444; color: #888;
-    font-family: inherit; font-size: 1em;
-    padding: 10px 24px;
-    border: 2px solid #666;
-    cursor: not-allowed;
+  .lair-tile:active {
+    transform: translateY(-1px) scale(1.005);
+    box-shadow: 3px 4px 0 #000;
   }
-  .checkout-meta {
-    margin-top: 8px; color: #AAA; font-size: 0.85em; font-style: italic;
+  .lair-catalog-id {
+    color: #800000; font-size: 0.78em; font-weight: bold;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    margin: 0;
   }
-  .checkout-secured {
-    margin-top: 4px; color: #00FFFF; font-size: 0.8em;
+  .lair-title {
+    color: #000080; font-size: 2em; font-weight: bold;
+    margin: 0; line-height: 1.05;
+    text-shadow: 2px 2px 0 #FFFF00;
   }
-
-  /* PRICING */
-  .pricing {
-    background: rgba(0, 0, 0, 0.5); border: 3px ridge #00FF00;
-    padding: 16px 20px; margin-top: 22px;
+  .lair-subtitle {
+    color: #400; font-style: italic; font-size: 1.05em;
+    margin: 0;
   }
-  .pricing h3 {
-    color: #00FF00; font-size: 1.15em; margin: 0 0 12px;
+  .lair-hubs {
+    display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 6px;
+  }
+  .lair-hub-badge {
+    background: #FF00FF; color: #FFFF00;
+    border: 2px outset #FFFF00;
+    padding: 2px 10px; font-size: 0.78em;
     text-transform: uppercase; letter-spacing: 0.1em;
   }
-  .receipt {
-    font-family: "Courier New", "Lucida Console", monospace;
-    font-size: 0.95em;
+  .lair-anchors {
+    color: #444; font-size: 0.85em; line-height: 1.4;
+    margin: 0;
   }
-  .receipt-section {
-    color: #00FFFF; font-size: 0.78em; text-transform: uppercase;
-    letter-spacing: 0.18em; margin: 10px 0 4px;
+  .lair-anchors .anchor-pill {
+    display: inline-block;
+    background: #FFFF99; color: #000080;
+    border: 1px solid #800000;
+    padding: 1px 7px; margin: 1px 2px 1px 0;
+    font-size: 0.85em;
   }
-  .receipt-row {
+  .lair-blurb {
+    color: #200; font-size: 0.94em; line-height: 1.5;
+    margin: 4px 0;
+    background: #FFF7E0; border-left: 3px solid #FF0000;
+    padding: 8px 10px;
+  }
+  .lair-thumbnails {
+    display: flex; gap: 6px; margin: 4px 0 2px;
+    overflow: hidden;
+  }
+  .lair-thumbnails img {
+    width: 25%; aspect-ratio: 626 / 457; object-fit: cover;
+    border: 2px solid #000; background: #DDD;
+  }
+  .lair-meta {
     display: flex; justify-content: space-between; align-items: baseline;
-    padding: 3px 0; color: #FFFFFF; gap: 12px;
+    color: #200; font-size: 0.9em;
+    border-top: 1px dotted #800000;
+    padding-top: 8px; margin-top: 4px;
   }
-  .receipt-row.subtle { color: #AAA; font-size: 0.88em; padding-left: 14px; }
-  .receipt-row.subtotal { color: #FFFFFF; padding-top: 5px; border-top: 1px dotted #555; margin-top: 2px; }
-  .receipt-row.headline {
-    color: #FFFF00; font-weight: bold; font-size: 1.18em;
-    padding: 10px 0;
-    border-top: 2px solid #FFFF00; border-bottom: 2px solid #FFFF00;
-    margin: 10px 0;
+  .lair-meta .lair-price {
+    color: #006000; font-weight: bold; font-size: 1.2em;
   }
-  .receipt-row.savings { color: #00FF00; font-weight: bold; }
-  .receipt-label { flex: 1; }
-  .receipt-value { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .pricing-justification {
-    margin-top: 12px; padding: 10px 12px;
-    background: rgba(255, 0, 255, 0.12); border-left: 3px solid #FF00FF;
-    color: #FFE4FF; font-size: 0.92em; font-style: italic; line-height: 1.5;
-  }
-  .pricing-shipping-note {
-    margin-top: 8px; color: #FFFF00; font-size: 0.85em; text-align: right; font-style: italic;
+  .lair-meta .lair-cta {
+    color: #800080; text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 0.8em; font-weight: bold;
   }
 
-  /* METADATA */
-  .metadata {
-    margin-top: 18px; padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.25); border-top: 2px dotted #FFFF00;
-    font-size: 0.85em; color: #AAA;
+  /* EMPTY STATE / LOADING */
+  .loading {
+    text-align: center; color: #00FFFF; font-style: italic;
+    padding: 40px 0;
   }
-  .metadata strong { color: #FFFF00; }
-
-  /* LOAD CONTROLS */
-  .load-controls {
-    text-align: center; margin: 0 0 20px; padding: 8px 0;
-    border-bottom: 1px dotted #00FFFF;
-  }
-  .load-controls label {
-    color: #00FFFF; font-size: 0.9em; margin-right: 8px;
-  }
-  .load-controls input[type="file"] {
-    color: #FFFF00; background: #000080; border: 2px ridge #FFFF00; padding: 4px;
-    font-family: inherit; font-size: 0.9em;
+  .empty {
+    text-align: center; color: #FFAA00;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px dashed #FFAA00;
   }
   .error {
-    color: #FF8888; background: rgba(80,0,0,0.5); padding: 8px 12px;
+    color: #FF8888; background: rgba(80,0,0,0.5); padding: 12px;
     border: 2px solid #FF0000; margin: 12px 0;
   }
 
+  /* PRODUCTION NOTE */
+  .production-note {
+    margin-top: 28px; padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 2px dashed #FF00FF;
+    color: #AAA; font-size: 0.9em; line-height: 1.5;
+  }
+  .production-note strong { color: #FFFF00; }
+
+  /* DEV TOOLS — file picker for one-off bundle preview */
+  .dev-tools {
+    margin-top: 18px; padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.25);
+    border-top: 1px dotted #FFFF00;
+    color: #AAA; font-size: 0.85em;
+    text-align: center;
+  }
+  .dev-tools label { color: #00FFFF; margin-right: 6px; }
+  .dev-tools input[type="file"] {
+    color: #FFFF00; background: #000080; border: 2px ridge #FFFF00; padding: 3px;
+    font-family: inherit; font-size: 0.85em;
+  }
+
   /* FOOTER NAV */
-  .footer-nav { text-align: center; margin-top: 22px; padding: 12px 0 4px; border-top: 1px solid #00FFFF; }
+  .footer-nav {
+    text-align: center; margin-top: 22px; padding: 12px 0 4px;
+    border-top: 1px solid #00FFFF;
+  }
   .footer-nav a { font-size: 0.9em; }
 
   @media (max-width: 600px) {
-    .title { font-size: 2.2em; }
+    .title { font-size: 2.4em; }
     .container { padding: 14px; }
+    .lair-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <div class="load-controls">
-    <label for="bundle-file">Load a bundle JSON:</label>
-    <input type="file" id="bundle-file" accept=".json,application/json">
-    <span style="color:#888; font-size:0.85em; margin-left:8px;">(default: Tithe)</span>
+  <div class="hero">
+    <div class="label-line">
+      <span class="label">BBL</span> &middot; Catalog &middot; sandbox preview
+    </div>
+    <h1 class="title">DISCRETE LAIRS</h1>
+    <p class="subtitle">one-of-one curated bundles from the bulk pile</p>
+    <div class="tagline" id="tagline"></div>
+  </div>
+
+  <div class="grid-label" id="grid-label">Available now</div>
+  <div id="lair-grid" class="lair-grid">
+    <div class="loading">Loading the catalog…</div>
   </div>
 
   <div id="error-slot"></div>
 
-  <div class="hero">
-    <div class="catalog-line" id="catalog-line"></div>
-    <div class="hub-badges" id="hub-badges"></div>
-    <h1 class="title" id="title"></h1>
-    <p class="subtitle" id="subtitle"></p>
-    <div class="narrative" id="narrative"></div>
+  <div class="production-note">
+    <strong>What is this?</strong> Bulk Graph Bundler (BBL) is a curation project that pulls
+    trading-card singles from bulk inventory the rest of the market sells by weight, sorts
+    them by theme, and ships them as one-off Discrete Lairs. Each lair is a numbered SKU.
+    Numbers append-only; never reused. <strong>This page is a sandbox preview.</strong>
+    The commercial storefront will live on a different URL.
   </div>
 
-  <div class="anchors-row">
-    <div class="anchors-label">Anchor tags</div>
-    <div id="anchor-tags"></div>
+  <div class="dev-tools">
+    <label for="bundle-file">Dev: preview a one-off bundle JSON:</label>
+    <input type="file" id="bundle-file" accept=".json,application/json">
+    <span style="margin-left:6px;">(skips the catalog, opens the previewer directly)</span>
   </div>
-
-  <div class="art-carousel-section" id="art-carousel-section">
-    <div class="art-carousel-label">the art alone</div>
-    <div class="art-carousel">
-      <div class="art-carousel-track" id="art-carousel-track"></div>
-    </div>
-  </div>
-
-  <div class="grid-section-label" id="grid-label">The bundle</div>
-  <div class="card-grid" id="card-grid"></div>
-
-  <div class="cohesion" id="cohesion-panel">
-    <h3>Cohesion</h3>
-    <div class="cohesion-row"><span class="cohesion-label">Mood:</span><span class="cohesion-value" id="cohesion-mood"></span></div>
-    <div class="cohesion-row"><span class="cohesion-label">Register:</span><span class="cohesion-value" id="cohesion-register"></span></div>
-    <div class="cohesion-row"><span class="cohesion-label">Palette:</span><span class="palette" id="cohesion-palette"></span></div>
-    <div class="cohesion-row"><span class="cohesion-label">Sets:</span><span class="cohesion-value" id="cohesion-sets"></span></div>
-    <div class="cohesion-row"><span class="cohesion-label">Colors:</span><span class="cohesion-value" id="cohesion-colors"></span></div>
-  </div>
-
-  <div class="pricing" id="pricing-panel">
-    <h3>Pricing &mdash; show the receipts</h3>
-    <div class="receipt" id="receipt"></div>
-    <div class="pricing-justification" id="pricing-justification"></div>
-    <div class="pricing-shipping-note" id="pricing-shipping-note"></div>
-    <div class="checkout-row" id="checkout-row"></div>
-  </div>
-
-  <div class="metadata" id="metadata"></div>
 
   <div class="footer-nav">
     <a href="../index.html">← back to {Diamond Legendz}</a>
@@ -436,9 +252,6 @@
 
 </div>
 
-<!-- Bundle JSON gets loaded by app.js. Default sample lives at
-     sample-bundles/sleep-when-youre-dead.json. -->
-<script id="default-bundle-path" type="application/json">"sample-bundles/tithe.json"</script>
-<script type="module" src="app.js"></script>
+<script type="module" src="hub.js"></script>
 </body>
 </html>

@@ -8,7 +8,25 @@ import { animate, stagger } from '../facets/vendor/anime.esm.min.js';
 
 // ── Bundle loading ─────────────────────────────────────────────────────────
 
-const defaultPath = JSON.parse(document.getElementById('default-bundle-path').textContent);
+// Pick the bundle to load: prefer `?lair=<slug>` from the URL (hub-page link),
+// fall back to the page's inline default-bundle-path script tag. Slug is
+// constrained to [a-z0-9-] to keep the path build safe from injection.
+function resolveBundlePath() {
+  const params = new URLSearchParams(window.location.search);
+  const lair = params.get('lair');
+  if (lair && /^[a-z0-9-]+$/.test(lair)) {
+    return `sample-bundles/${lair}.json`;
+  }
+  const fallbackTag = document.getElementById('default-bundle-path');
+  if (fallbackTag) {
+    try {
+      return JSON.parse(fallbackTag.textContent);
+    } catch (_) { /* fall through */ }
+  }
+  return 'sample-bundles/tithe.json';
+}
+
+const defaultPath = resolveBundlePath();
 
 async function loadDefaultBundle() {
   try {
@@ -19,7 +37,7 @@ async function loadDefaultBundle() {
     // Likely running via file:// — fetch is blocked by browsers for local files.
     // Surface a friendly message instructing user to use the file picker.
     showError(
-      `Couldn't auto-load default bundle (${e.message}). ` +
+      `Couldn't auto-load bundle "${defaultPath}" (${e.message}). ` +
       `If you opened this page directly from disk, browsers block file:// fetches. ` +
       `Use the "Load a bundle JSON" picker above, or serve the directory with ` +
       `\`python -m http.server\` and reload.`
@@ -33,19 +51,24 @@ function showError(msg) {
   slot.innerHTML = `<div class="error">${escapeHtml(msg)}</div>`;
 }
 
-// File-picker fallback path.
-document.getElementById('bundle-file').addEventListener('change', async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  try {
-    const text = await file.text();
-    const bundle = JSON.parse(text);
-    document.getElementById('error-slot').innerHTML = '';
-    render(bundle);
-  } catch (err) {
-    showError(`Couldn't parse JSON: ${err.message}`);
-  }
-});
+// File-picker fallback was removed when the lair viewer became a per-lair
+// page (the hub's dev tools handle one-off bundle JSON loading and route
+// here via ?source=dev + sessionStorage).
+const filePickerEl = document.getElementById('bundle-file');
+if (filePickerEl) {
+  filePickerEl.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const bundle = JSON.parse(text);
+      document.getElementById('error-slot').innerHTML = '';
+      render(bundle);
+    } catch (err) {
+      showError(`Couldn't parse JSON: ${err.message}`);
+    }
+  });
+}
 
 // ── Rendering ──────────────────────────────────────────────────────────────
 
@@ -759,6 +782,25 @@ function escapeHtml(str) {
 // ── Boot ───────────────────────────────────────────────────────────────────
 
 (async () => {
+  // Dev-picker handoff: when the hub's file picker routes us here with
+  // ?source=dev, the bundle JSON is stashed in sessionStorage. Pull it,
+  // clear the key, and render directly without a fetch.
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('source') === 'dev') {
+    const stashed = sessionStorage.getItem('bbl-dev-bundle');
+    if (stashed) {
+      try {
+        const bundle = JSON.parse(stashed);
+        sessionStorage.removeItem('bbl-dev-bundle');
+        render(bundle);
+        return;
+      } catch (err) {
+        showError(`Stashed dev bundle JSON didn't parse: ${err.message}`);
+        sessionStorage.removeItem('bbl-dev-bundle');
+        return;
+      }
+    }
+  }
   const bundle = await loadDefaultBundle();
   if (bundle) render(bundle);
 })();

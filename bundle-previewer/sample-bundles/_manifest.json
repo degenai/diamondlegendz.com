@@ -1,0 +1,26 @@
+{
+  "label": "BBL",
+  "series_label": "Discrete Lair",
+  "tagline_html": "<strong>Bulk Graph Bundler</strong> is a curation project. Each <em>Discrete Lair</em> is a one-off, named, theme-driven bundle of trading cards the market sells by weight. Curation is the labor. The labor is the value.",
+  "footer_note": "Sandbox preview on diamondlegendz.com. Commercial storefront will live elsewhere.",
+  "lairs": [
+    {
+      "slug": "tithe",
+      "catalog_id": "Discrete Lair 001",
+      "title": "Tithe",
+      "subtitle": "the men they send",
+      "hubs": ["labor"],
+      "anchor_tags": ["authority", "hierarchy", "priest", "tax-collector", "noble"],
+      "card_count": 10,
+      "distinct_card_count": 9,
+      "list_price_usd": 5.00,
+      "blurb": "Every institution has a face it shows when it comes to collect. A noble standing while a servant scrubs the floor behind her. A knight extending a collection plate. A vampire priest seated with the back of her hand offered to a kneeling supplicant. Ten cards. Different guilds, different blocks, same job description.",
+      "thumbnails": [
+        "https://cards.scryfall.io/art_crop/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.jpg",
+        "https://cards.scryfall.io/art_crop/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.jpg",
+        "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg",
+        "https://cards.scryfall.io/art_crop/front/b/6/b6eb3c20-e853-4399-a107-c3308b2e5d4e.jpg"
+      ]
+    }
+  ]
+}
