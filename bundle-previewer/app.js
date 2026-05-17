@@ -85,6 +85,7 @@ function render(bundle) {
   document.getElementById('narrative').textContent = bundle.narrative || '';
   renderAnchorTags(bundle.anchor_tags || []);
   renderArtCarousel(bundle.cards || []);
+  renderMichiPage(bundle);
   renderCardGrid(bundle.cards || []);
   renderCohesion(bundle.cohesion || {});
   renderPricing(bundle.pricing || null);
@@ -174,6 +175,100 @@ let lastMarqueeFrameTime = 0;
 
 let dragState = null;
 let activeLightbox = null;
+
+// ── Michi binder page ──────────────────────────────────────────────────────
+// Sketchbook spec at BBL/docs/sketchbook.md "Michi Method Binders for Discrete
+// Lairs". MVP: a single 3x3 page with 5 cards + 4 wall-text inserts. Uses
+// image_url (which all cards have) instead of art_crop_url (MTG-only), so
+// non-MTG cards finally have a representation on the page.
+function renderMichiPage(bundle) {
+  const page = document.getElementById('michi-page');
+  if (!page) return;
+  page.replaceChildren();
+
+  const cards = (bundle.cards || []).filter(c => c.image_url);
+  // Sort highest-price first; cards picked for the binder page lead with value.
+  const ranked = [...cards].sort((a, b) =>
+    (b.market_price_usd || 0) - (a.market_price_usd || 0)
+  );
+  const picks = ranked.slice(0, 5);
+
+  // 9-slot layout, reading left-to-right top-to-bottom:
+  //   [TITLE] [card0] [SUBTITLE]
+  //   [card1] [card2] [card3]
+  //   [TAGS ] [card4] [NARRATIVE]
+  const slots = [
+    { kind: 'title', payload: bundle },
+    { kind: 'card',  payload: picks[0] },
+    { kind: 'subtitle', payload: bundle },
+    { kind: 'card',  payload: picks[1] },
+    { kind: 'card',  payload: picks[2] },
+    { kind: 'card',  payload: picks[3] },
+    { kind: 'tags',  payload: bundle },
+    { kind: 'card',  payload: picks[4] },
+    { kind: 'narrative', payload: bundle },
+  ];
+
+  for (const slot of slots) {
+    const el = document.createElement('div');
+    el.className = 'michi-slot';
+    if (slot.kind === 'card' && slot.payload) {
+      el.classList.add('card');
+      const img = document.createElement('img');
+      img.src = slot.payload.image_url;
+      img.alt = slot.payload.name || '';
+      img.loading = 'lazy';
+      el.appendChild(img);
+    } else if (slot.kind === 'title') {
+      el.classList.add('wall-text', 'title-slot');
+      const cat = document.createElement('span');
+      cat.className = 'wt-label';
+      cat.textContent = `${slot.payload.series_label || 'BBL'} · ${slot.payload.catalog_id || ''}`;
+      const t = document.createElement('div');
+      t.textContent = slot.payload.title || '';
+      el.appendChild(cat);
+      el.appendChild(t);
+    } else if (slot.kind === 'subtitle') {
+      el.classList.add('wall-text');
+      const lbl = document.createElement('span');
+      lbl.className = 'wt-label';
+      lbl.textContent = 'subtitle';
+      const s = document.createElement('div');
+      s.textContent = slot.payload.subtitle || '';
+      el.appendChild(lbl);
+      el.appendChild(s);
+    } else if (slot.kind === 'tags') {
+      el.classList.add('wall-text');
+      const lbl = document.createElement('span');
+      lbl.className = 'wt-label';
+      lbl.textContent = 'anchors';
+      const list = document.createElement('div');
+      list.className = 'wt-tag-list';
+      for (const tag of (slot.payload.anchor_tags || []).slice(0, 5)) {
+        const t = document.createElement('span');
+        t.className = 'wt-tag';
+        t.textContent = tag;
+        list.appendChild(t);
+      }
+      el.appendChild(lbl);
+      el.appendChild(list);
+    } else if (slot.kind === 'narrative') {
+      el.classList.add('wall-text');
+      const lbl = document.createElement('span');
+      lbl.className = 'wt-label';
+      lbl.textContent = 'thesis';
+      const n = document.createElement('div');
+      const text = slot.payload.narrative || '';
+      n.textContent = text.length > 180 ? text.slice(0, 175).trimEnd() + '...' : text;
+      el.appendChild(lbl);
+      el.appendChild(n);
+    } else {
+      el.classList.add('wall-text');
+      el.textContent = '';
+    }
+    page.appendChild(el);
+  }
+}
 
 function renderArtCarousel(cards) {
   const section = document.getElementById('art-carousel-section');
