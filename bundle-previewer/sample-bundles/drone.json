@@ -6,7 +6,7 @@
   "catalog_id": "Discrete Lair 002",
   "title": "Drone",
   "subtitle": "the ones who only know one job",
-  "narrative": "Every game has its workers. Not the heroes who get the rare slot, not the legendary fighters with full-art treatment, but the cards that exist to do a thing. A clockwork servant ticking down a castle corridor. A pickaxe-armed soldier mass-produced in someone's regret. A gear creature whose entire mechanical text is 'rotate faster when stressed.' A pop idol redesigned as the boss of an underground factory floor. The bundle holds nineteen cards across twelve names and four games. Different planes, different franchises, same job description. The art rooms drew them to fill product. This curation reads them as labor.",
+  "narrative": "Every game has its workers. Not the heroes who get the rare slot, not the legendary fighters with full-art treatment, but the cards that exist to do a thing. Workshop Assistant was born on Kaladesh, a plane whose entire mythology is that the automatons walking the streets are infrastructure, not characters. Clockwork Servant's flavor text tells you exactly who benefits from the ticking: the castle custodians who hear the sound as sweet are the ones not cleaning the cobbles. A pop idol redesigned as the boss of an underground factory floor. A stone golem animated by the same wild magic that produced the most expensive card in its set, and named after the landmark it serves. The bundle holds nineteen cards across twelve names and four games. Different planes, different franchises, same job description. The art rooms drew them to fill product. This curation reads them as labor.",
   "hubs": [
     "labor"
   ],
@@ -101,7 +101,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.jpg",
-      "why_it_fits": "A small spider-like mechanical construct scuttles across a workshop floor on numerous jointed metal legs, its central body a tangle of exposed gears, wires, and tubing. From the upper right, a dragon's long neck and bared teeth lean down toward it, dwarfing the small artifact. The construct reads as vulnerable, the dragon predatory. \"Sometimes the smallest things make the biggest difference.\" The card's ability returns another artifact from the graveyard to your hand when it dies. The assistant exists to be sacrificed so the workshop keeps running."
+      "why_it_fits": "A small spider-like mechanical construct scuttles across a workshop floor on numerous jointed metal legs, its central body a tangle of exposed gears and wires. A dragon's neck and bared teeth intrude from the upper right, dwarfing it. The card was first printed in Kaladesh, a plane whose design brief made cogwork automatons the ambient infrastructure of inventor culture, the labor layer that makes the Inventors' Fair possible. \"Sometimes the smallest things make the biggest difference.\" Its ability returns another artifact from the graveyard when it dies. The assistant exists to be consumed so the workshop keeps running; Kaladesh just made it prettier."
     },
     {
       "card_md_path": "magic-the-gathering/magic-2015-m15/239-will-forged-golem",
@@ -139,7 +139,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/c/3/c3af5942-d171-401a-9444-3b59c579e4db.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/c/3/c3af5942-d171-401a-9444-3b59c579e4db.jpg",
-      "why_it_fits": "A small mechanical gnome of riveted bronze and brass stands at attention in a dim stone castle corridor, mustachioed metal mask above pale glowing eyes. Cogs are visible at the shoulders and torso. The flavor text drops the thesis directly: \"Some are annoyed by the constant ticking as they clean the cobbles, but to the castle custodians, there's no sweeter sound.\" The ticking is the sound of work being done. The custodians who hear it as sweet are the ones who don't have to do it."
+      "why_it_fits": "A small mechanical gnome of riveted bronze and brass stands at attention in a dim stone castle corridor, mustachioed metal mask above pale glowing eyes. Cogs at the shoulders and torso. The flavor text names its beneficiaries: \"to the castle custodians, there's no sweeter sound.\" The custodians who hear the ticking as sweet are the ones not cleaning the cobbles. Adamant lets this servant work for any court in Eldraine; it is not loyal to a color, it is loyal to whoever needs the floor swept. The Throne of Eldraine's mechanical infrastructure is indifferent to which house owns it."
     },
     {
       "card_md_path": "magic-the-gathering/war-of-the-spark/240-iron-bully",
@@ -269,7 +269,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.png?1572490988",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.jpg?1572490988",
-      "why_it_fits": "A towering stone golem stands in a forested clearing, body composed of stacked rectangular blocks of weathered grey stone draped with moss and lichen, glowing green-yellow magical light pulsing from the gaps. The Garenbrig flavor: 'Everything that inhabits Garenbrig is affected by the wild magic flowing through the Great Henge.' The henge is the factory. The walker is the unit. Adamant rewards a buyer for committing to a single color, which is the lair's recommendation: pick a side and lean. Four copies because the Great Henge does not produce one golem at a time."
+      "why_it_fits": "A towering stone golem stands in a forested clearing, body composed of stacked moss-covered hewn blocks, green magical light pulsing from the seams. Its own flavor text names the source: \"Everything that inhabits Garenbrig is affected by the wild magic flowing through the Great Henge.\" The Great Henge is one of the most expensive cards in this set, a $30 legendary artifact that produces mana and draws cards. Henge Walker is seven cents. They are the same location's two outputs. The bundle holds four copies of the walker and zero copies of the Henge, which is also the correct ratio."
     }
   ],
   "cohesion": {
