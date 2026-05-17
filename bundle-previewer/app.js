@@ -205,20 +205,41 @@ async function renderMichiPage(bundle) {
     pages.push(cards.slice(i, i + MICHI_PAGE_CARD_SLOTS));
   }
 
-  // Insert cycle position — every page draws fresh art from the pool so no
-  // page repeats the same insert as a sibling page.
-  let insertCursor = 0;
+  // Round-robin insert allocation: every insert is used at most once before
+  // any insert is used twice. With more art slots than inserts available
+  // (which happens on larger bundles), we recycle only after exhausting the
+  // pool. Wide-aspect preference is honored when an unused wide insert is
+  // available; otherwise falls back to next-unused regardless of shape.
+  const used = new Set();
+  const insertKey = (ins) => ins.image_file;
+  const resetIfExhausted = () => {
+    if (used.size >= inserts.length) used.clear();
+  };
   const nextInsert = (wantWide) => {
     if (!inserts.length) return null;
-    // Try to find an insert matching the requested aspect; if none, take any.
-    for (let tries = 0; tries < inserts.length; tries++) {
-      const candidate = inserts[insertCursor % inserts.length];
-      insertCursor++;
-      const isWide = Array.isArray(candidate.panel_dimensions_slots) &&
-                     candidate.panel_dimensions_slots[0] === 2;
-      if (wantWide === null || wantWide === isWide) return candidate;
+    resetIfExhausted();
+    // First pass: find an unused insert matching wantWide
+    if (wantWide !== null) {
+      for (const ins of inserts) {
+        const isWide = Array.isArray(ins.panel_dimensions_slots) &&
+                       ins.panel_dimensions_slots[0] === 2;
+        if (isWide === wantWide && !used.has(insertKey(ins))) {
+          used.add(insertKey(ins));
+          return ins;
+        }
+      }
     }
-    return inserts[(insertCursor++) % inserts.length];
+    // Second pass: any unused insert
+    for (const ins of inserts) {
+      if (!used.has(insertKey(ins))) {
+        used.add(insertKey(ins));
+        return ins;
+      }
+    }
+    // Fallback: pool exhausted, return any (shouldn't reach if reset works)
+    const ins = inserts[0];
+    used.add(insertKey(ins));
+    return ins;
   };
 
   for (const pageCards of pages) {
