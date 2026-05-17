@@ -1,0 +1,363 @@
+{
+  "schema_version": "0.3",
+  "status": "example",
+  "slug": "drone",
+  "series_label": "BBL",
+  "catalog_id": "Discrete Lair 002",
+  "title": "Drone",
+  "subtitle": "the ones who only know one job",
+  "narrative": "Every game has its workers. Not the heroes who get the rare slot, not the legendary fighters with full-art treatment, but the cards that exist to do a thing. A clockwork servant ticking down a castle corridor. A pickaxe-armed soldier mass-produced in someone's regret. A gear creature whose entire mechanical text is 'rotate faster when stressed.' A pop idol redesigned as the boss of an underground factory floor. The bundle holds nineteen cards across twelve names and four games. Different planes, different franchises, same job description. The art rooms drew them to fill product. This curation reads them as labor.",
+  "hubs": [
+    "labor"
+  ],
+  "anchor_tags": [
+    "factory",
+    "machine",
+    "drone",
+    "golem",
+    "construct",
+    "worker"
+  ],
+  "intent_tags": [
+    "factory",
+    "machine",
+    "machinery",
+    "drone",
+    "golem",
+    "construct",
+    "automaton",
+    "industrial",
+    "production",
+    "assembly",
+    "worker",
+    "labor",
+    "clockwork",
+    "gear",
+    "gears",
+    "robot",
+    "mechanical",
+    "engineering",
+    "forge",
+    "servant",
+    "guardian",
+    "metal",
+    "iron",
+    "steel",
+    "steampunk"
+  ],
+  "cards": [
+    {
+      "card_md_path": "weiss-schwarz/hatsune-miku-project-diva-f/pd-s22-e027-rr-hatsune-miku-factory-tyrant",
+      "name": "Hatsune Miku \"Factory Tyrant\"",
+      "set": "Hatsune Miku -Project DIVA- f",
+      "collector_number": "PD/S22-E027 RR",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "industrial",
+        "underground",
+        "defiance",
+        "performer"
+      ],
+      "market_price_usd": 11.00,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://en.ws-tcg.com/wordpress/wp-content/images/cardimages/p/pd_s22/PD_S22_E027.png",
+      "art_crop_url": null,
+      "why_it_fits": "A teal-haired figure in a black structured punk-industrial jacket leans forward into the frame, one hand raised toward her face in a performance gesture, eyes a vivid red instead of her default blue-green. Behind her, dark angular industrial shapes and geometric teal-and-purple lighting frame the stage. The Project DIVA Factory Tyrant module dresses the world's most recognizable idol as a shift boss on the floor of an underground plant. The headline of the bundle: the most produced character in modern pop culture, cosplaying as the person who runs the place that produces things."
+    },
+    {
+      "card_md_path": "magic-the-gathering/modern-horizons-3/130-phyrexian-ironworks",
+      "name": "Phyrexian Ironworks",
+      "set": "Modern Horizons 3",
+      "collector_number": "130",
+      "qty_in_bundle": 2,
+      "tags_matched": [
+        "phyrexia",
+        "machinery",
+        "industrial",
+        "golem"
+      ],
+      "market_price_usd": 0.13,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/6/d/6d64e1a8-cb4f-4968-b3e0-c9ca7c7894a3.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/6/d/6d64e1a8-cb4f-4968-b3e0-c9ca7c7894a3.jpg",
+      "why_it_fits": "A polished gold mechanical pod floats in a void of crimson and purple energy, connected by thick cables, crackling with blue lightning. No figure is present. The card's oracle text does the work: it generates energy counters on attack and converts three energy into a 3/3 Phyrexian Golem token. The factory rendered as a mana rock. Flavor speaker is Slobad the Mirran goblin, admiring the device without recognizing the faction that built it. \"We have made a friend today.\""
+    },
+    {
+      "card_md_path": "magic-the-gathering/commander-legends/348-workshop-assistant",
+      "name": "Workshop Assistant",
+      "set": "Commander Legends",
+      "collector_number": "348",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "construct",
+        "workshop",
+        "machinery",
+        "tinkering"
+      ],
+      "market_price_usd": 0.35,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.jpg",
+      "why_it_fits": "A small spider-like mechanical construct scuttles across a workshop floor on numerous jointed metal legs, its central body a tangle of exposed gears, wires, and tubing. From the upper right, a dragon's long neck and bared teeth lean down toward it, dwarfing the small artifact. The construct reads as vulnerable, the dragon predatory. \"Sometimes the smallest things make the biggest difference.\" The card's ability returns another artifact from the graveyard to your hand when it dies. The assistant exists to be sacrificed so the workshop keeps running."
+    },
+    {
+      "card_md_path": "magic-the-gathering/magic-2015-m15/239-will-forged-golem",
+      "name": "Will-Forged Golem",
+      "set": "Magic 2015 (M15)",
+      "collector_number": "239",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "golem",
+        "construct",
+        "forge",
+        "machinery"
+      ],
+      "market_price_usd": 0.06,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/0/1/0175bafa-dc9f-464c-8f9e-dd4131732652.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/0/1/0175bafa-dc9f-464c-8f9e-dd4131732652.jpg",
+      "why_it_fits": "A towering humanoid figure assembled from jagged crystalline plates, strides forward in a hazy blue-lit forge, energy seeping between the joints. Cyan light traces the rim of every plate. The flavor text is the design memo: \"The modular nature of the automaton's design makes assembly perfectly intuitive.\" The card's Convoke mechanic lets your other creatures tap to help pay the cost, which means the golem was built by everyone you already had on board, the way real factories work."
+    },
+    {
+      "card_md_path": "magic-the-gathering/throne-of-eldraine/216-clockwork-servant",
+      "name": "Clockwork Servant",
+      "set": "Throne of Eldraine",
+      "collector_number": "216",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "clockwork",
+        "automaton",
+        "servant",
+        "labor"
+      ],
+      "market_price_usd": 0.08,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/c/3/c3af5942-d171-401a-9444-3b59c579e4db.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/c/3/c3af5942-d171-401a-9444-3b59c579e4db.jpg",
+      "why_it_fits": "A small mechanical gnome of riveted bronze and brass stands at attention in a dim stone castle corridor, mustachioed metal mask above pale glowing eyes. Cogs are visible at the shoulders and torso. The flavor text drops the thesis directly: \"Some are annoyed by the constant ticking as they clean the cobbles, but to the castle custodians, there's no sweeter sound.\" The ticking is the sound of work being done. The custodians who hear it as sweet are the ones who don't have to do it."
+    },
+    {
+      "card_md_path": "magic-the-gathering/war-of-the-spark/240-iron-bully",
+      "name": "Iron Bully",
+      "set": "War of the Spark",
+      "collector_number": "240",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "golem",
+        "iron",
+        "industrial",
+        "machine"
+      ],
+      "market_price_usd": 0.07,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/d/e/ded2c66e-402c-4d5c-b987-402679aa914b.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/d/e/ded2c66e-402c-4d5c-b987-402679aa914b.jpg",
+      "why_it_fits": "A hulking iron golem of welded blackened plate stands in industrial smoke, chains draped across its torso, an orange furnace burning inside its chest cavity and leaking through the seams. The face is a faceless helmet, lit from within. Flavor speaker is Commander Grozdan, in the middle of a thought he abandons: \"Why would someone have built ... wait, never mind. Send it to the front lines!\" The question of why the object exists is interrupted by the order to deploy it. Manufacture and use, no gap."
+    },
+    {
+      "card_md_path": "magic-the-gathering/battlebond/249-yotian-soldier",
+      "name": "Yotian Soldier",
+      "set": "Battlebond",
+      "collector_number": "249",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "construct",
+        "automaton",
+        "soldier",
+        "labor"
+      ],
+      "market_price_usd": 0.04,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/9/e/9e71190b-c96c-4aea-9696-780c69eff395.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/e/9e71190b-c96c-4aea-9696-780c69eff395.jpg",
+      "why_it_fits": "A burnished gold mechanical soldier hefts a pickaxe-shaped polearm across its torso, standing on sandy desert ground with the faint silhouettes of other figures or ruins receding into haze behind it. The original Antiquities-era lore named these as Urza's mass-produced lighter defensive unit, built after the Fall of Kroog as a memorial guilt project. The Battlebond reprint stripped the eulogy flavor and replaced it with cross-planar artificer-poetry, but the figure on the card is the same as it ever was: someone's grief, manufactured in volume, holding a tool that doubles as a weapon."
+    },
+    {
+      "card_md_path": "pokemon/darkness-ablaze/126-189-klang",
+      "name": "Klang",
+      "set": "Darkness Ablaze",
+      "collector_number": "126/189",
+      "qty_in_bundle": 2,
+      "tags_matched": [
+        "gears",
+        "factory",
+        "industrial",
+        "labor"
+      ],
+      "market_price_usd": 0.04,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://images.pokemontcg.io/swsh3/126_hires.png",
+      "art_crop_url": null,
+      "why_it_fits": "Two interlocked toothed steel gears, one large and one small, float against a blurred industrial backdrop of dark mechanical structures. The larger gear has a face-like center; the smaller orbits it. Flavor text: \"When Klang goes all out, the minigear links up perfectly with the outer part of the big gear, and this Pokemon's rotation speed increases sharply.\" The flavor is the spec sheet. The Klink line was among the first Pokemon ever designed as purely mechanical creatures rather than animals with metallic traits, which means somewhere in Game Freak's design archives is the meeting where someone said the worker IS the machine."
+    },
+    {
+      "card_md_path": "pokemon/vivid-voltage/151-185-drone-rotom",
+      "name": "Drone Rotom",
+      "set": "Vivid Voltage",
+      "collector_number": "151/185",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "drone",
+        "machine",
+        "technology",
+        "rotor"
+      ],
+      "market_price_usd": 0.08,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://images.pokemontcg.io/swsh4/151_hires.png",
+      "art_crop_url": null,
+      "why_it_fits": "A small yellow ghost-like creature with four drone rotor blades extending from its body hovers in a swirl of pink and purple energy, mischievous grin and large blue eyes. The Pokemon species Rotom possesses household appliances for its other forms (oven, fridge, fan, lawnmower) and this one possesses a drone to film live Gym Challenge matches at Wyndon Stadium. The card itself is not a creature but a Trainer Item card, which is canonically the right product category: the same species, instrumentalized as a utility object. A ghost made employee. The Item card text reads opponent's hand."
+    },
+    {
+      "card_md_path": "final-fantasy-tcg/opus-viii/8-008c-golem",
+      "name": "Golem",
+      "set": "Opus VIII",
+      "collector_number": "8-008C",
+      "qty_in_bundle": 1,
+      "tags_matched": [
+        "golem",
+        "construct",
+        "guardian"
+      ],
+      "market_price_usd": 0.14,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://storage.googleapis.com/marcieapi-images/8-008C_eg.jpg",
+      "art_crop_url": null,
+      "why_it_fits": "A squat black creature crouches against a pale cream-pink background, body marked with bold orange-red diamonds and stripes, face a flat white oval with a single concentric-circle red eye. Loose painterly brushwork. The card is just named Golem, common rarity, from Crystal Chronicles: Echoes of Time, which is to say the species and the role and the product slot are all the same word. Final Fantasy's bestiary has had a creature called Golem in nearly every numbered entry since the first one. The bundle's representative from a fourth franchise, demonstrating that the production-line worker is a cross-game design slot, not a Magic thing or a Pokemon thing."
+    },
+    {
+      "card_md_path": "magic-the-gathering/modern-horizons-3/150-eldrazi-repurposer",
+      "name": "Eldrazi Repurposer",
+      "set": "Modern Horizons 3",
+      "collector_number": "150",
+      "qty_in_bundle": 3,
+      "tags_matched": [
+        "drone",
+        "eldrazi",
+        "predator"
+      ],
+      "market_price_usd": 0.24,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/3/7/37f79ba7-7b65-4387-b498-f770816ce8dd.png?1717012430",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/7/37f79ba7-7b65-4387-b498-f770816ce8dd.jpg?1717012430",
+      "why_it_fits": "A gaunt bone-white Eldrazi drone with an elongated angular head and segmented insectile limbs crouches forward amid forest undergrowth, scattered debris in the foreground implying recent consumption. The card's tags_hub literally includes the word drone. The flavor: 'I almost admire their ability to avoid waste. Almost.' That is the bundle's thesis spoken by a soldier looking at the workforce that is going to eat her. The mechanic spawns and resacrifices an Eldrazi Spawn token on cast and on death, generating colorless mana from the bodies. The labor metabolism rendered as a creature card. Three copies in this lair, because production-line repurposers come in batches."
+    },
+    {
+      "card_md_path": "magic-the-gathering/throne-of-eldraine/221-henge-walker",
+      "name": "Henge Walker",
+      "set": "Throne of Eldraine",
+      "collector_number": "221",
+      "qty_in_bundle": 4,
+      "tags_matched": [
+        "golem",
+        "construct",
+        "guardian"
+      ],
+      "market_price_usd": 0.06,
+      "market_price_as_of": "2026-05-17",
+      "market_price_source": "collectr",
+      "image_url": "https://cards.scryfall.io/png/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.png?1572490988",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.jpg?1572490988",
+      "why_it_fits": "A towering stone golem stands in a forested clearing, body composed of stacked rectangular blocks of weathered grey stone draped with moss and lichen, glowing green-yellow magical light pulsing from the gaps. The Garenbrig flavor: 'Everything that inhabits Garenbrig is affected by the wild magic flowing through the Great Henge.' The henge is the factory. The walker is the unit. Adamant rewards a buyer for committing to a single color, which is the lair's recommendation: pick a side and lean. Four copies because the Great Henge does not produce one golem at a time."
+    }
+  ],
+  "cohesion": {
+    "mood": "industrial / dutiful",
+    "register": "manufactured / mass-produced",
+    "palette_hex": [
+      "#3a3a3a",
+      "#b8860b",
+      "#1a1a2e",
+      "#d4a017",
+      "#0d0d0d"
+    ],
+    "color_identities_present": [
+      "colorless-artifact",
+      "mono-red",
+      "multicolor-blue-red",
+      "metal-pokemon",
+      "anime-idol"
+    ],
+    "set_diversity": [
+      "Hatsune Miku -Project DIVA- f (Weiss Schwarz)",
+      "Modern Horizons 3",
+      "Commander Legends",
+      "Magic 2015 (M15)",
+      "Throne of Eldraine",
+      "War of the Spark",
+      "Battlebond",
+      "Darkness Ablaze (Pokemon)",
+      "Vivid Voltage (Pokemon)",
+      "Opus VIII (Final Fantasy TCG)"
+    ],
+    "games_present": [
+      "Weiss Schwarz",
+      "Magic: The Gathering",
+      "Pokemon",
+      "Final Fantasy TCG"
+    ]
+  },
+  "pricing": {
+    "card_value_subtotal_usd": 13.12,
+    "labor_and_sleeve_per_card_usd": 0.10,
+    "labor_and_sleeve_total_usd": 1.90,
+    "cost_basis_usd": 15.02,
+    "diy_seller_count_estimate": 7,
+    "diy_shipping_per_seller_usd": 1.31,
+    "diy_shipping_rate_note": "$1.31 matches TCGplayer's standard Plain Envelope rate as of 2026-05-17; Weiss Schwarz singles route through TCGplayer as well, same rate applies.",
+    "diy_alternative_usd": 22.29,
+    "diy_alternative_note": "Nineteen cards across twelve names, ten sets, four games (Weiss Schwarz Project DIVA, MH3, Commander Legends, M15, Throne of Eldraine, War of the Spark, Battlebond, Darkness Ablaze, Vivid Voltage, FFTCG Opus VIII). Realistically routes through 7 TCGplayer sellers minimum at $1.31 plain-envelope shipping each. The Hatsune Miku Weiss Schwarz card and the FFTCG Golem each tend to ship from format-specialist sellers separate from the MTG/Pokemon supply chain; the 4-of Henge Walker and 3-of Eldrazi Repurposer often split across two sellers each.",
+    "bundle_price_floor_usd": 5.00,
+    "bundle_list_price_usd": 18.00,
+    "shipping_policy": "buyer-paid, itemized separately at checkout; never included in list price",
+    "estimated_shipping_usd": 1.31,
+    "shipping_rate_note": "Matches TCGplayer Plain Envelope rate ($1.31). One envelope, one stamp; we eat the difference if the carrier's actual stamp cost runs over.",
+    "narrative_premium_usd": 2.98,
+    "buyer_savings_vs_diy_usd": 4.29,
+    "buyer_savings_vs_diy_pct": 19,
+    "premium_justification": "Nineteen cards across twelve names, weighted heavily on the Hatsune Miku 'Factory Tyrant' Double Rare ($11). The bundle leans into multi-copy depth where inventory supports it: four Henge Walkers, three Eldrazi Repurposers, two each of Phyrexian Ironworks and Klang. Doing this DIY across seven sellers at $1.31 plain-envelope shipping each runs $22.29; this lair arrives in one envelope for $18.00 + $1.31. You save $4.29 versus DIY (19%). The premium pays for the curation: the cross-franchise thesis is the product, not the cards individually. A buyer who wanted nineteen production-line workers across MTG and Pokemon and FFTCG and Weiss Schwarz would not search this way; the assembly is the labor being sold."
+  },
+  "checkout": {
+    "stripe_payment_url": null,
+    "stripe_price_id": null,
+    "checkout_provider": null
+  },
+  "overlap_bundles": [],
+  "lifecycle": {
+    "proposed_at": null,
+    "accepted_at": null,
+    "assembled_at": null,
+    "example_drafted_at": "2026-05-17"
+  },
+  "metadata": {
+    "generated_by": "manual-curation-v0-example",
+    "generated_at": "2026-05-17",
+    "edition_size": "example (not for sale)",
+    "card_count": 10,
+    "rarity_distribution": {
+      "common": 6,
+      "uncommon": 3,
+      "rare": 0,
+      "double_rare": 1
+    },
+    "games_distribution": {
+      "magic_the_gathering": 6,
+      "pokemon": 2,
+      "final_fantasy_tcg": 1,
+      "weiss_schwarz": 1
+    },
+    "notes": "EXAMPLE bundle for buyer-facing showcase. NOT a real inventory claim: no card MDs were modified, no held_for_lair counters incremented, no card bundles[] field updated. Demonstrates BBL's cross-franchise thematic curation thesis using the labor hub. Headline anchor is Hatsune Miku 'Factory Tyrant' PD/S22-E027 RR ($11 market) as the visual + narrative crown of the production-line cohort; supporting cast is MTG bulk constructs/golems plus Pokemon mechanical-creature staples plus an FFTCG genre-representative Golem. The 'status: example' enum is introduced here to distinguish from proposed/accepted/assembled bundles in the lifecycle.",
+    "example_purpose": "Storefront sample bundle. Renders for buyers as a representative Discrete Lair to convey what BBL's curation product looks like before any real lair is offered for sale."
+  }
+}

@@ -21,6 +21,24 @@
         "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg",
         "https://cards.scryfall.io/art_crop/front/b/6/b6eb3c20-e853-4399-a107-c3308b2e5d4e.jpg"
       ]
+    },
+    {
+      "slug": "drone",
+      "catalog_id": "Discrete Lair 002",
+      "title": "Drone",
+      "subtitle": "the ones who only know one job",
+      "hubs": ["labor"],
+      "anchor_tags": ["factory", "machine", "industrial", "drone", "worker"],
+      "card_count": 19,
+      "distinct_card_count": 12,
+      "list_price_usd": 18.00,
+      "blurb": "Every game has its workers. Not the heroes who get the rare slot, not the legendary fighters with full-art treatment, but the cards that exist to do a thing. A clockwork servant ticking down a castle corridor. A pop idol redesigned as the boss of an underground factory floor. Nineteen cards across twelve names and four games. The art rooms drew them to fill product. This curation reads them as labor.",
+      "thumbnails": [
+        "https://cards.scryfall.io/art_crop/front/6/d/6d64e1a8-cb4f-4968-b3e0-c9ca7c7894a3.jpg",
+        "https://cards.scryfall.io/art_crop/front/3/7/37f79ba7-7b65-4387-b498-f770816ce8dd.jpg",
+        "https://cards.scryfall.io/art_crop/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.jpg",
+        "https://cards.scryfall.io/art_crop/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.jpg"
+      ]
     }
   ]
 }
