@@ -197,63 +197,40 @@
   .art-carousel-slide .slide-caption .slide-name { font-weight: bold; display: block; }
   .art-carousel-slide .slide-caption .slide-artist { color: #00FFFF; font-style: italic; font-size: 0.9em; }
 
-  /* MICHI BINDER PAGE — 3x3 wall-text-and-cards composition. The art-alone
-     carousel is MTG-only because only Scryfall ships art crops; michi works
-     for everyone because it uses full-card image_urls + thesis wall-text
-     inserts in the empty slots. */
+  /* MICHI BINDER PAGES — multi-page 3x3 grids. Each page shows ~5 cards
+     and ~3-4 fan-art inserts (1x1 or 1x2 horizontal panels per real Michi
+     practice). All 12 unique cards in a bundle distributed across pages.
+     No labels: only cards and art. */
   .michi-section { margin: 28px 0; }
-  .michi-label {
-    color: #FF00FF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.18em;
-    text-align: center; margin: 0 0 12px;
+  .michi-pages {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    align-items: center;
   }
   .michi-page {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
+    width: 100%;
     max-width: 720px;
-    margin: 0 auto;
     background: rgba(0, 0, 0, 0.45);
     padding: 14px;
     border: 3px ridge #FFFF00;
   }
   .michi-slot {
-    aspect-ratio: 63 / 88;  /* standard TCG card proportion */
+    aspect-ratio: 63 / 88;  /* TCG card proportion = single-slot baseline */
     background: #000;
     border: 2px solid #FFFF00;
     overflow: hidden;
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
-  .michi-slot.card img {
+  .michi-slot img {
     width: 100%; height: 100%; object-fit: cover; display: block;
   }
-  .michi-slot.wall-text {
-    background: #000080;
-    color: #FFFF00;
-    padding: 10px;
-    font-size: 0.78em;
-    line-height: 1.35;
-    text-align: center;
-    overflow: hidden;
-  }
-  .michi-slot.wall-text.title-slot {
-    background: #FF00FF; color: #FFFF00;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    font-weight: bold; font-size: 0.95em;
-    text-shadow: 2px 2px 0 #000;
-  }
-  .michi-slot.wall-text .wt-label {
-    display: block; color: #00FFFF; font-size: 0.72em;
-    text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px;
-  }
-  .michi-slot.wall-text .wt-tag-list {
-    display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
-  }
-  .michi-slot.wall-text .wt-tag {
-    background: #00FF00; color: #000080;
-    padding: 1px 5px; font-size: 0.85em; font-weight: bold;
+  .michi-slot.art-wide {
+    grid-column: span 2;
+    aspect-ratio: 126 / 88;   /* double width, same height as 1-slot */
   }
 
   /* CARD GRID */
@@ -467,8 +444,7 @@
   </div>
 
   <div class="michi-section" id="michi-section">
-    <div class="michi-label">the binder page</div>
-    <div class="michi-page" id="michi-page"></div>
+    <div class="michi-pages" id="michi-pages"></div>
   </div>
 
   <div class="grid-section-label" id="grid-label">The bundle</div>

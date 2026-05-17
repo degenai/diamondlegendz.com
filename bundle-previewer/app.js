@@ -85,7 +85,7 @@ function render(bundle) {
   document.getElementById('narrative').textContent = bundle.narrative || '';
   renderAnchorTags(bundle.anchor_tags || []);
   renderArtCarousel(bundle.cards || []);
-  renderMichiPage(bundle);
+  renderMichiPage(bundle);  // async, fires fetch + populates as inserts manifest loads
   renderCardGrid(bundle.cards || []);
   renderCohesion(bundle.cohesion || {});
   renderPricing(bundle.pricing || null);
@@ -176,97 +176,124 @@ let lastMarqueeFrameTime = 0;
 let dragState = null;
 let activeLightbox = null;
 
-// ── Michi binder page ──────────────────────────────────────────────────────
+// ── Michi binder pages ─────────────────────────────────────────────────────
 // Sketchbook spec at BBL/docs/sketchbook.md "Michi Method Binders for Discrete
-// Lairs". MVP: a single 3x3 page with 5 cards + 4 wall-text inserts. Uses
-// image_url (which all cards have) instead of art_crop_url (MTG-only), so
-// non-MTG cards finally have a representation on the page.
-function renderMichiPage(bundle) {
-  const page = document.getElementById('michi-page');
-  if (!page) return;
-  page.replaceChildren();
+// Lairs". Multi-page composition: each page is a 3x3 grid mixing card slots
+// (full TCG card images via image_url) with fan-art inserts (1x1 single-slot
+// portraits or 1x2 horizontal extended panels) sourced from the bundle's
+// michi-inserts/ directory. No labels — only cards and art.
+//
+// Per-bundle insert manifests live at `michi-inserts/<slug>/_manifest.json`;
+// the renderer falls back to a quiet skip if the manifest is missing.
+
+const MICHI_PAGE_CARD_SLOTS = 5;
+const MICHI_PAGE_TOTAL_SLOTS = 9;
+
+async function renderMichiPage(bundle) {
+  const host = document.getElementById('michi-pages');
+  if (!host) return;
+  host.replaceChildren();
 
   const cards = (bundle.cards || []).filter(c => c.image_url);
-  // Sort highest-price first; cards picked for the binder page lead with value.
-  const ranked = [...cards].sort((a, b) =>
-    (b.market_price_usd || 0) - (a.market_price_usd || 0)
-  );
-  const picks = ranked.slice(0, 5);
+  if (!cards.length) return;
 
-  // 9-slot layout, reading left-to-right top-to-bottom:
-  //   [TITLE] [card0] [SUBTITLE]
-  //   [card1] [card2] [card3]
-  //   [TAGS ] [card4] [NARRATIVE]
-  const slots = [
-    { kind: 'title', payload: bundle },
-    { kind: 'card',  payload: picks[0] },
-    { kind: 'subtitle', payload: bundle },
-    { kind: 'card',  payload: picks[1] },
-    { kind: 'card',  payload: picks[2] },
-    { kind: 'card',  payload: picks[3] },
-    { kind: 'tags',  payload: bundle },
-    { kind: 'card',  payload: picks[4] },
-    { kind: 'narrative', payload: bundle },
-  ];
+  const inserts = await loadMichiInserts(bundle.slug);
 
-  for (const slot of slots) {
-    const el = document.createElement('div');
-    el.className = 'michi-slot';
-    if (slot.kind === 'card' && slot.payload) {
-      el.classList.add('card');
-      const img = document.createElement('img');
-      img.src = slot.payload.image_url;
-      img.alt = slot.payload.name || '';
-      img.loading = 'lazy';
-      el.appendChild(img);
-    } else if (slot.kind === 'title') {
-      el.classList.add('wall-text', 'title-slot');
-      const cat = document.createElement('span');
-      cat.className = 'wt-label';
-      cat.textContent = `${slot.payload.series_label || 'BBL'} · ${slot.payload.catalog_id || ''}`;
-      const t = document.createElement('div');
-      t.textContent = slot.payload.title || '';
-      el.appendChild(cat);
-      el.appendChild(t);
-    } else if (slot.kind === 'subtitle') {
-      el.classList.add('wall-text');
-      const lbl = document.createElement('span');
-      lbl.className = 'wt-label';
-      lbl.textContent = 'subtitle';
-      const s = document.createElement('div');
-      s.textContent = slot.payload.subtitle || '';
-      el.appendChild(lbl);
-      el.appendChild(s);
-    } else if (slot.kind === 'tags') {
-      el.classList.add('wall-text');
-      const lbl = document.createElement('span');
-      lbl.className = 'wt-label';
-      lbl.textContent = 'anchors';
-      const list = document.createElement('div');
-      list.className = 'wt-tag-list';
-      for (const tag of (slot.payload.anchor_tags || []).slice(0, 5)) {
-        const t = document.createElement('span');
-        t.className = 'wt-tag';
-        t.textContent = tag;
-        list.appendChild(t);
-      }
-      el.appendChild(lbl);
-      el.appendChild(list);
-    } else if (slot.kind === 'narrative') {
-      el.classList.add('wall-text');
-      const lbl = document.createElement('span');
-      lbl.className = 'wt-label';
-      lbl.textContent = 'thesis';
-      const n = document.createElement('div');
-      const text = slot.payload.narrative || '';
-      n.textContent = text.length > 180 ? text.slice(0, 175).trimEnd() + '...' : text;
-      el.appendChild(lbl);
-      el.appendChild(n);
-    } else {
-      el.classList.add('wall-text');
-      el.textContent = '';
+  // Distribute cards across pages: ~5 cards per page, all unique cards shown.
+  const pages = [];
+  for (let i = 0; i < cards.length; i += MICHI_PAGE_CARD_SLOTS) {
+    pages.push(cards.slice(i, i + MICHI_PAGE_CARD_SLOTS));
+  }
+
+  // Insert cycle position — every page draws fresh art from the pool so no
+  // page repeats the same insert as a sibling page.
+  let insertCursor = 0;
+  const nextInsert = (wantWide) => {
+    if (!inserts.length) return null;
+    // Try to find an insert matching the requested aspect; if none, take any.
+    for (let tries = 0; tries < inserts.length; tries++) {
+      const candidate = inserts[insertCursor % inserts.length];
+      insertCursor++;
+      const isWide = Array.isArray(candidate.panel_dimensions_slots) &&
+                     candidate.panel_dimensions_slots[0] === 2;
+      if (wantWide === null || wantWide === isWide) return candidate;
     }
-    page.appendChild(el);
+    return inserts[(insertCursor++) % inserts.length];
+  };
+
+  for (const pageCards of pages) {
+    const pageEl = document.createElement('div');
+    pageEl.className = 'michi-page';
+
+    // Build a 9-slot layout. Strategy: place cards first, then fill the
+    // remaining slots with inserts. Try to slot one wide (1x2) insert per
+    // page when room allows; the rest are 1x1.
+    const slotsRemaining = MICHI_PAGE_TOTAL_SLOTS - pageCards.length;
+    let wideSlotsAllowed = slotsRemaining >= 2 ? 1 : 0;
+    const items = [];
+    for (const card of pageCards) {
+      items.push({ kind: 'card', card });
+    }
+    let remaining = slotsRemaining;
+    while (remaining > 0) {
+      const wantWide = wideSlotsAllowed > 0 && remaining >= 2;
+      const insert = nextInsert(wantWide ? true : false) || nextInsert(null);
+      if (!insert) break;
+      const isWide = Array.isArray(insert.panel_dimensions_slots) &&
+                     insert.panel_dimensions_slots[0] === 2 &&
+                     remaining >= 2;
+      items.push({ kind: 'art', insert, wide: isWide });
+      remaining -= isWide ? 2 : 1;
+      if (isWide) wideSlotsAllowed--;
+    }
+
+    // Lightly shuffle deterministically so each page reads differently
+    // without the layout jumping between renders.
+    shuffleWithSeed(items, pages.indexOf(pageCards) * 7919 + 31);
+
+    for (const item of items) {
+      const el = document.createElement('div');
+      el.className = 'michi-slot';
+      if (item.kind === 'card') {
+        const img = document.createElement('img');
+        img.src = item.card.image_url;
+        img.alt = item.card.name || '';
+        img.loading = 'lazy';
+        el.appendChild(img);
+      } else if (item.kind === 'art') {
+        if (item.wide) el.classList.add('art-wide');
+        const img = document.createElement('img');
+        img.src = `michi-inserts/${bundle.slug}/${item.insert.image_file}`;
+        img.alt = item.insert.theme_fit || item.insert.creator_handle || '';
+        img.loading = 'lazy';
+        el.appendChild(img);
+      }
+      pageEl.appendChild(el);
+    }
+    host.appendChild(pageEl);
+  }
+}
+
+async function loadMichiInserts(slug) {
+  if (!slug) return [];
+  try {
+    const resp = await fetch(`michi-inserts/${slug}/_manifest.json`);
+    if (!resp.ok) return [];
+    const data = await resp.json();
+    return Array.isArray(data) ? data : (data.inserts || []);
+  } catch (_) {
+    return [];
+  }
+}
+
+function shuffleWithSeed(arr, seed) {
+  // Tiny deterministic shuffle so each page renders the same way every time
+  // but pages differ from each other.
+  let s = seed >>> 0;
+  for (let i = arr.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
