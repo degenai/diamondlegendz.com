@@ -178,16 +178,21 @@ let activeLightbox = null;
 
 // ── Michi binder pages ─────────────────────────────────────────────────────
 // Sketchbook spec at BBL/docs/sketchbook.md "Michi Method Binders for Discrete
-// Lairs". Multi-page composition: each page is a 3x3 grid mixing card slots
-// (full TCG card images via image_url) with fan-art inserts (1x1 single-slot
-// portraits or 1x2 horizontal extended panels) sourced from the bundle's
-// michi-inserts/ directory. No labels — only cards and art.
+// Lairs". Multi-page composition: each page is a 2x3 grid (6 slots) mixing
+// card slots (full TCG card images via image_url) with fan-art inserts (1x1
+// single-slot portraits or 1x2 horizontal extended panels) sourced from the
+// bundle's michi-inserts/ directory. No labels — only cards and art.
+//
+// Composition rule: max 3 art-slot-equivalents per page (so up to 1 wide+1
+// narrow, or up to 3 narrow). 4 cards/page is the default cadence so all
+// bundle cards fit in a small page count without insert repetition.
 //
 // Per-bundle insert manifests live at `michi-inserts/<slug>/_manifest.json`;
 // the renderer falls back to a quiet skip if the manifest is missing.
 
-const MICHI_PAGE_CARD_SLOTS = 5;
-const MICHI_PAGE_TOTAL_SLOTS = 9;
+const MICHI_PAGE_TOTAL_SLOTS = 6;
+const MICHI_PAGE_MAX_ART_SLOTS = 3;
+const MICHI_PAGE_CARD_SLOTS = 4;
 
 async function renderMichiPage(bundle) {
   const host = document.getElementById('michi-pages');
@@ -199,77 +204,63 @@ async function renderMichiPage(bundle) {
 
   const inserts = await loadMichiInserts(bundle.slug);
 
-  // Distribute cards across pages: ~5 cards per page, all unique cards shown.
+  // Distribute cards across pages: MICHI_PAGE_CARD_SLOTS cards per page,
+  // every unique card shown exactly once across the page set.
   const pages = [];
   for (let i = 0; i < cards.length; i += MICHI_PAGE_CARD_SLOTS) {
     pages.push(cards.slice(i, i + MICHI_PAGE_CARD_SLOTS));
   }
 
-  // Round-robin insert allocation: every insert is used at most once before
-  // any insert is used twice. With more art slots than inserts available
-  // (which happens on larger bundles), we recycle only after exhausting the
-  // pool. Wide-aspect preference is honored when an unused wide insert is
-  // available; otherwise falls back to next-unused regardless of shape.
-  const used = new Set();
-  const insertKey = (ins) => ins.image_file;
-  const resetIfExhausted = () => {
-    if (used.size >= inserts.length) used.clear();
-  };
-  const nextInsert = (wantWide) => {
-    if (!inserts.length) return null;
-    resetIfExhausted();
-    // First pass: find an unused insert matching wantWide
-    if (wantWide !== null) {
-      for (const ins of inserts) {
+  // Insert allocation: serial pick, no repeats across the entire page set.
+  // If we run out of unique inserts we stop (page renders with fewer art
+  // slots; cards still take their reserved positions). With the default
+  // 4-cards/page cadence and 2 art slots/page, even modest insert pools
+  // cover most bundles without recycling.
+  let insertIdx = 0;
+  const nextInsert = (preferWide) => {
+    if (insertIdx >= inserts.length) return null;
+    if (preferWide !== null) {
+      for (let i = insertIdx; i < inserts.length; i++) {
+        const ins = inserts[i];
         const isWide = Array.isArray(ins.panel_dimensions_slots) &&
                        ins.panel_dimensions_slots[0] === 2;
-        if (isWide === wantWide && !used.has(insertKey(ins))) {
-          used.add(insertKey(ins));
-          return ins;
+        if (isWide === preferWide) {
+          [inserts[i], inserts[insertIdx]] = [inserts[insertIdx], inserts[i]];
+          return inserts[insertIdx++];
         }
       }
     }
-    // Second pass: any unused insert
-    for (const ins of inserts) {
-      if (!used.has(insertKey(ins))) {
-        used.add(insertKey(ins));
-        return ins;
-      }
-    }
-    // Fallback: pool exhausted, return any (shouldn't reach if reset works)
-    const ins = inserts[0];
-    used.add(insertKey(ins));
-    return ins;
+    return inserts[insertIdx++];
   };
 
   for (const pageCards of pages) {
     const pageEl = document.createElement('div');
     pageEl.className = 'michi-page';
 
-    // Build a 9-slot layout. Strategy: place cards first, then fill the
-    // remaining slots with inserts. Try to slot one wide (1x2) insert per
-    // page when room allows; the rest are 1x1.
-    const slotsRemaining = MICHI_PAGE_TOTAL_SLOTS - pageCards.length;
-    let wideSlotsAllowed = slotsRemaining >= 2 ? 1 : 0;
-    const items = [];
-    for (const card of pageCards) {
-      items.push({ kind: 'card', card });
-    }
-    let remaining = slotsRemaining;
-    while (remaining > 0) {
-      const wantWide = wideSlotsAllowed > 0 && remaining >= 2;
-      const insert = nextInsert(wantWide ? true : false) || nextInsert(null);
+    // Compose the page: cards take their reserved positions, art fills the
+    // remaining slots up to MICHI_PAGE_MAX_ART_SLOTS. Try one wide (1x2)
+    // insert per page when room allows; rest are 1x1.
+    const items = pageCards.map(c => ({ kind: 'card', card: c }));
+    let artSlotBudget = Math.min(
+      MICHI_PAGE_MAX_ART_SLOTS,
+      MICHI_PAGE_TOTAL_SLOTS - pageCards.length
+    );
+    let wideAllowed = artSlotBudget >= 2 ? 1 : 0;
+
+    while (artSlotBudget > 0) {
+      const wantWide = wideAllowed > 0 && artSlotBudget >= 2;
+      const insert = nextInsert(wantWide) || nextInsert(null);
       if (!insert) break;
       const isWide = Array.isArray(insert.panel_dimensions_slots) &&
                      insert.panel_dimensions_slots[0] === 2 &&
-                     remaining >= 2;
+                     artSlotBudget >= 2;
       items.push({ kind: 'art', insert, wide: isWide });
-      remaining -= isWide ? 2 : 1;
-      if (isWide) wideSlotsAllowed--;
+      artSlotBudget -= isWide ? 2 : 1;
+      if (isWide) wideAllowed--;
     }
 
-    // Lightly shuffle deterministically so each page reads differently
-    // without the layout jumping between renders.
+    // Deterministic shuffle so each page reads differently without
+    // the layout jumping between renders.
     shuffleWithSeed(items, pages.indexOf(pageCards) * 7919 + 31);
 
     for (const item of items) {
