@@ -352,6 +352,16 @@ async function renderMichiPage(bundle) {
         img.alt = item.card.name || '';
         img.loading = 'lazy';
         el.appendChild(img);
+        // Click the binder card scan to open it at full size — same lightbox
+        // affordance the art carousel offers, but using the full card image
+        // (Pokemon / Weiss / FFTCG cards lack art_crop_urls, so this is the
+        // universal path that works for every card scan in the page).
+        el.classList.add('is-clickable');
+        const cardRef = item.card;
+        el.addEventListener('click', (ev) => {
+          ev.preventDefault();
+          openCardImageLightbox(cardRef);
+        });
       } else if (item.kind === 'art') {
         el.classList.add(item.wide ? 'art-wide' : 'art-single');
         const img = document.createElement('img');
@@ -673,6 +683,63 @@ function closeLightbox() {
   if (!isHoverPaused && !dragState) resumeMarquee();
 }
 
+// Open a lightbox showing the FULL card image (binder click path). Separate
+// from openLightbox, which is bound to the art-only carousel and reads from
+// currentCarouselCards via sourceIdx. Pokemon / Weiss / FFTCG cards lack
+// art_crop_urls but always have a full image_url, so this is the universal
+// path for clicking a card scan anywhere in the page.
+function openCardImageLightbox(card) {
+  if (!card || !card.image_url) return;
+  closeLightbox();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay lightbox-card-mode';
+
+  const img = document.createElement('img');
+  img.className = 'lightbox-image lightbox-card-image';
+  img.src = card.image_url;
+  img.alt = card.name || '';
+  overlay.appendChild(img);
+
+  const caption = document.createElement('div');
+  caption.className = 'lightbox-caption';
+  const nm = document.createElement('span');
+  nm.className = 'lb-name';
+  nm.textContent = card.name || '';
+  caption.appendChild(nm);
+  if (card.artist) {
+    const art = document.createElement('span');
+    art.className = 'lb-artist';
+    art.textContent = card.artist;
+    caption.appendChild(art);
+  }
+  const metaParts = [card.set, card.collector_number && `#${card.collector_number}`].filter(Boolean);
+  if (card.market_price_usd != null) metaParts.push(`mkt ${fmtUsd(card.market_price_usd)}`);
+  if (metaParts.length) {
+    const meta = document.createElement('span');
+    meta.className = 'lb-meta';
+    meta.textContent = metaParts.join(' · ');
+    caption.appendChild(meta);
+  }
+  overlay.appendChild(caption);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'lightbox-close';
+  closeBtn.setAttribute('aria-label', 'Close');
+  closeBtn.textContent = '×';
+  overlay.appendChild(closeBtn);
+
+  overlay.addEventListener('click', closeLightbox);
+  img.addEventListener('click', (e) => e.stopPropagation());
+  caption.addEventListener('click', (e) => e.stopPropagation());
+  closeBtn.addEventListener('click', (e) => { e.stopPropagation(); closeLightbox(); });
+
+  document.body.appendChild(overlay);
+  activeLightbox = overlay;
+  document.addEventListener('keydown', lightboxKeyHandler);
+}
+
 function lightboxKeyHandler(e) {
   if (e.key === 'Escape') closeLightbox();
 }
@@ -713,6 +780,7 @@ function renderCardGrid(cards) {
     const meta = document.createElement('div');
     meta.className = 'card-meta';
     const metaParts = [card.set, card.collector_number && `#${card.collector_number}`].filter(Boolean);
+    if (card.artist) metaParts.push(`art by ${card.artist}`);
     if (card.market_price_usd != null) {
       let mktStr = `mkt ${fmtUsd(card.market_price_usd)}`;
       if (card.market_price_as_of) {

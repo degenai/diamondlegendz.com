@@ -192,7 +192,29 @@ export function renderConstellation(bundle) {
     'aria-label': 'Constellation of curatorial connections between bundle cards and external resonance nodes',
   });
 
-  const { pos, cx, cy } = computeLayout(conn.nodes, conn.edges, width, height);
+  const layout = computeLayout(conn.nodes, conn.edges, width, height);
+  const { pos, cx, cy } = layout;
+
+  // Count how many bundle cards each external node connects to. Externals
+  // that bridge 2+ cards are the curatorial spine (shared artist / shared
+  // character / shared symbol etc.) and get visual weight: bigger node,
+  // bolder label, thicker incident edges. Shared-artist in particular is
+  // the strongest buyer-magnetic cohesion signal — collectors follow
+  // artists.
+  const cardIds = new Set(conn.nodes.filter(n => n.type === 'card').map(n => n.id));
+  const bridgeCount = new Map();  // externalNodeId -> cardCount it bridges
+  conn.nodes.forEach(n => bridgeCount.set(n.id, 0));
+  for (const edge of conn.edges) {
+    const fromIsCard = cardIds.has(edge.from);
+    const toIsCard = cardIds.has(edge.to);
+    if (fromIsCard && !toIsCard) bridgeCount.set(edge.to, (bridgeCount.get(edge.to) || 0) + 1);
+    if (toIsCard && !fromIsCard) bridgeCount.set(edge.from, (bridgeCount.get(edge.from) || 0) + 1);
+  }
+
+  // Featured-artists callout: artists who connect to 2+ bundle cards lead the
+  // list (with ×N), then singletons. Buyer-magnetic signal — surfaced at
+  // a-glance before they scroll to the constellation itself.
+  renderFeaturedArtistsCallout(host, conn, bridgeCount, cardIds);
 
   // Edges group first (so nodes render on top).
   const edgesG = el('g', { class: 'constellation-edges' });
@@ -202,12 +224,17 @@ export function renderConstellation(bundle) {
     if (!from || !to) return;
     const color = EDGE_COLOR[e.kind] || '#888';
     const style = EDGE_STYLE[e.kind] || 'solid';
+    // Edges touching a multi-card bridge node (e.g. an artist who illustrated
+    // 2+ cards) render thicker — the curatorial spine should be visually loud.
+    const touchesBridge =
+      (cardIds.has(e.from) && (bridgeCount.get(e.to) || 0) >= 2) ||
+      (cardIds.has(e.to)   && (bridgeCount.get(e.from) || 0) >= 2);
     const path = el('path', {
-      class: `edge edge-${e.kind}`,
+      class: `edge edge-${e.kind}${touchesBridge ? ' edge-bridge' : ''}`,
       d: edgePath(from, to, cx, cy),
       stroke: color,
-      'stroke-width': 1.8,
-      'stroke-opacity': 0.6,
+      'stroke-width': touchesBridge ? 3 : 1.8,
+      'stroke-opacity': touchesBridge ? 0.85 : 0.6,
       fill: 'none',
       'data-edge-idx': idx,
       'data-from': e.from,
@@ -232,10 +259,16 @@ export function renderConstellation(bundle) {
       'data-node-type': n.type,
       'data-node-label': n.label,
       'data-node-note': n.note || '',
+      'data-orig-x': p.x,
+      'data-orig-y': p.y,
       tabindex: 0,
     });
-    const r = NODE_R[n.type] || 10;
+    const bridges = bridgeCount.get(n.id) || 0;
+    const isBridge = n.type !== 'card' && bridges >= 2;
+    const baseR = NODE_R[n.type] || 10;
+    const r = isBridge ? baseR + 4 : baseR;
     const fill = NODE_FILL[n.type] || '#999';
+    if (isBridge) g.classList.add('is-bridge');
     // Headliner gets a magenta ring around its card node.
     if (n.is_headliner) {
       g.appendChild(el('circle', {
@@ -284,7 +317,43 @@ export function renderConstellation(bundle) {
   tip.style.display = 'none';
   host.appendChild(tip);
 
-  bindInteractions(svg, tip);
+  bindInteractions(svg, tip, { cx, cy });
+}
+
+function renderFeaturedArtistsCallout(host, conn, bridgeCount, cardIds) {
+  const artistNodes = conn.nodes.filter(n => n.type === 'artist');
+  if (!artistNodes.length) return;
+
+  // Order: artists who bridge 2+ cards first (×N suffix), then singletons.
+  const entries = artistNodes.map(n => ({
+    label: n.label,
+    count: bridgeCount.get(n.id) || 0,
+  }));
+  entries.sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+
+  if (!entries.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'constellation-featured-artists';
+
+  const title = document.createElement('span');
+  title.className = 'featured-title';
+  title.textContent = 'Featured artists:';
+  wrap.appendChild(title);
+
+  entries.forEach((e, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'featured-artist';
+    if (e.count >= 2) tag.classList.add('multi');
+    tag.textContent = e.count >= 2 ? `${e.label} ×${e.count}` : e.label;
+    wrap.appendChild(tag);
+    if (i < entries.length - 1) {
+      const sep = document.createElement('span');
+      sep.className = 'featured-sep';
+      sep.textContent = ' · ';
+      wrap.appendChild(sep);
+    }
+  });
+  host.appendChild(wrap);
 }
 
 function renderLegend(conn) {
@@ -325,8 +394,52 @@ function renderLegend(conn) {
   return wrap;
 }
 
-function bindInteractions(svg, tip) {
+function bindInteractions(svg, tip, layout) {
   const root = svg.parentElement;
+
+  // Current live positions per node id. Initialized from data-orig-{x,y};
+  // updated during drag; spring back on release.
+  const currentPos = new Map();
+  svg.querySelectorAll('.node').forEach(n => {
+    const id = n.getAttribute('data-node-id');
+    currentPos.set(id, {
+      x: parseFloat(n.getAttribute('data-orig-x')),
+      y: parseFloat(n.getAttribute('data-orig-y')),
+    });
+  });
+
+  // Helper: SVG userspace coords from a clientX/clientY (handles viewBox + DPI).
+  function clientToSvg(clientX, clientY) {
+    const pt = svg.createSVGPoint();
+    pt.x = clientX; pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: clientX, y: clientY };
+    const inv = ctm.inverse();
+    const s = pt.matrixTransform(inv);
+    return { x: s.x, y: s.y };
+  }
+
+  // Update the path of every edge incident to the given node id, using
+  // currentPos for both endpoints (so edges follow the dragged node + remain
+  // correct for non-dragged endpoints).
+  function refreshEdgesForNode(nodeId) {
+    svg.querySelectorAll('.edge').forEach(e => {
+      const f = e.getAttribute('data-from');
+      const t = e.getAttribute('data-to');
+      if (f !== nodeId && t !== nodeId) return;
+      const a = currentPos.get(f);
+      const b = currentPos.get(t);
+      if (!a || !b) return;
+      e.setAttribute('d', edgePath(a, b, layout.cx, layout.cy));
+    });
+  }
+
+  function setNodePosition(nodeEl, x, y) {
+    const id = nodeEl.getAttribute('data-node-id');
+    currentPos.set(id, { x, y });
+    nodeEl.setAttribute('transform', `translate(${x},${y})`);
+    refreshEdgesForNode(id);
+  }
 
   function highlightForNode(nodeId) {
     svg.querySelectorAll('.node').forEach(n => {
@@ -344,6 +457,80 @@ function bindInteractions(svg, tip) {
       e.setAttribute('stroke-width', active ? 3 : 1.4);
     });
   }
+
+  // Drag state for the currently-dragged node.
+  let drag = null;
+  // After a successful drag, swallow the click event that fires on pointerup
+  // so the pin/highlight logic below doesn't toggle.
+  let suppressNextClick = false;
+
+  svg.addEventListener('pointerdown', (ev) => {
+    if (ev.button !== undefined && ev.button !== 0) return;
+    const node = ev.target.closest('.node');
+    if (!node) return;
+    const id = node.getAttribute('data-node-id');
+    const pt = clientToSvg(ev.clientX, ev.clientY);
+    const cur = currentPos.get(id);
+    drag = {
+      pointerId: ev.pointerId,
+      node,
+      id,
+      offsetX: cur.x - pt.x,
+      offsetY: cur.y - pt.y,
+      moved: false,
+    };
+    try { svg.setPointerCapture(ev.pointerId); } catch (_) {}
+    node.classList.add('dragging');
+    ev.preventDefault();
+  });
+
+  svg.addEventListener('pointermove', (ev) => {
+    if (!drag || ev.pointerId !== drag.pointerId) return;
+    const pt = clientToSvg(ev.clientX, ev.clientY);
+    setNodePosition(drag.node, pt.x + drag.offsetX, pt.y + drag.offsetY);
+    drag.moved = true;
+  });
+
+  function endDrag(ev) {
+    if (!drag || ev.pointerId !== drag.pointerId) return;
+    const node = drag.node;
+    const id = drag.id;
+    const moved = drag.moved;
+    try { svg.releasePointerCapture(ev.pointerId); } catch (_) {}
+    drag = null;
+    node.classList.remove('dragging');
+    if (!moved) return;  // click-without-drag falls through to the click handler
+    suppressNextClick = true;
+
+    // Spring back to the original layout position. ~480ms ease-out with a
+    // gentle overshoot (cubic-out for the body, plus a small sine bump near
+    // the end). All animation happens via setNodePosition so edges update too.
+    const start = currentPos.get(id);
+    const targetX = parseFloat(node.getAttribute('data-orig-x'));
+    const targetY = parseFloat(node.getAttribute('data-orig-y'));
+    const dx = targetX - start.x;
+    const dy = targetY - start.y;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    const duration = 480;
+    const t0 = performance.now();
+    function ease(t) {
+      // ease-out cubic + 5% overshoot near the tail
+      const e = 1 - Math.pow(1 - t, 3);
+      const overshoot = Math.sin(t * Math.PI) * 0.05 * (t < 0.7 ? 0 : 1);
+      return e + overshoot;
+    }
+    function step(now) {
+      const t = Math.min(1, (now - t0) / duration);
+      const k = ease(t);
+      const x = start.x + dx * k;
+      const y = start.y + dy * k;
+      setNodePosition(node, x, y);
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
 
   function isAdjacent(idA, idB) {
     if (!idA || !idB) return false;
@@ -412,6 +599,7 @@ function bindInteractions(svg, tip) {
   // Touch / click: tap a node to pin highlight; tap empty area to clear.
   let pinnedId = null;
   svg.addEventListener('click', ev => {
+    if (suppressNextClick) { suppressNextClick = false; return; }
     const node = ev.target.closest('.node');
     if (node) {
       const id = node.getAttribute('data-node-id');

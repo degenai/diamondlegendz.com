@@ -59,7 +59,8 @@
       "market_price_usd": 0.07,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.jpg",
+      "artist": "Matt Stewart"
     },
     {
       "name": "Charity Extractor",
@@ -77,7 +78,8 @@
       "market_price_usd": 0.04,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg",
+      "artist": "Matt Stewart"
     },
     {
       "name": "Pitiless Pontiff",
@@ -95,7 +97,8 @@
       "market_price_usd": 0.2,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.jpg",
+      "artist": "Yongjae Choi"
     },
     {
       "name": "Mortify",
@@ -112,7 +115,8 @@
       "market_price_usd": 0.34,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/b/ebf6c0dc-5c7b-4170-99bc-2637ea44e716.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/b/ebf6c0dc-5c7b-4170-99bc-2637ea44e716.jpg",
+      "artist": "Anthony Palumbo"
     },
     {
       "name": "Tithe Drinker",
@@ -129,7 +133,8 @@
       "market_price_usd": 0.3,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.jpg",
+      "artist": "Slawomir Maniak"
     },
     {
       "name": "Lawmage's Binding",
@@ -148,7 +153,8 @@
       "market_price_usd": 0.15,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/a/8/a8a7be1f-3fba-4ff2-a4f1-aebd3d20da8f.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/a/8/a8a7be1f-3fba-4ff2-a4f1-aebd3d20da8f.jpg",
+      "artist": "Mark Behm"
     },
     {
       "name": "Indebted Spirit",
@@ -168,7 +174,8 @@
       "market_price_usd": 0.22,
       "market_price_as_of": "2026-05-17",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/b/f/bfdbef00-bc1b-4dd6-aef5-aeb5ce454344.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/b/f/bfdbef00-bc1b-4dd6-aef5-aeb5ce454344.jpg",
+      "artist": "L.A. Draws"
     },
     {
       "name": "Charitable Levy",
@@ -188,7 +195,8 @@
       "market_price_usd": 0.15,
       "market_price_as_of": "2026-05-17",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/4/a/4a5cab75-546c-4760-97b7-4591de9e6662.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/4/a/4a5cab75-546c-4760-97b7-4591de9e6662.jpg",
+      "artist": "Eli Minaya"
     },
     {
       "name": "Tithebearer Giant",
@@ -209,7 +217,8 @@
       "market_price_usd": 0.04,
       "market_price_as_of": "2026-05-17",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/c/3c305ccb-62f5-496a-a205-e818e34ead82.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/c/3c305ccb-62f5-496a-a205-e818e34ead82.jpg",
+      "artist": "Wisnu Tan"
     },
     {
       "name": "Malevolent Noble",
@@ -229,7 +238,8 @@
       "market_price_usd": 0.05,
       "market_price_as_of": "2026-05-17",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/6/b/6bc7e996-151f-4d88-8e1e-91bb88f5db02.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/6/b/6bc7e996-151f-4d88-8e1e-91bb88f5db02.jpg",
+      "artist": "Randy Vargas"
     },
     {
       "name": "Eye Collector",
@@ -249,7 +259,8 @@
       "market_price_usd": 0.17,
       "market_price_as_of": "2026-05-17",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/2/b/2b9bb2f3-a7c7-4e8f-ba39-44e6acd9240b.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/2/b/2b9bb2f3-a7c7-4e8f-ba39-44e6acd9240b.jpg",
+      "artist": "Uriah Voth"
     },
     {
       "name": "Secure the Scene",
@@ -268,7 +279,8 @@
       "market_price_usd": 0.05,
       "market_price_as_of": "2026-05-10",
       "market_price_source": "collectr",
-      "art_crop_url": "https://cards.scryfall.io/art_crop/front/d/6/d6467d96-e43a-4b1e-b6ce-578d991077b5.jpg"
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/d/6/d6467d96-e43a-4b1e-b6ce-578d991077b5.jpg",
+      "artist": "Zoltan Boros"
     }
   ],
   "cohesion": {
@@ -298,77 +310,312 @@
   "connections": {
     "_schema_note": "Bundle-scoped constellation. Nodes are in-bundle cards + external resonance entities pulled from the 2nd-pass trivia harvest. Edges show curatorial connective tissue: shared-symbol, co-previewed, source-tale, illustrated-by, design-ancestor, etc. Renderer: bundle-previewer/constellation.js. Hand-authored for MVP; will be auto-derived by the bbl-bundler agent in a later wave.",
     "nodes": [
-      {"id": "card:wicked-guardian",    "type": "card",        "label": "Wicked Guardian"},
-      {"id": "card:charity-extractor",  "type": "card",        "label": "Charity Extractor"},
-      {"id": "card:pitiless-pontiff",   "type": "card",        "label": "Pitiless Pontiff"},
-      {"id": "card:mortify",            "type": "card",        "label": "Mortify",            "is_headliner": true},
-      {"id": "card:tithe-drinker",      "type": "card",        "label": "Tithe Drinker"},
-      {"id": "card:lawmages-binding",   "type": "card",        "label": "Lawmage's Binding"},
-      {"id": "card:indebted-spirit",    "type": "card",        "label": "Indebted Spirit"},
-      {"id": "card:charitable-levy",    "type": "card",        "label": "Charitable Levy"},
-      {"id": "card:tithebearer-giant",  "type": "card",        "label": "Tithebearer Giant"},
-      {"id": "card:malevolent-noble",   "type": "card",        "label": "Malevolent Noble"},
-      {"id": "card:eye-collector",      "type": "card",        "label": "Eye Collector"},
-      {"id": "card:secure-the-scene",   "type": "card",        "label": "Secure the Scene"},
-
-      {"id": "artist:matt-stewart",     "type": "artist",      "label": "Matt Stewart",       "note": "Same artist on Wicked Guardian + Charity Extractor + the $35K WAR Bolas oil"},
-      {"id": "artist:yongjae-choi",     "type": "artist",      "label": "Yongjae Choi",       "note": "Same hand painted Pitiless Pontiff and Kaya, Orzhov Usurper in RNA"},
-      {"id": "artist:slawomir-maniak",  "type": "artist",      "label": "Slawomir Maniak",    "note": "Tithe Drinker is his ONLY Orzhov-watermark card across 222+ MTG illustrations"},
-      {"id": "artist:eli-minaya",       "type": "artist",      "label": "Eli Minaya",         "note": "Charitable Levy artist; novel-cover illustrator approached by AD Zack Stella in 2021"},
-
-      {"id": "symbol:eclipsed-sun-signet", "type": "symbol",   "label": "Eclipsed-sun signet", "note": "Orzhov emblem — master's medallion AND slave's brand"},
-      {"id": "character:teysa-karlov",  "type": "character",   "label": "Teysa Karlov",       "note": "Orzhov Matriarch — imprisoned by the Obzedat for a failed coup, freed in RNA"},
-      {"id": "character:hilgur",        "type": "character",   "label": "Hilgur, Orzhov euthanist", "note": "Mortify's RNA flavor speaker; the euthanist role formally defined in Guildmaster's Guide to Ravnica 2018"},
-      {"id": "character:rankle",        "type": "character",   "label": "Rankle, Master of Pranks", "note": "Eldraine prankster-fae lord named in Eye Collector's flavor; designed as Deal-Making Imp + Puck"},
-      {"id": "character:judith",        "type": "character",   "label": "Judith, the Scourge Diva", "note": "Rakdos legend — color-anomalous flavor speaker on this mono-white Azorius arrest sorcery"},
-
-      {"id": "event:hipsters-preview-2019", "type": "event",   "label": "Hipsters 'Behind the Front Lines' preview cluster, April 2019", "note": "WAR Orzhov tax cards previewed as a group"},
-
-      {"id": "source:bluebeard-1697",   "type": "source-tale", "label": "Bluebeard (Perrault, 1697)", "note": "Adaptational Heroism variant per TV Tropes"},
-      {"id": "source:rumpelstiltskin",  "type": "source-tale", "label": "Rumpelstiltskin + Puck (Midsummer Night's Dream)", "note": "Rankle's dual design source per MaRo's ELD handoff"},
-
-      {"id": "design:glowrider-thalia", "type": "design-ancestor", "label": "Glowrider → Thalia → Charitable Levy", "note": "20-year noncreature-spell-tax lineage; Charitable Levy is the first self-terminating enchantment in it"},
-      {"id": "design:phyrexian-rager",  "type": "design-ancestor", "label": "Phyrexian Rager (Apocalypse 2001)", "note": "Tithebearer Giant is the 'big brother' — identical ETB at lower cost"},
-      {"id": "design:noble-subtype-history", "type": "design-ancestor", "label": "Noble subtype (Homelands 1995 → ELD 2019)", "note": "Faerie Noble introduced the type; stripped in GCTU; reintroduced specifically for ELD's court structure"},
-
-      {"id": "mechanic:afterlife-bestow", "type": "mechanic",  "label": "Afterlife + Bestow (first card to carry both)", "note": "Rosewater: 'Bestow is my favorite mechanic from OG Theros.'"},
-      {"id": "mechanic:extort",         "type": "mechanic",    "label": "Extort", "note": "Designed by Shawn Main outside the Gatecrash team during devign; MaRo drafted 14 cards to convince skeptics"},
-
-      {"id": "place:orzhova",           "type": "place",       "label": "Orzhova / Cathedral Opulent", "note": "The Orzhov guildhall — 'Church of Deals'; catacomb below holds the mummified Obzedat"},
-      {"id": "place:locthwain",         "type": "place",       "label": "Locthwain court (Eldraine)", "note": "Persistence virtue = 'persistent efforts at serving the queen'"}
+      {
+        "id": "card:wicked-guardian",
+        "type": "card",
+        "label": "Wicked Guardian"
+      },
+      {
+        "id": "card:charity-extractor",
+        "type": "card",
+        "label": "Charity Extractor"
+      },
+      {
+        "id": "card:pitiless-pontiff",
+        "type": "card",
+        "label": "Pitiless Pontiff"
+      },
+      {
+        "id": "card:mortify",
+        "type": "card",
+        "label": "Mortify",
+        "is_headliner": true
+      },
+      {
+        "id": "card:tithe-drinker",
+        "type": "card",
+        "label": "Tithe Drinker"
+      },
+      {
+        "id": "card:lawmages-binding",
+        "type": "card",
+        "label": "Lawmage's Binding"
+      },
+      {
+        "id": "card:indebted-spirit",
+        "type": "card",
+        "label": "Indebted Spirit"
+      },
+      {
+        "id": "card:charitable-levy",
+        "type": "card",
+        "label": "Charitable Levy"
+      },
+      {
+        "id": "card:tithebearer-giant",
+        "type": "card",
+        "label": "Tithebearer Giant"
+      },
+      {
+        "id": "card:malevolent-noble",
+        "type": "card",
+        "label": "Malevolent Noble"
+      },
+      {
+        "id": "card:eye-collector",
+        "type": "card",
+        "label": "Eye Collector"
+      },
+      {
+        "id": "card:secure-the-scene",
+        "type": "card",
+        "label": "Secure the Scene"
+      },
+      {
+        "id": "artist:matt-stewart",
+        "type": "artist",
+        "label": "Matt Stewart",
+        "note": "Same artist on Wicked Guardian + Charity Extractor + the $35K WAR Bolas oil"
+      },
+      {
+        "id": "artist:yongjae-choi",
+        "type": "artist",
+        "label": "Yongjae Choi",
+        "note": "Same hand painted Pitiless Pontiff and Kaya, Orzhov Usurper in RNA"
+      },
+      {
+        "id": "artist:slawomir-maniak",
+        "type": "artist",
+        "label": "Slawomir Maniak",
+        "note": "Tithe Drinker is his ONLY Orzhov-watermark card across 222+ MTG illustrations"
+      },
+      {
+        "id": "artist:eli-minaya",
+        "type": "artist",
+        "label": "Eli Minaya",
+        "note": "Charitable Levy artist; novel-cover illustrator approached by AD Zack Stella in 2021"
+      },
+      {
+        "id": "symbol:eclipsed-sun-signet",
+        "type": "symbol",
+        "label": "Eclipsed-sun signet",
+        "note": "Orzhov emblem — master's medallion AND slave's brand"
+      },
+      {
+        "id": "character:teysa-karlov",
+        "type": "character",
+        "label": "Teysa Karlov",
+        "note": "Orzhov Matriarch — imprisoned by the Obzedat for a failed coup, freed in RNA"
+      },
+      {
+        "id": "character:hilgur",
+        "type": "character",
+        "label": "Hilgur, Orzhov euthanist",
+        "note": "Mortify's RNA flavor speaker; the euthanist role formally defined in Guildmaster's Guide to Ravnica 2018"
+      },
+      {
+        "id": "character:rankle",
+        "type": "character",
+        "label": "Rankle, Master of Pranks",
+        "note": "Eldraine prankster-fae lord named in Eye Collector's flavor; designed as Deal-Making Imp + Puck"
+      },
+      {
+        "id": "character:judith",
+        "type": "character",
+        "label": "Judith, the Scourge Diva",
+        "note": "Rakdos legend — color-anomalous flavor speaker on this mono-white Azorius arrest sorcery"
+      },
+      {
+        "id": "event:hipsters-preview-2019",
+        "type": "event",
+        "label": "Hipsters 'Behind the Front Lines' preview cluster, April 2019",
+        "note": "WAR Orzhov tax cards previewed as a group"
+      },
+      {
+        "id": "source:bluebeard-1697",
+        "type": "source-tale",
+        "label": "Bluebeard (Perrault, 1697)",
+        "note": "Adaptational Heroism variant per TV Tropes"
+      },
+      {
+        "id": "source:rumpelstiltskin",
+        "type": "source-tale",
+        "label": "Rumpelstiltskin + Puck (Midsummer Night's Dream)",
+        "note": "Rankle's dual design source per MaRo's ELD handoff"
+      },
+      {
+        "id": "design:glowrider-thalia",
+        "type": "design-ancestor",
+        "label": "Glowrider → Thalia → Charitable Levy",
+        "note": "20-year noncreature-spell-tax lineage; Charitable Levy is the first self-terminating enchantment in it"
+      },
+      {
+        "id": "design:phyrexian-rager",
+        "type": "design-ancestor",
+        "label": "Phyrexian Rager (Apocalypse 2001)",
+        "note": "Tithebearer Giant is the 'big brother' — identical ETB at lower cost"
+      },
+      {
+        "id": "design:noble-subtype-history",
+        "type": "design-ancestor",
+        "label": "Noble subtype (Homelands 1995 → ELD 2019)",
+        "note": "Faerie Noble introduced the type; stripped in GCTU; reintroduced specifically for ELD's court structure"
+      },
+      {
+        "id": "mechanic:afterlife-bestow",
+        "type": "mechanic",
+        "label": "Afterlife + Bestow (first card to carry both)",
+        "note": "Rosewater: 'Bestow is my favorite mechanic from OG Theros.'"
+      },
+      {
+        "id": "mechanic:extort",
+        "type": "mechanic",
+        "label": "Extort",
+        "note": "Designed by Shawn Main outside the Gatecrash team during devign; MaRo drafted 14 cards to convince skeptics"
+      },
+      {
+        "id": "place:orzhova",
+        "type": "place",
+        "label": "Orzhova / Cathedral Opulent",
+        "note": "The Orzhov guildhall — 'Church of Deals'; catacomb below holds the mummified Obzedat"
+      },
+      {
+        "id": "place:locthwain",
+        "type": "place",
+        "label": "Locthwain court (Eldraine)",
+        "note": "Persistence virtue = 'persistent efforts at serving the queen'"
+      }
     ],
     "edges": [
-      {"from": "card:charity-extractor",  "to": "event:hipsters-preview-2019", "kind": "co-previewed", "note": "Co-previewed with Tithebearer Giant"},
-      {"from": "card:tithebearer-giant",  "to": "event:hipsters-preview-2019", "kind": "co-previewed", "note": "Co-previewed with Charity Extractor"},
-
-      {"from": "card:pitiless-pontiff",   "to": "symbol:eclipsed-sun-signet",  "kind": "depicts",      "note": "Throne backed by the signet"},
-      {"from": "card:tithe-drinker",      "to": "symbol:eclipsed-sun-signet",  "kind": "depicts",      "note": "Matching throne, two masters under one emblem"},
-
-      {"from": "card:wicked-guardian",    "to": "artist:matt-stewart",         "kind": "illustrated-by"},
-      {"from": "card:charity-extractor",  "to": "artist:matt-stewart",         "kind": "illustrated-by"},
-      {"from": "card:pitiless-pontiff",   "to": "artist:yongjae-choi",         "kind": "illustrated-by"},
-      {"from": "card:tithe-drinker",      "to": "artist:slawomir-maniak",      "kind": "illustrated-by"},
-      {"from": "card:charitable-levy",    "to": "artist:eli-minaya",           "kind": "illustrated-by"},
-
-      {"from": "card:tithebearer-giant",  "to": "character:teysa-karlov",      "kind": "flavor-speaker", "note": "Teysa's war-chest quote"},
-      {"from": "card:mortify",            "to": "character:hilgur",            "kind": "flavor-speaker"},
-      {"from": "card:eye-collector",      "to": "character:rankle",            "kind": "depicts-servant-of"},
-      {"from": "card:secure-the-scene",   "to": "character:judith",            "kind": "flavor-speaker", "note": "Color-anomalous: Rakdos legend on a mono-white card"},
-
-      {"from": "card:malevolent-noble",   "to": "source:bluebeard-1697",       "kind": "source-tale"},
-      {"from": "card:eye-collector",      "to": "source:rumpelstiltskin",      "kind": "source-tale"},
-
-      {"from": "card:charitable-levy",    "to": "design:glowrider-thalia",     "kind": "design-lineage"},
-      {"from": "card:tithebearer-giant",  "to": "design:phyrexian-rager",      "kind": "mechanical-twin", "note": "Community: 'big brother'"},
-      {"from": "card:malevolent-noble",   "to": "design:noble-subtype-history","kind": "design-lineage"},
-
-      {"from": "card:indebted-spirit",    "to": "mechanic:afterlife-bestow",   "kind": "mechanic-debut", "note": "First card ever to carry both keywords"},
-      {"from": "card:tithe-drinker",      "to": "mechanic:extort",             "kind": "uses-mechanic"},
-      {"from": "card:pitiless-pontiff",   "to": "mechanic:extort",             "kind": "guild-watermark", "note": "Same {W/B} Orzhov design space"},
-
-      {"from": "card:pitiless-pontiff",   "to": "place:orzhova",               "kind": "depicted-in"},
-      {"from": "card:tithe-drinker",      "to": "place:orzhova",               "kind": "depicted-in"},
-      {"from": "card:wicked-guardian",    "to": "place:locthwain",             "kind": "depicted-in"}
+      {
+        "from": "card:charity-extractor",
+        "to": "event:hipsters-preview-2019",
+        "kind": "co-previewed",
+        "note": "Co-previewed with Tithebearer Giant"
+      },
+      {
+        "from": "card:tithebearer-giant",
+        "to": "event:hipsters-preview-2019",
+        "kind": "co-previewed",
+        "note": "Co-previewed with Charity Extractor"
+      },
+      {
+        "from": "card:pitiless-pontiff",
+        "to": "symbol:eclipsed-sun-signet",
+        "kind": "depicts",
+        "note": "Throne backed by the signet"
+      },
+      {
+        "from": "card:tithe-drinker",
+        "to": "symbol:eclipsed-sun-signet",
+        "kind": "depicts",
+        "note": "Matching throne, two masters under one emblem"
+      },
+      {
+        "from": "card:wicked-guardian",
+        "to": "artist:matt-stewart",
+        "kind": "illustrated-by"
+      },
+      {
+        "from": "card:charity-extractor",
+        "to": "artist:matt-stewart",
+        "kind": "illustrated-by"
+      },
+      {
+        "from": "card:pitiless-pontiff",
+        "to": "artist:yongjae-choi",
+        "kind": "illustrated-by"
+      },
+      {
+        "from": "card:tithe-drinker",
+        "to": "artist:slawomir-maniak",
+        "kind": "illustrated-by"
+      },
+      {
+        "from": "card:charitable-levy",
+        "to": "artist:eli-minaya",
+        "kind": "illustrated-by"
+      },
+      {
+        "from": "card:tithebearer-giant",
+        "to": "character:teysa-karlov",
+        "kind": "flavor-speaker",
+        "note": "Teysa's war-chest quote"
+      },
+      {
+        "from": "card:mortify",
+        "to": "character:hilgur",
+        "kind": "flavor-speaker"
+      },
+      {
+        "from": "card:eye-collector",
+        "to": "character:rankle",
+        "kind": "depicts-servant-of"
+      },
+      {
+        "from": "card:secure-the-scene",
+        "to": "character:judith",
+        "kind": "flavor-speaker",
+        "note": "Color-anomalous: Rakdos legend on a mono-white card"
+      },
+      {
+        "from": "card:malevolent-noble",
+        "to": "source:bluebeard-1697",
+        "kind": "source-tale"
+      },
+      {
+        "from": "card:eye-collector",
+        "to": "source:rumpelstiltskin",
+        "kind": "source-tale"
+      },
+      {
+        "from": "card:charitable-levy",
+        "to": "design:glowrider-thalia",
+        "kind": "design-lineage"
+      },
+      {
+        "from": "card:tithebearer-giant",
+        "to": "design:phyrexian-rager",
+        "kind": "mechanical-twin",
+        "note": "Community: 'big brother'"
+      },
+      {
+        "from": "card:malevolent-noble",
+        "to": "design:noble-subtype-history",
+        "kind": "design-lineage"
+      },
+      {
+        "from": "card:indebted-spirit",
+        "to": "mechanic:afterlife-bestow",
+        "kind": "mechanic-debut",
+        "note": "First card ever to carry both keywords"
+      },
+      {
+        "from": "card:tithe-drinker",
+        "to": "mechanic:extort",
+        "kind": "uses-mechanic"
+      },
+      {
+        "from": "card:pitiless-pontiff",
+        "to": "mechanic:extort",
+        "kind": "guild-watermark",
+        "note": "Same {W/B} Orzhov design space"
+      },
+      {
+        "from": "card:pitiless-pontiff",
+        "to": "place:orzhova",
+        "kind": "depicted-in"
+      },
+      {
+        "from": "card:tithe-drinker",
+        "to": "place:orzhova",
+        "kind": "depicted-in"
+      },
+      {
+        "from": "card:wicked-guardian",
+        "to": "place:locthwain",
+        "kind": "depicted-in"
+      }
     ]
   },
   "checkout": {

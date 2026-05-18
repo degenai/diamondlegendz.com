@@ -1,6 +1,7 @@
 {
   "schema_version": "0.3",
-  "status": "example",
+  "status": "deprecated",
+  "_deprecation_note": "Deprecated 2026-05-18. The bundle-scoped constellation revealed most cards as isolated dots — each connects to its own private artist / character / source-tale, but those externals don't bridge to other cards in the bundle. Cohesion failed the 'substrate vs scattered dots' test: 2-step or longer paths through shared externals would count, but drone doesn't have them. Will revisit when the corpus accumulates bridging edges (shared character, symbol, mechanic, design ancestor across multiple bundle cards). Removed from sample-bundles/_manifest.json on the same date; still resolvable via direct URL for testing.",
   "slug": "drone",
   "series_label": "BBL",
   "catalog_id": "Discrete Lair 002",
