@@ -21,6 +21,24 @@
         "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg",
         "https://cards.scryfall.io/art_crop/front/b/6/b6eb3c20-e853-4399-a107-c3308b2e5d4e.jpg"
       ]
+    },
+    {
+      "slug": "manor",
+      "catalog_id": "Discrete Lair 003",
+      "title": "Manor",
+      "subtitle": "everyone's a suspect",
+      "hubs": ["investigation"],
+      "anchor_tags": ["suspect", "disguise", "agency", "foundway-associates", "detective"],
+      "card_count": 18,
+      "distinct_card_count": 13,
+      "list_price_usd": 5.00,
+      "blurb": "Murders at Karlov Manor (Feb 2024) was Wizards' first set built around a single weekend-long crime — a country-house mystery dropped on the Orzhov guildhall. The Agency investigates, the Foundway Associates evade, Kaya chases someone she's not allowed to kill. Eighteen cards across thirteen names. Sanguine Savior carries the eclipsed-sun signet back to Discrete Lair 001 (Tithe) — same world, two angles.",
+      "thumbnails": [
+        "https://cards.scryfall.io/art_crop/front/9/c/9cba5503-ba99-43d8-8062-66d905e0d86b.jpg",
+        "https://cards.scryfall.io/art_crop/front/4/8/486f1cc2-c162-448e-91a9-577d7d796584.jpg",
+        "https://cards.scryfall.io/art_crop/front/3/1/31aadd3d-5ce1-44ba-ac6d-b192a9ea491b.jpg",
+        "https://cards.scryfall.io/art_crop/front/1/d/1d54d596-f7aa-4b05-ab13-19b246698c04.jpg"
+      ]
     }
   ],
   "_deprecated_lairs_note": "Drone (Discrete Lair 002) was deprecated 2026-05-18 after the constellation visualization made its weakness visible. The cohesion metric isn't 'card-to-card edges' specifically — 2-step or longer paths through external resonance nodes (a shared character, source-tale, mechanic, or design ancestor that bridges two cards) count as substrate. The test is whether the majority of cards land in a single connected component vs. scattered as isolated dots each tied only to their own private externals. Drone fails this: most cards have personal artist / character / source nodes that don't bridge anywhere. Bundle JSON, michi-inserts/drone/, and card-cache/drone/ are retained on disk; lair.html?lair=drone still resolves for direct testing. Will resurrect when the underlying graph accumulates bridging edges."

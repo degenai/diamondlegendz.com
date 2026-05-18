@@ -1,0 +1,378 @@
+{
+  "schema_version": "0.3",
+  "slug": "manor",
+  "status": "example",
+  "series_label": "BBL",
+  "catalog_id": "Discrete Lair 003",
+  "title": "Manor",
+  "subtitle": "everyone's a suspect",
+  "narrative": "Murders at Karlov Manor (Feb 2024) was Wizards' first set built around a single weekend-long crime — a country-house mystery dropped on Ravnica's Orzhov guildhall. The Agency investigates. The Foundway Associates underworld evades. Kaya Ghost Assassin chases someone she's not allowed to kill. The set's two new mechanics are flavor-perfect: 'disguise' lets you cast creatures face-down (everyone's a suspect until they're turned over) and 'suspect' makes a creature menacing-and-unable-to-block (the accused get jumpier, less useful). Thirteen cards across three factions, one set, one weekend.",
+  "hubs": [
+    "investigation"
+  ],
+  "anchor_tags": [
+    "suspect",
+    "disguise",
+    "agency",
+    "foundway-associates",
+    "detective",
+    "evidence",
+    "mystery"
+  ],
+  "intent_tags": [
+    "suspect",
+    "disguise",
+    "agency",
+    "foundway-associates",
+    "kaya",
+    "detective",
+    "evidence",
+    "clue",
+    "investigation",
+    "mystery",
+    "deception",
+    "ambush",
+    "alibi",
+    "frame-up",
+    "evasion",
+    "menace",
+    "ward"
+  ],
+  "cards": [
+    {
+      "name": "Sanguine Savior",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "230",
+      "image_url": "https://cards.scryfall.io/png/front/9/c/9cba5503-ba99-43d8-8062-66d905e0d86b.png",
+      "tags_matched": ["agency", "orzhov-syndicate", "orzhov-signet", "disguise", "rescue"],
+      "why_it_fits": "BUNDLE KEYSTONE. Vampire Cleric whose card carries Agency + Orzhov-Syndicate characters AND the eclipsed-sun signet AND disguise — four bridges threading the bundle's internal factions and cross-linking to Discrete Lair 001 (Tithe), where Pitiless Pontiff and Tithe Drinker share the same signet behind their thrones. The Agency on Ravnica is R.A.M.I. (Ravnican Agency of Magejudgement and Investigation), founded by the new Boros legend Ezrim, Agency Chief; Sanguine Savior is the rare card sitting at the intersection of Orzhov clerical hierarchy and Agency enforcement. The disguise cost is {W/B}{W/B} — you need both guild colors to unmask her. Two layers of institutional apparatus, one card.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.13,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/c/9cba5503-ba99-43d8-8062-66d905e0d86b.jpg",
+      "artist": "Valera Lutfullina"
+    },
+    {
+      "name": "Eliminate the Impossible",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "54",
+      "image_url": "https://cards.scryfall.io/png/front/4/8/486f1cc2-c162-448e-91a9-577d7d796584.png",
+      "tags_matched": ["agency", "suspect", "deduction", "sherlock-holmes-reference"],
+      "why_it_fits": "The card name is the Sherlock Holmes maxim verbatim (Doyle, The Sign of the Four, 1890, ch. 6): 'When you have eliminated the impossible, whatever remains, however improbable, must be the truth.' Flavor stacks two literary registers on top: 'Half the city had motive. Time to narrow down who also had the means and opportunity' — the means/motive/opportunity criminal-investigation triad over the Holmesian frame. The mechanic is its own paradox: -2/-0 to opponents' creatures AND clear suspect status from any of theirs. The detective card that *removes* suspicion. Closing the case by elimination, written into the rules text.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.10,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/4/8/486f1cc2-c162-448e-91a9-577d7d796584.jpg",
+      "artist": "Carlos Palma Cruchaga"
+    },
+    {
+      "name": "Reckless Detective",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "141",
+      "image_url": "https://cards.scryfall.io/png/front/1/8/18da1a1d-e6ba-47e5-a545-0bacd427b782.png",
+      "tags_matched": ["agency", "detective"],
+      "why_it_fits": "The Agency's signature mood. Red Agency centaur with the dumb 'he's gonna crack this thing wide open' flavor — a cop who'd burn evidence to chase down a hunch. Attack trigger: sacrifice an artifact (Clue tokens, anyone?) OR discard a card to draw a card and pump +2/+0. Mechanically tells you what kind of detective he is.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.09,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/1/8/18da1a1d-e6ba-47e5-a545-0bacd427b782.jpg",
+      "artist": "Tuan Duong Chu"
+    },
+    {
+      "name": "Crowd-Control Warden",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "193",
+      "image_url": "https://cards.scryfall.io/png/front/c/d/cdf0578f-4966-4ecd-81e1-83ae13126f13.png",
+      "tags_matched": ["agency", "disguise", "centaur", "law-enforcement"],
+      "why_it_fits": "Agency centaur channeling golden magical chains from outstretched arms in a sunlit courtyard — the same visual register as Secure the Scene's blue-energy chains in Discrete Lair 001 (Tithe), but in green-white instead of Azorius blue. Same authority motif, different guild palette. Disguise {3}{G/W}{G/W}; ETB or face-up trigger: +1/+1 counters equal to your other creature count. A reinforcement that scales with the squad already on the scene.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.08,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/c/d/cdf0578f-4966-4ecd-81e1-83ae13126f13.jpg",
+      "artist": "Diego Gisbert"
+    },
+    {
+      "name": "Expose the Culprit",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "124",
+      "image_url": "https://cards.scryfall.io/png/front/3/1/31aadd3d-5ce1-44ba-ac6d-b192a9ea491b.png",
+      "tags_matched": ["agency", "disguise", "reveal"],
+      "why_it_fits": "Agency × disguise direct intersection — the Agency's tool for cracking the mechanic itself. Choose one or both: turn target face-down creature face up, OR exile your face-up disguise creatures, shuffle them face-down, then re-cloak them at random. The interrogation room AND the witness protection program in one instant.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.18,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/1/31aadd3d-5ce1-44ba-ac6d-b192a9ea491b.jpg",
+      "artist": "Ryan Valle"
+    },
+    {
+      "name": "Offender at Large",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "138",
+      "image_url": "https://cards.scryfall.io/png/front/f/0/f096ff4a-85f4-46f1-9478-e8921f21309d.png",
+      "tags_matched": ["foundway-associates", "disguise", "fugitive"],
+      "why_it_fits": "The bundle's Foundway angle — the underworld faction. Flavor speaker Imel of the Foundway Associates: 'In a city this big, anyone can blend in.' Disguise {4}{R} on a 4/2 menace body that turns target creature face-down (your own or your opponent's) on flip — the criminal pulling a witness off the stand.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.07,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/f/0/f096ff4a-85f4-46f1-9478-e8921f21309d.jpg",
+      "artist": "Mike Bierek"
+    },
+    {
+      "name": "Suspicious Detonation",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "145",
+      "image_url": "https://cards.scryfall.io/png/front/6/e/6e280482-ed7e-4011-899e-096ff7bd4c41.png",
+      "tags_matched": ["foundway-associates", "explosion", "framing"],
+      "why_it_fits": "Foundway speaker Runubi: 'Clearly someone wanted us to find this.' The detonation IS the clue — an evidence-planting bomb. {4}{R} reduced to {1}{R} if you've sacrificed an artifact this turn (Clue tokens again). Can't be countered. Four damage to target creature plus damage equal to that creature's mana value to its controller. A Foundway scheme dressed as a forensic confession.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.06,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/6/e/6e280482-ed7e-4011-899e-096ff7bd4c41.jpg",
+      "artist": "Joe Slucher"
+    },
+    {
+      "name": "They Went This Way",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "178",
+      "image_url": "https://cards.scryfall.io/png/front/f/4/f4a31d4a-34bc-46b4-b20f-a5460191b35d.png",
+      "tags_matched": ["foundway-associates", "ramp", "investigation"],
+      "why_it_fits": "Foundway speaker Alst: 'Running doesn't prove guilt, but innocent people don't typically flee into the North Ridge Forest.' Green ramp into the woods, plus an Investigate Clue token. The lair's green Foundway counterpart to the red detonation: the chase as the same gesture as the cover-up.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.25,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/f/4/f4a31d4a-34bc-46b4-b20f-a5460191b35d.jpg",
+      "artist": "Andreas Zafiratos"
+    },
+    {
+      "name": "The Chase Is On",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "116",
+      "image_url": "https://cards.scryfall.io/png/front/1/d/1d54d596-f7aa-4b05-ab13-19b246698c04.png",
+      "tags_matched": ["kaya", "investigation", "clue"],
+      "why_it_fits": "Kaya cameo #1. Flavor: 'Etrata evaded the Boros arresters and Azorius lawmages, but not even a master assassin could give Kaya the slip.' The planeswalker assassin who took the Obzedat in Discrete Lair 001 (Tithe) is now hunting another assassin through Karlov Manor. Combat trick + Investigate. Cross-bundle bridge to Tithe via Kaya the Orzhov Usurper (RNA), painted by the same artist who did Tithe's Pitiless Pontiff (Yongjae Choi).",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.03,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/1/d/1d54d596-f7aa-4b05-ab13-19b246698c04.jpg",
+      "artist": "Diego Gisbert"
+    },
+    {
+      "name": "Fanatical Strength",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "159",
+      "image_url": "https://cards.scryfall.io/png/front/4/9/4941fa74-c7b9-4468-8080-de8057d3d27b.png",
+      "tags_matched": ["kaya", "combat-trick", "ambush"],
+      "why_it_fits": "Kaya cameo #2. Flavor: 'What is this? An ambush or a staring contest?' Kaya taunted. As if in answer, the robed figure lunged forward. Kaya at the Manor in mid-encounter — the same robed-Orzhov-figure register from Lair 001 (Pitiless Pontiff, Tithe Drinker, Mortify's euthanist). Green +3/+3 trample combat trick.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.13,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/4/9/4941fa74-c7b9-4468-8080-de8057d3d27b.jpg",
+      "artist": "Durion"
+    },
+    {
+      "name": "Caught Red-Handed",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "115",
+      "image_url": "https://cards.scryfall.io/png/front/9/5/95bc5f89-2f01-40c4-9883-4c90ab89fcbb.png",
+      "tags_matched": ["suspect", "frame-up"],
+      "why_it_fits": "Flavor: 'Wait, stop! I've been framed! Extremely convincingly!' Threaten + suspect a target creature, and the spell can't be countered (including by ward). Stealing the wrongly-accused defendant for one turn to do your dirty work — the most cynical reading of the suspect mechanic, set right in the rules text.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.07,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/5/95bc5f89-2f01-40c4-9883-4c90ab89fcbb.jpg",
+      "artist": "Donato Giancola"
+    },
+    {
+      "name": "Convenient Target",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "119",
+      "image_url": "https://cards.scryfall.io/png/front/2/d/2d2cf2ae-9152-41c4-9dc4-a19da5812869.png",
+      "tags_matched": ["suspect", "framing", "aura"],
+      "why_it_fits": "Enchant creature, suspect it on entry, +1/+1, recur from graveyard for {2}{R}. A red aura that paints an opponent's creature with the suspect tag (menace + can't block) and a buff that makes the target jumpier and more dangerous. The aura IS the framing.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.26,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/2/d/2d2cf2ae-9152-41c4-9dc4-a19da5812869.jpg",
+      "artist": "Gaboleps"
+    },
+    {
+      "name": "Airtight Alibi",
+      "set": "Murders at Karlov Manor",
+      "collector_number": "149",
+      "image_url": "https://cards.scryfall.io/png/front/b/f/bffbbe21-0a1d-48b9-903e-81c109aa11de.png",
+      "tags_matched": ["suspect", "hexproof", "defense"],
+      "why_it_fits": "Flash aura: untap, hexproof, +2/+2, can't be blocked by suspected creatures, AND clears the suspect status from your own creature if it had it. The defense attorney filing the alibi mid-trial. The bundle's counter to Caught Red-Handed and Convenient Target — every framing has its alibi.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.15,
+      "market_price_as_of": "2026-05-18",
+      "market_price_source": "collectr",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/b/f/bffbbe21-0a1d-48b9-903e-81c109aa11de.jpg",
+      "artist": "Jeremy Wilson"
+    }
+  ],
+  "cohesion": {
+    "mood": "noir / procedural",
+    "register": "country-house mystery, dressed in Ravnica city-state guilds",
+    "palette_hex": [
+      "#1a1a2e",
+      "#5a3a1a",
+      "#8a6a3a",
+      "#a02020",
+      "#d4c290"
+    ],
+    "color_identities_present": [
+      "multicolor-white-black",
+      "multicolor-green-white",
+      "mono-red",
+      "mono-green",
+      "mono-blue"
+    ],
+    "set_diversity": [
+      "Murders at Karlov Manor"
+    ],
+    "games_present": [
+      "Magic: The Gathering"
+    ]
+  },
+  "connections": {
+    "_schema_note": "Bundle-scoped constellation, designed substrate-first. Every card connects to at least two bridge nodes (faction character / mechanic symbol / set / artist). Sanguine Savior is the keystone — Agency + Orzhov-Syndicate + Orzhov-Signet + Disguise = four bridges including the cross-bundle link back to Discrete Lair 001 Tithe (where Pitiless Pontiff and Tithe Drinker share the same signet). Hand-authored MVP; bbl-bundler agent will derive these from card frontmatter in a later wave.",
+    "nodes": [
+      {"id": "card:sanguine-savior",       "type": "card",        "label": "Sanguine Savior", "is_headliner": true},
+      {"id": "card:eliminate-impossible",  "type": "card",        "label": "Eliminate the Impossible"},
+      {"id": "card:reckless-detective",    "type": "card",        "label": "Reckless Detective"},
+      {"id": "card:crowd-control-warden",  "type": "card",        "label": "Crowd-Control Warden"},
+      {"id": "card:expose-the-culprit",    "type": "card",        "label": "Expose the Culprit"},
+      {"id": "card:offender-at-large",     "type": "card",        "label": "Offender at Large"},
+      {"id": "card:suspicious-detonation", "type": "card",        "label": "Suspicious Detonation"},
+      {"id": "card:they-went-this-way",    "type": "card",        "label": "They Went This Way"},
+      {"id": "card:the-chase-is-on",       "type": "card",        "label": "The Chase Is On"},
+      {"id": "card:fanatical-strength",    "type": "card",        "label": "Fanatical Strength"},
+      {"id": "card:caught-red-handed",     "type": "card",        "label": "Caught Red-Handed"},
+      {"id": "card:convenient-target",     "type": "card",        "label": "Convenient Target"},
+      {"id": "card:airtight-alibi",        "type": "card",        "label": "Airtight Alibi"},
+
+      {"id": "character:the-agency",       "type": "character",   "label": "The Agency",            "note": "MKM's detective faction — investigates the murder at Karlov Manor. Multi-guild composition (Boros + Azorius + Orzhov + Selesnya investigators)."},
+      {"id": "character:foundway-associates","type": "character", "label": "Foundway Associates",  "note": "MKM's underworld faction — the Ravnica criminal network the Agency chases. Speakers Imel, Runubi, Alst named across the bundle."},
+      {"id": "character:kaya",             "type": "character",   "label": "Kaya, Ghost Assassin", "note": "Planeswalker who assassinated the Obzedat in RNA (the same arc that frames Discrete Lair 001 Tithe). Returns in MKM as a guest investigator."},
+      {"id": "character:orzhov-syndicate", "type": "character",   "label": "Orzhov Syndicate",     "note": "Cross-bundle bridge to Tithe (BBL001): Pitiless Pontiff, Tithe Drinker, Mortify all carry this character. Sanguine Savior on this bundle does too."},
+
+      {"id": "symbol:disguise",            "type": "symbol",      "label": "Disguise (face-down 2/2 ward 2 mechanic)", "note": "One of MKM's two signature mechanics. Cast face-down for {3}, turn up any time for the disguise cost. Six bundle cards carry the symbol."},
+      {"id": "symbol:suspect",             "type": "symbol",      "label": "Suspect (menace + can't block)", "note": "MKM's other signature mechanic. Four bundle cards either grant or interact with it."},
+      {"id": "symbol:orzhov-signet",       "type": "symbol",      "label": "Eclipsed-sun signet",  "note": "Orzhov emblem. Cross-bundle bridge to Tithe: Pitiless Pontiff + Tithe Drinker both depict the signet behind their thrones; Sanguine Savior carries it on her sigil."},
+
+      {"id": "artist:diego-gisbert",       "type": "artist",      "label": "Diego Gisbert",        "note": "Two cards in this bundle: The Chase Is On + Crowd-Control Warden."},
+
+      {"id": "place:karlov-manor",         "type": "place",       "label": "Karlov Manor (Orzhov guildhall)", "note": "Setting of the entire set. The Karlov family is the Orzhov-aligned aristocratic line whose home becomes the crime scene."},
+
+      {"id": "mechanic:investigate",       "type": "mechanic",    "label": "Investigate (Clue tokens)", "note": "Returning MTG keyword from Shadows over Innistrad (2016), re-deployed across MKM as the procedural-evidence currency. Three bundle cards generate Clue tokens; Suspicious Detonation discounts itself off sacrificed artifacts (Clue or otherwise)."},
+
+      {"id": "source:sherlock-holmes",     "type": "source-tale", "label": "Sherlock Holmes — The Sign of Four (Doyle, 1890)", "note": "Eliminate the Impossible card name is the verbatim Holmes maxim from Doyle's second Holmes novel."},
+
+      {"id": "event:bbl001-tithe",         "type": "event",       "label": "Discrete Lair 001 — Tithe", "note": "Cross-bundle anchor. Tithe and Manor both run through the Orzhov Syndicate; same eclipsed-sun signet, same Kaya planeswalker arc. The two bundles can be read as the same world from two angles: extraction (Tithe) and prosecution (Manor)."}
+    ],
+    "edges": [
+      {"from": "card:sanguine-savior",       "to": "character:the-agency",         "kind": "faction-member"},
+      {"from": "card:sanguine-savior",       "to": "character:orzhov-syndicate",   "kind": "faction-member", "note": "The cross-bundle Orzhov bridge"},
+      {"from": "card:sanguine-savior",       "to": "symbol:orzhov-signet",         "kind": "depicts"},
+      {"from": "card:sanguine-savior",       "to": "symbol:disguise",              "kind": "uses-mechanic"},
+      {"from": "card:sanguine-savior",       "to": "event:bbl001-tithe",           "kind": "cross-bundle-link", "note": "Same signet, same syndicate"},
+
+      {"from": "card:eliminate-impossible",  "to": "character:the-agency",         "kind": "faction-member"},
+      {"from": "card:eliminate-impossible",  "to": "symbol:suspect",               "kind": "interacts-with-mechanic"},
+      {"from": "card:eliminate-impossible",  "to": "mechanic:investigate",         "kind": "uses-mechanic"},
+      {"from": "card:eliminate-impossible",  "to": "source:sherlock-holmes",       "kind": "source-tale", "note": "Holmes maxim verbatim from The Sign of Four"},
+
+      {"from": "card:reckless-detective",    "to": "character:the-agency",         "kind": "faction-member"},
+
+      {"from": "card:crowd-control-warden",  "to": "character:the-agency",         "kind": "faction-member"},
+      {"from": "card:crowd-control-warden",  "to": "symbol:disguise",              "kind": "uses-mechanic"},
+      {"from": "card:crowd-control-warden",  "to": "artist:diego-gisbert",         "kind": "illustrated-by"},
+
+      {"from": "card:expose-the-culprit",    "to": "character:the-agency",         "kind": "faction-member"},
+      {"from": "card:expose-the-culprit",    "to": "symbol:disguise",              "kind": "interacts-with-mechanic"},
+
+      {"from": "card:offender-at-large",     "to": "character:foundway-associates","kind": "faction-member"},
+      {"from": "card:offender-at-large",     "to": "symbol:disguise",              "kind": "uses-mechanic"},
+
+      {"from": "card:suspicious-detonation", "to": "character:foundway-associates","kind": "faction-member"},
+      {"from": "card:suspicious-detonation", "to": "mechanic:investigate",         "kind": "interacts-with-mechanic", "note": "Sacrificed-artifact discount synergizes with Clue tokens"},
+
+      {"from": "card:they-went-this-way",    "to": "character:foundway-associates","kind": "faction-member"},
+      {"from": "card:they-went-this-way",    "to": "mechanic:investigate",         "kind": "uses-mechanic"},
+
+      {"from": "card:the-chase-is-on",       "to": "character:kaya",               "kind": "depicts"},
+      {"from": "card:the-chase-is-on",       "to": "mechanic:investigate",         "kind": "uses-mechanic"},
+      {"from": "card:the-chase-is-on",       "to": "artist:diego-gisbert",         "kind": "illustrated-by"},
+      {"from": "card:the-chase-is-on",       "to": "event:bbl001-tithe",           "kind": "cross-bundle-link", "note": "Kaya from the same RNA storyline"},
+
+      {"from": "card:fanatical-strength",    "to": "character:kaya",               "kind": "depicts"},
+
+      {"from": "card:caught-red-handed",     "to": "symbol:suspect",               "kind": "uses-mechanic"},
+      {"from": "card:convenient-target",     "to": "symbol:suspect",               "kind": "uses-mechanic"},
+      {"from": "card:airtight-alibi",        "to": "symbol:suspect",               "kind": "interacts-with-mechanic", "note": "Clears suspect status — the alibi to the framing"},
+
+      {"from": "character:the-agency",       "to": "place:karlov-manor",           "kind": "investigates-at"},
+      {"from": "character:foundway-associates","to": "place:karlov-manor",         "kind": "operates-at"},
+      {"from": "character:kaya",             "to": "place:karlov-manor",           "kind": "visits"},
+      {"from": "character:orzhov-syndicate", "to": "place:karlov-manor",           "kind": "owns"}
+    ]
+  },
+  "checkout": {
+    "stripe_payment_url": null,
+    "stripe_price_id": null,
+    "checkout_provider": null
+  },
+  "pricing": {
+    "card_value_subtotal_usd": 1.85,
+    "labor_and_sleeve_per_card_usd": 0.10,
+    "labor_and_sleeve_total_usd": 1.80,
+    "cost_basis_usd": 3.65,
+    "diy_seller_count_estimate": 3,
+    "diy_shipping_per_seller_usd": 1.31,
+    "diy_shipping_rate_note": "$1.31 matches TCGplayer Plain Envelope rate as of 2026-05-18. Single-set bundle (all MKM) cuts the seller-count floor: realistic 3 sellers for an 18-card MKM common-heavy assembly given playset-quantity needs on multi-copy slots.",
+    "diy_alternative_usd": 5.78,
+    "diy_alternative_note": "Eighteen cards across 13 unique names, all Murders at Karlov Manor. Single-set, so a buyer could route through fewer sellers than the typical cross-block bundle — 3 TCGplayer sellers at $1.31 plain-envelope shipping each is the realistic floor for assembling the exact 18-card playset-distribution from common-bin sellers.",
+    "bundle_price_floor_usd": 5.00,
+    "bundle_list_price_usd": 5.00,
+    "shipping_policy": "buyer-paid, itemized separately at checkout; never included in list price",
+    "estimated_shipping_usd": 1.31,
+    "shipping_rate_note": "TCGplayer Plain Envelope rate ($1.31). One envelope, one stamp.",
+    "narrative_premium_usd": 1.35,
+    "buyer_savings_vs_diy_usd": 0.78,
+    "buyer_savings_vs_diy_pct": 14,
+    "premium_justification": "Single-set bundles compress on price-savings vs DIY — the buyer COULD route this through three TCGplayer sellers for under $6. The premium is paying for the assembly itself: 13 specific commons curated into the whodunit thesis, with the Agency / Foundway / Kaya / suspect / disguise substrate already worked out. Sanguine Savior carries the cross-bundle Orzhov-signet bridge to Discrete Lair 001 (Tithe) — buying both reads as one continuous Ravnica narrative."
+  },
+  "overlap_bundles": ["tithe"],
+  "lifecycle": {
+    "proposed_at": "2026-05-18",
+    "accepted_at": null,
+    "assembled_at": null,
+    "example_drafted_at": "2026-05-18"
+  },
+  "metadata": {
+    "generated_by": "manual-curation-v0",
+    "generated_at": "2026-05-18",
+    "edition_size": "1 of 1",
+    "card_count": 18,
+    "distinct_card_count": 13,
+    "rarity_distribution": {
+      "common": 13,
+      "uncommon": 0,
+      "rare": 0,
+      "mythic": 0
+    },
+    "notes": "BBL003 designed substrate-first per Alex's post-drone feedback. Drone (BBL002) deprecated because its constellation showed cards as scattered dots tied only to private externals. Manor is the inverse: every card connects to at least 2 bridge nodes (faction character / mechanic symbol / artist / place / source-tale), and Sanguine Savior is a 4-bridge keystone including the Orzhov-signet cross-link to Tithe. Single-set assembly compresses DIY savings (~14%) — the buyer is paying for the curation thesis and the constellation that lays it out, not for sourcing-friction reduction."
+  }
+}

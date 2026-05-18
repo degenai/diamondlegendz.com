@@ -1,0 +1,69 @@
+{
+  "bundle_slug": "manor",
+  "_curation_notes": "MVP insert pool — 6 Scryfall art_crops from the bundle's own cards as wide thesis-grounder panels, exclude rules so an art_crop never lands on the same page as its source card. Picks chosen for high visual narrative weight (the keystone Vampire Cleric flying through fog; the Holmes-Doyle deduction card; the framing-and-alibi pair; the chase scenes). Single-set bundle means inserts can lean on the set's own art language. DeviantArt thesis-art layer can be added later by dropping files into this dir.",
+  "inserts": [
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/9/c/9cba5503-ba99-43d8-8062-66d905e0d86b.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/230",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Sanguine Savior — the keystone, Vampire Cleric of R.A.M.I. flying down through Karlov Manor fog. Art by Valera Lutfullina.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Sanguine Savior"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/4/8/486f1cc2-c162-448e-91a9-577d7d796584.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/54",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Eliminate the Impossible — the Holmes-Doyle deduction. Carlos Palma Cruchaga.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Eliminate the Impossible"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/3/1/31aadd3d-5ce1-44ba-ac6d-b192a9ea491b.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/124",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Expose the Culprit — Agency × disguise. Ryan Valle.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Expose the Culprit"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/f/0/f096ff4a-85f4-46f1-9478-e8921f21309d.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/138",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Offender at Large — Foundway Associates × disguise. 'In a city this big, anyone can blend in.' Mike Bierek.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Offender at Large"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/9/5/95bc5f89-2f01-40c4-9883-4c90ab89fcbb.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/115",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Caught Red-Handed — the wrongly-accused defendant's confession. Donato Giancola.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Caught Red-Handed"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/1/d/1d54d596-f7aa-4b05-ab13-19b246698c04.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/116",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "The Chase Is On — Kaya through the Manor. Diego Gisbert. Cross-bundle Kaya bridge to Discrete Lair 001 Tithe.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "The Chase Is On"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/c/d/cdf0578f-4966-4ecd-81e1-83ae13126f13.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/mkm/193",
+      "panel_dimensions_slots": [1, 1],
+      "theme_fit": "Crowd-Control Warden — Agency centaur with golden magical chains. Diego Gisbert. Visual echo of Secure the Scene's blue chains in Lair 001.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Crowd-Control Warden"
+    }
+  ]
+}
