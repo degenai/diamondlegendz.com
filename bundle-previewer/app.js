@@ -202,6 +202,13 @@ async function renderMichiPage(bundle) {
   const cards = (bundle.cards || []).filter(c => c.image_url);
   if (!cards.length) return;
 
+  // Identify the headliner: highest market_price_usd. Used to ring its slot.
+  const headlinerCard = cards.reduce((best, c) => {
+    const pBest = (best && best.market_price_usd) || 0;
+    const pThis = c.market_price_usd || 0;
+    return pThis > pBest ? c : best;
+  }, null);
+
   const inserts = await loadMichiInserts(bundle.slug);
 
   // Distribute cards across pages: enough pages to fit at MICHI_PAGE_CARD_SLOTS
@@ -218,37 +225,74 @@ async function renderMichiPage(bundle) {
     cursor += take;
   }
 
-  // Insert allocation: serial pick, no repeats across the entire page set.
-  // If we run out of unique inserts we stop (page renders with fewer art
-  // slots; cards still take their reserved positions). With the default
-  // 4-cards/page cadence and 2 art slots/page, even modest insert pools
-  // cover most bundles without recycling.
-  let insertIdx = 0;
-  const nextInsert = (preferWide) => {
-    if (insertIdx >= inserts.length) return null;
-    if (preferWide !== null) {
-      for (let i = insertIdx; i < inserts.length; i++) {
-        const ins = inserts[i];
-        const isWide = Array.isArray(ins.panel_dimensions_slots) &&
-                       ins.panel_dimensions_slots[0] === 2;
-        if (isWide === preferWide) {
-          [inserts[i], inserts[insertIdx]] = [inserts[insertIdx], inserts[i]];
-          return inserts[insertIdx++];
-        }
+  // Insert allocation, two-phase, with curatorial constraints:
+  //   1. Affinity pinning: an insert tagged `affinity_card_name` is reserved
+  //      for the page that contains the matching card. Up to MICHI_AFFINITY_
+  //      _PER_PAGE inserts may pin to a single page (so a headliner card +
+  //      one fan-art = a pair, not a stack). Multiple candidates with the
+  //      same affinity are tried in `affinity_priority` order.
+  //   2. Exclusion: an insert with `exclude_from_card_page_name` is barred
+  //      from the page containing that named card (avoids visual duplication
+  //      when the insert IS that card's art_crop placed alongside the card).
+  //   3. Remainder pool: everything else round-robins across pages with the
+  //      existing wide-vs-single budgeting.
+  const insertsRemaining = inserts.slice();
+  const used = new Set();  // indices into the original `inserts` array
+  const pageAffinityCount = pages.map(() => 0);
+  const MICHI_AFFINITY_PER_PAGE = 1;
+
+  // Pre-assign affinity inserts to their target pages.
+  const pageAffinityInserts = pages.map(() => []);
+  const affinityCandidates = inserts
+    .map((ins, idx) => ({ ins, idx }))
+    .filter(o => o.ins.affinity_card_name)
+    .sort((a, b) =>
+      (a.ins.affinity_priority || 99) - (b.ins.affinity_priority || 99));
+  for (const { ins, idx } of affinityCandidates) {
+    const targetPageIdx = pages.findIndex(pageCards =>
+      pageCards.some(c => c.name === ins.affinity_card_name));
+    if (targetPageIdx < 0) continue;
+    if (pageAffinityCount[targetPageIdx] >= MICHI_AFFINITY_PER_PAGE) continue;
+    pageAffinityInserts[targetPageIdx].push(ins);
+    pageAffinityCount[targetPageIdx]++;
+    used.add(idx);
+  }
+
+  // Helper for the round-robin remainder phase: pick the next insert that's
+  // (a) not already used, (b) not excluded from the current page's card
+  // roster, and (c) not affinity-pinned (those only place via the affinity
+  // phase — an affinity insert that didn't make the cut on its target page
+  // gets dropped rather than orphaned onto an unrelated page, so a Miku
+  // backup never ends up on a Klang page). PreferWide rotates the pool to
+  // surface a wide one first.
+  function pickInsert(pageCards, preferWide) {
+    for (let i = 0; i < inserts.length; i++) {
+      if (used.has(i)) continue;
+      const ins = inserts[i];
+      if (ins.affinity_card_name) continue;
+      if (ins.exclude_from_card_page_name &&
+          pageCards.some(c => c.name === ins.exclude_from_card_page_name)) {
+        continue;
       }
+      const isWide = Array.isArray(ins.panel_dimensions_slots) &&
+                     ins.panel_dimensions_slots[0] === 2;
+      if (preferWide !== null && isWide !== preferWide) continue;
+      used.add(i);
+      return ins;
     }
-    return inserts[insertIdx++];
-  };
+    if (preferWide !== null) return pickInsert(pageCards, null);
+    return null;
+  }
 
   for (const pageCards of pages) {
+    const pageIdx = pages.indexOf(pageCards);
     const pageEl = document.createElement('div');
     pageEl.className = 'michi-page';
-    const pageNum = pages.indexOf(pageCards) + 1;
+    const pageNum = pageIdx + 1;
     pageEl.style.setProperty('--page-num', pageNum);
 
-    // Compose the page: cards take their reserved positions, art fills the
-    // remaining slots up to MICHI_PAGE_MAX_ART_SLOTS. Try one wide (1x2)
-    // insert per page when room allows; rest are 1x1.
+    // Compose the page: cards take their reserved positions, then any pre-
+    // pinned affinity inserts, then the remainder round-robin up to budget.
     const items = pageCards.map(c => ({ kind: 'card', card: c }));
     let artSlotBudget = Math.min(
       MICHI_PAGE_MAX_ART_SLOTS,
@@ -256,9 +300,19 @@ async function renderMichiPage(bundle) {
     );
     let wideAllowed = Math.min(MICHI_PAGE_MAX_WIDE_INSERTS, Math.floor(artSlotBudget / 2));
 
+    for (const insert of pageAffinityInserts[pageIdx]) {
+      const isWide = Array.isArray(insert.panel_dimensions_slots) &&
+                     insert.panel_dimensions_slots[0] === 2 &&
+                     artSlotBudget >= 2;
+      items.push({ kind: 'art', insert, wide: isWide });
+      artSlotBudget -= isWide ? 2 : 1;
+      if (isWide) wideAllowed--;
+      if (artSlotBudget <= 0) break;
+    }
+
     while (artSlotBudget > 0) {
       const wantWide = wideAllowed > 0 && artSlotBudget >= 2;
-      const insert = nextInsert(wantWide) || nextInsert(null);
+      const insert = pickInsert(pageCards, wantWide);
       if (!insert) break;
       const isWide = Array.isArray(insert.panel_dimensions_slots) &&
                      insert.panel_dimensions_slots[0] === 2 &&
@@ -270,12 +324,15 @@ async function renderMichiPage(bundle) {
 
     // Deterministic shuffle so each page reads differently without
     // the layout jumping between renders.
-    shuffleWithSeed(items, pages.indexOf(pageCards) * 7919 + 31);
+    shuffleWithSeed(items, pageIdx * 7919 + 31);
 
     for (const item of items) {
       const el = document.createElement('div');
       el.className = 'michi-slot';
       if (item.kind === 'card') {
+        if (headlinerCard && item.card === headlinerCard) {
+          el.classList.add('is-headliner');
+        }
         const img = document.createElement('img');
         img.src = item.card.image_url;
         img.alt = item.card.name || '';
@@ -284,10 +341,21 @@ async function renderMichiPage(bundle) {
       } else if (item.kind === 'art') {
         el.classList.add(item.wide ? 'art-wide' : 'art-single');
         const img = document.createElement('img');
-        img.src = `michi-inserts/${bundle.slug}/${item.insert.image_file}`;
+        img.src = item.insert.remote_url
+          || `michi-inserts/${bundle.slug}/${item.insert.image_file}`;
         img.alt = item.insert.theme_fit || item.insert.creator_handle || '';
         img.loading = 'lazy';
         el.appendChild(img);
+        // Museum-wall credit, revealed on hover. Creator + truncated source.
+        const credit = document.createElement('div');
+        credit.className = 'credit';
+        const handle = item.insert.creator_handle || 'unknown';
+        const sourceHost = item.insert.source_url
+          ? new URL(item.insert.source_url).host.replace(/^www\./, '')
+          : '';
+        credit.innerHTML = `<span class="credit-name">${escapeHtml(handle)}</span>` +
+          (sourceHost ? `<span class="credit-source">${escapeHtml(sourceHost)}</span>` : '');
+        el.appendChild(credit);
       }
       pageEl.appendChild(el);
     }

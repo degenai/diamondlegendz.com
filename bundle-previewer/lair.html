@@ -319,6 +319,57 @@
     object-position: center 25%;  /* prefer faces/upper subjects when cropping portraits */
   }
 
+  /* Museum-wall credit label, revealed on hover/focus. Tiny by design —
+     reads as exhibition signage, not as a UI tooltip. */
+  .michi-slot .credit {
+    position: absolute; left: 6px; right: 6px; bottom: 6px;
+    background: rgba(0, 0, 0, 0.78);
+    color: #FFFF99;
+    font-family: "Courier New", monospace;
+    font-size: 0.62em; line-height: 1.25;
+    letter-spacing: 0.04em;
+    padding: 4px 6px;
+    border-left: 2px solid #FF00FF;
+    opacity: 0; transform: translateY(4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+  }
+  .michi-slot:hover .credit,
+  .michi-slot:focus-within .credit {
+    opacity: 1; transform: translateY(0);
+  }
+  .michi-slot .credit .credit-name {
+    color: #FFFFFF; font-weight: bold; display: block;
+  }
+  .michi-slot .credit .credit-source {
+    color: #00FFFF; font-style: italic;
+  }
+
+  /* Headliner ring: slot containing the bundle's most-expensive card gets
+     a constant low-key magenta glow so the eye lands on it first without
+     interrupting the museum tone. */
+  .michi-slot.is-headliner {
+    border-color: #FF00FF;
+    box-shadow:
+      inset 0 0 0 1px rgba(0,0,0,0.6),
+      0 0 0 2px rgba(255, 0, 255, 0.5),
+      0 0 22px rgba(255, 0, 255, 0.5),
+      0 2px 6px rgba(0,0,0,0.5);
+  }
+  .michi-slot.is-headliner::before {
+    content: 'headliner';
+    position: absolute; top: 6px; left: 6px;
+    background: #FF00FF; color: #FFFF00;
+    font-family: "Courier New", monospace;
+    font-size: 0.55em; font-weight: bold;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 2px 6px;
+    border: 1px solid #FFFF00;
+    box-shadow: 1px 1px 0 #000;
+    z-index: 2;
+    pointer-events: none;
+  }
+
   /* CARD GRID */
   .grid-section-label {
     color: #00FFFF; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.15em;
@@ -571,6 +622,6 @@
 <!-- Bundle JSON gets loaded by app.js. Default sample lives at
      sample-bundles/sleep-when-youre-dead.json. -->
 <script id="default-bundle-path" type="application/json">"sample-bundles/tithe.json"</script>
-<script type="module" src="app.js?v=3x3-sexy"></script>
+<script type="module" src="app.js?v=headliner-credits"></script>
 </body>
 </html>
