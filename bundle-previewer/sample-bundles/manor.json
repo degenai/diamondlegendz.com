@@ -247,7 +247,7 @@
     ]
   },
   "connections": {
-    "_schema_note": "Bundle-scoped constellation, designed substrate-first. Every card connects to at least two bridge nodes (faction character / mechanic symbol / set / artist). Sanguine Savior is the keystone — Agency + Orzhov-Syndicate + Orzhov-Signet + Disguise = four bridges including the cross-bundle link back to Discrete Lair 001 Tithe (where Pitiless Pontiff and Tithe Drinker share the same signet). Hand-authored MVP; bbl-bundler agent will derive these from card frontmatter in a later wave.",
+    "_schema_note": "Bundle-scoped constellation, designed substrate-first. Every card connects to at least two bridge nodes (faction character / mechanic symbol / set / artist). Sanguine Savior is the keystone — Agency + Orzhov-Syndicate + Orzhov-Signet + Disguise = four bridges. The cross-bundle link to Discrete Lair 001 (Tithe) is implicit: orzhov-syndicate and orzhov-signet nodes use stable ids that will auto-merge across bundles in a future federated view. No 'lair-as-event' meta nodes — the shared symbols and characters carry the bridge themselves. Hand-authored MVP; bbl-bundler agent will derive these from card frontmatter in a later wave.",
     "nodes": [
       {"id": "card:sanguine-savior",       "type": "card",        "label": "Sanguine Savior", "is_headliner": true},
       {"id": "card:eliminate-impossible",  "type": "card",        "label": "Eliminate the Impossible"},
@@ -278,16 +278,13 @@
 
       {"id": "mechanic:investigate",       "type": "mechanic",    "label": "Investigate (Clue tokens)", "note": "Returning MTG keyword from Shadows over Innistrad (2016), re-deployed across MKM as the procedural-evidence currency. Three bundle cards generate Clue tokens; Suspicious Detonation discounts itself off sacrificed artifacts (Clue or otherwise)."},
 
-      {"id": "source:sherlock-holmes",     "type": "source-tale", "label": "Sherlock Holmes — The Sign of Four (Doyle, 1890)", "note": "Eliminate the Impossible card name is the verbatim Holmes maxim from Doyle's second Holmes novel."},
-
-      {"id": "event:bbl001-tithe",         "type": "event",       "label": "Discrete Lair 001 — Tithe", "note": "Cross-bundle anchor. Tithe and Manor both run through the Orzhov Syndicate; same eclipsed-sun signet, same Kaya planeswalker arc. The two bundles can be read as the same world from two angles: extraction (Tithe) and prosecution (Manor)."}
+      {"id": "source:sherlock-holmes",     "type": "source-tale", "label": "Sherlock Holmes — The Sign of Four (Doyle, 1890)", "note": "Eliminate the Impossible card name is the verbatim Holmes maxim from Doyle's second Holmes novel."}
     ],
     "edges": [
       {"from": "card:sanguine-savior",       "to": "character:the-agency",         "kind": "faction-member"},
       {"from": "card:sanguine-savior",       "to": "character:orzhov-syndicate",   "kind": "faction-member", "note": "The cross-bundle Orzhov bridge"},
       {"from": "card:sanguine-savior",       "to": "symbol:orzhov-signet",         "kind": "depicts"},
       {"from": "card:sanguine-savior",       "to": "symbol:disguise",              "kind": "uses-mechanic"},
-      {"from": "card:sanguine-savior",       "to": "event:bbl001-tithe",           "kind": "cross-bundle-link", "note": "Same signet, same syndicate"},
 
       {"from": "card:eliminate-impossible",  "to": "character:the-agency",         "kind": "faction-member"},
       {"from": "card:eliminate-impossible",  "to": "symbol:suspect",               "kind": "interacts-with-mechanic"},
@@ -315,7 +312,6 @@
       {"from": "card:the-chase-is-on",       "to": "character:kaya",               "kind": "depicts"},
       {"from": "card:the-chase-is-on",       "to": "mechanic:investigate",         "kind": "uses-mechanic"},
       {"from": "card:the-chase-is-on",       "to": "artist:diego-gisbert",         "kind": "illustrated-by"},
-      {"from": "card:the-chase-is-on",       "to": "event:bbl001-tithe",           "kind": "cross-bundle-link", "note": "Kaya from the same RNA storyline"},
 
       {"from": "card:fanatical-strength",    "to": "character:kaya",               "kind": "depicts"},
 
