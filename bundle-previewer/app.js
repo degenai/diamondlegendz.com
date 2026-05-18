@@ -178,21 +178,21 @@ let activeLightbox = null;
 
 // ── Michi binder pages ─────────────────────────────────────────────────────
 // Sketchbook spec at BBL/docs/sketchbook.md "Michi Method Binders for Discrete
-// Lairs". Multi-page composition: each page is a 2x3 grid (6 slots) mixing
+// Lairs". Multi-page composition: each page is a 3x3 grid (9 slots) mixing
 // card slots (full TCG card images via image_url) with fan-art inserts (1x1
 // single-slot portraits or 1x2 horizontal extended panels) sourced from the
 // bundle's michi-inserts/ directory. No labels — only cards and art.
 //
-// Composition rule: max 3 art-slot-equivalents per page (so up to 1 wide+1
-// narrow, or up to 3 narrow). 4 cards/page is the default cadence so all
-// bundle cards fit in a small page count without insert repetition.
+// Composition rule: 5 cards + up to 4 art-slot-equivalents per page. Up to 2
+// wide (1x2) inserts allowed per page; the rest fill as 1x1.
 //
 // Per-bundle insert manifests live at `michi-inserts/<slug>/_manifest.json`;
 // the renderer falls back to a quiet skip if the manifest is missing.
 
-const MICHI_PAGE_TOTAL_SLOTS = 6;
-const MICHI_PAGE_MAX_ART_SLOTS = 3;
-const MICHI_PAGE_CARD_SLOTS = 4;
+const MICHI_PAGE_TOTAL_SLOTS = 9;
+const MICHI_PAGE_MAX_ART_SLOTS = 5;  // up to 5 if cards leave room; total caps at 9 cells
+const MICHI_PAGE_CARD_SLOTS = 5;
+const MICHI_PAGE_MAX_WIDE_INSERTS = 2;
 
 async function renderMichiPage(bundle) {
   const host = document.getElementById('michi-pages');
@@ -204,11 +204,18 @@ async function renderMichiPage(bundle) {
 
   const inserts = await loadMichiInserts(bundle.slug);
 
-  // Distribute cards across pages: MICHI_PAGE_CARD_SLOTS cards per page,
-  // every unique card shown exactly once across the page set.
+  // Distribute cards across pages: enough pages to fit at MICHI_PAGE_CARD_SLOTS
+  // per page, then spread evenly so the last page doesn't get orphaned with 1-2
+  // cards while earlier pages are full. (12 cards → 4/4/4, not 5/5/2.)
+  const pageCount = Math.max(1, Math.ceil(cards.length / MICHI_PAGE_CARD_SLOTS));
+  const base = Math.floor(cards.length / pageCount);
+  const remainder = cards.length % pageCount;
   const pages = [];
-  for (let i = 0; i < cards.length; i += MICHI_PAGE_CARD_SLOTS) {
-    pages.push(cards.slice(i, i + MICHI_PAGE_CARD_SLOTS));
+  let cursor = 0;
+  for (let p = 0; p < pageCount; p++) {
+    const take = base + (p < remainder ? 1 : 0);
+    pages.push(cards.slice(cursor, cursor + take));
+    cursor += take;
   }
 
   // Insert allocation: serial pick, no repeats across the entire page set.
@@ -236,6 +243,8 @@ async function renderMichiPage(bundle) {
   for (const pageCards of pages) {
     const pageEl = document.createElement('div');
     pageEl.className = 'michi-page';
+    const pageNum = pages.indexOf(pageCards) + 1;
+    pageEl.style.setProperty('--page-num', pageNum);
 
     // Compose the page: cards take their reserved positions, art fills the
     // remaining slots up to MICHI_PAGE_MAX_ART_SLOTS. Try one wide (1x2)
@@ -245,7 +254,7 @@ async function renderMichiPage(bundle) {
       MICHI_PAGE_MAX_ART_SLOTS,
       MICHI_PAGE_TOTAL_SLOTS - pageCards.length
     );
-    let wideAllowed = artSlotBudget >= 2 ? 1 : 0;
+    let wideAllowed = Math.min(MICHI_PAGE_MAX_WIDE_INSERTS, Math.floor(artSlotBudget / 2));
 
     while (artSlotBudget > 0) {
       const wantWide = wideAllowed > 0 && artSlotBudget >= 2;
@@ -273,7 +282,7 @@ async function renderMichiPage(bundle) {
         img.loading = 'lazy';
         el.appendChild(img);
       } else if (item.kind === 'art') {
-        if (item.wide) el.classList.add('art-wide');
+        el.classList.add(item.wide ? 'art-wide' : 'art-single');
         const img = document.createElement('img');
         img.src = `michi-inserts/${bundle.slug}/${item.insert.image_file}`;
         img.alt = item.insert.theme_fit || item.insert.creator_handle || '';
@@ -282,6 +291,12 @@ async function renderMichiPage(bundle) {
       }
       pageEl.appendChild(el);
     }
+
+    const pgNum = document.createElement('div');
+    pgNum.className = 'michi-page-number';
+    pgNum.textContent = `page ${pageNum} of ${pages.length}`;
+    pageEl.appendChild(pgNum);
+
     host.appendChild(pageEl);
   }
 }

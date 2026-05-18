@@ -61,7 +61,9 @@
       "market_price_usd": 11.00,
       "market_price_as_of": "2026-05-17",
       "market_price_source": "collectr",
-      "image_url": "https://en.ws-tcg.com/wordpress/wp-content/images/cardimages/p/pd_s22/PD_S22_E027.png",
+      "image_url": "card-cache/drone/miku-factory-tyrant-pd-s22-e027.png",
+      "image_url_source": "https://en.ws-tcg.com/wordpress/wp-content/images/cardimages/p/pd_s22/PD_S22_E027.png",
+      "image_cache_reason": "ws-tcg.com sends x-content-type-options:nosniff with no Cross-Origin-Resource-Policy header; Chrome ORB blocks it as a no-cors image. Cached locally to bypass.",
       "art_crop_url": null,
       "why_it_fits": "A teal-haired figure in a black structured punk-industrial jacket leans forward into the frame, one hand raised toward her face in a performance gesture, eyes a vivid red instead of her default blue-green. Behind her, dark angular industrial shapes and geometric teal-and-purple lighting frame the stage. The Project DIVA Factory Tyrant module dresses the world's most recognizable idol as a shift boss on the floor of an underground plant. The headline of the bundle: the most produced character in modern pop culture, cosplaying as the person who runs the place that produces things."
     },
