@@ -552,6 +552,19 @@
     }
     .container { padding: 14px; border-width: 6px; }
     .hero { overflow: hidden; }  /* belt: clip any residual title-shadow bleed */
+
+    /* Binder pages: drop the ring-hole gutter and tighten spacing — the
+       3x3 grid stays intact, but the cards regain breathing room that
+       the 56px left padding was eating at narrow widths. */
+    .michi-page { padding: 12px; gap: 8px; border-width: 3px; }
+    .michi-page::before { display: none; }
+    .michi-slot { border-radius: 3px; }
+    .michi-slot.is-headliner::before {
+      font-size: 0.5em; padding: 1px 4px;
+    }
+    .michi-section-label { font-size: 0.75em; }
+    .michi-section-label .michi-section-sub { display: block; margin-top: 2px; }
+    .michi-pages { gap: 22px; }
   }
 </style>
 </head>
@@ -622,6 +635,6 @@
 <!-- Bundle JSON gets loaded by app.js. Default sample lives at
      sample-bundles/sleep-when-youre-dead.json. -->
 <script id="default-bundle-path" type="application/json">"sample-bundles/tithe.json"</script>
-<script type="module" src="app.js?v=headliner-credits"></script>
+<script type="module" src="app.js?v=hide-empty-binder"></script>
 </body>
 </html>

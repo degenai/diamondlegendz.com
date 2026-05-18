@@ -211,9 +211,21 @@ async function renderMichiPage(bundle) {
 
   const inserts = await loadMichiInserts(bundle.slug);
 
-  // Distribute cards across pages: enough pages to fit at MICHI_PAGE_CARD_SLOTS
-  // per page, then spread evenly so the last page doesn't get orphaned with 1-2
-  // cards while earlier pages are full. (12 cards → 4/4/4, not 5/5/2.)
+  // No inserts curated = no point rendering the Michi binder at all. The
+  // existing `card-grid` section below this one already shows every card
+  // with name + price + why_it_fits; a "binder" with empty art slots and
+  // duplicate card scans would just be noise. Hide the whole section so
+  // these bundles fall through cleanly to the card grid until someone
+  // curates an insert pool for them.
+  const section = document.getElementById('michi-section');
+  if (!inserts.length) {
+    if (section) section.style.display = 'none';
+    return;
+  }
+  if (section) section.style.display = '';
+
+  // Distribute cards evenly across pages so the last page doesn't orphan
+  // 1-2 cards (12 cards → 4/4/4, not 5/5/2).
   const pageCount = Math.max(1, Math.ceil(cards.length / MICHI_PAGE_CARD_SLOTS));
   const base = Math.floor(cards.length / pageCount);
   const remainder = cards.length % pageCount;
