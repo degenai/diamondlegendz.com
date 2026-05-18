@@ -1,0 +1,73 @@
+{
+  "bundle_slug": "tithe",
+  "_curation_notes": "MVP insert pool: 7 Scryfall art_crops from the bundle's own cards used as wide thesis-grounder panels, with exclude_from_card_page_name set so an art_crop never lands on the same page as its source card (no card-plus-own-art duplication). Two Wizards art_crops carry affinity_card_name to pin the Orzhov eclipsed-sun-signet pair side-by-side: Pitiless Pontiff's art is pinned to Tithe Drinker's page (and vice versa) so the matching cathedral thrones become a visible thesis spine. Per Alex's curatorial pass on drone (BBL002), starting tithe in 'official Wizards art only' mode rather than ripping fan art — keeps storefront safe and the thesis grounded in canonical illustration. DeviantArt thesis-art can be layered in later by dropping image files into this dir and adding entries.",
+  "inserts": [
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/9/8/98f66c03-cf79-4de0-be55-b921cbdc5038.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/rna/194",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Pitiless Pontiff official art — Orzhov cleric on throne backed by eclipsed-sun signet, two supplicants chained by coin-lines. The bundle's apparatus-of-extraction headline visual.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Pitiless Pontiff",
+      "affinity_card_name": "Tithe Drinker",
+      "affinity_priority": 1
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/e/0/e069aa06-35b0-4af8-89cb-af653708ed32.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/dgm/109",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Tithe Drinker official art — seated noble with goblet, matching Orzhov signet throne. Pairs with Pitiless Pontiff: same signet, two different masters.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Tithe Drinker",
+      "affinity_card_name": "Pitiless Pontiff",
+      "affinity_priority": 1
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/e/b/ebf6c0dc-5c7b-4170-99bc-2637ea44e716.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/rna/192",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Mortify official art — woman dissolving in a grey-white swirl, bureaucratic unmaking rendered as physics. The bundle's punctuation mark.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Mortify"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/7/1/71cd91b2-0f9b-4582-ad90-32fa3ee1fde7.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/eld/109",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Wicked Guardian official art — noble standing, servant kneeling on the stone behind her. Vertical distance as the real structure of the room.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Wicked Guardian"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/3/5/3594f726-cdbb-4b7d-bcfe-17d5f8cd5228.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/war/81",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Charity Extractor official art — knight extending collection pan, locked strongbox on the saddle, keys around the neck. The apparatus is portable.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Charity Extractor"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/a/8/a8a7be1f-3fba-4ff2-a4f1-aebd3d20da8f.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/rna/190",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Lawmage's Binding official art — gauntleted authority hands restraining a horned figure with a ring of blue energy. Authority barely in the frame, doing the work.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Lawmage's Binding"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/d/6/d6467d96-e43a-4b1e-b6ce-578d991077b5.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/m21/35",
+      "panel_dimensions_slots": [2, 1],
+      "theme_fit": "Secure the Scene official art — Azorius arrest soldier with luminous blue-mesh chains stretching across the sky. The arrest is the mesh of light around the figure.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Secure the Scene"
+    }
+  ]
+}

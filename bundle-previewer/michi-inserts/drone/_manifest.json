@@ -1,6 +1,6 @@
 {
   "bundle_slug": "drone",
-  "_curation_notes": "conveyor-belts-huang.jpg and steampunk-worker-sparrow.jpg dropped from the pool per Alex's curatorial pass (huang is technically a tutorial diagram, sparrow's worker reads as off-model). Files retained on disk for possible future re-evaluation. Miku inserts now affinity-pinned to the Miku card's page so all the headline visual energy concentrates there; we limit to 1 Miku insert per page so the card and the fan-art are a pair, not a stack. The dazzel purple geometric one is preferred — listed first so it wins when only one slot is available. Scryfall art_crop URLs added as wide inserts so the binder pool has enough density to fill 3 pages of 3x3 without recycling, and so a chunk of the thesis-art is official Wizards illustration rather than 100% DeviantArt sourcing.",
+  "_curation_notes": "conveyor-belts-huang.jpg, steampunk-worker-sparrow.jpg, and dieselpunk-concept-tapedamage.jpg dropped from the pool per Alex's curatorial pass (huang is a tutorial diagram, sparrow's worker is off-model, tapedamage gas-mask portrait reads too grim/post-apocalyptic for the labor cohort). Files retained on disk for possible future re-evaluation. Miku inserts now affinity-pinned to the Miku card's page so all the headline visual energy concentrates there; we limit to 1 Miku insert per page so the card and the fan-art are a pair, not a stack. The dazzel purple geometric one is preferred — listed first so it wins when only one slot is available. Scryfall art_crop URLs added as wide inserts so the binder pool has enough density to fill 3 pages of 3x3 without recycling, and so a chunk of the thesis-art is official Wizards illustration rather than 100% DeviantArt sourcing.",
   "inserts": [
     {
       "image_file": "factory-tyrant-miku-dazzel.jpg",
@@ -35,13 +35,6 @@
       "source_url": "https://www.deviantart.com/adrianward/art/Dieselpunk-Industrial-City-760297733",
       "panel_dimensions_slots": [2, 1],
       "theme_fit": "Dieselpunk industrial city — labor districts beneath central towers"
-    },
-    {
-      "image_file": "dieselpunk-concept-tapedamage.jpg",
-      "creator_handle": "TapeDamage",
-      "source_url": "https://www.deviantart.com/tapedamage/art/Dieselpunk-Character-Concept-Art-926284280",
-      "panel_dimensions_slots": [1, 1],
-      "theme_fit": "Dieselpunk worker concept — blue-collar fantasy register"
     },
     {
       "image_file": "robot-factory-novaillusion.jpg",
