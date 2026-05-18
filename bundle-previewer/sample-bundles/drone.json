@@ -6,7 +6,7 @@
   "catalog_id": "Discrete Lair 002",
   "title": "Drone",
   "subtitle": "the ones who only know one job",
-  "narrative": "Every game has its workers. Not the heroes who get the rare slot, not the legendary fighters with full-art treatment, but the cards that exist to do a thing. Workshop Assistant was born on Kaladesh, a plane whose entire mythology is that the automatons walking the streets are infrastructure, not characters. Clockwork Servant's flavor text tells you exactly who benefits from the ticking: the castle custodians who hear the sound as sweet are the ones not cleaning the cobbles. A pop idol redesigned as the boss of an underground factory floor. A stone golem animated by the same wild magic that produced the most expensive card in its set, and named after the landmark it serves. The bundle holds nineteen cards across twelve names and four games. Different planes, different franchises, same job description. The art rooms drew them to fill product. This curation reads them as labor.",
+  "narrative": "Kaladesh's design brief named cogwork automatons 'ambient infrastructure' inside a five-stage caste called the Aether Cycle. Clockwork Servant's flavor speaker is uncredited: the castle custodians who find the ticking sweet are the ones not cleaning the cobbles. A pop idol cosplaying as the boss of a factory floor, illustrated by an artist who once said he was 'obsessed with Magic: The Gathering' four years before Wizards absorbed his franchise. Nineteen cards, twelve names, four games. Curated as labor.",
   "hubs": [
     "labor"
   ],
@@ -65,7 +65,7 @@
       "image_url_source": "https://product-images.tcgplayer.com/106389.jpg",
       "image_cache_reason": "Bushiroad's en.ws-tcg.com CDN serves all free card images with a giant diagonal SAMPLE watermark (unusable on a buyer-facing storefront) AND sends x-content-type-options:nosniff without Cross-Origin-Resource-Policy (Chrome ORB blocks it as a no-cors image). TCGplayer's product-images CDN hosts the clean unwatermarked scan at product ID 106389. Cached locally.",
       "art_crop_url": null,
-      "why_it_fits": "A teal-haired figure in a black structured punk-industrial jacket leans forward into the frame, one hand raised toward her face in a performance gesture, eyes a vivid red instead of her default blue-green. Behind her, dark angular industrial shapes and geometric teal-and-purple lighting frame the stage. The Project DIVA Factory Tyrant module dresses the world's most recognizable idol as a shift boss on the floor of an underground plant. The headline of the bundle: the most produced character in modern pop culture, cosplaying as the person who runs the place that produces things."
+      "why_it_fits": "Headline of the bundle. The Project DIVA Factory Tyrant module's costume was designed by cosMo@BousouP himself — atypical for SEGA, who normally handles modules in-house. He composed the song too: 'Sadistic Music Infinity Factory,' which casts Miku as a tyrannical plant manager demanding an unending supply of music or she goes insane. The most-produced character in pop culture, cosplaying as the person who runs the place that produces things."
     },
     {
       "card_md_path": "magic-the-gathering/modern-horizons-3/130-phyrexian-ironworks",
@@ -84,7 +84,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/6/d/6d64e1a8-cb4f-4968-b3e0-c9ca7c7894a3.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/6/d/6d64e1a8-cb4f-4968-b3e0-c9ca7c7894a3.jpg",
-      "why_it_fits": "A polished gold mechanical pod floats in a void of crimson and purple energy, connected by thick cables, crackling with blue lightning. No figure is present. The card's oracle text does the work: it generates energy counters on attack and converts three energy into a 3/3 Phyrexian Golem token. The factory rendered as a mana rock. Flavor speaker is Slobad the Mirran goblin, admiring the device without recognizing the faction that built it. \"We have made a friend today.\""
+      "why_it_fits": "Flavor speaker is Slobad the Mirran goblin engineer. In Fifth Dawn, Memnarch amputated his limbs and wired him into a spark-transfer machine for five years — he was the involuntary architect of the device meant to strip Mirrodin's inhabitants of their sparks. He sacrificed the spark, was later killed, compleated by Phyrexia, and reshaped his Phyrexian body to resemble his dead friend Bosh. 'We have made a friend today' reads as either propaganda or broken optimism."
     },
     {
       "card_md_path": "magic-the-gathering/commander-legends/348-workshop-assistant",
@@ -103,7 +103,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/9/e9387e8f-0e72-4212-81c8-e64050700c52.jpg",
-      "why_it_fits": "A small spider-like mechanical construct scuttles across a workshop floor on numerous jointed metal legs, its central body a tangle of exposed gears and wires. A dragon's neck and bared teeth intrude from the upper right, dwarfing it. The card was first printed in Kaladesh, a plane whose design brief made cogwork automatons the ambient infrastructure of inventor culture, the labor layer that makes the Inventors' Fair possible. \"Sometimes the smallest things make the biggest difference.\" Its ability returns another artifact from the graveyard when it dies. The assistant exists to be consumed so the workshop keeps running; Kaladesh just made it prettier."
+      "why_it_fits": "First printed on Kaladesh, where the official Aether Cycle five-stage caste designated dwarves as the Build phase — the labor layer that maintains everyone else's inventions. The Countless Gears guild specialized in 'the smallest automatons and thopters'; the spider-form fits their profile exactly. Pairs with Junk Diver in a documented infinite combo at common rarity (Pauper-legal). 'Sometimes the smallest things make the biggest difference.' The assistant exists to be consumed so the workshop keeps running."
     },
     {
       "card_md_path": "magic-the-gathering/magic-2015-m15/239-will-forged-golem",
@@ -122,7 +122,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/0/1/0175bafa-dc9f-464c-8f9e-dd4131732652.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/0/1/0175bafa-dc9f-464c-8f9e-dd4131732652.jpg",
-      "why_it_fits": "A towering humanoid figure assembled from jagged crystalline plates, strides forward in a hazy blue-lit forge, energy seeping between the joints. Cyan light traces the rim of every plate. The flavor text is the design memo: \"The modular nature of the automaton's design makes assembly perfectly intuitive.\" The card's Convoke mechanic lets your other creatures tap to help pay the cost, which means the golem was built by everyone you already had on board, the way real factories work."
+      "why_it_fits": "Convoke lets your other creatures tap to help pay the cost — the golem is built by everyone you already had on board, the way real factories work. M15 changed Convoke from cost-reduction to alternative-cost payment, expanded it from green-white to all five colors and artifacts. Artist Jason Felix was suspended by Wizards in 2021 after admitting he'd lifted other artists' work in a Strixhaven commission. A card about consensual collective labor, painted by someone the institution defunded for stealing it."
     },
     {
       "card_md_path": "magic-the-gathering/throne-of-eldraine/216-clockwork-servant",
@@ -141,7 +141,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/c/3/c3af5942-d171-401a-9444-3b59c579e4db.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/c/3/c3af5942-d171-401a-9444-3b59c579e4db.jpg",
-      "why_it_fits": "A small mechanical gnome of riveted bronze and brass stands at attention in a dim stone castle corridor, mustachioed metal mask above pale glowing eyes. Cogs at the shoulders and torso. The flavor text names its beneficiaries: \"to the castle custodians, there's no sweeter sound.\" The custodians who hear the ticking as sweet are the ones not cleaning the cobbles. Adamant lets this servant work for any court in Eldraine; it is not loyal to a color, it is loyal to whoever needs the floor swept. The Throne of Eldraine's mechanical infrastructure is indifferent to which house owns it."
+      "why_it_fits": "Eldraine castle infrastructure. Flavor speaker is uncredited — 'to the castle custodians, there's no sweeter sound' belongs to whoever's not cleaning the cobbles. Direct lineage to Clockwork Gnomes (Homelands 1995), flavor by Baki the Wizard Attendant: 'Until I came to the Floating Isle, I never had to oil the servants.' Twenty-four years of mechanical-servant logic, unchanged. Adamant lets it work for any court."
     },
     {
       "card_md_path": "magic-the-gathering/war-of-the-spark/240-iron-bully",
@@ -160,7 +160,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/d/e/ded2c66e-402c-4d5c-b987-402679aa914b.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/d/e/ded2c66e-402c-4d5c-b987-402679aa914b.jpg",
-      "why_it_fits": "A hulking iron golem of welded blackened plate stands in industrial smoke, chains draped across its torso, an orange furnace burning inside its chest cavity and leaking through the seams. The face is a faceless helmet, lit from within. Flavor speaker is Commander Grozdan, in the middle of a thought he abandons: \"Why would someone have built ... wait, never mind. Send it to the front lines!\" The question of why the object exists is interrupted by the order to deploy it. Manufacture and use, no gap."
+      "why_it_fits": "Flavor speaker Commander Grozdan is a confirmed named character: Boros minotaur, Ordruun bloodline, Kamen Fortress anti-Rakdos enforcer per the Guildmasters' Guide to Ravnica (2018). Mid-invasion: 'Why would someone have built ... wait, never mind. Send it to the front lines!' The Boros officer's question about why the object exists is interrupted by his own order to deploy it. Manufacture and use, no gap."
     },
     {
       "card_md_path": "magic-the-gathering/battlebond/249-yotian-soldier",
@@ -179,7 +179,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/9/e/9e71190b-c96c-4aea-9696-780c69eff395.png",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/e/9e71190b-c96c-4aea-9696-780c69eff395.jpg",
-      "why_it_fits": "A burnished gold mechanical soldier hefts a pickaxe-shaped polearm across its torso, standing on sandy desert ground with the faint silhouettes of other figures or ruins receding into haze behind it. The original Antiquities-era lore named these as Urza's mass-produced lighter defensive unit, built after the Fall of Kroog as a memorial guilt project. The Battlebond reprint stripped the eulogy flavor and replaced it with cross-planar artificer-poetry, but the figure on the card is the same as it ever was: someone's grief, manufactured in volume, holding a tool that doubles as a weapon."
+      "why_it_fits": "Antiquities-era Urza memorial. After the Fall of Kroog he mass-produced these as lighter defensive units — a guilt project in volume. The Battlebond reprint strips the eulogy flavor. Brothers' War (2022) introduced four new Yotian-named cards but cut a Yotian Soldier reprint, per Rosewater, because the retro artifact bonus sheet covered it. Same illustrator (Luca Zontini) also painted Skullclamp — the humblest defensive common and MTG's most aggressively-banned equipment, one hand."
     },
     {
       "card_md_path": "pokemon/darkness-ablaze/126-189-klang",
@@ -198,7 +198,7 @@
       "market_price_source": "collectr",
       "image_url": "https://images.pokemontcg.io/swsh3/126_hires.png",
       "art_crop_url": null,
-      "why_it_fits": "Two interlocked toothed steel gears, one large and one small, float against a blurred industrial backdrop of dark mechanical structures. The larger gear has a face-like center; the smaller orbits it. Flavor text: \"When Klang goes all out, the minigear links up perfectly with the outer part of the big gear, and this Pokemon's rotation speed increases sharply.\" The flavor is the spec sheet. The Klink line was among the first Pokemon ever designed as purely mechanical creatures rather than animals with metallic traits, which means somewhere in Game Freak's design archives is the meeting where someone said the worker IS the machine."
+      "why_it_fits": "Ken Sugimori's design brief: 'something inorganic.' Among the first Pokemon Game Freak built as purely mechanical, not animals with metallic traits — the Klink line was in the eye of Gen 5's 'Object Pokemon' design controversy. The Black 2 Pokedex death entry: 'if the minigear it launches at a foe doesn't return, it will die.' The TCG flavor text reads the same mechanic as a feature: spec sheet on one side, mortality on the other."
     },
     {
       "card_md_path": "pokemon/vivid-voltage/151-185-drone-rotom",
@@ -217,7 +217,7 @@
       "market_price_source": "collectr",
       "image_url": "https://images.pokemontcg.io/swsh4/151_hires.png",
       "art_crop_url": null,
-      "why_it_fits": "A small yellow ghost-like creature with four drone rotor blades extending from its body hovers in a swirl of pink and purple energy, mischievous grin and large blue eyes. The Pokemon species Rotom possesses household appliances for its other forms (oven, fridge, fan, lawnmower) and this one possesses a drone to film live Gym Challenge matches at Wyndon Stadium. The card itself is not a creature but a Trainer Item card, which is canonically the right product category: the same species, instrumentalized as a utility object. A ghost made employee. The Item card text reads opponent's hand."
+      "why_it_fits": "Rotom's five battling forms possess household appliances — oven, fridge, fan, lawnmower, washing machine. The Drone form is a sixth, non-battling: Rotom inhabits drones to film live Gym Challenge matches at Wyndon Stadium. The TCG card is a Trainer Item, not a creature — canonically the correct product category. Five Drone Rotom formed the World Coronation Series logo in smoke above Wyndon in JN115, the anime's 1,200th episode. Ghost made employee."
     },
     {
       "card_md_path": "final-fantasy-tcg/opus-viii/8-008c-golem",
@@ -235,7 +235,7 @@
       "market_price_source": "collectr",
       "image_url": "https://storage.googleapis.com/marcieapi-images/8-008C_eg.jpg",
       "art_crop_url": null,
-      "why_it_fits": "A squat black creature crouches against a pale cream-pink background, body marked with bold orange-red diamonds and stripes, face a flat white oval with a single concentric-circle red eye. Loose painterly brushwork. The card is just named Golem, common rarity, from Crystal Chronicles: Echoes of Time, which is to say the species and the role and the product slot are all the same word. Final Fantasy's bestiary has had a creature called Golem in nearly every numbered entry since the first one. The bundle's representative from a fourth franchise, demonstrating that the production-line worker is a cross-game design slot, not a Magic thing or a Pokemon thing."
+      "why_it_fits": "From Final Fantasy Crystal Chronicles: Echoes of Time, a 2009 DS/Wii spin-off that sold ~570K and was outsold by Persona 4: Golden. Common rarity, species name as card name. Artist Yasuhisa Izumisawa, in a 2019 Square Enix interview: 'For a while, I was obsessed with Magic: The Gathering. A lot of money and long nights went into playing that game.' In 2025 Wizards absorbed Final Fantasy into Universes Beyond — highest-grossing MTG set ever, $200M day one. The FFTCG artist was a Magic player before Magic ate his franchise."
     },
     {
       "card_md_path": "magic-the-gathering/modern-horizons-3/150-eldrazi-repurposer",
@@ -253,7 +253,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/3/7/37f79ba7-7b65-4387-b498-f770816ce8dd.png?1717012430",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/3/7/37f79ba7-7b65-4387-b498-f770816ce8dd.jpg?1717012430",
-      "why_it_fits": "A gaunt bone-white Eldrazi drone with an elongated angular head and segmented insectile limbs crouches forward amid forest undergrowth, scattered debris in the foreground implying recent consumption. The card's tags_hub literally includes the word drone. The flavor: 'I almost admire their ability to avoid waste. Almost.' That is the bundle's thesis spoken by a soldier looking at the workforce that is going to eat her. The mechanic spawns and resacrifices an Eldrazi Spawn token on cast and on death, generating colorless mana from the bodies. The labor metabolism rendered as a creature card. Three copies in this lair, because production-line repurposers come in batches."
+      "why_it_fits": "Type line literally reads 'Creature — Eldrazi Drone.' Flavor speaker General Tazri led the allied resistance against Ulamog: 'I almost admire their ability to avoid waste. Almost.' The bundle's thesis spoken by a soldier looking at the workforce that's going to eat her. MH3 deliberately reverted from Scion tokens to Spawn tokens — per Rosewater, 0/1 Spawns suit higher-powered sets where the mana ability is the draw. Three copies in this lair: production-line repurposers come in batches."
     },
     {
       "card_md_path": "magic-the-gathering/throne-of-eldraine/221-henge-walker",
@@ -271,7 +271,7 @@
       "market_price_source": "collectr",
       "image_url": "https://cards.scryfall.io/png/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.png?1572490988",
       "art_crop_url": "https://cards.scryfall.io/art_crop/front/9/9/9925f0bc-8685-4e38-8864-0ad3a9549ab5.jpg?1572490988",
-      "why_it_fits": "A towering stone golem stands in a forested clearing, body composed of stacked moss-covered hewn blocks, green magical light pulsing from the seams. Its own flavor text names the source: \"Everything that inhabits Garenbrig is affected by the wild magic flowing through the Great Henge.\" The Great Henge is one of the most expensive cards in this set, a $30 legendary artifact that produces mana and draws cards. Henge Walker is seven cents. They are the same location's two outputs. The bundle holds four copies of the walker and zero copies of the Henge, which is also the correct ratio."
+      "why_it_fits": "Animated by the wild magic flowing through the Great Henge — a structure giants built on Eldraine before humans rose, and a magical gateway between the Realm and the Wilds. The Great Henge card sits at $63.89 today. Henge Walker sits at six cents. Same location, two outputs, ~1000x price gap. Artist Titus Lunter was detained at Sea-Tac by ICE in 2018 while flying to Wizards HQ for D&D concept work — deported, ESTA permanently revoked, no public Wizards statement."
     }
   ],
   "cohesion": {

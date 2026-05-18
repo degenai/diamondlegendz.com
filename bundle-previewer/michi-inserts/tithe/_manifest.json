@@ -68,6 +68,33 @@
       "theme_fit": "Secure the Scene official art — Azorius arrest soldier with luminous blue-mesh chains stretching across the sky. The arrest is the mesh of light around the figure.",
       "permission_status": "official-game-art",
       "exclude_from_card_page_name": "Secure the Scene"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/3/c/3c305ccb-62f5-496a-a205-e818e34ead82.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/war/107",
+      "panel_dimensions_slots": [1, 1],
+      "theme_fit": "Tithebearer Giant official art — gold-plated giant carrying a literal gilded coffer through a gothic city. The extraction object made physical.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Tithebearer Giant"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/6/b/6bc7e996-151f-4d88-8e1e-91bb88f5db02.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/eld/95",
+      "panel_dimensions_slots": [1, 1],
+      "theme_fit": "Malevolent Noble official art — bearded noble pressing through a dark doorway, spectral hands reaching from the shadows. Complicit menace.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Malevolent Noble"
+    },
+    {
+      "remote_url": "https://cards.scryfall.io/art_crop/front/2/b/2b9bb2f3-a7c7-4e8f-ba39-44e6acd9240b.jpg",
+      "creator_handle": "Wizards of the Coast",
+      "source_url": "https://scryfall.com/card/eld/86",
+      "panel_dimensions_slots": [1, 1],
+      "theme_fit": "Eye Collector official art — crouching faerie with stolen orb, the courier mid-delivery for an unnamed lord.",
+      "permission_status": "official-game-art",
+      "exclude_from_card_page_name": "Eye Collector"
     }
   ]
 }
