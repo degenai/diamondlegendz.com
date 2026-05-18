@@ -5,6 +5,7 @@
 // raw JSON load controls.
 
 import { animate, stagger } from '../facets/vendor/anime.esm.min.js';
+import { renderConstellation } from './constellation.js';
 
 // ── Bundle loading ─────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ function render(bundle) {
   renderAnchorTags(bundle.anchor_tags || []);
   renderArtCarousel(bundle.cards || []);
   renderMichiPage(bundle);  // async, fires fetch + populates as inserts manifest loads
+  renderConstellation(bundle);
   renderCardGrid(bundle.cards || []);
   renderCohesion(bundle.cohesion || {});
   renderPricing(bundle.pricing || null);

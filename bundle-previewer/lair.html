@@ -540,6 +540,95 @@
     border: 2px solid #FF0000; margin: 12px 0;
   }
 
+  /* CONSTELLATION — bundle-scoped graph of curatorial connections.
+     Renderer in constellation.js. Data comes from bundle.connections.
+     Cards in inner ring, external resonance nodes in outer ring, edges
+     color-coded by kind. */
+  .constellation-section {
+    margin: 28px 0;
+    padding: 18px 14px 14px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 2px ridge #FF00FF;
+    border-radius: 3px;
+    position: relative;
+  }
+  .constellation-label {
+    color: #FF00FF; font-size: 0.85em; text-transform: uppercase;
+    letter-spacing: 0.2em; text-align: center; margin: 0 0 8px;
+  }
+  .constellation-label .constellation-sub {
+    color: #AAA; font-style: italic; text-transform: none;
+    letter-spacing: 0.04em; font-size: 0.95em;
+  }
+  .constellation-svg {
+    display: block; width: 100%; height: auto;
+    max-width: 900px; margin: 0 auto;
+    background:
+      radial-gradient(ellipse at center, rgba(80, 0, 80, 0.25) 0%, rgba(0, 0, 0, 0) 70%);
+  }
+  .constellation-svg .node { cursor: pointer; transition: opacity 0.18s ease; }
+  .constellation-svg .node circle { transition: stroke 0.18s ease, filter 0.18s ease; }
+  .constellation-svg .node.dim { opacity: 0.22; }
+  .constellation-svg .node.focus circle {
+    filter: drop-shadow(0 0 6px rgba(255, 0, 255, 0.85));
+    stroke: #FFFF00; stroke-width: 3;
+  }
+  .constellation-svg .node-label {
+    pointer-events: none;
+    text-shadow:
+      -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  }
+  .constellation-svg .edge { cursor: pointer; transition: stroke-opacity 0.15s, stroke-width 0.15s; }
+  .constellation-svg .edge.dim { stroke-opacity: 0.12 !important; }
+  .constellation-svg .edge.active { stroke-opacity: 0.95 !important; }
+
+  .constellation-tip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.92);
+    color: #FFFF99;
+    border: 1px solid #FF00FF;
+    border-left-width: 3px;
+    padding: 8px 12px;
+    font-family: "Courier New", monospace;
+    font-size: 0.78em; line-height: 1.4;
+    max-width: 260px;
+    pointer-events: none;
+    z-index: 5;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .constellation-tip strong { color: #FFFFFF; }
+  .constellation-tip .tip-kind { color: #00FFFF; font-style: italic; }
+  .constellation-tip .tip-note { color: #FFFFFF; font-style: italic; opacity: 0.8; }
+
+  .constellation-legend {
+    margin: 14px auto 0;
+    max-width: 900px;
+    display: flex; flex-wrap: wrap; gap: 18px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px dashed #00FFFF;
+    font-family: "Courier New", monospace; font-size: 0.72em;
+  }
+  .constellation-legend .legend-section { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .constellation-legend .legend-title {
+    color: #00FFFF; text-transform: uppercase; letter-spacing: 0.15em;
+    margin-right: 6px;
+  }
+  .constellation-legend .legend-item { display: inline-flex; align-items: center; gap: 5px; color: #FFF; }
+  .constellation-legend .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+    border: 1px solid #000;
+  }
+  .constellation-legend .legend-line {
+    width: 18px; height: 2px; display: inline-block;
+  }
+  .constellation-legend .legend-name { color: #DDD; }
+
+  @media (max-width: 600px) {
+    .constellation-section { padding: 12px 6px; }
+    .constellation-legend { font-size: 0.65em; gap: 10px; padding: 8px; }
+  }
+
   /* FOOTER NAV */
   .footer-nav { text-align: center; margin-top: 22px; padding: 12px 0 4px; border-top: 1px solid #00FFFF; }
   .footer-nav a { font-size: 0.9em; }
@@ -593,6 +682,8 @@
     <div class="michi-pages" id="michi-pages"></div>
   </div>
 
+  <section class="constellation-section" id="constellation-section"></section>
+
   <div class="grid-section-label" id="grid-label">The bundle</div>
   <div class="card-grid" id="card-grid"></div>
 
@@ -635,6 +726,6 @@
 <!-- Bundle JSON gets loaded by app.js. Default sample lives at
      sample-bundles/sleep-when-youre-dead.json. -->
 <script id="default-bundle-path" type="application/json">"sample-bundles/tithe.json"</script>
-<script type="module" src="app.js?v=hide-empty-binder"></script>
+<script type="module" src="app.js?v=constellation-mvp"></script>
 </body>
 </html>

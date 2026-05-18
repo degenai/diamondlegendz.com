@@ -6,7 +6,7 @@
   "catalog_id": "Discrete Lair 002",
   "title": "Drone",
   "subtitle": "the ones who only know one job",
-  "narrative": "Kaladesh's design brief named cogwork automatons 'ambient infrastructure' inside a five-stage caste called the Aether Cycle. Clockwork Servant's flavor speaker is uncredited: the castle custodians who find the ticking sweet are the ones not cleaning the cobbles. A pop idol cosplaying as the boss of a factory floor, illustrated by an artist who once said he was 'obsessed with Magic: The Gathering' four years before Wizards absorbed his franchise. Nineteen cards, twelve names, four games. Curated as labor.",
+  "narrative": "Kaladesh's design brief named cogwork automatons 'ambient infrastructure' inside a five-stage caste called the Aether Cycle. Clockwork Servant's flavor speaker is uncredited: the castle custodians who find the ticking sweet are the ones not cleaning the cobbles. A pop idol cosplaying as the boss of a factory floor. A Final Fantasy Golem painted by an artist who, in a 2019 Square Enix interview, called himself 'obsessed with Magic: The Gathering' — six years before Wizards licensed Final Fantasy IP for the highest-grossing MTG set ever printed. Nineteen cards, twelve names, four games. Curated as labor.",
   "hubs": [
     "labor"
   ],
@@ -235,7 +235,7 @@
       "market_price_source": "collectr",
       "image_url": "https://storage.googleapis.com/marcieapi-images/8-008C_eg.jpg",
       "art_crop_url": null,
-      "why_it_fits": "From Final Fantasy Crystal Chronicles: Echoes of Time, a 2009 DS/Wii spin-off that sold ~570K and was outsold by Persona 4: Golden. Common rarity, species name as card name. Artist Yasuhisa Izumisawa, in a 2019 Square Enix interview: 'For a while, I was obsessed with Magic: The Gathering. A lot of money and long nights went into playing that game.' In 2025 Wizards absorbed Final Fantasy into Universes Beyond — highest-grossing MTG set ever, $200M day one. The FFTCG artist was a Magic player before Magic ate his franchise."
+      "why_it_fits": "From Final Fantasy Crystal Chronicles: Echoes of Time, a 2009 DS/Wii spin-off that sold ~570K and was outsold by Persona 4: Golden. Common rarity, species name as card name. Artist Yasuhisa Izumisawa, in a 2019 Square Enix interview: 'For a while, I was obsessed with Magic: The Gathering. A lot of money and long nights went into playing that game.' In June 2025 Wizards licensed Final Fantasy IP from Square Enix for Universes Beyond — highest-grossing MTG set ever, $200M day one. FFTCG continues (Set 28 ships March 2026). The FFTCG artist was a Magic player years before the two games shared a shelf."
     },
     {
       "card_md_path": "magic-the-gathering/modern-horizons-3/150-eldrazi-repurposer",
@@ -329,6 +329,87 @@
     "buyer_savings_vs_diy_usd": 4.29,
     "buyer_savings_vs_diy_pct": 19,
     "premium_justification": "Nineteen cards across twelve names, weighted heavily on the Hatsune Miku 'Factory Tyrant' Double Rare ($11). The bundle leans into multi-copy depth where inventory supports it: four Henge Walkers, three Eldrazi Repurposers, two each of Phyrexian Ironworks and Klang. Doing this DIY across seven sellers at $1.31 plain-envelope shipping each runs $22.29; this lair arrives in one envelope for $18.00 + $1.31. You save $4.29 versus DIY (19%). The premium pays for the curation: the cross-franchise thesis is the product, not the cards individually. A buyer who wanted nineteen production-line workers across MTG and Pokemon and FFTCG and Weiss Schwarz would not search this way; the assembly is the labor being sold."
+  },
+  "connections": {
+    "_schema_note": "Bundle-scoped constellation. Nodes are in-bundle cards + external resonance entities pulled from the 2nd-pass trivia harvest. Hand-authored for MVP; will be auto-derived by the bbl-bundler agent in a later wave.",
+    "nodes": [
+      {"id": "card:miku-factory-tyrant","type": "card",        "label": "Hatsune Miku \"Factory Tyrant\"", "is_headliner": true},
+      {"id": "card:phyrexian-ironworks","type": "card",        "label": "Phyrexian Ironworks"},
+      {"id": "card:workshop-assistant", "type": "card",        "label": "Workshop Assistant"},
+      {"id": "card:will-forged-golem",  "type": "card",        "label": "Will-Forged Golem"},
+      {"id": "card:clockwork-servant",  "type": "card",        "label": "Clockwork Servant"},
+      {"id": "card:iron-bully",         "type": "card",        "label": "Iron Bully"},
+      {"id": "card:yotian-soldier",     "type": "card",        "label": "Yotian Soldier"},
+      {"id": "card:klang",              "type": "card",        "label": "Klang"},
+      {"id": "card:drone-rotom",        "type": "card",        "label": "Drone Rotom"},
+      {"id": "card:fftcg-golem",        "type": "card",        "label": "Golem (FFTCG)"},
+      {"id": "card:eldrazi-repurposer", "type": "card",        "label": "Eldrazi Repurposer"},
+      {"id": "card:henge-walker",       "type": "card",        "label": "Henge Walker"},
+
+      {"id": "artist:luca-zontini",     "type": "artist",      "label": "Luca Zontini", "note": "Painted both Yotian Soldier (humble defensive common) AND Skullclamp (MTG's most-banned equipment) in the same Mirrodin block era"},
+      {"id": "artist:jason-felix",      "type": "artist",      "label": "Jason Felix",  "note": "Suspended by Wizards in 2021 after admitting he'd lifted other artists' work in a Strixhaven commission"},
+      {"id": "artist:titus-lunter",     "type": "artist",      "label": "Titus Lunter", "note": "Detained at Sea-Tac by ICE in 2018 while flying to Wizards HQ for D&D concept work; deported, ESTA permanently revoked, no public Wizards statement"},
+      {"id": "artist:izumisawa",        "type": "artist",      "label": "Yasuhisa Izumisawa", "note": "FFTCG Golem artist; per 2019 SE interview: 'obsessed with Magic: The Gathering' — six years before Wizards licensed FF for Universes Beyond"},
+      {"id": "artist:cosmo-bousoup",    "type": "artist",      "label": "cosMo@BousouP", "note": "Composed Sadistic.Music∞Factory AND designed the Factory Tyrant module costume — atypical for Project DIVA"},
+      {"id": "artist:victor-adame-minguez", "type": "artist",  "label": "Victor Adame Minguez", "note": "Workshop Assistant illustrator across all 3 printings (KLD/CMR/KLR digital-only); 2021 Grist sale set a $35K record"},
+      {"id": "artist:david-palumbo",    "type": "artist",      "label": "David Palumbo", "note": "Julie Bell's son, Boris Vallejo's stepson; PAFA-trained; 3 Spectrum medals; Clockwork Servant is his only ELD card"},
+
+      {"id": "character:slobad",        "type": "character",   "label": "Slobad the Mirran goblin", "note": "Phyrexian Ironworks flavor speaker. Wired into Memnarch's spark-transfer machine for 5 years; later compleated; reshaped his Phyrexian body to resemble his dead friend Bosh"},
+      {"id": "character:grozdan",       "type": "character",   "label": "Commander Grozdan", "note": "Iron Bully flavor speaker. Real named character per Guildmasters' Guide to Ravnica 2018: Boros minotaur, Ordruun bloodline, Kamen Fortress anti-Rakdos enforcer"},
+      {"id": "character:general-tazri", "type": "character",   "label": "General Tazri", "note": "Eldrazi Repurposer flavor speaker. Three card printings across a decade: OGW 2016 / ZNR 2020 / MOM Aftermath 2023"},
+
+      {"id": "place:kaladesh-aether-cycle", "type": "place",   "label": "Kaladesh — Aether Cycle (Build phase)", "note": "5-stage caste system: Inspire / Innovate / Build / Liberate / Reclaim. Dwarves are the Build caste. Workshop Assistant lives here"},
+      {"id": "place:garenbrig-great-henge", "type": "place",   "label": "Garenbrig + The Great Henge", "note": "Built by giants before humans rose on Eldraine. Henge Walker = $0.06; The Great Henge = $63.89; same location, ~1000x price gap"},
+      {"id": "place:wyndon-stadium",    "type": "place",       "label": "Wyndon Stadium", "note": "Where Drone Rotom films Gym Challenge matches; setting of JN115, the Pokemon anime's 1,200th episode"},
+
+      {"id": "source:pulseman",         "type": "source-tale", "label": "Pulseman (Game Freak / Sega, 1994)", "note": "Rotom's design lineage; Sugimori directed Pulseman; Volt Tackle derives from Volteccer"},
+      {"id": "source:ffcc-echoes",      "type": "source-tale", "label": "FF Crystal Chronicles: Echoes of Time (2009)", "note": "FFTCG Golem source game; ~570K units sold; outsold by Persona 4: Golden"},
+      {"id": "source:sadistic-music-factory", "type": "source-tale", "label": "Sadistic.Music∞Factory (cosMo@BousouP)", "note": "Niconico August 2012; ~592K views original + 1M YouTube on the 2021 V4X remake; casts Miku as a tyrannical plant manager"},
+
+      {"id": "event:wizards-licenses-ff", "type": "event",     "label": "Wizards licenses Final Fantasy IP (June 2025)", "note": "Universes Beyond: Final Fantasy generated ~$200M day-one revenue — highest-grossing MTG set ever. FFTCG continues (Set 28 March 2026); IP was licensed not absorbed"},
+
+      {"id": "design:clockwork-gnomes", "type": "design-ancestor", "label": "Clockwork Gnomes (Homelands 1995)", "note": "Direct lineage to Clockwork Servant. Baki the Wizard Attendant flavor: 'Until I came to the Floating Isle, I never had to oil the servants'"},
+      {"id": "design:krark-clan-ironworks", "type": "design-ancestor", "label": "Krark-Clan Ironworks (Fifth Dawn 2004)", "note": "Naming-lineage to Phyrexian Ironworks. Mirrodin goblin clan; Slobad was Mirran"},
+      {"id": "design:junk-diver",       "type": "design-ancestor", "label": "Junk Diver (Urza's Destiny)", "note": "Workshop Assistant's functional twin — together they form an infinite combo at common rarity, Pauper-legal"},
+
+      {"id": "mechanic:convoke",        "type": "mechanic",    "label": "Convoke", "note": "M15 changed it from cost-reduction to alternative-cost payment; now deciduous per Rosewater June 2024"},
+      {"id": "mechanic:spawn-vs-scion", "type": "mechanic",    "label": "Spawn tokens (revived in MH3)", "note": "Rosewater 2024: '0/1 spawns were better for the higher powered set where the cost discount and mana ability were more exciting'"}
+    ],
+    "edges": [
+      {"from": "card:miku-factory-tyrant", "to": "artist:cosmo-bousoup",     "kind": "designed-by",     "note": "Both module costume AND song composer"},
+      {"from": "card:miku-factory-tyrant", "to": "source:sadistic-music-factory","kind": "source-song"},
+
+      {"from": "card:phyrexian-ironworks", "to": "character:slobad",         "kind": "flavor-speaker"},
+      {"from": "card:phyrexian-ironworks", "to": "design:krark-clan-ironworks","kind": "naming-lineage"},
+
+      {"from": "card:workshop-assistant",  "to": "place:kaladesh-aether-cycle","kind": "depicted-in"},
+      {"from": "card:workshop-assistant",  "to": "design:junk-diver",        "kind": "mechanical-twin", "note": "Infinite combo at common"},
+      {"from": "card:workshop-assistant",  "to": "artist:victor-adame-minguez","kind": "illustrated-by"},
+
+      {"from": "card:will-forged-golem",   "to": "artist:jason-felix",       "kind": "illustrated-by",  "note": "Plagiarism + Wizards suspension 2021"},
+      {"from": "card:will-forged-golem",   "to": "mechanic:convoke",         "kind": "uses-mechanic"},
+
+      {"from": "card:clockwork-servant",   "to": "artist:david-palumbo",     "kind": "illustrated-by"},
+      {"from": "card:clockwork-servant",   "to": "design:clockwork-gnomes",  "kind": "design-lineage"},
+
+      {"from": "card:iron-bully",          "to": "character:grozdan",        "kind": "flavor-speaker"},
+
+      {"from": "card:yotian-soldier",      "to": "artist:luca-zontini",      "kind": "illustrated-by", "note": "Same artist as Skullclamp — humblest common + most-banned equipment"},
+
+      {"from": "card:klang",               "to": "source:pulseman",          "kind": "design-lineage", "note": "Via Rotom; Sugimori-directed Pulseman → Pokemon mechanical-Pokemon line"},
+      {"from": "card:drone-rotom",         "to": "source:pulseman",          "kind": "source-game"},
+      {"from": "card:drone-rotom",         "to": "place:wyndon-stadium",     "kind": "depicted-in"},
+
+      {"from": "card:fftcg-golem",         "to": "artist:izumisawa",         "kind": "illustrated-by"},
+      {"from": "card:fftcg-golem",         "to": "source:ffcc-echoes",       "kind": "source-game"},
+      {"from": "artist:izumisawa",         "to": "event:wizards-licenses-ff","kind": "biographical-irony", "note": "Was a Magic player six years before Wizards licensed his franchise"},
+
+      {"from": "card:eldrazi-repurposer",  "to": "character:general-tazri",  "kind": "flavor-speaker"},
+      {"from": "card:eldrazi-repurposer",  "to": "mechanic:spawn-vs-scion",  "kind": "mechanic-debut", "note": "MH3 deliberately reverted from Scions to Spawns"},
+
+      {"from": "card:henge-walker",        "to": "artist:titus-lunter",      "kind": "illustrated-by", "note": "ICE detention 2018"},
+      {"from": "card:henge-walker",        "to": "place:garenbrig-great-henge", "kind": "depicted-in"}
+    ]
   },
   "checkout": {
     "stripe_payment_url": null,
