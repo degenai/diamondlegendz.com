@@ -1,0 +1,317 @@
+{
+  "schema_version": "0.2",
+  "slug": "petty-thief",
+  "series_label": "BBL",
+  "catalog_id": "Discrete Lair 004",
+  "title": "The Petty Thief",
+  "subtitle": "what was never going to be given",
+  "narrative": "Property is the first law and the thief is the first to break it. This lair gathers the small clever things that get through a rigged world by taking what was never going to be offered: a fae rogue leaving with a stolen book, a fox with no coin and fast paws, a cat working the alley and then the windowsill, a hyena running off with a sorcerer's scroll. Three different games drew the same figure without ever comparing notes. The market shelves them apart by franchise and never notices the trick is identical. We put them in one sleeve and call it what it is.",
+  "hubs": [
+    "rebellion"
+  ],
+  "anchor_tags": [
+    "thief",
+    "trickster",
+    "stealing",
+    "stealth",
+    "heist"
+  ],
+  "intent_tags": [
+    "thief",
+    "trickster",
+    "stealing",
+    "stolen-treasure",
+    "stolen-goods",
+    "heist",
+    "stealth",
+    "mischief",
+    "rogue",
+    "cunning",
+    "fae",
+    "faerie",
+    "fox",
+    "cat",
+    "prowler",
+    "canine"
+  ],
+  "cards": [
+    {
+      "name": "Oko, the Trickster",
+      "set": "The List",
+      "collector_number": "309/269",
+      "image_url": "https://cards.scryfall.io/png/front/d/2/d2fbecdc-1c6f-44e5-9491-18dda73f3a99.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/d/2/d2fbecdc-1c6f-44e5-9491-18dda73f3a99.jpg",
+      "tags_matched": [
+        "trickster",
+        "fae",
+        "mischief"
+      ],
+      "why_it_fits": "Oko himself, the fae con artist who tricked his way to a crown. He is the named figure the lair hangs on (BBL character node: oko), the planeswalker reduced to his oldest job: taking what was not offered.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.9,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Chris Rallis"
+    },
+    {
+      "name": "Tome Raider",
+      "set": "Throne of Eldraine",
+      "collector_number": "68",
+      "image_url": "https://cards.scryfall.io/png/front/e/0/e04ad850-5801-4654-a388-f86be20a43bf.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/e/0/e04ad850-5801-4654-a388-f86be20a43bf.jpg",
+      "tags_matched": [
+        "thief",
+        "stealing",
+        "book",
+        "faerie",
+        "flight"
+      ],
+      "why_it_fits": "A faerie caught mid-theft, a stolen book clutched in flight. Knowledge is property too, and she is leaving with it. Four copies on hand make her the multi-copy spine of the fae-thief vein.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.13,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Randy Vargas"
+    },
+    {
+      "name": "Faerie Vandal",
+      "set": "Commander: Zendikar Rising",
+      "collector_number": "26",
+      "image_url": "https://cards.scryfall.io/png/front/0/4/04692219-8850-4b05-aa60-64f32b0daade.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/0/4/04692219-8850-4b05-aa60-64f32b0daade.jpg",
+      "tags_matched": [
+        "thief",
+        "rogue",
+        "stolen-treasure",
+        "gold"
+      ],
+      "why_it_fits": "A winged rogue with stolen treasure and a halo she did not earn. The gold is someone else's; the grin is hers.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.24,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Paul Scott Canavan"
+    },
+    {
+      "name": "Eye Collector",
+      "set": "Throne of Eldraine",
+      "collector_number": "86",
+      "image_url": "https://cards.scryfall.io/png/front/2/b/2b9bb2f3-a7c7-4e8f-ba39-44e6acd9240b.png",
+      "art_crop_url": "https://cards.scryfall.io/art_crop/front/2/b/2b9bb2f3-a7c7-4e8f-ba39-44e6acd9240b.jpg",
+      "tags_matched": [
+        "thief",
+        "stolen-goods",
+        "imp",
+        "fae"
+      ],
+      "why_it_fits": "A grotesque little fae courier hoarding stolen goods, the imp who runs the errands nobody admits to. The petty end of the same larceny.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.17,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Uriah Voth"
+    },
+    {
+      "name": "Nickit",
+      "set": "Darkness Ablaze",
+      "collector_number": "112/189",
+      "image_url": "https://images.pokemontcg.io/swsh3/112_hires.png",
+      "tags_matched": [
+        "thief",
+        "stealth",
+        "cunning",
+        "fox",
+        "mischief"
+      ],
+      "why_it_fits": "A fox tagged thief, stealth, cunning, mischief. The petty thief made literal, and at four cents the cheapest crime in the binder. Bulk-as-concept: worthless on its own, and that is the point.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.04,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Misa Tsutsui"
+    },
+    {
+      "name": "Purrloin",
+      "set": "Darkness Ablaze",
+      "collector_number": "106/189",
+      "image_url": "https://images.pokemontcg.io/swsh3/106_hires.png",
+      "tags_matched": [
+        "thief",
+        "prowler",
+        "stealth",
+        "cat",
+        "shadow"
+      ],
+      "why_it_fits": "A cat working the alley in shadow, prowler and thief. The street-level burglar to the faeries' high-fae larceny.",
+      "qty_in_bundle": 2,
+      "market_price_usd": 0.07,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "sowsow"
+    },
+    {
+      "name": "Purrloin",
+      "set": "Brilliant Stars",
+      "collector_number": "090/172",
+      "image_url": "https://archives.bulbagarden.net/media/upload/0/01/PurrloinBrilliantStars90.jpg",
+      "tags_matched": [
+        "thief",
+        "cozy",
+        "domestic",
+        "cat",
+        "indoor"
+      ],
+      "why_it_fits": "The same cat gone domestic, thieving from the windowsill and the houseplant. Crime comes indoors, and the cross-print pair turns one burglar into two registers.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.06,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Narumi Sato"
+    },
+    {
+      "name": "He Who Steals And Runs Away",
+      "set": "Reign of Jafar",
+      "collector_number": "114/204",
+      "image_url": "card-cache/petty-thief/he-who-steals-and-runs-away.jpg",
+      "image_url_source": "https://api.lorcana.ravensburger.com/images/en/set8/114_ca6babf290e1ec435ee47fea96aadc5671756867.jpg",
+      "tags_matched": [
+        "thief",
+        "heist",
+        "canine",
+        "running",
+        "scroll"
+      ],
+      "why_it_fits": "Lorcana says it plainest. A canine rogue running off with a glowing scroll, the heist written into the card's own name. The third game volunteering the same figure is what makes this market-invisible.",
+      "qty_in_bundle": 1,
+      "market_price_usd": 0.06,
+      "market_price_as_of": "2026-05-27",
+      "market_price_source": "collectr",
+      "artist": "Luis Huerta"
+    }
+  ],
+  "cohesion": {
+    "mood": "larcenous / mischievous",
+    "register": "the small clever thing caught mid-take",
+    "palette_hex": [
+      "#2f6b4f",
+      "#caa54a",
+      "#5b3a78",
+      "#1f2a4a",
+      "#0d0d12"
+    ],
+    "color_identities_present": [],
+    "set_diversity": [
+      "The List (MTG)",
+      "Throne of Eldraine (MTG)",
+      "Commander: Zendikar Rising (MTG)",
+      "Darkness Ablaze (Pokemon)",
+      "Brilliant Stars (Pokemon)",
+      "Reign of Jafar (Lorcana)"
+    ]
+  },
+  "connections": {
+    "_schema_note": "Bundle-scoped constellation. The single bridging spine is the petty-thief archetype (every card depicts it); two sub-clusters fork off it, MTG faerie-larcenists vs Pokemon/Lorcana trickster-animals, which is the cross-game span made visible. Authored by the Cartographer discovery pass; no fabricated artist/preview edges (none exist across these eight cards).",
+    "nodes": [
+      { "id": "card:oko", "type": "card", "label": "Oko, the Trickster", "is_headliner": true },
+      { "id": "card:tome-raider", "type": "card", "label": "Tome Raider" },
+      { "id": "card:faerie-vandal", "type": "card", "label": "Faerie Vandal" },
+      { "id": "card:eye-collector", "type": "card", "label": "Eye Collector" },
+      { "id": "card:nickit", "type": "card", "label": "Nickit" },
+      { "id": "card:purrloin-daa", "type": "card", "label": "Purrloin (DAA)" },
+      { "id": "card:purrloin-bs", "type": "card", "label": "Purrloin (Brilliant Stars)" },
+      { "id": "card:he-who-steals", "type": "card", "label": "He Who Steals And Runs Away" },
+      {
+        "id": "symbol:petty-thief",
+        "type": "symbol",
+        "label": "Petty thief (thief + trickster)",
+        "note": "The shared archetype every card carries: the small clever thing taking what was not given. This is the cross-game spine, and it bridges all eight cards across three games."
+      },
+      {
+        "id": "symbol:faerie-larceny",
+        "type": "symbol",
+        "label": "Faerie larcenists",
+        "note": "The Magic sub-cluster: winged fae rogues stealing books, treasure, and eyes. One game, one visual register."
+      },
+      {
+        "id": "symbol:trickster-animal",
+        "type": "symbol",
+        "label": "Trickster animals",
+        "note": "The Pokemon and Lorcana sub-cluster: fox, cat, and canine thieves from folklore's trickster-beast tradition. Two games answering the Magic faeries with the same job."
+      },
+      {
+        "id": "character:oko",
+        "type": "character",
+        "label": "Oko (the Fae King)",
+        "note": "BBL character node (cards/_characters/oko.md): the fae con artist who tricked his way to a crown. The bundle's named title figure."
+      }
+    ],
+    "edges": [
+      { "from": "card:oko", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:tome-raider", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:faerie-vandal", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:eye-collector", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:nickit", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:purrloin-daa", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:purrloin-bs", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:he-who-steals", "to": "symbol:petty-thief", "kind": "depicts" },
+      { "from": "card:oko", "to": "symbol:faerie-larceny", "kind": "depicts" },
+      { "from": "card:tome-raider", "to": "symbol:faerie-larceny", "kind": "depicts" },
+      { "from": "card:faerie-vandal", "to": "symbol:faerie-larceny", "kind": "depicts" },
+      { "from": "card:eye-collector", "to": "symbol:faerie-larceny", "kind": "depicts" },
+      { "from": "card:nickit", "to": "symbol:trickster-animal", "kind": "depicts" },
+      { "from": "card:purrloin-daa", "to": "symbol:trickster-animal", "kind": "depicts" },
+      { "from": "card:purrloin-bs", "to": "symbol:trickster-animal", "kind": "depicts" },
+      { "from": "card:he-who-steals", "to": "symbol:trickster-animal", "kind": "depicts" },
+      { "from": "card:oko", "to": "character:oko", "kind": "depicts" },
+      {
+        "from": "card:purrloin-daa",
+        "to": "card:purrloin-bs",
+        "kind": "cross-print-mirror",
+        "note": "Same species, two registers: the street prowler and the domestic windowsill thief."
+      }
+    ]
+  },
+  "checkout": {
+    "stripe_payment_url": "https://buy.stripe.com/PLACEHOLDER_petty-thief",
+    "stripe_price_id": null,
+    "checkout_provider": "stripe-payment-link"
+  },
+  "pricing": {
+    "card_value_subtotal_usd": 1.91,
+    "labor_and_sleeve_per_card_usd": 0.1,
+    "labor_and_sleeve_total_usd": 1.1,
+    "cost_basis_usd": 3.01,
+    "diy_seller_count_estimate": 6,
+    "diy_shipping_per_seller_usd": 1.31,
+    "diy_shipping_rate_note": "$1.31 matches TCGplayer's standard Plain Envelope rate as of 2026-05-31.",
+    "diy_alternative_usd": 9.77,
+    "diy_alternative_note": "Eight distinct cards across THREE games (MTG, Pokemon, Lorcana) and six sets. DIY assembly realistically routes through 6 sellers at $1.31 plain-envelope each ($7.86) plus $1.91 card value. The cross-game span is the lever: no single seller's cart holds a Galar fox, an Eldraine faerie, and a Lorcana hyena together.",
+    "bundle_price_floor_usd": 5.0,
+    "bundle_list_price_usd": 5.0,
+    "shipping_policy": "buyer-paid, itemized separately at checkout; never included in list price",
+    "estimated_shipping_usd": 1.31,
+    "shipping_rate_note": "Matches TCGplayer Plain Envelope rate ($1.31). One envelope, one stamp; we eat the difference if the carrier's actual stamp cost runs over.",
+    "narrative_premium_usd": 1.99,
+    "buyer_savings_vs_diy_usd": 3.46,
+    "buyer_savings_vs_diy_pct": 35,
+    "premium_justification": "The cards are $1.91 of common bulk. Assembled DIY across three games and six sellers it runs about $9.77; this lair arrives in one envelope for $5.00 + $1.31. You pay for the curation that crosses the aisle no store crosses, and for one envelope instead of six. The lair is what you build with: a cross-universe thief binder page, a trickster cube, a shelf of small larcenists. A Lego brick for your own greater curation, ready to drop into place."
+  },
+  "metadata": {
+    "generated_by": "cartographer-draft-v0",
+    "generated_at": "2026-05-31",
+    "edition_size": "1 of 1",
+    "card_count": 11,
+    "distinct_card_count": 8,
+    "games": 3,
+    "rarity_distribution": {
+      "common": 9,
+      "uncommon": 1,
+      "rare": 0,
+      "mythic": 1
+    },
+    "status_note": "DRAFT promoted to sandbox preview. Provisionally catalogued Discrete Lair 004 (002 stays retired with the deprecated Drone). Non-destructive on the BBL corpus: reserves no inventory (no held_for_lair, no card bundles: writes). First Cartographer cross-game discovery elevated to a page.",
+    "hub_note": "hubs:[rebellion] here is the thematic frame (theft-as-property-refusal, phantom-thief lineage). The internal BBL graph keeps it structurally unwired pending Alex's call, since these cards carry no rebellion tag_signals; backticks-not-wikilinks discipline.",
+    "provenance": "constellation_scan.py -> trickster candidate -> judge (concept/mixed, novelty 8) -> skeptic salvage 'The Petty Thief'. The broad trickster clump's word-only passengers (stage performers, disguise gags, nature creatures tagged trickster only) were pruned; this is the thief-spine that survived adversarial review.",
+    "notes": "v0 Cartographer draft. Eight names, three games, one picture. Two sub-clusters (MTG faerie-larcenists + Pokemon/Lorcana trickster-animals) bridged by the petty-thief archetype spine. Multi-copy levers: Tome Raider (4 on hand), Purrloin DAA (3), Nickit (2)."
+  }
+}

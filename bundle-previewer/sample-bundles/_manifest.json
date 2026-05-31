@@ -39,6 +39,24 @@
         "https://cards.scryfall.io/art_crop/front/3/1/31aadd3d-5ce1-44ba-ac6d-b192a9ea491b.jpg",
         "https://cards.scryfall.io/art_crop/front/1/d/1d54d596-f7aa-4b05-ab13-19b246698c04.jpg"
       ]
+    },
+    {
+      "slug": "petty-thief",
+      "catalog_id": "Discrete Lair 004",
+      "title": "The Petty Thief",
+      "subtitle": "what was never going to be given",
+      "hubs": ["rebellion"],
+      "anchor_tags": ["thief", "trickster", "stealing", "stealth", "heist"],
+      "card_count": 11,
+      "distinct_card_count": 8,
+      "list_price_usd": 5.00,
+      "blurb": "Property is the first law and the thief is the first to break it. A fae rogue leaving with a stolen book, a fox with fast paws, a cat working the windowsill, a hyena running off with a sorcerer's scroll. Three different games drew the same figure and the market never noticed the trick is identical. Eight names, three games, one picture: the small clever thing taking what was never going to be given. BBL's first cross-game lair.",
+      "thumbnails": [
+        "https://cards.scryfall.io/art_crop/front/d/2/d2fbecdc-1c6f-44e5-9491-18dda73f3a99.jpg",
+        "https://cards.scryfall.io/art_crop/front/e/0/e04ad850-5801-4654-a388-f86be20a43bf.jpg",
+        "https://cards.scryfall.io/art_crop/front/0/4/04692219-8850-4b05-aa60-64f32b0daade.jpg",
+        "https://cards.scryfall.io/art_crop/front/2/b/2b9bb2f3-a7c7-4e8f-ba39-44e6acd9240b.jpg"
+      ]
     }
   ],
   "_deprecated_lairs_note": "Drone (Discrete Lair 002) was deprecated 2026-05-18 after the constellation visualization made its weakness visible. The cohesion metric isn't 'card-to-card edges' specifically — 2-step or longer paths through external resonance nodes (a shared character, source-tale, mechanic, or design ancestor that bridges two cards) count as substrate. The test is whether the majority of cards land in a single connected component vs. scattered as isolated dots each tied only to their own private externals. Drone fails this: most cards have personal artist / character / source nodes that don't bridge anywhere. Bundle JSON, michi-inserts/drone/, and card-cache/drone/ are retained on disk; lair.html?lair=drone still resolves for direct testing. Will resurrect when the underlying graph accumulates bridging edges."
