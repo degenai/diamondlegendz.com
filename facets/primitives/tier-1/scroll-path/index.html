@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Scroll Path</title>
+<!--
+facet:
+  id: scroll-path
+  tier: 1
+  title: Scroll Path
+  description: A motion path is scrubbed by scroll position.
+  tags: [scroll, svg, path]
+  apis: [animate, createMotionPath, onScroll]
+  parents: [svg-motionpath, scroll-scrub]
+-->
+<style>
+html, body { margin: 0; background: #0a0a0f; color: #6a6a85; font-family: ui-monospace, monospace; }
+.spacer { height: 62vh; display: grid; place-items: center; font-size: 12px; }
+.target { height: 190vh; display: grid; place-items: start center; }
+svg { position: sticky; top: 24vh; width: min(70vw, 420px); height: min(70vw, 420px); }
+.track { stroke: #1f1f2e; stroke-width: 2; fill: none; stroke-dasharray: 5 5; }
+.dot { fill: #7ef2c3; }
+</style>
+</head>
+<body>
+<div class="spacer">↓ scroll to ride path ↓</div>
+<div class="target">
+  <svg viewBox="0 0 200 200">
+    <path class="track" d="M 30 100 C 30 30, 170 30, 170 100 S 30 170, 30 100 Z"/>
+    <circle class="dot" r="8"/>
+  </svg>
+</div>
+<script type="module">
+import { animate, createMotionPath, onScroll } from '../../../vendor/anime.esm.min.js';
+
+animate('.dot', {
+  ...createMotionPath('.track'),
+  autoplay: onScroll({ sync: true, target: '.target', enter: 'top top', leave: 'bottom bottom' }),
+  ease: 'linear',
+});
+</script>
+</body>
+</html>

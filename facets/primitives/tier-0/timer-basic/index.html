@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Timer Basic</title>
+<!--
+facet:
+  id: timer-basic
+  tier: 0
+  title: Timer Basic
+  description: A timer drives numeric readouts and a progress sweep without animating a target.
+  tags: [timer, callback, state]
+  apis: [createTimer, utils.$]
+  parents: []
+-->
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+.panel { min-width: 220px; padding: 18px; border: 1px solid #1f1f2e; background: #101018; }
+.row { display: flex; justify-content: space-between; gap: 24px; margin: 8px 0; font-size: 12px; }
+.label { color: #6a6a85; text-transform: uppercase; letter-spacing: 1px; }
+.value { color: #7ef2c3; }
+.track { height: 5px; margin-top: 16px; background: #1f1f2e; transform-origin: 0 50%; }
+.sweep { height: 100%; background: #7ef2c3; transform-origin: 0 50%; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="panel">
+    <div class="row"><span class="label">time</span><span class="time value">0</span></div>
+    <div class="row"><span class="label">updates</span><span class="updates value">0</span></div>
+    <div class="track"><div class="sweep"></div></div>
+  </div>
+</div>
+<script type="module">
+import { createTimer, utils } from '../../../vendor/anime.esm.min.js';
+
+const DURATION = 2000;
+const [$time] = utils.$('.time');
+const [$updates] = utils.$('.updates');
+const [$sweep] = utils.$('.sweep');
+let updates = 0;
+
+createTimer({
+  duration: DURATION,
+  loop: true,
+  onUpdate: self => {
+    const time = Math.round(self.currentTime % DURATION);
+    $time.textContent = time;
+    $updates.textContent = ++updates;
+    $sweep.style.transform = `scaleX(${time / DURATION})`;
+  },
+});
+</script>
+</body>
+</html>

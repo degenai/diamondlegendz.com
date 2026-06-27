@@ -3,29 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Facet — relative-values</title>
+<title>Facet — Relative Values</title>
 <!--
 facet:
   id: relative-values
   tier: 0
   title: Relative Values
-  description: Additive syntax. x = '+=50' nudges from current value.
-  tags: [placeholder, syntax]
+  description: Additive syntax nudges from the current transform value.
+  tags: [relative, syntax, transform]
   apis: [animate]
   parents: []
 -->
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #6a6a85; font-family: ui-monospace, monospace; }
-  body { display: grid; place-items: center; }
-  .ph { text-align: center; }
-  .ph .title { color: #e0f4ff; font-size: 14px; margin-bottom: 6px; }
-  .ph .tag { color: #7ef2c3; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+#stage::before { content: ''; width: 260px; border-top: 1px dashed #1f1f2e; position: absolute; }
+.box { width: 64px; height: 64px; background: #7ef2c3; }
+.label { position: absolute; bottom: 48px; color: #6a6a85; font-size: 10px; letter-spacing: 1.2px; }
 </style>
 </head>
 <body>
-<div class="ph">
-  <div class="title">Relative Values</div>
-  <div class="tag">placeholder</div>
+<div id="stage">
+  <div class="box"></div>
+  <div class="label">x: '+=90', rotate: '+=90'</div>
 </div>
+<script type="module">
+import { animate } from '../../../vendor/anime.esm.min.js';
+
+animate('.box', {
+  x: '+=90',
+  rotate: '+=90',
+  duration: 900,
+  loop: true,
+  alternate: true,
+  ease: 'inOut(2)',
+});
+</script>
 </body>
 </html>

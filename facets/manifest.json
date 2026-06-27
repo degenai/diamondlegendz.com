@@ -1,0 +1,603 @@
+[
+  {
+    "id": "animatable-basic",
+    "tier": 0,
+    "title": "Animatable Basic",
+    "description": "A frequently updated target follows the pointer through createAnimatable.",
+    "tags": [
+      "animatable",
+      "pointer",
+      "realtime"
+    ],
+    "apis": [
+      "createAnimatable",
+      "utils.clamp"
+    ],
+    "parents": [],
+    "loc": 48,
+    "url": "primitives/tier-0/animatable-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "color-basic",
+    "tier": 0,
+    "title": "Color Basic",
+    "description": "Color property interpolation. Background cycles between two hues.",
+    "tags": [
+      "color"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 38,
+    "url": "primitives/tier-0/color-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "draggable-basic",
+    "tier": 0,
+    "title": "Draggable Basic",
+    "description": "One element, pointer-draggable within the stage. Releases with inertia.",
+    "tags": [
+      "draggable",
+      "pointer"
+    ],
+    "apis": [
+      "createDraggable"
+    ],
+    "parents": [],
+    "loc": 37,
+    "url": "primitives/tier-0/draggable-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "easing-showcase",
+    "tier": 0,
+    "title": "Easing Showcase",
+    "description": "Same motion, six different easing functions side by side.",
+    "tags": [
+      "easing",
+      "comparison"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 59,
+    "url": "primitives/tier-0/easing-showcase/",
+    "status": "ready"
+  },
+  {
+    "id": "function-values",
+    "tier": 0,
+    "title": "Function Values",
+    "description": "Per-target functions compute each bar's target value and delay.",
+    "tags": [
+      "function",
+      "targets",
+      "stagger"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 45,
+    "url": "primitives/tier-0/function-values/",
+    "status": "ready"
+  },
+  {
+    "id": "keyframes-basic",
+    "tier": 0,
+    "title": "Keyframes Basic",
+    "description": "Multi-step values. Array of stops in one prop.",
+    "tags": [
+      "keyframes"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 37,
+    "url": "primitives/tier-0/keyframes-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "opacity-basic",
+    "tier": 0,
+    "title": "Opacity Basic",
+    "description": "Pure fade. Opacity 0 → 1 and back.",
+    "tags": [
+      "opacity"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 38,
+    "url": "primitives/tier-0/opacity-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "relative-values",
+    "tier": 0,
+    "title": "Relative Values",
+    "description": "Additive syntax nudges from the current transform value.",
+    "tags": [
+      "relative",
+      "syntax",
+      "transform"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 46,
+    "url": "primitives/tier-0/relative-values/",
+    "status": "ready"
+  },
+  {
+    "id": "rotate-basic",
+    "tier": 0,
+    "title": "Rotate Basic",
+    "description": "One element spins 360. CSS transform rotate.",
+    "tags": [
+      "rotate",
+      "transform"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 37,
+    "url": "primitives/tier-0/rotate-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "scale-basic",
+    "tier": 0,
+    "title": "Scale Basic",
+    "description": "One element pulses bigger and smaller. CSS transform scale.",
+    "tags": [
+      "scale",
+      "transform"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 38,
+    "url": "primitives/tier-0/scale-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "scope-basic",
+    "tier": 0,
+    "title": "Scope Basic",
+    "description": "Scoped animation setup with media-query matches and batch revert.",
+    "tags": [
+      "scope",
+      "media",
+      "lifecycle"
+    ],
+    "apis": [
+      "createScope",
+      "animate",
+      "utils.set"
+    ],
+    "parents": [],
+    "loc": 56,
+    "url": "primitives/tier-0/scope-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "scroll-reveal",
+    "tier": 0,
+    "title": "Scroll Reveal",
+    "description": "Element fades and slides up when it scrolls into view. Reverses when it scrolls out.",
+    "tags": [
+      "scroll",
+      "reveal"
+    ],
+    "apis": [
+      "animate",
+      "IntersectionObserver"
+    ],
+    "parents": [],
+    "loc": 46,
+    "url": "primitives/tier-0/scroll-reveal/",
+    "status": "ready"
+  },
+  {
+    "id": "scroll-scrub",
+    "tier": 0,
+    "title": "Scroll Scrub",
+    "description": "Animation progress is tied to scroll position. Scroll up reverses it.",
+    "tags": [
+      "scroll",
+      "scrub"
+    ],
+    "apis": [
+      "animate",
+      "onScroll"
+    ],
+    "parents": [],
+    "loc": 40,
+    "url": "primitives/tier-0/scroll-scrub/",
+    "status": "ready"
+  },
+  {
+    "id": "skew-basic",
+    "tier": 0,
+    "title": "Skew Basic",
+    "description": "One element tilts with skewX.",
+    "tags": [
+      "transform",
+      "skew"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 38,
+    "url": "primitives/tier-0/skew-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "splittext-basic",
+    "tier": 0,
+    "title": "SplitText Basic",
+    "description": "Split one line into characters, then animate each character.",
+    "tags": [
+      "text",
+      "split",
+      "stagger"
+    ],
+    "apis": [
+      "splitText",
+      "animate",
+      "stagger"
+    ],
+    "parents": [],
+    "loc": 46,
+    "url": "primitives/tier-0/splittext-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "spring-physics",
+    "tier": 0,
+    "title": "Spring Physics",
+    "description": "Motion driven by the modern spring solver. Natural bounce from stiffness and damping.",
+    "tags": [
+      "spring",
+      "physics",
+      "easing"
+    ],
+    "apis": [
+      "animate",
+      "spring"
+    ],
+    "parents": [],
+    "loc": 38,
+    "url": "primitives/tier-0/spring-physics/",
+    "status": "ready"
+  },
+  {
+    "id": "stagger-grid",
+    "tier": 0,
+    "title": "Stagger Grid",
+    "description": "N×M cells, delay staggered outward from center.",
+    "tags": [
+      "stagger",
+      "grid",
+      "2d"
+    ],
+    "apis": [
+      "animate",
+      "stagger"
+    ],
+    "parents": [],
+    "loc": 46,
+    "url": "primitives/tier-0/stagger-grid/",
+    "status": "ready"
+  },
+  {
+    "id": "stagger-line",
+    "tier": 0,
+    "title": "Stagger Line",
+    "description": "N bars in a row. Each delayed by a fixed offset.",
+    "tags": [
+      "stagger",
+      "array"
+    ],
+    "apis": [
+      "animate",
+      "stagger"
+    ],
+    "parents": [],
+    "loc": 43,
+    "url": "primitives/tier-0/stagger-line/",
+    "status": "ready"
+  },
+  {
+    "id": "svg-draw",
+    "tier": 0,
+    "title": "SVG Draw",
+    "description": "Line drawing along an SVG path via stroke-dasharray.",
+    "tags": [
+      "svg",
+      "path",
+      "draw"
+    ],
+    "apis": [
+      "animate",
+      "createDrawable"
+    ],
+    "parents": [],
+    "loc": 44,
+    "url": "primitives/tier-0/svg-draw/",
+    "status": "ready"
+  },
+  {
+    "id": "svg-morph",
+    "tier": 0,
+    "title": "SVG Morph",
+    "description": "One path cycles through five shapes. Circle, triangle, square, pentagon, hexagon.",
+    "tags": [
+      "svg",
+      "path",
+      "morph"
+    ],
+    "apis": [
+      "animate",
+      "createTimeline",
+      "morphTo"
+    ],
+    "parents": [],
+    "loc": 49,
+    "url": "primitives/tier-0/svg-morph/",
+    "status": "ready"
+  },
+  {
+    "id": "svg-motionpath",
+    "tier": 0,
+    "title": "SVG Motion Path",
+    "description": "A dot follows an SVG path. Position and rotation tied to path.",
+    "tags": [
+      "svg",
+      "path",
+      "motion"
+    ],
+    "apis": [
+      "animate",
+      "createMotionPath"
+    ],
+    "parents": [],
+    "loc": 45,
+    "url": "primitives/tier-0/svg-motionpath/",
+    "status": "ready"
+  },
+  {
+    "id": "timeline-sequence",
+    "tier": 0,
+    "title": "Timeline Sequence",
+    "description": "Three chained steps. Translate, rotate, scale — one after the next.",
+    "tags": [
+      "timeline",
+      "sequence"
+    ],
+    "apis": [
+      "createTimeline"
+    ],
+    "parents": [],
+    "loc": 36,
+    "url": "primitives/tier-0/timeline-sequence/",
+    "status": "ready"
+  },
+  {
+    "id": "timer-basic",
+    "tier": 0,
+    "title": "Timer Basic",
+    "description": "A timer drives numeric readouts and a progress sweep without animating a target.",
+    "tags": [
+      "timer",
+      "callback",
+      "state"
+    ],
+    "apis": [
+      "createTimer",
+      "utils.$"
+    ],
+    "parents": [],
+    "loc": 60,
+    "url": "primitives/tier-0/timer-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "translate-basic",
+    "tier": 0,
+    "title": "Translate Basic",
+    "description": "One element slides left and right. CSS transform translateX.",
+    "tags": [
+      "translate",
+      "transform"
+    ],
+    "apis": [
+      "animate"
+    ],
+    "parents": [],
+    "loc": 40,
+    "url": "primitives/tier-0/translate-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "utils-math",
+    "tier": 0,
+    "title": "Utils Math",
+    "description": "Utility helpers map, snap, clamp, and lerp values before animation.",
+    "tags": [
+      "utils",
+      "math",
+      "mapping"
+    ],
+    "apis": [
+      "utils.mapRange",
+      "utils.snap",
+      "utils.lerp",
+      "animate"
+    ],
+    "parents": [],
+    "loc": 55,
+    "url": "primitives/tier-0/utils-math/",
+    "status": "ready"
+  },
+  {
+    "id": "utils-set",
+    "tier": 0,
+    "title": "Utils Set",
+    "description": "Instantly writes transforms with utils.set, no tweening.",
+    "tags": [
+      "utils",
+      "set",
+      "instant"
+    ],
+    "apis": [
+      "utils.set"
+    ],
+    "parents": [],
+    "loc": 44,
+    "url": "primitives/tier-0/utils-set/",
+    "status": "ready"
+  },
+  {
+    "id": "waapi-basic",
+    "tier": 0,
+    "title": "WAAPI Basic",
+    "description": "Hardware-backed WAAPI animation through waapi.animate.",
+    "tags": [
+      "waapi",
+      "hardware"
+    ],
+    "apis": [
+      "waapi.animate",
+      "stagger"
+    ],
+    "parents": [],
+    "loc": 47,
+    "url": "primitives/tier-0/waapi-basic/",
+    "status": "ready"
+  },
+  {
+    "id": "drag-timeline",
+    "tier": 1,
+    "title": "Drag Timeline",
+    "description": "A draggable handle scrubs a paused timeline by progress.",
+    "tags": [
+      "drag",
+      "timeline",
+      "scrubber"
+    ],
+    "apis": [
+      "createDraggable",
+      "createTimeline"
+    ],
+    "parents": [
+      "draggable-basic",
+      "timeline-sequence"
+    ],
+    "loc": 60,
+    "url": "primitives/tier-1/drag-timeline/",
+    "status": "ready"
+  },
+  {
+    "id": "scroll-draw",
+    "tier": 1,
+    "title": "Scroll Draw",
+    "description": "SVG draw progress is scrubbed by scroll instead of time.",
+    "tags": [
+      "scroll",
+      "svg",
+      "draw"
+    ],
+    "apis": [
+      "animate",
+      "createDrawable",
+      "onScroll"
+    ],
+    "parents": [
+      "svg-draw",
+      "scroll-scrub"
+    ],
+    "loc": 44,
+    "url": "primitives/tier-1/scroll-draw/",
+    "status": "ready"
+  },
+  {
+    "id": "scroll-path",
+    "tier": 1,
+    "title": "Scroll Path",
+    "description": "A motion path is scrubbed by scroll position.",
+    "tags": [
+      "scroll",
+      "svg",
+      "path"
+    ],
+    "apis": [
+      "animate",
+      "createMotionPath",
+      "onScroll"
+    ],
+    "parents": [
+      "svg-motionpath",
+      "scroll-scrub"
+    ],
+    "loc": 45,
+    "url": "primitives/tier-1/scroll-path/",
+    "status": "ready"
+  },
+  {
+    "id": "spring-drag",
+    "tier": 1,
+    "title": "Spring Drag",
+    "description": "A draggable release uses spring easing instead of a plain curve.",
+    "tags": [
+      "drag",
+      "spring",
+      "interaction"
+    ],
+    "apis": [
+      "createDraggable",
+      "spring"
+    ],
+    "parents": [
+      "draggable-basic",
+      "spring-physics"
+    ],
+    "loc": 43,
+    "url": "primitives/tier-1/spring-drag/",
+    "status": "ready"
+  },
+  {
+    "id": "stagger-draw",
+    "tier": 1,
+    "title": "Stagger Draw",
+    "description": "Multiple SVG paths draw in sequence from one staggered animation.",
+    "tags": [
+      "stagger",
+      "svg",
+      "draw"
+    ],
+    "apis": [
+      "animate",
+      "createDrawable",
+      "stagger"
+    ],
+    "parents": [
+      "svg-draw",
+      "stagger-line"
+    ],
+    "loc": 49,
+    "url": "primitives/tier-1/stagger-draw/",
+    "status": "ready"
+  }
+]

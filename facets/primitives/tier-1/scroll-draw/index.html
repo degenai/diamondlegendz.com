@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Scroll Draw</title>
+<!--
+facet:
+  id: scroll-draw
+  tier: 1
+  title: Scroll Draw
+  description: SVG draw progress is scrubbed by scroll instead of time.
+  tags: [scroll, svg, draw]
+  apis: [animate, createDrawable, onScroll]
+  parents: [svg-draw, scroll-scrub]
+-->
+<style>
+html, body { margin: 0; background: #0a0a0f; color: #6a6a85; font-family: ui-monospace, monospace; }
+.spacer { height: 62vh; display: grid; place-items: center; font-size: 12px; }
+.target { height: 190vh; display: grid; place-items: start center; }
+svg { position: sticky; top: 24vh; width: min(70vw, 420px); height: min(70vw, 420px); }
+.line { stroke: #7ef2c3; stroke-width: 4; fill: none; stroke-linecap: round; }
+</style>
+</head>
+<body>
+<div class="spacer">↓ scroll to draw ↓</div>
+<div class="target">
+  <svg viewBox="0 0 200 200">
+    <path class="line" d="M 20 180 Q 60 40 100 110 T 180 20"/>
+  </svg>
+</div>
+<script type="module">
+import { animate, createDrawable, onScroll } from '../../../vendor/anime.esm.min.js';
+
+const [drawable] = createDrawable('.line');
+animate(drawable, {
+  draw: ['0 0', '0 1'],
+  autoplay: onScroll({ sync: true, target: '.target', enter: 'top top', leave: 'bottom bottom' }),
+  ease: 'linear',
+});
+</script>
+</body>
+</html>

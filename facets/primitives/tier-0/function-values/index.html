@@ -3,29 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Facet — function-values</title>
+<title>Facet — Function Values</title>
 <!--
 facet:
   id: function-values
   tier: 0
   title: Function Values
-  description: Per-target values from a function. delay = (el, i) => i * 100.
-  tags: [placeholder, syntax]
+  description: Per-target functions compute each bar's target value and delay.
+  tags: [function, targets, stagger]
   apis: [animate]
   parents: []
 -->
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #6a6a85; font-family: ui-monospace, monospace; }
-  body { display: grid; place-items: center; }
-  .ph { text-align: center; }
-  .ph .title { color: #e0f4ff; font-size: 14px; margin-bottom: 6px; }
-  .ph .tag { color: #7ef2c3; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+#stage { display: flex; align-items: end; justify-content: center; gap: 12px; }
+.bar { width: 24px; height: 96px; background: #7ef2c3; transform-origin: 50% 100%; }
 </style>
 </head>
 <body>
-<div class="ph">
-  <div class="title">Function Values</div>
-  <div class="tag">placeholder</div>
+<div id="stage">
+  <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
 </div>
+<script type="module">
+import { animate } from '../../../vendor/anime.esm.min.js';
+
+animate('.bar', {
+  scaleY: (_el, i) => .45 + i * .22,
+  y: (_el, i) => -i * 10,
+  delay: (_el, i) => i * 85,
+  duration: 900,
+  loop: true,
+  alternate: true,
+  ease: 'inOut(2)',
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Spring Drag</title>
+<!--
+facet:
+  id: spring-drag
+  tier: 1
+  title: Spring Drag
+  description: A draggable release uses spring easing instead of a plain curve.
+  tags: [drag, spring, interaction]
+  apis: [createDraggable, spring]
+  parents: [draggable-basic, spring-physics]
+-->
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, monospace; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+#stage { border: 1px dashed #1f1f2e; }
+.box { width: 76px; height: 76px; background: #7ef2c3; cursor: grab; user-select: none; box-shadow: 0 0 28px rgba(126,242,195,.25); }
+.box:active { cursor: grabbing; }
+.note { position: absolute; bottom: 40px; color: #6a6a85; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="box"></div>
+  <div class="note">drag, release, spring</div>
+</div>
+<script type="module">
+import { createDraggable, spring } from '../../../vendor/anime.esm.min.js';
+
+createDraggable('.box', {
+  container: '#stage',
+  releaseEase: spring({ stiffness: 88, damping: 9 }),
+});
+</script>
+</body>
+</html>

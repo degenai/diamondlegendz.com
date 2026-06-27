@@ -3,29 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Facet — scope-basic</title>
+<title>Facet — Scope Basic</title>
 <!--
 facet:
   id: scope-basic
   tier: 0
   title: Scope Basic
-  description: Scoped animations with cleanup. createScope + revert.
-  tags: [placeholder, scope]
-  apis: [createScope, animate]
+  description: Scoped animation setup with media-query matches and batch revert.
+  tags: [scope, media, lifecycle]
+  apis: [createScope, animate, utils.set]
   parents: []
 -->
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #6a6a85; font-family: ui-monospace, monospace; }
-  body { display: grid; place-items: center; }
-  .ph { text-align: center; }
-  .ph .title { color: #e0f4ff; font-size: 14px; margin-bottom: 6px; }
-  .ph .tag { color: #7ef2c3; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+.box { width: 68px; height: 68px; background: #7ef2c3; }
+.note { position: absolute; bottom: 42px; color: #6a6a85; font-size: 10px; text-transform: uppercase; letter-spacing: 1.3px; }
 </style>
 </head>
 <body>
-<div class="ph">
-  <div class="title">Scope Basic</div>
-  <div class="tag">placeholder</div>
+<div id="stage">
+  <div class="box"></div>
+  <div class="note">resize-aware scope</div>
 </div>
+<script type="module">
+import { animate, createScope, utils } from '../../../vendor/anime.esm.min.js';
+
+const scope = createScope({
+  mediaQueries: {
+    isNarrow: '(max-width: 420px)',
+    reduceMotion: '(prefers-reduced-motion)',
+  }
+}).add(self => {
+  const { isNarrow, reduceMotion } = self.matches;
+  if (isNarrow) utils.set('.box', { scale: .75 });
+  animate('.box', {
+    x: isNarrow ? [-44, 44] : [-110, 110],
+    rotate: [-20, 20],
+    duration: reduceMotion ? 0 : 1200,
+    loop: true,
+    alternate: true,
+    ease: 'inOut(2)',
+  });
+});
+
+window.addEventListener('pagehide', () => scope.revert());
+</script>
 </body>
 </html>
