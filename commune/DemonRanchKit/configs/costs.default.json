@@ -1,0 +1,29 @@
+{
+  "order_floor_usd": 1.0,
+  "fractional": true,
+  "slippage_bps": 1.0,
+  "spread_bps": {
+    "QQQ": 1.0,
+    "TQQQ": 3.0,
+    "VEU": 2.0,
+    "GLDM": 2.0,
+    "TLT": 2.0,
+    "SGOV": 0.5,
+    "GME": 8.0,
+    "F": 4.0,
+    "YINN": 8.0,
+    "YANG": 8.0,
+    "SMH": 2.0,
+    "XLE": 1.0,
+    "XLU": 1.0,
+    "XLP": 1.0,
+    "VTI": 1.0,
+    "IWM": 1.0,
+    "VNQ": 2.0,
+    "FXI": 2.0,
+    "KWEB": 4.0,
+    "EWZ": 3.0
+  },
+  "fill_price": "close",
+  "notes": "Phase-1 rough execution burden. Initial allocation costs are excluded; rebalance trades carry spread+slippage estimates."
+}

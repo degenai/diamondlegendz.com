@@ -98,3 +98,19 @@ git config core.hooksPath .githooks
 ```
 
 Full background on why this style exists lives in the `d1-changelog` page of the alexpedia wiki.
+
+
+## The Compute Commune (commune/)
+
+`commune/DemonRanchKit/` is the portable Financial Demonology lab (see its
+README_ANDY.md). Rules for commune contributors (human or Claude):
+
+1. **Branch + PR always** — no direct pushes to main for commune work.
+2. **Append-only** — new dated sidecar dirs; never edit existing experiments.
+3. **No vaults in git** — result JSONLs are 100MB+; ship them gzipped via
+   Drive/USB. Small derived JSONs (<5MB) are fine.
+4. **Report or it didn't happen** — every experiment sidecar carries a
+   REPORT.md with what was run, what was found, and what's still open.
+
+If commune traffic gets heavy, main gets branch protection and contributors
+move to individual forks — the escalation is ready, the courtesy is assumed.
