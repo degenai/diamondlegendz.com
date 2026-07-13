@@ -13,10 +13,17 @@ This kit is the portable lab of Alex Adamczyk's Demon Ranch campaign
   - Selection-bias honesty; every quoted return carries its window
   - NO live trading, NO accounts, NO advice. Research only.
 
-CURRENT STATE (2026-07-13): engine v3.1 (chunked execution + 10bps quantum)
-gated and blessed; full 168,588-cell multiverse rerun in progress on Alex's
-machine (atlas_v31.jsonl). The vault format: one JSON line per (config,
-policy, universe) cell with per-world finals/holds/drawdowns/rebalances.
+CURRENT STATE (2026-07-13, post night-chain): engine v3.1 (chunked + 10bps
+quantum) gated, blessed, and PROVEN — the full 168,588-cell multiverse rerun
+completed (3h00m); replication vs the original vault: 94.6% of 3,679 configs
+identical wins/12, elite-set Jaccard 0.990, the flagship five-point fortress
+(DBB/EWU/EWZ/GDX/TUR) 12/12+12/12 in BOTH multiverses. COTERIE VERDICT
+(fleet-vs-committee, world-paired): committees dominate or tie everywhere —
+capital partitioning alone costs ~10% median, hub-shaped fleets (an engine in
+every sub-book) are free, siloing engines apart costs ~24%; chords are thin
+between non-engines and fat only when bridging siloed engines. Vault format:
+one JSON line per (config, policy, universe) cell with per-world
+finals/holds/drawdowns/rebalances.
 
 GOOD FRIDAY TASKS (pick by available time; all runnable from kit root):
   1. SHARD WORK: run the --shard slice Alex assigns; ship the .jsonl back.
