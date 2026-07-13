@@ -1,0 +1,17 @@
+{
+  "blacklist": [
+    "UVXY",
+    "SOXS",
+    "SQQQ",
+    "TZA",
+    "TMF",
+    "YANG",
+    "YINN",
+    "SOXL",
+    "TNA",
+    "UPRO",
+    "TQQQ"
+  ],
+  "note": "Degen/machine-part assets excluded from compiler SCREENS by default (Alex ruling 2026-07-11). They remain in the periodic table at canary rigor - hodl law is a candidate, not conclusive. Leveraged bulls included pending review; edit freely.",
+  "ruled": "2026-07-11"
+}
