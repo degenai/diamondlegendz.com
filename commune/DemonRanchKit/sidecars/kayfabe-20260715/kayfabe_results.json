@@ -1,0 +1,191 @@
+{
+  "protocol": "Kayfabe Detection (docket 82) \u2014 REPORT.md, locked 2026-07-15 pre-run",
+  "cohort_n": 61,
+  "n_pairs": 1830,
+  "target_years": [
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "windows": {
+    "gamma_d": 126,
+    "gap_d": 756,
+    "title_d": 252,
+    "min_fwd_days": 240
+  },
+  "K_definition": "K_t = gamma_126d - 4*gap_756d  (8ln2/T dropped, conservative)",
+  "fortress_validation": {
+    "n_days": 1630,
+    "yrs": 6.46,
+    "demon_terminal": 2098.93,
+    "hold_terminal": 1824.05,
+    "ta_total_pct": 15.07,
+    "ta_per_yr_pct": 2.171,
+    "expected_per_yr": "+2.27 to +2.34 (REPORT F2 / adversarial README)"
+  },
+  "eligible_n_per_year": {
+    "2012": 1830,
+    "2013": 1830,
+    "2014": 1830,
+    "2015": 1830,
+    "2016": 1830,
+    "2017": 1830,
+    "2018": 1830,
+    "2019": 1830,
+    "2020": 1830,
+    "2021": 1830,
+    "2022": 1830,
+    "2023": 1830,
+    "2024": 1830,
+    "2025": 1830
+  },
+  "PRIMARY_1_state_persistence": {
+    "definition": "Pooled P(K>0 at y+1 | K>0 at y) vs unconditional P(K>0)",
+    "n_K_obs": 25620,
+    "P_K_gt0_unconditional": 0.0754,
+    "n_transitions": 23790,
+    "n_transitions_from_Kgt0": 1767,
+    "P_next_Kgt0_given_Kgt0": 0.0877,
+    "P_next_Kgt0_given_Kle0": 0.0684,
+    "base_rate_next_Kgt0_over_transitions": 0.0699,
+    "lift_vs_unconditional": 0.0123
+  },
+  "PRIMARY_2": {
+    "K": {
+      "yearly_rho": {
+        "2012": -0.1871,
+        "2013": -0.1387,
+        "2014": -0.0648,
+        "2015": 0.0988,
+        "2016": -0.0451,
+        "2017": 0.0567,
+        "2018": -0.3237,
+        "2019": 0.0079,
+        "2020": 0.1682,
+        "2021": 0.0369,
+        "2022": 0.0626,
+        "2023": -0.1779,
+        "2024": -0.1438,
+        "2025": -0.12
+      },
+      "n_years": 14,
+      "median_rho": -0.0549,
+      "n_pos_years": 6,
+      "sign_test_p": 0.788
+    },
+    "gamma": {
+      "yearly_rho": {
+        "2012": 0.3441,
+        "2013": 0.0627,
+        "2014": 0.1807,
+        "2015": 0.1663,
+        "2016": 0.3868,
+        "2017": 0.0899,
+        "2018": 0.5149,
+        "2019": 0.1781,
+        "2020": 0.109,
+        "2021": 0.1287,
+        "2022": 0.1394,
+        "2023": 0.0406,
+        "2024": 0.3274,
+        "2025": 0.0311
+      },
+      "n_years": 14,
+      "median_rho": 0.1528,
+      "n_pos_years": 14,
+      "sign_test_p": 0.0001
+    },
+    "gap": {
+      "yearly_rho": {
+        "2012": 0.2931,
+        "2013": 0.1324,
+        "2014": 0.0841,
+        "2015": -0.0662,
+        "2016": 0.0905,
+        "2017": -0.0233,
+        "2018": 0.3578,
+        "2019": 0.0162,
+        "2020": -0.1469,
+        "2021": 0.0476,
+        "2022": -0.0492,
+        "2023": 0.0802,
+        "2024": 0.1623,
+        "2025": 0.1063
+      },
+      "n_years": 14,
+      "median_rho": 0.0822,
+      "n_pos_years": 10,
+      "sign_test_p": 0.0898
+    },
+    "title": {
+      "yearly_rho": {
+        "2012": -0.1642,
+        "2013": -0.0418,
+        "2014": -0.04,
+        "2015": 0.0401,
+        "2016": 0.0913,
+        "2017": -0.1777,
+        "2018": -0.0054,
+        "2019": -0.0168,
+        "2020": -0.0567,
+        "2021": 0.0695,
+        "2022": -0.0218,
+        "2023": 0.1486,
+        "2024": 0.1993,
+        "2025": -0.1098
+      },
+      "n_years": 14,
+      "median_rho": -0.0193,
+      "n_pos_years": 5,
+      "sign_test_p": 0.9102
+    },
+    "naive": {
+      "yearly_rho": {
+        "2012": 0.0259,
+        "2013": 0.0144,
+        "2014": -0.1398,
+        "2015": 0.1756,
+        "2016": 0.4083,
+        "2017": -0.131,
+        "2018": 0.0354,
+        "2019": -0.1132,
+        "2020": 0.1362,
+        "2021": -0.0172,
+        "2022": 0.1337,
+        "2023": 0.0945,
+        "2024": 0.3962,
+        "2025": -0.0505
+      },
+      "n_years": 14,
+      "median_rho": 0.0307,
+      "n_pos_years": 9,
+      "sign_test_p": 0.212
+    }
+  },
+  "THE_BAR": {
+    "K_median_rho": -0.0549,
+    "K_n_pos_years": 6,
+    "K_sign_test_p": 0.788,
+    "naive_median_rho": 0.0307,
+    "naive_n_pos_years": 9,
+    "K_beats_naive": false,
+    "advocate_bar_hit": false,
+    "verdict": "KAYFABE LOSES: does not beat naive persistence (adds nothing)"
+  },
+  "deviations": [
+    "Trailing windows end INCLUSIVE at the first trading day of year y (literal reading of REPORT.md 'at the first trading day ... trailing N days'); the one shared boundary day is negligible for a 126/756-day variance/drift.",
+    "Trailing 'N trading days' taken as N price rows -> N-1 daily returns for gamma.",
+    "PRIMARY 1 uses trailing-eligible K (>=756d history) regardless of forward target eligibility, since sign-persistence needs no target."
+  ]
+}

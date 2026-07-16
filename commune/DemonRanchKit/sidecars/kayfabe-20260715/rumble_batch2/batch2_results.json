@@ -1,0 +1,115 @@
+{
+  "arena": "sandbox 2012-2018, 7 cross-sections, from batch1_pairs.csv",
+  "entrants": {
+    "gamma_126d (incumbent)": {
+      "lineage": "v0 survivor",
+      "feast": {
+        "median_rho": 0.1803,
+        "correct_sign_years": "7/7",
+        "verdict": "PASS"
+      },
+      "corpse": {
+        "precision": 0.0008,
+        "n_flagged": 1281,
+        "base": 0.1
+      },
+      "reliability": {
+        "median_rho": 0.2406,
+        "correct_sign_years": "7/7",
+        "verdict": "PASS"
+      }
+    },
+    "TC-126 (survivor)": {
+      "lineage": "v0 survivor",
+      "feast": {
+        "median_rho": 0.0476,
+        "correct_sign_years": "5/7",
+        "verdict": "PASS"
+      },
+      "corpse": {
+        "precision": 0.0821,
+        "n_flagged": 1596,
+        "base": 0.1
+      },
+      "reliability": {
+        "median_rho": 0.0304,
+        "correct_sign_years": "5/7",
+        "verdict": "PASS"
+      }
+    },
+    "Breath (survivor)": {
+      "lineage": "v0 survivor",
+      "feast": {
+        "median_rho": 0.0257,
+        "correct_sign_years": "5/7",
+        "verdict": "PASS"
+      },
+      "corpse": {
+        "precision": 0.0874,
+        "n_flagged": 1396,
+        "base": 0.1
+      },
+      "reliability": {
+        "median_rho": 0.02,
+        "correct_sign_years": "5/7",
+        "verdict": "PASS"
+      }
+    },
+    "Anti-Kinship (v1 of Factor-Kinship)": {
+      "lineage": "sign-flip of v0",
+      "feast": {
+        "median_rho": 0.2335,
+        "correct_sign_years": "5/7",
+        "verdict": "PASS"
+      },
+      "corpse": {
+        "precision": 0.0078,
+        "n_flagged": 1281,
+        "base": 0.1
+      },
+      "reliability": {
+        "median_rho": 0.1846,
+        "correct_sign_years": "1/7",
+        "verdict": "FAIL"
+      }
+    },
+    "Kinship-Reliability (v1 of Factor-Kinship)": {
+      "lineage": "weight-class move of v0",
+      "reliability": {
+        "median_rho": -0.1846,
+        "correct_sign_years": "1/7",
+        "verdict": "FAIL"
+      }
+    },
+    "DD-gamma v1 (sign-accepted)": {
+      "lineage": "sign-flip of v0, era caveat",
+      "feast": {
+        "median_rho": 0.0625,
+        "correct_sign_years": "4/7",
+        "verdict": "PASS"
+      },
+      "corpse": {
+        "precision": 0.0531,
+        "n_flagged": 1281,
+        "base": 0.1
+      },
+      "reliability": {
+        "median_rho": 0.1003,
+        "correct_sign_years": "4/7",
+        "verdict": "PASS"
+      }
+    },
+    "Cross-League (v1 of Same-League)": {
+      "lineage": "sign-flip of v0",
+      "feast_gap_median (cross minus same, TA/yr)": 0.1187,
+      "correct_sign_years": "4/7",
+      "verdict": "PASS"
+    },
+    "League-Reliability (v1 of Same-League)": {
+      "lineage": "weight-class move of v0",
+      "reliability_gap_median (same minus cross, win-rate)": -0.0996,
+      "correct_sign_years": "2/7",
+      "verdict": "FAIL"
+    }
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "protocol": "Royal Rumble BATCH 1 \u2014 RUMBLE.md, declared 2026-07-15 pre-run; sandbox 2012-2018 only",
+  "arena": {
+    "target_years": [
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018
+    ],
+    "n_pairs": 1830,
+    "n_pairyears_eligible": 12810
+  },
+  "directions": {
+    "gamma_126d": 1,
+    "tc_126": 1,
+    "tc_252": 1,
+    "tc_504": 1,
+    "breath_252": 1,
+    "factor_kinship_252": 1,
+    "ddgamma_ratio": -1
+  },
+  "sanity_gate": {
+    "gamma_yearly_rho_recomputed": {
+      "2012": 0.3451,
+      "2013": 0.0627,
+      "2014": 0.1803,
+      "2015": 0.1666,
+      "2016": 0.3869,
+      "2017": 0.0907,
+      "2018": 0.5143
+    },
+    "kayfabe_gamma_yearly_rho": {
+      "2012": 0.3441,
+      "2013": 0.0627,
+      "2014": 0.1807,
+      "2015": 0.1663,
+      "2016": 0.3868,
+      "2017": 0.0899,
+      "2018": 0.5149
+    },
+    "gamma_positive_7of7": true,
+    "max_drift_vs_kayfabe": 0.001,
+    "match": true,
+    "note": "gamma strongly positive 7/7 in sandbox \u2014 reproduces kayfabe shot 1 direction; <5e-3 drift is kayfabe_pairs.csv rounding (gamma 8dp / target 6dp)"
+  },
+  "PRIMARY_median_yearly_spearman": {
+    "gamma_126d": {
+      "yearly_rho": {
+        "2012": 0.3451,
+        "2013": 0.0627,
+        "2014": 0.1803,
+        "2015": 0.1666,
+        "2016": 0.3869,
+        "2017": 0.0907,
+        "2018": 0.5143
+      },
+      "median_rho": 0.1803,
+      "n_years": 7,
+      "n_pos_years": 7,
+      "n_correct_sign_years": 7
+    },
+    "tc_126": {
+      "yearly_rho": {
+        "2012": -0.1595,
+        "2013": 0.0229,
+        "2014": 0.0476,
+        "2015": 0.0828,
+        "2016": 0.1585,
+        "2017": 0.1177,
+        "2018": -0.058
+      },
+      "median_rho": 0.0476,
+      "n_years": 7,
+      "n_pos_years": 5,
+      "n_correct_sign_years": 5
+    },
+    "tc_252": {
+      "yearly_rho": {
+        "2012": -0.1634,
+        "2013": -0.0411,
+        "2014": -0.0405,
+        "2015": 0.0397,
+        "2016": 0.0914,
+        "2017": -0.178,
+        "2018": -0.0049
+      },
+      "median_rho": -0.0405,
+      "n_years": 7,
+      "n_pos_years": 2,
+      "n_correct_sign_years": 2
+    },
+    "tc_504": {
+      "yearly_rho": {
+        "2012": -0.1169,
+        "2013": -0.0157,
+        "2014": -0.0111,
+        "2015": -0.0369,
+        "2016": 0.0505,
+        "2017": -0.0736,
+        "2018": -0.0484
+      },
+      "median_rho": -0.0369,
+      "n_years": 7,
+      "n_pos_years": 1,
+      "n_correct_sign_years": 1
+    },
+    "breath_252": {
+      "yearly_rho": {
+        "2012": -0.1875,
+        "2013": -0.0032,
+        "2014": 0.0257,
+        "2015": 0.0681,
+        "2016": 0.0137,
+        "2017": 0.1348,
+        "2018": 0.0707
+      },
+      "median_rho": 0.0257,
+      "n_years": 7,
+      "n_pos_years": 5,
+      "n_correct_sign_years": 5
+    },
+    "factor_kinship_252": {
+      "yearly_rho": {
+        "2012": -0.2584,
+        "2013": 0.067,
+        "2014": -0.1337,
+        "2015": -0.2335,
+        "2016": -0.3736,
+        "2017": 0.2505,
+        "2018": -0.2391
+      },
+      "median_rho": -0.2335,
+      "n_years": 7,
+      "n_pos_years": 2,
+      "n_correct_sign_years": 2
+    },
+    "ddgamma_ratio": {
+      "yearly_rho": {
+        "2012": -0.0456,
+        "2013": 0.0919,
+        "2014": 0.0625,
+        "2015": -0.1964,
+        "2016": -0.0378,
+        "2017": 0.1256,
+        "2018": 0.3815
+      },
+      "median_rho": 0.0625,
+      "n_years": 7,
+      "n_pos_years": 4,
+      "n_correct_sign_years": 3
+    }
+  },
+  "SECONDARY_corpse_flag_precision": {
+    "gamma_126d": {
+      "n_worst_decile": 1281,
+      "precision": 0.0008,
+      "base_rate": 0.1,
+      "lift_vs_base": -0.0992
+    },
+    "tc_126": {
+      "n_worst_decile": 1596,
+      "precision": 0.0821,
+      "base_rate": 0.1,
+      "lift_vs_base": -0.0179
+    },
+    "tc_252": {
+      "n_worst_decile": 2189,
+      "precision": 0.0918,
+      "base_rate": 0.1,
+      "lift_vs_base": -0.0082
+    },
+    "tc_504": {
+      "n_worst_decile": 1379,
+      "precision": 0.1276,
+      "base_rate": 0.1,
+      "lift_vs_base": 0.0276
+    },
+    "breath_252": {
+      "n_worst_decile": 1396,
+      "precision": 0.0874,
+      "base_rate": 0.1,
+      "lift_vs_base": -0.0126
+    },
+    "factor_kinship_252": {
+      "n_worst_decile": 1281,
+      "precision": 0.082,
+      "base_rate": 0.1,
+      "lift_vs_base": -0.018
+    },
+    "ddgamma_ratio": {
+      "n_worst_decile": 1281,
+      "precision": 0.1116,
+      "base_rate": 0.1,
+      "lift_vs_base": 0.0116
+    }
+  },
+  "same_league_group_medians": {
+    "per_year": {
+      "2012": {
+        "same": 0.007588,
+        "cross": 0.211118,
+        "gap": -0.20353,
+        "n_same": 412,
+        "n_cross": 1418
+      },
+      "2013": {
+        "same": 0.0,
+        "cross": -0.124596,
+        "gap": 0.124596,
+        "n_same": 412,
+        "n_cross": 1418
+      },
+      "2014": {
+        "same": 0.0,
+        "cross": 0.0,
+        "gap": 0.0,
+        "n_same": 412,
+        "n_cross": 1418
+      },
+      "2015": {
+        "same": 0.0,
+        "cross": 0.118681,
+        "gap": -0.118681,
+        "n_same": 412,
+        "n_cross": 1418
+      },
+      "2016": {
+        "same": 0.07329,
+        "cross": 0.252503,
+        "gap": -0.179213,
+        "n_same": 412,
+        "n_cross": 1418
+      },
+      "2017": {
+        "same": 0.032479,
+        "cross": 0.0,
+        "gap": 0.032479,
+        "n_same": 412,
+        "n_cross": 1418
+      },
+      "2018": {
+        "same": 0.138458,
+        "cross": 0.293612,
+        "gap": -0.155154,
+        "n_same": 412,
+        "n_cross": 1418
+      }
+    },
+    "pooled_same": 0.001401,
+    "pooled_cross": 0.072034,
+    "median_yearly_gap": -0.118681,
+    "n_years_same_gt_cross": 2,
+    "corpse_flag_cross_group_precision": 0.1123
+  },
+  "redundancy_matrix_spearman_pooled": {
+    "gamma_126d": {
+      "gamma_126d": 1.0,
+      "tc_126": 0.0058,
+      "tc_252": 0.0158,
+      "tc_504": -0.0104,
+      "breath_252": -0.0702,
+      "factor_kinship_252": -0.3745,
+      "ddgamma_ratio": 0.2834,
+      "same_league": -0.2057
+    },
+    "tc_126": {
+      "gamma_126d": 0.0058,
+      "tc_126": 1.0,
+      "tc_252": 0.0159,
+      "tc_504": -0.0369,
+      "breath_252": 0.1409,
+      "factor_kinship_252": 0.03,
+      "ddgamma_ratio": 0.0139,
+      "same_league": 0.0012
+    },
+    "tc_252": {
+      "gamma_126d": 0.0158,
+      "tc_126": 0.0159,
+      "tc_252": 1.0,
+      "tc_504": 0.0165,
+      "breath_252": 0.0206,
+      "factor_kinship_252": 0.0046,
+      "ddgamma_ratio": -0.0601,
+      "same_league": -0.0041
+    },
+    "tc_504": {
+      "gamma_126d": -0.0104,
+      "tc_126": -0.0369,
+      "tc_252": 0.0165,
+      "tc_504": 1.0,
+      "breath_252": 0.0529,
+      "factor_kinship_252": 0.0079,
+      "ddgamma_ratio": -0.0996,
+      "same_league": -0.0004
+    },
+    "breath_252": {
+      "gamma_126d": -0.0702,
+      "tc_126": 0.1409,
+      "tc_252": 0.0206,
+      "tc_504": 0.0529,
+      "breath_252": 1.0,
+      "factor_kinship_252": 0.0455,
+      "ddgamma_ratio": -0.012,
+      "same_league": 0.0567
+    },
+    "factor_kinship_252": {
+      "gamma_126d": -0.3745,
+      "tc_126": 0.03,
+      "tc_252": 0.0046,
+      "tc_504": 0.0079,
+      "breath_252": 0.0455,
+      "factor_kinship_252": 1.0,
+      "ddgamma_ratio": 0.0778,
+      "same_league": 0.371
+    },
+    "ddgamma_ratio": {
+      "gamma_126d": 0.2834,
+      "tc_126": 0.0139,
+      "tc_252": -0.0601,
+      "tc_504": -0.0996,
+      "breath_252": -0.012,
+      "factor_kinship_252": 0.0778,
+      "ddgamma_ratio": 1.0,
+      "same_league": 0.04
+    },
+    "same_league": {
+      "gamma_126d": -0.2057,
+      "tc_126": 0.0012,
+      "tc_252": -0.0041,
+      "tc_504": -0.0004,
+      "breath_252": 0.0567,
+      "factor_kinship_252": 0.371,
+      "ddgamma_ratio": 0.04,
+      "same_league": 1.0
+    }
+  },
+  "redundancy_folds_rho_gt_0p8": [],
+  "verdicts": {
+    "gamma_126d": {
+      "verdict": "SURVIVES",
+      "cause_of_death": null
+    },
+    "breath_252": {
+      "verdict": "SURVIVES",
+      "cause_of_death": null
+    },
+    "factor_kinship_252": {
+      "verdict": "ELIMINATED",
+      "cause_of_death": "median rho -0.2335 wrong sign for declared direction (+)"
+    },
+    "ddgamma_ratio": {
+      "verdict": "ELIMINATED",
+      "cause_of_death": "median rho 0.0625 wrong sign for declared direction (-)"
+    },
+    "title_change": {
+      "verdict": "SURVIVES",
+      "cause_of_death": null,
+      "best_costume": "tc_126",
+      "multiplicity": "3 costumes (126/252/504), best-of reported"
+    },
+    "same_league": {
+      "verdict": "ELIMINATED",
+      "cause_of_death": "same-league median gap -0.118681 not > 0"
+    }
+  },
+  "deviations": [
+    "Breath frozen-beta: plain OLS of log(pa) on log(pb) (first leg dependent), matching RUMBLE 'trailing 504d OLS of log prices' literally; not the cointegration-p-selected eg_best direction. Beta frozen on 504d, crossings counted on the trailing 252d sub-window around that sub-window's own mean.",
+    "Trailing 'N days' taken as N price rows (N-1 returns), ending INCLUSIVE at the first trading day of year y \u2014 identical to kayfabe_test.py's window convention, so new sensors align 1:1 with the cached gamma/TC-252/target rows.",
+    "DD-gamma drawdown = current depth below the trailing-756d running high (1 - last/max), deeper leg; divided by sigma=sqrt(gamma_126d) (annualized).",
+    "Corpse-flag deciles computed POOLED across 2012-2018 (per RUMBLE 'pooled'); Same-League corpse-flag is a GROUP precision (cross-league vs forward bottom decile), not a decile, since the tag is binary."
+  ]
+}

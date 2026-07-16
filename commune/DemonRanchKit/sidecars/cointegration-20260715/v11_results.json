@@ -1,0 +1,318 @@
+{
+  "cohort_2012": [
+    "ARGT",
+    "BND",
+    "BNO",
+    "CANE",
+    "COPX",
+    "CORN",
+    "CPER",
+    "DBA",
+    "DBB",
+    "DBE",
+    "ECH",
+    "EIDO",
+    "EMB",
+    "EPOL",
+    "EWA",
+    "EWC",
+    "EWD",
+    "EWG",
+    "EWH",
+    "EWI",
+    "EWJ",
+    "EWK",
+    "EWL",
+    "EWM",
+    "EWN",
+    "EWP",
+    "EWQ",
+    "EWS",
+    "EWT",
+    "EWU",
+    "EWW",
+    "EWY",
+    "EWZ",
+    "EZA",
+    "F",
+    "FXI",
+    "GDX",
+    "GME",
+    "HYG",
+    "IEF",
+    "IWM",
+    "IYT",
+    "LQD",
+    "MSTR",
+    "NVDA",
+    "PALL",
+    "PPLT",
+    "QQQ",
+    "SCHD",
+    "SHY",
+    "SIL",
+    "SLV",
+    "SMH",
+    "SOXL",
+    "SOXS",
+    "SOYB",
+    "SPLV",
+    "SQQQ",
+    "THD",
+    "TIP",
+    "TLT",
+    "TMF",
+    "TNA",
+    "TQQQ",
+    "TSLA",
+    "TUR",
+    "TZA",
+    "UGA",
+    "UNG",
+    "UPRO",
+    "URA",
+    "USMV",
+    "USO",
+    "UVXY",
+    "VEU",
+    "VNQ",
+    "VNQI",
+    "VTI",
+    "VYM",
+    "WEAT",
+    "XBI",
+    "XLB",
+    "XLE",
+    "XLF",
+    "XLI",
+    "XLK",
+    "XLP",
+    "XLU",
+    "XLV",
+    "XLY",
+    "XME",
+    "YANG",
+    "YINN"
+  ],
+  "commodity_members": [
+    "BNO",
+    "CANE",
+    "COPX",
+    "CORN",
+    "CPER",
+    "DBA",
+    "DBB",
+    "DBE",
+    "PALL",
+    "PPLT",
+    "SIL",
+    "SLV",
+    "SOYB",
+    "UGA",
+    "UNG",
+    "URA",
+    "USO",
+    "WEAT",
+    "XLE",
+    "XME"
+  ],
+  "protocol": "v1.1 \u2014 see REPORT.md; inherits v1 thresholds frozen",
+  "all_pairs_fitA2_testB": {
+    "n_pairs": 4278,
+    "is_pass": {
+      "n": 345,
+      "expected_by_chance": 213.9
+    },
+    "oos_frozen_adf": {
+      "among_is_passers": {
+        "n": 345,
+        "k": 11,
+        "rate": 0.0319
+      },
+      "among_is_failers": {
+        "n": 3933,
+        "k": 162,
+        "rate": 0.0412
+      }
+    },
+    "oos_fresh_eg_CLEGG_COMPARABLE": {
+      "among_is_passers": {
+        "n": 345,
+        "k": 32,
+        "rate": 0.0928
+      },
+      "among_is_failers": {
+        "n": 3933,
+        "k": 425,
+        "rate": 0.1081
+      }
+    },
+    "hl_oos_median_passers": 286.3,
+    "hl_oos_median_failers": 326.9
+  },
+  "commodity_pairs_fitA2_testB": {
+    "n_pairs": 190,
+    "is_pass": {
+      "n": 24,
+      "expected_by_chance": 9.5
+    },
+    "oos_frozen_adf": {
+      "among_is_passers": {
+        "n": 24,
+        "k": 1,
+        "rate": 0.0417
+      },
+      "among_is_failers": {
+        "n": 166,
+        "k": 6,
+        "rate": 0.0361
+      }
+    },
+    "oos_fresh_eg_CLEGG_COMPARABLE": {
+      "among_is_passers": {
+        "n": 24,
+        "k": 3,
+        "rate": 0.125
+      },
+      "among_is_failers": {
+        "n": 166,
+        "k": 10,
+        "rate": 0.0602
+      }
+    },
+    "hl_oos_median_passers": 242.3,
+    "hl_oos_median_failers": 304.0
+  },
+  "energy_x_ag_fitA2_testB": {
+    "n_pairs": 30,
+    "is_pass": {
+      "n": 2,
+      "expected_by_chance": 1.5
+    },
+    "oos_frozen_adf": {
+      "among_is_passers": {
+        "n": 2,
+        "k": 0,
+        "rate": 0.0
+      },
+      "among_is_failers": {
+        "n": 28,
+        "k": 2,
+        "rate": 0.0714
+      }
+    },
+    "oos_fresh_eg_CLEGG_COMPARABLE": {
+      "among_is_passers": {
+        "n": 2,
+        "k": 0,
+        "rate": 0.0
+      },
+      "among_is_failers": {
+        "n": 28,
+        "k": 1,
+        "rate": 0.0357
+      }
+    },
+    "hl_oos_median_passers": 1311.2,
+    "hl_oos_median_failers": 252.4
+  },
+  "all_pairs_fitB_testA2": {
+    "n_pairs": 4278,
+    "is_pass": {
+      "n": 457,
+      "expected_by_chance": 213.9
+    },
+    "oos_frozen_adf": {
+      "among_is_passers": {
+        "n": 457,
+        "k": 13,
+        "rate": 0.0284
+      },
+      "among_is_failers": {
+        "n": 3821,
+        "k": 185,
+        "rate": 0.0484
+      }
+    },
+    "oos_fresh_eg_CLEGG_COMPARABLE": {
+      "among_is_passers": {
+        "n": 457,
+        "k": 32,
+        "rate": 0.07
+      },
+      "among_is_failers": {
+        "n": 3821,
+        "k": 313,
+        "rate": 0.0819
+      }
+    },
+    "hl_oos_median_passers": 294.8,
+    "hl_oos_median_failers": 365.4
+  },
+  "commodity_pairs_fitB_testA2": {
+    "n_pairs": 190,
+    "is_pass": {
+      "n": 13,
+      "expected_by_chance": 9.5
+    },
+    "oos_frozen_adf": {
+      "among_is_passers": {
+        "n": 13,
+        "k": 1,
+        "rate": 0.0769
+      },
+      "among_is_failers": {
+        "n": 177,
+        "k": 11,
+        "rate": 0.0621
+      }
+    },
+    "oos_fresh_eg_CLEGG_COMPARABLE": {
+      "among_is_passers": {
+        "n": 13,
+        "k": 3,
+        "rate": 0.2308
+      },
+      "among_is_failers": {
+        "n": 177,
+        "k": 21,
+        "rate": 0.1186
+      }
+    },
+    "hl_oos_median_passers": 583.7,
+    "hl_oos_median_failers": 329.8
+  },
+  "energy_x_ag_fitB_testA2": {
+    "n_pairs": 30,
+    "is_pass": {
+      "n": 1,
+      "expected_by_chance": 1.5
+    },
+    "oos_frozen_adf": {
+      "among_is_passers": {
+        "n": 1,
+        "k": 0,
+        "rate": 0.0
+      },
+      "among_is_failers": {
+        "n": 29,
+        "k": 0,
+        "rate": 0.0
+      }
+    },
+    "oos_fresh_eg_CLEGG_COMPARABLE": {
+      "among_is_passers": {
+        "n": 1,
+        "k": 0,
+        "rate": 0.0
+      },
+      "among_is_failers": {
+        "n": 29,
+        "k": 2,
+        "rate": 0.069
+      }
+    },
+    "hl_oos_median_passers": 385.1,
+    "hl_oos_median_failers": 367.1
+  }
+}

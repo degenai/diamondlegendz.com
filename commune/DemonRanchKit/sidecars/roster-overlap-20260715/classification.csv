@@ -1,0 +1,98 @@
+census_banner,ticker,klass,subtype,issuer,fetch_method,reference_index,proxy_ticker,proxy_flag,direction,commodity_tag,commodity_bucket,notes
+DESCRIPTIVE CENSUS -- NOT A SELECTION,AMC,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,ARGT,equity_basket,,GlobalX,globalx_csv,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,BABA,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,BITO,commodity_pool,futures,ProShares,none,,,,,bitcoin,crypto,Bitcoin futures
+DESCRIPTIVE CENSUS -- NOT A SELECTION,BND,bond_basket,,Vanguard,vanguard_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,COPX,equity_basket,,GlobalX,globalx_csv,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,CPER,commodity_pool,futures,USCF,none,,,,,copper,industrial_metal,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,DBA,commodity_pool,futures,Invesco,none,,,,,agriculture,agriculture,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,DBB,commodity_pool,futures,Invesco,none,,,,,base_metals,industrial_metal,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,ECH,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EIDO,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EMB,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EPOL,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWA,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWC,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWD,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWG,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWH,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWI,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWJ,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWK,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWL,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWM,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWN,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWP,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWQ,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWS,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWT,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWU,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWW,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWY,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EWZ,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,EZA,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,F,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,FXI,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,GDX,equity_basket,,VanEck,vaneck_xlsx,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,GLDM,commodity_pool,physical,SSGA,none,,,,,gold,precious_metal,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,GME,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,HYG,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,IEF,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,INDA,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,IWM,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,IYT,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,KWEB,equity_basket,,KraneShares,kraneshares_csv,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,LQD,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,MSTR,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,MTUM,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,NVDA,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,PDBC,commodity_pool,futures,Invesco,none,,,,,broad_commodity,broad,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,PLTR,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,QQQ,equity_basket,,Invesco,stockanalysis_partial,,,,,,,Invesco IP-blocked (406); PARTIAL top-25 roster from stockanalysis.com
+DESCRIPTIVE CENSUS -- NOT A SELECTION,QUAL,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SCHD,equity_basket,,Schwab,BLOCKED,,,,,,,Schwab 403 Akamai -> fetch_failure
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SGOV,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SHY,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SIL,equity_basket,,GlobalX,globalx_csv,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SLV,commodity_pool,physical,iShares,none,,,,,silver,precious_metal,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SMH,equity_basket,,VanEck,vaneck_xlsx,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SOXL,leveraged_or_inverse,3x,Direxion,lookthrough,NYSE Semiconductor,SMH,PROXY,long,,,"SMH tracks MVIS US Listed Semiconductor 25, not SOXL's index exactly -- PROXY"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SOXS,leveraged_or_inverse,-3x,Direxion,lookthrough,NYSE Semiconductor,SMH,PROXY,inverse,,,SMH proxy -- FLAGGED
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SPLV,equity_basket,,Invesco,BLOCKED,,,,,,,Invesco IP-blocked (406) -> fetch_failure
+DESCRIPTIVE CENSUS -- NOT A SELECTION,SQQQ,leveraged_or_inverse,-3x,ProShares,lookthrough,Nasdaq-100,QQQ,exact_index,inverse,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,THD,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TIP,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TLT,bond_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TMF,leveraged_or_inverse,3x,Direxion,lookthrough,ICE 20+ Year US Treasury,TLT,exact_index,long,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TNA,leveraged_or_inverse,3x,Direxion,lookthrough,Russell 2000,IWM,exact_index,long,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TQQQ,leveraged_or_inverse,3x,ProShares,lookthrough,Nasdaq-100,QQQ,exact_index,long,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TSLA,single_stock,,-,self,,,,,,,"single name; 100% self, identifiers bridged via ETF rosters"
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TUR,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,TZA,leveraged_or_inverse,-3x,Direxion,lookthrough,Russell 2000,IWM,exact_index,inverse,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,UNG,commodity_pool,futures,USCF,none,,,,,natgas,energy,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,UPRO,leveraged_or_inverse,3x,ProShares,lookthrough,S&P 500,IVV_AUX,exact_index,long,,,no PANEL S&P500 fund; look-through uses auxiliary IVV basket
+DESCRIPTIVE CENSUS -- NOT A SELECTION,URA,equity_basket,,GlobalX,globalx_csv,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,USMV,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,USO,commodity_pool,futures,USCF,none,,,,,oil,energy,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,UVXY,leveraged_or_inverse,1.5x,ProShares,none,S&P 500 VIX Short-Term Futures,,no_basket,long_vol,,,holds VIX futures; no equity/bond roster -> overlap 0
+DESCRIPTIVE CENSUS -- NOT A SELECTION,VEU,equity_basket,,Vanguard,vanguard_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,VLUE,equity_basket,,iShares,ishares_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,VNQ,equity_basket,,Vanguard,vanguard_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,VNQI,equity_basket,,Vanguard,vanguard_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,VTI,equity_basket,,Vanguard,vanguard_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,VYM,equity_basket,,Vanguard,vanguard_api,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XBI,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLE,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLB,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLF,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLI,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLK,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLP,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLRE,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLU,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLV,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XLY,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,XME,equity_basket,,SSGA,etf_scraper,,,,,,,
+DESCRIPTIVE CENSUS -- NOT A SELECTION,YANG,leveraged_or_inverse,-3x,Direxion,lookthrough,FTSE China 50,FXI,PROXY,inverse,,,FXI proxy; flagged
+DESCRIPTIVE CENSUS -- NOT A SELECTION,YINN,leveraged_or_inverse,3x,Direxion,lookthrough,FTSE China 50,FXI,PROXY,long,,,FXI tracks FTSE China 50 (same index); flagged per spec

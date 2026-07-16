@@ -1,0 +1,11 @@
+entity,symbols_tried,requests_spent,outcome,date_range_returned,reaches_death_era,notes
+Lehman Brothers,LEHMQ / LEH,3,NOT-FOUND,,NO,"LEHMQ probed 3x: DAILY_ADJUSTED=premium-blocked, DAILY&outputsize=full=premium-blocked, DAILY compact=Invalid API call. Primary LEH also Invalid. Not in AV free universe."
+General Motors (old),MTLQQ,1,NOT-FOUND,,NO,"MTLQQ compact = Invalid API call. Motors Liquidation Q-stub absent from AV free tier."
+Enron,ENRNQ / ENE,2,NOT-FOUND,,NO,"ENRNQ compact = Invalid; primary ENE compact = Invalid. Absent."
+WorldCom,WCOEQ / WCOM,2,NOT-FOUND,,NO,"WCOEQ compact = Invalid; primary WCOM compact = Invalid. Absent."
+Washington Mutual,WAMUQ,1,NOT-FOUND,,NO,"WAMUQ compact = Invalid API call. Absent."
+Blockbuster,BLIAQ / BBI,2,RECYCLED,2026-02-20..2026-07-15,NO,"BBI (old common) = Invalid. BLIAQ RETURNS DATA but is a live sub-penny 2026 shell (close 0.0001-0.019, tiny vol) ending 2026-07-15; free compact (last 100 pts) cannot reach the 2010-09 Blockbuster death. Unusable as a death series."
+Circuit City,CCTYQ,1,NOT-FOUND,,NO,"CCTYQ compact = Invalid API call. Absent."
+Bear Stearns,BSC,1,NOT-FOUND,,NO,"BSC compact = Invalid API call. Absent (delisted 2008-03, before AV delisted-coverage start ~2008-11)."
+Kodak (old),EK,1,NOT-FOUND,,NO,"EK (old Eastman Kodak common, delisted 2012-01) compact = Invalid. Only KODK-WS warrants of NEW Kodak appear in AV enumeration; old death equity absent."
+CONTROL: Altaba (Yahoo),AABA,1,FULL,2019-05-17..2019-11-06,n/a,"Method-validation control (delisted 2019, in AV enumeration). Free DAILY compact returned final 100 sessions ending exactly at 2019-11-06 delist. Confirms compact SERVES delisted names, so the Invalid results above are true absences, not a call-format artifact."

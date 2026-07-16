@@ -1,0 +1,80 @@
+{
+  "windows": [
+    "2008-04-01..2010-03-30",
+    "2010-03-31..2012-03-28",
+    "2012-03-29..2014-04-01",
+    "2014-04-02..2016-04-01",
+    "2016-04-04..2018-04-03",
+    "2018-04-04..2020-04-02",
+    "2020-04-03..2022-04-01",
+    "2022-04-04..2024-04-05",
+    "2024-04-08..2026-04-10"
+  ],
+  "per_transition": [
+    {
+      "transition": "W0->W1",
+      "n_pass_k": 116,
+      "persist_rate": 0.1034,
+      "uncond_rate_k1": 0.047
+    },
+    {
+      "transition": "W1->W2",
+      "n_pass_k": 86,
+      "persist_rate": 0.1512,
+      "uncond_rate_k1": 0.1186
+    },
+    {
+      "transition": "W2->W3",
+      "n_pass_k": 217,
+      "persist_rate": 0.0829,
+      "uncond_rate_k1": 0.0798
+    },
+    {
+      "transition": "W3->W4",
+      "n_pass_k": 146,
+      "persist_rate": 0.226,
+      "uncond_rate_k1": 0.177
+    },
+    {
+      "transition": "W4->W5",
+      "n_pass_k": 324,
+      "persist_rate": 0.0309,
+      "uncond_rate_k1": 0.0585
+    },
+    {
+      "transition": "W5->W6",
+      "n_pass_k": 107,
+      "persist_rate": 0.1495,
+      "uncond_rate_k1": 0.1568
+    },
+    {
+      "transition": "W6->W7",
+      "n_pass_k": 287,
+      "persist_rate": 0.1742,
+      "uncond_rate_k1": 0.2005
+    },
+    {
+      "transition": "W7->W8",
+      "n_pass_k": 367,
+      "persist_rate": 0.1553,
+      "uncond_rate_k1": 0.0913
+    }
+  ],
+  "PRIMARY_pooled_persistence": {
+    "P(pass k+1 | pass k)": 0.1267,
+    "unconditional pass rate": 0.1162,
+    "n_pass_k": 1650
+  },
+  "SECONDARY_frozen_beta_adf_k1": {
+    "passers": {
+      "n": 1650,
+      "k": 124,
+      "rate": 0.0752
+    },
+    "failers": {
+      "n": 12990,
+      "k": 1013,
+      "rate": 0.078
+    }
+  }
+}

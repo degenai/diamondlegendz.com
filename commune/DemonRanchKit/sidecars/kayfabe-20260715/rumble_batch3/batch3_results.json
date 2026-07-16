@@ -1,0 +1,651 @@
+{
+  "protocol": "Royal Rumble BATCH 3 \u2014 THE CORPSE ANNEX; RUMBLE.md declared 2026-07-15 pre-run",
+  "validation_gate": {
+    "fortress_five_2009_gfc": {
+      "panel": "gfc_panel_2005_2012",
+      "year": 2009,
+      "n_days": 252,
+      "demon_terminal": 1764.63,
+      "hold_terminal": 1731.79,
+      "ta_per_yr_pct": 1.886,
+      "finite": true
+    },
+    "provenance_fortress_2020_2026_main": {
+      "n_days": 1630,
+      "yrs": 6.46,
+      "demon_terminal": 2098.93,
+      "hold_terminal": 1824.05,
+      "ta_total_pct": 15.07,
+      "ta_per_yr_pct": 2.171,
+      "expected_per_yr": "+2.27 to +2.34 (REPORT F2 / adversarial README)"
+    },
+    "spot_check_pair_2010": {
+      "pair": "EWU/EWZ",
+      "year": 2010,
+      "ta_gfc": 0.2438,
+      "n_gfc": 252,
+      "ta_main": 0.2438,
+      "n_main": 252,
+      "abs_diff": 0.0,
+      "note": "same source (yfinance), different pull dates; small drift acceptable"
+    },
+    "gate_pass": true
+  },
+  "arenas": {
+    "GFC": {
+      "arena": "GFC",
+      "target_years": [
+        2008,
+        2009,
+        2010,
+        2011
+      ],
+      "n_pairyears_forward_eligible": 7201,
+      "corpse_base_rates": {
+        "decile": 0.1,
+        "severity_TA_le_-5pct_per_yr": 0.0322
+      },
+      "eligible_n_per_sensor_per_year": {
+        "gamma_126d": {
+          "2008": 1596,
+          "2009": 1830,
+          "2010": 1830,
+          "2011": 1830
+        },
+        "tc_126": {
+          "2008": 1596,
+          "2009": 1830,
+          "2010": 1830,
+          "2011": 1830
+        },
+        "breath_252": {
+          "2008": 990,
+          "2009": 1275,
+          "2010": 1711,
+          "2011": 1830
+        },
+        "factor_kinship_252": {
+          "2008": 1275,
+          "2009": 1711,
+          "2010": 1830,
+          "2011": 1830
+        },
+        "ddgamma_ratio": {
+          "2008": 0,
+          "2009": 990,
+          "2010": 1275,
+          "2011": 1711
+        },
+        "cross_league(no trailing window)": {
+          "2008": 1711,
+          "2009": 1830,
+          "2010": 1830,
+          "2011": 1830
+        }
+      },
+      "entrants": {
+        "gamma_126d": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 7086,
+          "feast": {
+            "yearly_rho": {
+              "2008": 0.2194,
+              "2009": 0.0867,
+              "2010": 0.2551,
+              "2011": 0.3234
+            },
+            "median_rho": 0.2373,
+            "n_years": 4,
+            "correct_sign_years": "4/4",
+            "verdict": "PASS"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2008": 0.0038,
+              "2009": -0.0178,
+              "2010": 0.1057,
+              "2011": 0.1846
+            },
+            "median_rho": 0.0548,
+            "n_years": 4,
+            "correct_sign_years": "3/4",
+            "verdict": "PASS"
+          },
+          "corpse": {
+            "n_flagged": 709,
+            "decile_precision": 0.0056,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0322
+          }
+        },
+        "TC-126": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 7086,
+          "feast": {
+            "yearly_rho": {
+              "2008": -0.0795,
+              "2009": 0.15,
+              "2010": -0.1205,
+              "2011": 0.0585
+            },
+            "median_rho": -0.0105,
+            "n_years": 4,
+            "correct_sign_years": "2/4",
+            "verdict": "FAIL"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2008": -0.0699,
+              "2009": 0.1516,
+              "2010": -0.1111,
+              "2011": 0.0648
+            },
+            "median_rho": -0.0026,
+            "n_years": 4,
+            "correct_sign_years": "2/4",
+            "verdict": "FAIL"
+          },
+          "corpse": {
+            "n_flagged": 1206,
+            "decile_precision": 0.1111,
+            "decile_base": 0.1,
+            "severity_precision": 0.0498,
+            "severity_base": 0.0322
+          }
+        },
+        "Breath": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 5806,
+          "feast": {
+            "yearly_rho": {
+              "2008": -0.0694,
+              "2009": -0.0698,
+              "2010": -0.0378,
+              "2011": -0.1259
+            },
+            "median_rho": -0.0696,
+            "n_years": 4,
+            "correct_sign_years": "0/4",
+            "verdict": "FAIL"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2008": -0.0325,
+              "2009": 0.0185,
+              "2010": -0.0143,
+              "2011": -0.0839
+            },
+            "median_rho": -0.0234,
+            "n_years": 4,
+            "correct_sign_years": "1/4",
+            "verdict": "FAIL"
+          },
+          "corpse": {
+            "n_flagged": 878,
+            "decile_precision": 0.1355,
+            "decile_base": 0.1,
+            "severity_precision": 0.0353,
+            "severity_base": 0.0322
+          }
+        },
+        "Anti-Kinship": {
+          "transform": -1,
+          "feast_dir": 1,
+          "reliability_dir": -1,
+          "n_eligible_pooled": 6646,
+          "feast": {
+            "yearly_rho": {
+              "2008": -0.1544,
+              "2009": 0.0253,
+              "2010": 0.3152,
+              "2011": 0.2386
+            },
+            "median_rho": 0.132,
+            "n_years": 4,
+            "correct_sign_years": "3/4",
+            "verdict": "PASS"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2008": -0.3029,
+              "2009": -0.0523,
+              "2010": 0.18,
+              "2011": 0.1725
+            },
+            "median_rho": 0.0601,
+            "n_years": 4,
+            "correct_sign_years": "2/4",
+            "verdict": "FAIL"
+          },
+          "corpse": {
+            "n_flagged": 665,
+            "decile_precision": 0.0241,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0322
+          }
+        },
+        "DD-gamma v1": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 3976,
+          "feast": {
+            "yearly_rho": {
+              "2008": null,
+              "2009": -0.0752,
+              "2010": -0.2009,
+              "2011": 0.0126
+            },
+            "median_rho": -0.0752,
+            "n_years": 3,
+            "correct_sign_years": "1/4",
+            "verdict": "FAIL"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2008": null,
+              "2009": -0.0,
+              "2010": -0.111,
+              "2011": -0.0024
+            },
+            "median_rho": -0.0024,
+            "n_years": 3,
+            "correct_sign_years": "0/4",
+            "verdict": "FAIL"
+          },
+          "corpse": {
+            "n_flagged": 398,
+            "decile_precision": 0.0678,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0322
+          }
+        },
+        "Cross-League": {
+          "note": "binary tag; group gaps oriented cross-minus-same to match the Cross-League (+) direction; corpse = same-league GROUP precision (worst group), not a decile",
+          "feast_gap_median (cross - same, TA/yr)": 0.0349,
+          "feast_gap_per_year": {
+            "2008": -0.0806,
+            "2009": 0.104,
+            "2010": 0.2585,
+            "2011": -0.0341
+          },
+          "feast_correct_sign_years": "2/4",
+          "feast_verdict": "FAIL",
+          "reliability_gap_median (cross - same, win-rate)": -0.0337,
+          "reliability_per_year": {
+            "2008": -0.1632,
+            "2009": -0.0031,
+            "2010": 0.2263,
+            "2011": -0.0643
+          },
+          "reliability_correct_sign_years": "1/4",
+          "corpse": {
+            "n_flagged_same_league_group": 1603,
+            "decile_precision": 0.0381,
+            "decile_base": 0.1,
+            "severity_precision": 0.0062,
+            "severity_base": 0.0322
+          }
+        }
+      }
+    },
+    "DOTCOM": {
+      "arena": "DOTCOM",
+      "target_years": [
+        2000,
+        2001,
+        2002,
+        2003
+      ],
+      "n_pairyears_forward_eligible": 1275,
+      "corpse_base_rates": {
+        "decile": 0.1,
+        "severity_TA_le_-5pct_per_yr": 0.0016
+      },
+      "eligible_n_per_sensor_per_year": {
+        "gamma_126d": {
+          "2000": 300,
+          "2001": 325,
+          "2002": 325,
+          "2003": 325
+        },
+        "tc_126": {
+          "2000": 300,
+          "2001": 325,
+          "2002": 325,
+          "2003": 325
+        },
+        "breath_252": {
+          "2000": 105,
+          "2001": 276,
+          "2002": 300,
+          "2003": 325
+        },
+        "factor_kinship_252": {
+          "2000": 276,
+          "2001": 300,
+          "2002": 325,
+          "2003": 325
+        },
+        "ddgamma_ratio": {
+          "2000": 105,
+          "2001": 105,
+          "2002": 276,
+          "2003": 300
+        },
+        "cross_league(no trailing window)": {
+          "2000": 300,
+          "2001": 325,
+          "2002": 325,
+          "2003": 325
+        }
+      },
+      "entrants": {
+        "gamma_126d": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 1275,
+          "feast": {
+            "yearly_rho": {
+              "2000": 0.2069,
+              "2001": 0.4499,
+              "2002": 0.2226,
+              "2003": 0.4044
+            },
+            "median_rho": 0.3135,
+            "n_years": 4,
+            "correct_sign_years": "4/4",
+            "verdict": "PASS"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2000": -0.0093,
+              "2001": 0.2282,
+              "2002": 0.0133,
+              "2003": 0.3036
+            },
+            "median_rho": 0.1207,
+            "n_years": 4,
+            "correct_sign_years": "3/4",
+            "verdict": "PASS"
+          },
+          "corpse": {
+            "n_flagged": 128,
+            "decile_precision": 0.0625,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0016
+          }
+        },
+        "TC-126": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 1275,
+          "feast": {
+            "yearly_rho": {
+              "2000": -0.1854,
+              "2001": -0.0309,
+              "2002": -0.0114,
+              "2003": -0.0098
+            },
+            "median_rho": -0.0212,
+            "n_years": 4,
+            "correct_sign_years": "0/4",
+            "verdict": "FAIL"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2000": -0.0707,
+              "2001": 0.0392,
+              "2002": 0.098,
+              "2003": 0.005
+            },
+            "median_rho": 0.0221,
+            "n_years": 4,
+            "correct_sign_years": "3/4",
+            "verdict": "PASS"
+          },
+          "corpse": {
+            "n_flagged": 172,
+            "decile_precision": 0.1105,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0016
+          }
+        },
+        "Breath": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 1006,
+          "feast": {
+            "yearly_rho": {
+              "2000": -0.1109,
+              "2001": -0.0354,
+              "2002": -0.1907,
+              "2003": -0.1333
+            },
+            "median_rho": -0.1221,
+            "n_years": 4,
+            "correct_sign_years": "0/4",
+            "verdict": "FAIL"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2000": 0.0393,
+              "2001": 0.002,
+              "2002": -0.1144,
+              "2003": -0.1723
+            },
+            "median_rho": -0.0562,
+            "n_years": 4,
+            "correct_sign_years": "2/4",
+            "verdict": "FAIL"
+          },
+          "corpse": {
+            "n_flagged": 108,
+            "decile_precision": 0.0741,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0016
+          }
+        },
+        "Anti-Kinship": {
+          "transform": -1,
+          "feast_dir": 1,
+          "reliability_dir": -1,
+          "n_eligible_pooled": 1226,
+          "feast": {
+            "yearly_rho": {
+              "2000": 0.0243,
+              "2001": 0.2472,
+              "2002": 0.2741,
+              "2003": 0.2939
+            },
+            "median_rho": 0.2606,
+            "n_years": 4,
+            "correct_sign_years": "4/4",
+            "verdict": "PASS"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2000": -0.0659,
+              "2001": 0.1342,
+              "2002": 0.1658,
+              "2003": 0.2172
+            },
+            "median_rho": 0.15,
+            "n_years": 4,
+            "correct_sign_years": "1/4",
+            "verdict": "FAIL"
+          },
+          "corpse": {
+            "n_flagged": 123,
+            "decile_precision": 0.0488,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0016
+          }
+        },
+        "DD-gamma v1": {
+          "transform": 1,
+          "feast_dir": 1,
+          "reliability_dir": 1,
+          "n_eligible_pooled": 786,
+          "feast": {
+            "yearly_rho": {
+              "2000": 0.3304,
+              "2001": -0.0365,
+              "2002": -0.1244,
+              "2003": 0.0032
+            },
+            "median_rho": -0.0166,
+            "n_years": 4,
+            "correct_sign_years": "2/4",
+            "verdict": "FAIL"
+          },
+          "reliability": {
+            "yearly_rho": {
+              "2000": 0.0495,
+              "2001": 0.1276,
+              "2002": -0.1829,
+              "2003": 0.0062
+            },
+            "median_rho": 0.0278,
+            "n_years": 4,
+            "correct_sign_years": "3/4",
+            "verdict": "PASS"
+          },
+          "corpse": {
+            "n_flagged": 79,
+            "decile_precision": 0.1013,
+            "decile_base": 0.1,
+            "severity_precision": 0.0,
+            "severity_base": 0.0016
+          }
+        },
+        "Cross-League": {
+          "note": "binary tag; group gaps oriented cross-minus-same to match the Cross-League (+) direction; corpse = same-league GROUP precision (worst group), not a decile",
+          "feast_gap_median (cross - same, TA/yr)": 0.0358,
+          "feast_gap_per_year": {
+            "2000": -0.0271,
+            "2001": 0.0706,
+            "2002": 0.0774,
+            "2003": 0.0011
+          },
+          "feast_correct_sign_years": "3/4",
+          "feast_verdict": "PASS",
+          "reliability_gap_median (cross - same, win-rate)": -0.0247,
+          "reliability_per_year": {
+            "2000": -0.1159,
+            "2001": -0.0964,
+            "2002": 0.047,
+            "2003": 0.0681
+          },
+          "reliability_correct_sign_years": "2/4",
+          "corpse": {
+            "n_flagged_same_league_group": 511,
+            "decile_precision": 0.0587,
+            "decile_base": 0.1,
+            "severity_precision": 0.0039,
+            "severity_base": 0.0016
+          }
+        }
+      }
+    }
+  },
+  "cross_arena_verdicts": {
+    "gamma_126d": {
+      "sandbox_feast": 0.1803,
+      "gfc_feast": 0.2373,
+      "dotcom_feast": 0.3135,
+      "signs": {
+        "sandbox": 1,
+        "gfc": 1,
+        "dotcom": 1
+      },
+      "verdict": "STABLE"
+    },
+    "TC-126": {
+      "sandbox_feast": 0.0476,
+      "gfc_feast": -0.0105,
+      "dotcom_feast": -0.0212,
+      "signs": {
+        "sandbox": 1,
+        "gfc": -1,
+        "dotcom": -1
+      },
+      "verdict": "REGIME-BOUND"
+    },
+    "Breath": {
+      "sandbox_feast": 0.0257,
+      "gfc_feast": -0.0696,
+      "dotcom_feast": -0.1221,
+      "signs": {
+        "sandbox": 1,
+        "gfc": -1,
+        "dotcom": -1
+      },
+      "verdict": "REGIME-BOUND"
+    },
+    "Anti-Kinship": {
+      "sandbox_feast": 0.2335,
+      "gfc_feast": 0.132,
+      "dotcom_feast": 0.2606,
+      "signs": {
+        "sandbox": 1,
+        "gfc": 1,
+        "dotcom": 1
+      },
+      "verdict": "STABLE"
+    },
+    "DD-gamma v1": {
+      "sandbox_feast": 0.0625,
+      "gfc_feast": -0.0752,
+      "dotcom_feast": -0.0166,
+      "signs": {
+        "sandbox": 1,
+        "gfc": -1,
+        "dotcom": -1
+      },
+      "verdict": "REGIME-BOUND"
+    },
+    "Cross-League": {
+      "sandbox_feast": 0.1187,
+      "gfc_feast": 0.0349,
+      "dotcom_feast": 0.0358,
+      "signs": {
+        "sandbox": 1,
+        "gfc": 1,
+        "dotcom": 1
+      },
+      "verdict": "STABLE"
+    }
+  },
+  "sandbox_feast_signs_from_batch2": {
+    "gamma_126d": 0.1803,
+    "TC-126": 0.0476,
+    "Breath": 0.0257,
+    "Anti-Kinship": 0.2335,
+    "DD-gamma v1": 0.0625,
+    "Cross-League": 0.1187
+  },
+  "deviations": [
+    "batch1.py and kayfabe_test.py NOT imported (both truncate a run-log at module scope); their sensor estimators copied verbatim with file:line citations (R4).",
+    "Per-sensor per-pair-year eligibility: each sensor computed only when its own trailing window (gamma/TC 126d, kinship 252d, breath 504d, ddgamma 756d) is fully present in the aligned series at the first trading day of year y; eligible-n reported per sensor per year. This is the honest handling of the dot-com sector-SPDR late inception (SPDRs incept 1998-12-22 -> 756d ddgamma excludes sector pairs until ~2002).",
+    "Forward target = calendar-year actual-path trade-added %/yr via book_metrics (v12_target_swap, verbatim), on the annex panel; >=240 forward aligned days required.",
+    "Cross-League group gaps oriented cross-minus-same (matches the Cross-League + direction); its corpse belt is a same-league GROUP precision (worst group per the feast direction), not a decile, since the tag is binary (batch1 idiom).",
+    "Elimination bar: correct-sign median AND >=3/4 correctly-signed years (4 cross-sections)."
+  ]
+}

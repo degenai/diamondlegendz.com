@@ -1,0 +1,14 @@
+entity,fmp_symbols_tried,outcome,http_status,date_range_returned,reaches_death_era,q_tail,notes
+Enron,ENE / ENRNQ,NOT-FOUND,402,,NO,NO,Both symbols return HTTP 402 'Special Endpoint - not available under your current subscription'. Delisted equities are paywalled on FMP free tier. Death 2001-12; window irrelevant since symbol itself is gated.
+WorldCom,WCOM / WCOEQ,NOT-FOUND,402,,NO,NO,Both 402 Special Endpoint (paywalled delisted). Death 2002-07.
+Lehman Brothers,LEH / LEHMQ,NOT-FOUND,402,,NO,NO,Both 402 Special Endpoint. Common LEH and Q-stub LEHMQ both blocked. Death 2008-09.
+Bear Stearns,BSC,NOT-FOUND,402,,NO,NO,402 Special Endpoint. Death 2008-03.
+Washington Mutual,WAMUQ / WM(old),NOT-FOUND,402,,NO,NO,WAMUQ 402. Bare 'WM' ALSO 402 (did NOT return live Waste Management data) - FMP appears to key WM to a gated historical entity. No usable series either way. Death 2008-09.
+General Motors (old),MTLQQ,NOT-FOUND,402,,NO,NO,MTLQQ (Motors Liquidation) 402 Special Endpoint. Death 2009-06. See separate GM(recycled) row for the naive-ticker trap.
+Circuit City,CCTYQ / CC(old),NOT-FOUND,402,,NO,NO,CCTYQ 402. Bare 'CC' also 402 (did NOT return live Chemours data). Death 2008-11.
+Blockbuster,BLIAQ / BBI,NOT-FOUND,402,,NO,NO,Both 402 Special Endpoint. Death 2010-09. (Note: AV's BLIAQ was a live 2026 sub-penny shell; FMP simply paywalls it.)
+Kodak (old),EK,NOT-FOUND,402,,NO,NO,Old Eastman Kodak common (wiped 2012-01) 402 Special Endpoint. New KODK not tested (Tiingo already FULL).
+Wirecard AG,WRCDF,NOT-FOUND,402,,NO,NO,Opportunistic cross-check. 402 Special Endpoint. Tiingo v2 already has WCAGY+WRCDF FULL; FMP free adds nothing.
+iShares MSCI Russia ETF,ERUS,NOT-FOUND,402,,NO,NO,Opportunistic cross-check. 402 Special Endpoint. Tiingo v2 already has ERUS FULL; FMP free adds nothing.
+General Motors (recycled ticker),GM,RECYCLED,200,2021-07-19..2026-07-15,NO,NO,TRAP: naive 'GM' returns LIVE new-GM (relisted 2010) close 54.18->77.64. This is the survivor successor NOT old-GM/MTLQQ. DO NOT ADMIT as a corpse. Saved as prices_fmp/_recycled_GM_newGM_notMTLQQ.csv (evidence).
+CONTROL Ford (F),F,FULL,200,2021-07-19..2026-07-15,n/a,n/a,QC control (live survivor). 1253 rows. Free tier caps history at ~5yr (starts 2021-07-19) so the 2008 Ford trough is UNREACHABLE. Cross-vendor QC vs Tiingo prices/F.csv: 2021-07-19 close 13.28 EXACT match + identical vol 99949231; 2026-07-15 13.28(T) vs 14.195(FMP) agree ~1c. adjClose column EMPTY on FMP stable (raw close only). Saved as prices_fmp/_control_F.csv.
