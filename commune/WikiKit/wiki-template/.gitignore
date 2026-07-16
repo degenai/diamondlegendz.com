@@ -1,0 +1,8 @@
+# Python lint-suite caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
