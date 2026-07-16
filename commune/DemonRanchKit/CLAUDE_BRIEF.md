@@ -1,3 +1,5 @@
+⚠️ STALE — v3 brief lands on this branch before merge; do not onboard from this file.
+
 CLAUDE_BRIEF — Demon Ranch research session (Andy's machine)
 =============================================================
 You are joining Financial Demonology: the study of volatility harvesting
