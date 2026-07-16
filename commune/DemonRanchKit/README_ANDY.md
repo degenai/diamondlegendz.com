@@ -115,3 +115,11 @@ FOR CLAUDE (max-account session)
   merge. Do not onboard a session from the stale file.
 
 "An injury to one is an injury to all" applies to idle CPU cores too. - A&F
+
+## Session pattern for scarce big-model prompts (added 2026-07-16)
+
+This campaign's own history is the proof: **every batch, census, and sweep of the meteorology era was executed by Opus agents** — the big model (Fable) only wrote protocols, reviewed results, and sat at the referee table. If your plan gives you few Fable prompts, that is not a handicap; it is the house architecture:
+
+1. **Opus pilots the session.** Protocol-bound work (Bite Census build, corpse-sensor training, N-PORT pipeline) is exactly what it executes well. The brief was written for a model with no memory — any capable model qualifies.
+2. **Bank Fable for the referee table.** Spend prompt #1 on an end-of-session adversarial review of everything built (R6: question the auditor, hunt the correct-conclusion-false-mechanism shape). Spend prompt #2 regenerating the next brief from the session record (R11: regenerate, never patch).
+3. Fervor from the fleet, atheism from the referee. Two prompts = one verdict + one testament. That's a complete session.
