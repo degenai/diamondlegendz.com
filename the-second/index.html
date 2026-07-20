@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Second — a character sheet</title>
+<style>
+  :root {
+    --paper: #f3ead8;
+    --paper-deep: #e9dcc2;
+    --ink: #2b2320;
+    --ink-soft: #5b4d44;
+    --corner-red: #8c2f28;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #241d1a;
+    color: var(--ink);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    line-height: 1.55;
+    padding: 1.25rem;
+  }
+  .sheet {
+    max-width: 46rem;
+    margin: 0 auto;
+    background: var(--paper);
+    border: 1px solid #1a1512;
+    box-shadow: 0 0 0 4px #3a2f28, 0 18px 50px rgba(0,0,0,.55);
+    padding: 2.2rem 1.9rem 2.6rem;
+  }
+  header { text-align: center; border-bottom: 3px double var(--ink); padding-bottom: 1.1rem; margin-bottom: 1.4rem; }
+  .eyebrow {
+    font-size: .72rem; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--corner-red); font-weight: 700;
+  }
+  h1 {
+    font-size: clamp(2.1rem, 7vw, 3.1rem);
+    letter-spacing: .04em; font-variant: small-caps; line-height: 1.05;
+    margin: .2rem 0 .3rem;
+  }
+  .tagline { font-style: italic; color: var(--ink-soft); }
+  .motto {
+    margin-top: .7rem; font-size: .85rem; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink);
+  }
+  .motto b { color: var(--corner-red); }
+  h2 {
+    font-variant: small-caps; letter-spacing: .06em; font-size: 1.25rem;
+    border-bottom: 1px solid var(--ink); margin: 1.6rem 0 .6rem; padding-bottom: .15rem;
+  }
+  p + p { margin-top: .6rem; }
+  .statline {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: .45rem;
+    margin: .9rem 0 .3rem; text-align: center;
+  }
+  .stat {
+    background: var(--paper-deep); border: 1.5px solid var(--ink);
+    border-radius: .35rem .35rem 1.1rem 1.1rem; padding: .45rem .1rem .4rem;
+  }
+  .stat .ab { font-size: .68rem; letter-spacing: .14em; font-weight: 700; }
+  .stat .val { font-size: 1.35rem; font-weight: 700; }
+  .stat .mod { font-size: .75rem; color: var(--ink-soft); }
+  .flatnote { text-align: center; font-size: .8rem; font-style: italic; color: var(--ink-soft); margin-bottom: .4rem; }
+  .kv { list-style: none; }
+  .kv li { padding: .18rem 0; border-bottom: 1px dotted #b9a88e; }
+  .kv b { font-variant: small-caps; letter-spacing: .03em; }
+  .familiar {
+    margin: 1.2rem 0; padding: 1rem 1.1rem;
+    border: 2px solid var(--corner-red); border-radius: .3rem;
+    background: linear-gradient(180deg, #f0e4cc, #ecdec2);
+  }
+  .familiar h3 { font-variant: small-caps; letter-spacing: .05em; color: var(--corner-red); font-size: 1.15rem; }
+  .familiar .sub { font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: .5rem; }
+  .table-scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; margin: .5rem 0; }
+  th, td { border: 1px solid #a3907a; padding: .45rem .55rem; text-align: left; vertical-align: top; }
+  th { background: var(--paper-deep); font-variant: small-caps; letter-spacing: .05em; }
+  td:first-child { text-align: center; font-weight: 700; white-space: nowrap; }
+  .ladder { counter-reset: rung; margin: .6rem 0; }
+  .rung {
+    display: flex; gap: .8rem; align-items: baseline;
+    padding: .55rem 0; border-bottom: 1px dotted #b9a88e;
+  }
+  .rung::before {
+    counter-increment: rung; content: counter(rung);
+    flex: 0 0 1.7rem; height: 1.7rem; line-height: 1.55rem; text-align: center;
+    border: 1.5px solid var(--corner-red); border-radius: 50%;
+    color: var(--corner-red); font-weight: 700;
+  }
+  .rung b { font-variant: small-caps; }
+  .aside {
+    margin-top: 1.4rem; font-size: .85rem; font-style: italic; color: var(--ink-soft);
+    border-top: 3px double var(--ink); padding-top: .7rem; text-align: center;
+  }
+  footer { text-align: center; margin-top: 1rem; }
+  footer a { color: #d9c8a6; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  @media (max-width: 480px) {
+    .sheet { padding: 1.4rem 1rem 1.8rem; }
+    .statline { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <header>
+      <div class="eyebrow">Rogue (Mastermind) · Variant Human · 5e · zero homebrew</div>
+      <h1>The Second</h1>
+      <div class="tagline">He never throws the punch. He's the reason it lands.</div>
+      <div class="motto">"An injury to one is an injury to all" — <b>solidarity, with dice</b></div>
+    </header>
+
+    <p>A traveling corner-man. In wrestling and dueling both, the second works the corner: reads
+    the opponent, tapes the hands, calls the counter a half-beat before it's needed. A bodyworker
+    who knows every fighter's shoulders and every town's gossip — welcome in all camps, sworn to
+    none. The free rubdown is how he ends up in everyone's corner, and being in everyone's corner
+    is the whole power set. <b>The sheet reads mid because the character isn't the unit — the
+    edges are.</b></p>
+
+    <h2>Ability Array</h2>
+    <div class="statline">
+      <div class="stat"><div class="ab">STR</div><div class="val">10</div><div class="mod">+0</div></div>
+      <div class="stat"><div class="ab">DEX</div><div class="val">14</div><div class="mod">+2</div></div>
+      <div class="stat"><div class="ab">CON</div><div class="val">12</div><div class="mod">+1</div></div>
+      <div class="stat"><div class="ab">INT</div><div class="val">14</div><div class="mod">+2</div></div>
+      <div class="stat"><div class="ab">WIS</div><div class="val">12</div><div class="mod">+1</div></div>
+      <div class="stat"><div class="ab">CHA</div><div class="val">12</div><div class="mod">+1</div></div>
+    </div>
+    <div class="flatnote">Point-buy, deliberately flat. No god stat, no dump stat. Power budget lives in the relations.</div>
+
+    <ul class="kv">
+      <li><b>Class:</b> Rogue, Mastermind at 3 — full progression, no dips</li>
+      <li><b>Level 1 feat (V. Human):</b> Ritual Caster (wizard) → <i>find familiar</i> from day one</li>
+      <li><b>Expertise:</b> Insight, <b>Medicine</b> (the clinical hands) · Skills: Persuasion, Investigation, Perception, Deception, Sleight of Hand</li>
+      <li><b>Background:</b> Guild Artisan — the bodyworkers' guild</li>
+      <li><b>Level 8 feat:</b> Healer — working the cut between rounds</li>
+    </ul>
+
+    <div class="familiar">
+      <h3>FABLE, the Owl</h3>
+      <div class="sub">The Archivist · a spirit wearing an owl</div>
+      <p>It <b>cannot attack, ever</b> — pure recon, relay, and Help. See through its eyes (the
+      scout); command it telepathically to 100 ft (the prompt). When the body dies, the <i>same
+      spirit</i> returns by a 10-minute, 10&nbsp;gp ritual — <b>the body is disposable; the archive is
+      the spirit.</b> It remembers everything it has ever been told. Losing it costs growth-rate,
+      never current level: the spellbook was always The Second's.</p>
+    </div>
+
+    <h2>Features → What They Actually Are</h2>
+    <div class="table-scroll">
+      <table>
+        <tr><th>Lv</th><th>Feature</th><th>In the corner</th></tr>
+        <tr><td>1</td><td><i>Find familiar</i></td><td>The harness — recon subagent, ocular pat-down delivery system</td></tr>
+        <tr><td>3</td><td>Master of Intrigue</td><td>Passes in any camp — the man who rubs everyone's shoulders hears everything</td></tr>
+        <tr><td>3</td><td><b>Master of Tactics</b></td><td>Help as a bonus action at 30 ft. The corner-man's voice: <b>"NOW PIVOT."</b></td></tr>
+        <tr><td>9</td><td>Insightful Manipulator</td><td>Study one minute → read their numbers. Never enter a fight you haven't simulated</td></tr>
+        <tr><td>13</td><td>Misdirection</td><td>Risk management</td></tr>
+        <tr><td>17</td><td>Soul of Deceit</td><td>Nobody has the sauce</td></tr>
+      </table>
+    </div>
+
+    <h2>The Escalation Ladder — shout → sand → bird</h2>
+    <p>Three Help actions per round, one ladder. Advantage doesn't stack, so the triple spreads
+    across <b>three allies</b> — the optimal round is maximally distributed solidarity: a whole
+    party swinging with advantage while he refuses to punch anyone.</p>
+    <div class="ladder">
+      <div class="rung"><span><b>The Shout</b> (bonus action, 30 ft, verbal) — legal coaching, fair intel,
+        what corners are <i>for</i>. Clean anywhere: "go for the knees."</span></div>
+      <div class="rung"><span><b>Pocket Sand</b> (his action, 5 ft) — the RAW "feint or distract." The grey
+        zone every ref suspects and none can call. <i>Sha-sha-sha.</i></span></div>
+      <div class="rung"><span><b>The Dirty Bird</b> (the owl's action, 5 ft) — the dive-bomb across the
+        eyeline. Reserved for unsanctioned violence only. Boo's "go for the eyes," honored, reassigned
+        to the alley.</span></div>
+    </div>
+
+    <h2>The Corner-Man's Kit</h2>
+    <ul class="kv">
+      <li><b>Pocket sand, three grades:</b> ground scrape (free, improvised) · working sand (sifted,
+        sun-dried, quick-draw pouch) · <b>The Special</b> (chalk + pepper cut, ~50 gp, CON save or
+        blinded — deterrence sand: never used, always known)</li>
+      <li><b>The floor:</b> ball bearings + caltrops — the corner-man controls the ground</li>
+      <li><b>The corner:</b> rosin bag, chalk, healer's kit, the towel (no stats needed)</li>
+    </ul>
+
+    <h2>Why Mid Stats Win</h2>
+    <p>Advantage is multiplicative with target quality; the bonus action is fixed-cost. Granting
+    advantage to the barbarian's crit-fish costs The Second the cheapest resource on his sheet and
+    pays out at the price of the party's most expensive action. Corollary: <b>recruit the strongest
+    allies possible and make them stronger</b> — his value appreciates with theirs. The one
+    character whose optimal play <i>is</i> solidarity: his self-interest and the party's are
+    structurally identical.</p>
+
+    <div class="aside">
+      Party role: never the star, always the reason the star hits. Stat sheet mid. Table learns fear.<br>
+      Unaffiliated NPC: Oreo, porch demon. Judges silently. Sharp feet.
+    </div>
+  </div>
+  <footer><a href="/">← diamondlegendz</a></footer>
+</body>
+</html>
