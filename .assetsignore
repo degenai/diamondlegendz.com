@@ -22,6 +22,13 @@
 /recipe-book/README.md
 /bundle-previewer/MICHI_BINDERS_FUTURE.md
 /recipe-book/tests
+/commune
+/commune/**
+**/*.py
+**/*.csv
+**/*.meta.json
+**/.gitignore
+**/README.*
 **/.hermes-tmp.*
 /*.msi
 /*.mid
