@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#5b2038">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <meta name="description" content="A private, local-first recipe browser built for Kathie.">
+  <title>Kathie’s Kitchen</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to recipes</a>
+  <header class="app-bar">
+    <a class="brand" href="./">
+      <span class="brand-mark" aria-hidden="true">K</span>
+      <span><strong>Kathie’s Kitchen</strong><small>Family recipe box</small></span>
+    </a>
+    <div class="app-actions">
+      <span class="privacy-badge" title="Recipes are stored in this browser, not on the website"><span aria-hidden="true">●</span> On this device</span>
+      <button class="button button-secondary install-button" id="install-button" type="button" hidden>Install</button>
+      <button class="button button-primary" id="open-import" type="button"><span aria-hidden="true">＋</span> Import</button>
+    </div>
+  </header>
+
+  <main id="main-content" tabindex="-1">
+    <section class="browse-shell" aria-labelledby="library-heading">
+      <h1 class="visually-hidden" id="library-heading">Kathie’s recipe library</h1>
+      <div class="search-panel">
+        <label class="search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="recipe-search" type="search" autocomplete="off" aria-label="Search recipes" placeholder="Search recipes, ingredients, authors…">
+          <kbd>Ctrl K</kbd>
+        </label>
+        <div class="filter-row" id="filter-row" role="group" aria-label="Recipe filters">
+          <button class="filter-chip is-active" type="button" data-mode="all" aria-pressed="true">All <span data-count="all">0</span></button>
+          <button class="filter-chip" type="button" data-mode="favorites" aria-pressed="false">Favorites <span data-count="favorites">0</span></button>
+          <button class="filter-chip" type="button" data-mode="quick" aria-pressed="false">Quick <span data-count="quick">0</span></button>
+          <button class="filter-chip" type="button" data-mode="full" aria-pressed="false">Full recipe <span data-count="full">0</span></button>
+          <button class="filter-chip" type="button" data-mode="nyt-index" aria-pressed="false">NYT saves <span data-count="nyt-index">0</span></button>
+        </div>
+        <div class="result-tools">
+          <p id="result-count" aria-live="polite">0 recipes</p>
+          <label class="sort-control">Sort
+            <select id="recipe-sort">
+              <option value="title">A–Z</option>
+              <option value="quickest">Quickest</option>
+              <option value="newest">Recently added</option>
+            </select>
+          </label>
+          <button class="icon-button" id="export-button" type="button" title="Download a private backup" aria-label="Download a private backup">⇩</button>
+        </div>
+      </div>
+
+      <section class="empty-state" id="empty-state">
+        <div class="empty-illustration" aria-hidden="true"><span>♡</span></div>
+        <p class="eyebrow">Your shelf is ready</p>
+        <h2>Bring the recipes. Keep them private.</h2>
+        <p>Import Recipe Keeper, Paprika, or a Kathie’s Kitchen backup. The files are read here and stored only in this browser.</p>
+        <div class="empty-actions">
+          <button class="button button-primary" id="empty-import" type="button">Import cookbook</button>
+          <button class="button button-quiet" id="load-samples" type="button">Preview with sample cards</button>
+        </div>
+        <small>No account. No upload. No tracking.</small>
+      </section>
+
+      <section class="no-results" id="no-results" hidden>
+        <span aria-hidden="true">⌕</span>
+        <h2>No recipes found</h2>
+        <p>Try another ingredient or clear the active filter.</p>
+        <button class="button button-secondary" id="clear-filters" type="button">Clear search and filters</button>
+      </section>
+
+      <div class="recipe-grid" id="recipe-grid" tabindex="-1" aria-busy="true"></div>
+    </section>
+  </main>
+
+  <dialog class="import-dialog" id="import-dialog" aria-labelledby="import-title">
+    <form method="dialog" class="dialog-header">
+      <div><p class="eyebrow">Local import</p><h2 id="import-title">Add to Kathie’s cookbook</h2></div>
+      <button class="close-button" type="submit" value="close" aria-label="Close import dialog">×</button>
+    </form>
+    <div class="dialog-content">
+      <label class="drop-zone" id="drop-zone">
+        <span class="drop-icon" aria-hidden="true">⇧</span>
+        <strong>Choose cookbook files</strong>
+        <span>Recipe Keeper .zip · Paprika .paprikarecipes · Kathie’s Kitchen .json</span>
+        <input id="recipe-files" type="file" accept=".zip,.paprikarecipes,.json,application/zip,application/json" multiple>
+      </label>
+      <div class="import-status" id="import-status" role="status" aria-live="polite"></div>
+      <div class="privacy-note">
+        <strong><span aria-hidden="true">●</span> Private by construction</strong>
+        <p>Parsing happens on this device. Recipe data is never sent to Diamond Legends or a cloud database.</p>
+      </div>
+      <details>
+        <summary>Library tools</summary>
+        <div class="tool-row">
+          <button class="button button-secondary" id="dialog-export" type="button">Download backup</button>
+          <button class="button button-danger" id="erase-library" type="button">Erase this device</button>
+        </div>
+      </details>
+    </div>
+  </dialog>
+
+  <dialog class="recipe-dialog" id="recipe-dialog" aria-labelledby="detail-title">
+    <div id="recipe-detail"></div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <noscript><p class="noscript">Kathie’s Kitchen needs JavaScript so recipes can stay in your browser.</p></noscript>
+  <script type="module" src="./app.mjs"></script>
+</body>
+</html>
