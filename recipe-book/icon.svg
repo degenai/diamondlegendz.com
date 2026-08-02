@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kathie’s Kitchen">
+  <rect width="512" height="512" rx="112" fill="#5b2038"/>
+  <circle cx="256" cy="256" r="164" fill="#f6d9b4"/>
+  <path d="M174 136h55v99l94-99h70L283 246l122 130h-72L244 278l-15 15v83h-55z" fill="#5b2038"/>
+  <path d="M101 407c84 29 226 28 310-2" fill="none" stroke="#d5684e" stroke-width="18" stroke-linecap="round"/>
+</svg>
