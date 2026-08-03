@@ -2,6 +2,7 @@ import {
   canRegisterServiceWorker,
   deferObjectUrlRevoke,
   mergeRecipes,
+  recipeVisual,
   saveThenApply,
   selectRecipes,
   shouldRequestWakeLock,
@@ -199,27 +200,28 @@ function colorIndex(value) {
   return [...String(value)].reduce((sum, character) => sum + character.codePointAt(0), 0) % 6;
 }
 
-function recipeImage(recipe) {
-  return recipe.image?.dataUrl || '';
-}
-
 function makeCover(recipe, extraClass = '') {
   const cover = element('div', { className: `recipe-cover color-${colorIndex(recipe.title)} ${extraClass}`.trim() });
   cover.setAttribute('aria-hidden', 'true');
-  const source = recipeImage(recipe);
-  if (source) {
-    const image = element('img', { ariaLabel: '' });
-    image.alt = '';
-    image.loading = 'lazy';
-    image.decoding = 'async';
-    image.src = source;
-    image.addEventListener('error', () => image.remove(), { once: true });
-    cover.append(image);
-  }
+  const visual = recipeVisual(recipe);
+  const image = element('img', { ariaLabel: '' });
+  const visualNote = visual.kind === 'representative'
+    ? element('small', { className: 'cover-visual-note', text: 'Sample image' })
+    : null;
+  image.alt = '';
+  image.loading = 'lazy';
+  image.decoding = 'async';
+  image.src = visual.src;
+  image.addEventListener('error', () => {
+    image.remove();
+    visualNote?.remove();
+  }, { once: true });
+  cover.append(image);
   cover.append(
     element('span', { className: 'cover-mark', text: shortMark(recipe.title) }),
     element('small', { className: 'cover-source', text: sourceLabel(recipe) }),
   );
+  if (visualNote) cover.append(visualNote);
   return cover;
 }
 

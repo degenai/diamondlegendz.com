@@ -282,10 +282,13 @@ test('the production app renders an accessible first-run status before seeding a
   assert.match(database, /if \(result\.saved\) \{\s*recipesStore\.clear\(\);\s*for \(const recipe of result\.recipes\) recipesStore\.put\(recipe\)/);
 });
 
-test('the service worker caches the seed code but never intercepts the private API', async () => {
+test('the service worker caches seed code and representative images but never intercepts the private API', async () => {
   const worker = await readFile(new URL('../sw.js', import.meta.url), 'utf8');
-  assert.match(worker, /kathies-kitchen-shell-v14/);
+  assert.match(worker, /kathies-kitchen-shell-v15/);
   assert.match(worker, /'\.\/lib\/private-library\.mjs'/);
+  for (const key of ['soup', 'seafood', 'poultry', 'handhelds', 'meat', 'pasta', 'breakfast', 'vegetables', 'dessert', 'pantry']) {
+    assert.ok(worker.includes(`'./assets/recipe-fallbacks/${key}.webp'`), key);
+  }
   assert.match(worker, /self\.skipWaiting\(\)/);
   assert.match(worker, /self\.clients\.claim\(\)/);
   assert.match(worker, /keys\.filter\(\(key\) => key !== CACHE_NAME\).*caches\.delete\(key\)/);

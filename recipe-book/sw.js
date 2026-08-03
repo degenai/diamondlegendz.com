@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kathies-kitchen-shell-v14';
+const CACHE_NAME = 'kathies-kitchen-shell-v15';
 const SHELL = [
   './',
   './index.html',
@@ -12,6 +12,16 @@ const SHELL = [
   './lib/importers.mjs',
   './lib/private-library.mjs',
   './lib/fflate.mjs',
+  './assets/recipe-fallbacks/soup.webp',
+  './assets/recipe-fallbacks/seafood.webp',
+  './assets/recipe-fallbacks/poultry.webp',
+  './assets/recipe-fallbacks/handhelds.webp',
+  './assets/recipe-fallbacks/meat.webp',
+  './assets/recipe-fallbacks/pasta.webp',
+  './assets/recipe-fallbacks/breakfast.webp',
+  './assets/recipe-fallbacks/vegetables.webp',
+  './assets/recipe-fallbacks/dessert.webp',
+  './assets/recipe-fallbacks/pantry.webp',
 ];
 
 self.addEventListener('install', (event) => {
