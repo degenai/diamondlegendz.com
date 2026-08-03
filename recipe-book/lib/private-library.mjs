@@ -17,6 +17,13 @@ export function shouldUseSamplePreview(locationLike) {
   return ['localhost', '127.0.0.1', '[::1]'].includes(hostname) && preview === 'samples';
 }
 
+export function isLegacySampleLibrary(recipes) {
+  return recipes.length > 0 && recipes.every((recipe) => (
+    recipe?.source?.kind === 'sample'
+    && String(recipe?.sourceKey || '').startsWith('sample:')
+  ));
+}
+
 function downloadController(parentSignal, timeoutMs) {
   const controller = new AbortController();
   let timedOut = false;
@@ -74,7 +81,10 @@ async function readResponseBytes(response, download) {
 }
 
 export async function seedPrivateLibrary(currentRecipes, options = {}) {
-  if (currentRecipes.length) return { recipes: currentRecipes, seeded: false, added: 0 };
+  const replaceLegacySamples = isLegacySampleLibrary(currentRecipes);
+  if (currentRecipes.length && !replaceLegacySamples) {
+    return { recipes: currentRecipes, seeded: false, added: 0 };
+  }
 
   const seedStateReader = options.seedStateReader || getPrivateLibrarySeedState;
   let seedState;
@@ -132,10 +142,11 @@ export async function seedPrivateLibrary(currentRecipes, options = {}) {
   const importedAt = (options.now || (() => new Date().toISOString()))();
   const normalized = imported.map((recipe) => ({ ...recipe, importedAt: recipe.importedAt || importedAt }));
   const merger = options.merger || mergeRecipes;
-  const recipes = merger(currentRecipes, normalized);
+  const mergeBase = replaceLegacySamples ? [] : currentRecipes;
+  const recipes = merger(mergeBase, normalized);
   let saved;
   try {
-    saved = await saver(recipes);
+    saved = await saver(recipes, { replaceLegacySamples });
   } catch (error) {
     throw privateLibraryError('This browser could not save the cookbook. Check its storage and try again.', 'STORAGE_UNAVAILABLE', error);
   }
@@ -145,6 +156,6 @@ export async function seedPrivateLibrary(currentRecipes, options = {}) {
   const finalRecipes = saved?.recipes ?? recipes;
   const added = Number.isInteger(saved?.added)
     ? saved.added
-    : Math.max(0, finalRecipes.length - currentRecipes.length);
+    : Math.max(0, finalRecipes.length - mergeBase.length);
   return { recipes: finalRecipes, seeded: true, added };
 }

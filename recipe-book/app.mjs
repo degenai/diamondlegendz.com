@@ -9,7 +9,7 @@ import {
 } from './lib/core.mjs';
 import { clearLibrary, loadLibrary, saveLibrary, saveRecipe } from './lib/db.mjs';
 import { parseRecipeFile } from './lib/importers.mjs';
-import { seedPrivateLibrary, shouldUseSamplePreview } from './lib/private-library.mjs';
+import { isLegacySampleLibrary, seedPrivateLibrary, shouldUseSamplePreview } from './lib/private-library.mjs';
 
 const SAMPLE_RECIPES = [
   {
@@ -545,7 +545,8 @@ function showToast(message) {
 }
 
 async function loadPrivateLibrary() {
-  if (state.seeding || state.recipes.length || !state.storageReady) return;
+  if (state.seeding || !state.storageReady
+    || (state.recipes.length && !isLegacySampleLibrary(state.recipes))) return;
   state.seeding = true;
   state.seedError = '';
   render();
@@ -771,7 +772,7 @@ try {
     state.recipes = SAMPLE_RECIPES.map((recipe) => ({ ...recipe, importedAt }));
   }
   render();
-  if (!state.recipes.length && !useSamplePreview) await loadPrivateLibrary();
+  if (!useSamplePreview && (!state.recipes.length || isLegacySampleLibrary(state.recipes))) await loadPrivateLibrary();
 } catch (error) {
   state.storageReady = false;
   state.storageError = true;

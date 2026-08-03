@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { seedPrivateLibrary, shouldUseSamplePreview } from '../lib/private-library.mjs';
+import { isLegacySampleLibrary, seedPrivateLibrary, shouldUseSamplePreview } from '../lib/private-library.mjs';
 import { reconcilePrivateSeed } from '../lib/db.mjs';
 
 const freshDevice = { seedStateReader: async () => null };
@@ -53,6 +53,29 @@ test('an already-populated device does not redownload or overwrite its local coo
   assert.equal(result.seeded, false);
   assert.equal(result.added, 0);
   assert.equal(result.recipes, current);
+});
+
+test('an old sample-only library is replaced by the private cookbook automatically', async () => {
+  const samples = [
+    { sourceKey: 'sample:sunday-lemon-chicken', title: 'Sunday Lemon Chicken', source: { kind: 'sample' } },
+    { sourceKey: 'sample:crispy-potato-tray', title: 'Crispy Potato Tray', source: { kind: 'sample' } },
+  ];
+  const family = [{ sourceKey: 'family:one', title: 'Family One' }];
+  let saveOptions;
+  const result = await seedPrivateLibrary(samples, {
+    ...freshDevice,
+    fetcher: async () => new Response('{}'),
+    parser: async () => family,
+    saver: async (recipes, options) => {
+      saveOptions = options;
+      return { recipes, saved: true, added: recipes.length };
+    },
+  });
+
+  assert.equal(isLegacySampleLibrary(samples), true);
+  assert.equal(isLegacySampleLibrary([...samples, family[0]]), false);
+  assert.equal(saveOptions.replaceLegacySamples, true);
+  assert.deepEqual(result.recipes.map((recipe) => recipe.sourceKey), ['family:one']);
 });
 
 test('an expired login stops before parsing and signals that authentication is required', async () => {
@@ -157,6 +180,23 @@ test('the seed transaction preserves a concurrent import and yields to a concurr
   });
 });
 
+test('sample migration removes old demos but preserves a real recipe imported during download', () => {
+  const samples = [{ sourceKey: 'sample:one', title: 'Sample One', source: { kind: 'sample' } }];
+  const family = [{ sourceKey: 'family:one', title: 'Family One' }];
+  const manual = [{ sourceKey: 'manual:one', title: 'Manual One', favorite: true }];
+
+  assert.deepEqual(reconcilePrivateSeed([...samples, ...manual], family, null, { replaceLegacySamples: true }), {
+    recipes: [...family, ...manual],
+    saved: true,
+    added: 1,
+  });
+  assert.deepEqual(reconcilePrivateSeed(samples, family, 'suppressed', { replaceLegacySamples: true }), {
+    recipes: samples,
+    saved: false,
+    added: 0,
+  });
+});
+
 test('an erase that wins during the download prevents the seed result from repopulating memory', async () => {
   const result = await seedPrivateLibrary([], {
     ...freshDevice,
@@ -218,8 +258,9 @@ test('the production app renders an accessible first-run status before seeding a
     readFile(new URL('../index.html', import.meta.url), 'utf8'),
     readFile(new URL('../lib/db.mjs', import.meta.url), 'utf8'),
   ]);
-  assert.match(app, /import \{ seedPrivateLibrary, shouldUseSamplePreview \} from '\.\/lib\/private-library\.mjs';/);
+  assert.match(app, /import \{ isLegacySampleLibrary, seedPrivateLibrary, shouldUseSamplePreview \} from '\.\/lib\/private-library\.mjs';/);
   assert.match(app, /shouldUseSamplePreview\(location\)/);
+  assert.match(app, /state\.recipes\.length && !isLegacySampleLibrary\(state\.recipes\)/);
   assert.match(app, /state\.seeding = true;[\s\S]*?render\(\);[\s\S]*?await seedPrivateLibrary\(state\.recipes\)/);
   assert.match(app, /seedRetry\.addEventListener\('click'/);
   assert.match(app, /openImport\.disabled = state\.seeding/);
@@ -233,18 +274,21 @@ test('the production app renders an accessible first-run status before seeding a
   assert.match(html, /rel="manifest"[^>]*crossorigin="use-credentials"/);
   assert.match(html, /id="load-samples"[^>]*hidden/);
   assert.match(app, /loadSamples\.hidden = !shouldUseSamplePreview\(location\)/);
+  assert.match(app, /if \(!useSamplePreview && \(!state\.recipes\.length \|\| isLegacySampleLibrary\(state\.recipes\)\)\) await loadPrivateLibrary\(\)/);
   assert.match(database, /const DB_VERSION = 3;/);
   assert.match(database, /const META_STORE = 'metadata';/);
   assert.match(database, /PRIVATE_SEED_SUPPRESSED/);
   assert.match(database, /reconcilePrivateSeed\(existingRecipes, recipes, seedRecord\?\.value/);
+  assert.match(database, /if \(result\.saved\) \{\s*recipesStore\.clear\(\);\s*for \(const recipe of result\.recipes\) recipesStore\.put\(recipe\)/);
 });
 
 test('the service worker caches the seed code but never intercepts the private API', async () => {
   const worker = await readFile(new URL('../sw.js', import.meta.url), 'utf8');
-  assert.match(worker, /kathies-kitchen-shell-v12/);
+  assert.match(worker, /kathies-kitchen-shell-v13/);
   assert.match(worker, /'\.\/lib\/private-library\.mjs'/);
   assert.match(worker, /self\.skipWaiting\(\)/);
   assert.match(worker, /self\.clients\.claim\(\)/);
+  assert.match(worker, /keys\.filter\(\(key\) => key !== CACHE_NAME\).*caches\.delete\(key\)/);
   assert.match(worker, /new URL\('api\/', self\.registration\.scope\)/);
   assert.match(worker, /url\.pathname\.toLowerCase\(\)\.startsWith\(privateApiPath\)/);
 });
