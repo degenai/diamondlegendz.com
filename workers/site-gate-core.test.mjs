@@ -258,6 +258,10 @@ test('Wrangler runs the password gate before every static asset and binds privat
   const config = JSON.parse(await readFile(new URL('../wrangler.jsonc', import.meta.url), 'utf8'));
   assert.equal(config.main, 'workers/site-gate.mjs');
   assert.equal(config.compatibility_date, '2026-08-02');
+  assert.deepEqual(config.routes, [{
+    pattern: 'diamondlegendz.com/*',
+    zone_name: 'diamondlegendz.com',
+  }]);
   assert.equal(config.assets.binding, 'ASSETS');
   assert.equal(config.assets.run_worker_first, true);
   assert.equal(config.kv_namespaces?.[0]?.binding, 'RECIPE_LIBRARY');
