@@ -47,6 +47,41 @@ export function canRegisterServiceWorker(locationLike) {
   return ['localhost', '127.0.0.1', '[::1]'].includes(locationLike.hostname);
 }
 
+export function recipeVisual(recipe) {
+  const embedded = String(recipe?.image?.dataUrl || '');
+  if (/^data:image\/(?:jpeg|png|webp);base64,/i.test(embedded)) {
+    return { src: embedded, kind: 'embedded', key: '' };
+  }
+
+  const normalizeFoodText = (values) => values
+    .filter(Boolean)
+    .join(' ')
+    .normalize('NFKD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLocaleLowerCase();
+  const title = normalizeFoodText([recipe?.title]);
+  const supportingText = normalizeFoodText([...(recipe?.tags ?? []), ...(recipe?.ingredients ?? [])]);
+  const rules = [
+    ['soup', /\b(?:soups?|stews?|chili|chile verde|maafe|broths?|bisques?|chowders?)\b/],
+    ['seafood', /\b(?:shrimps?|prawns?|fish|salmon|tuna|crabs?|lobsters?|scallops?|cod|tilapia|trout)\b/],
+    ['poultry', /\b(?:chicken|turkey|duck)\b/],
+    ['handhelds', /\b(?:dips?|sliders?|sandwich(?:es)?|melts?|tacos?|pizzas?|burgers?|stuffed|blankets?|frico|cocktails?|sauces?|toasts?)\b/],
+    ['meat', /\b(?:beef|steaks?|ribs?|roasts?|pork|sausages?|ham|bacon|meatballs?|parmentier|lamb|veal|prosciutto)\b/],
+    ['pasta', /\b(?:pasta|noodles?|lasagna|spaghetti|linguine|fettuccine|alfredo|cacio|macaroni|gnocchi|ravioli)\b/],
+    ['breakfast', /\b(?:breakfast|pancakes?|waffles?|omelets?|eggs?|french toast|biscuits?|muffins?)\b/],
+    ['vegetables', /\b(?:salads?|tomato(?:es)?|asparagus|broccolini|brussels|cauliflower|cabbages?|beans?|mushrooms?|squashes?|corn|artichokes?|spinach|kale|polenta|tostones?|potato(?:es)?|beets?|arugula|vegetables?|lentils?|rice|grits|jalapenos?)\b/],
+    ['dessert', /\b(?:cakes?|pies?|tarts?|cookies?|brownies?|puddings?|bars?|chocolate|desserts?|peaches?|mango|apricots?|berry|berries)\b/],
+  ];
+  const key = rules.find(([, pattern]) => pattern.test(title))?.[0]
+    || rules.find(([, pattern]) => pattern.test(supportingText))?.[0]
+    || 'pantry';
+  return {
+    src: `./assets/recipe-fallbacks/${key}.webp`,
+    kind: 'representative',
+    key,
+  };
+}
+
 export function shouldRequestWakeLock(visibilityState, dialogOpen, cookModeActive) {
   return visibilityState === 'visible' && dialogOpen && cookModeActive;
 }

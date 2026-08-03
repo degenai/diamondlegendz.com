@@ -54,6 +54,83 @@ test('search and source filters return only matching recipes without mutating th
   assert.equal(library.length, 2);
 });
 
+test('recipe visuals preserve embedded photos and give missing photos a local representative image', () => {
+  const embedded = core.recipeVisual({
+    title: 'Family Pie',
+    image: { dataUrl: 'data:image/jpeg;base64,aGVsbG8=' },
+  });
+  const missing = core.recipeVisual({ title: 'Weeknight Lemon Chicken Breasts With Herbs' });
+  const remote = core.recipeVisual({
+    title: 'Chicken Piccata',
+    image: { dataUrl: 'https://tracking.example/chicken.jpg' },
+  });
+
+  assert.deepEqual(embedded, {
+    src: 'data:image/jpeg;base64,aGVsbG8=',
+    kind: 'embedded',
+    key: '',
+  });
+  assert.deepEqual(missing, {
+    src: './assets/recipe-fallbacks/poultry.webp',
+    kind: 'representative',
+    key: 'poultry',
+  });
+  assert.deepEqual(remote, {
+    src: './assets/recipe-fallbacks/poultry.webp',
+    kind: 'representative',
+    key: 'poultry',
+  });
+});
+
+test('representative recipe visuals choose a food category from recipe text', () => {
+  const cases = [
+    ['Thai-Inspired Chicken Meatball Soup', 'soup'],
+    ['Baked Greek Shrimp With Tomatoes and Feta', 'seafood'],
+    ['Chicken Piccata', 'poultry'],
+    ['Standing Rib Roast', 'meat'],
+    ['Butternut Squash Lasagna Pie', 'pasta'],
+    ['Ham and Cheese Sliders', 'handhelds'],
+    ['Heirloom Tomato Tart', 'vegetables'],
+    ['Classic Lemon Tart', 'dessert'],
+    ['Banana Pancakes', 'breakfast'],
+    ['Kathie’s House Favorite', 'pantry'],
+  ];
+
+  for (const [title, expected] of cases) {
+    assert.equal(core.recipeVisual({ title }).key, expected, title);
+  }
+});
+
+test('representative visuals prioritize recipe titles and recognize common vegetable plurals', () => {
+  assert.equal(core.recipeVisual({
+    title: 'Sausage, Peppers and Onions',
+    ingredients: ['1 cup chicken stock'],
+  }).key, 'meat');
+
+  for (const title of ['Baked Summer Tomatoes', 'Tostones', 'Baked Beans']) {
+    assert.equal(core.recipeVisual({ title }).key, 'vegetables', title);
+  }
+});
+
+test('every representative recipe visual has a valid WebP asset and private deploy-excluded generation provenance', async () => {
+  const keys = ['soup', 'seafood', 'poultry', 'handhelds', 'meat', 'pasta', 'breakfast', 'vegetables', 'dessert', 'pantry'];
+  const root = new URL('../assets/recipe-fallbacks/', import.meta.url);
+  const provenance = JSON.parse(await readFile(new URL('provenance.meta.json', root), 'utf8'));
+  const ignoredAssets = await readFile(new URL('../../.assetsignore', import.meta.url), 'utf8');
+
+  assert.equal(provenance.schema, 'kathies-kitchen/representative-images/v1');
+  assert.match(ignoredAssets, /^\*\*\/\*\.meta\.json$/m);
+  for (const key of keys) {
+    const bytes = await readFile(new URL(`${key}.webp`, root));
+    assert.equal(bytes.subarray(0, 4).toString(), 'RIFF', key);
+    assert.equal(bytes.subarray(8, 12).toString(), 'WEBP', key);
+    assert.ok(bytes.length > 20_000, `${key} should contain a useful image`);
+    assert.equal(provenance.images[key].provider, 'FAL.ai');
+    assert.equal(provenance.images[key].model, 'FLUX 2 Klein 9B');
+    assert.ok(provenance.images[key].prompt.length > 80, key);
+  }
+});
+
 test('Recipe Keeper zip imports a complete local recipe with provenance', async () => {
   const bytes = await readFile(new URL('./fixtures/recipe-keeper-fixture.zip', import.meta.url));
 
@@ -314,6 +391,15 @@ test('database migration reads the aggregate record shape written by v1', async 
 
   assert.deepEqual(legacyRecipesFromRecord({ key: 'recipes', value: recipes }), recipes);
   assert.deepEqual(legacyRecipesFromRecord(undefined), []);
+});
+
+test('recipe covers render the safe selected visual and label representative art', async () => {
+  const app = await readFile(new URL('../app.mjs', import.meta.url), 'utf8');
+
+  assert.match(app, /recipeVisual/);
+  assert.match(app, /const visual = recipeVisual\(recipe\)/);
+  assert.match(app, /visual\.kind === 'representative'[\s\S]*Sample image/);
+  assert.doesNotMatch(app, /function recipeImage\(/);
 });
 
 test('HTML blocks remote images and skips to an always-visible focus target', async () => {

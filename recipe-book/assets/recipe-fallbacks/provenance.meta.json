@@ -1,0 +1,97 @@
+{
+  "schema": "kathies-kitchen/representative-images/v1",
+  "generatedAt": "2026-08-03T20:42:22Z",
+  "usage": "Representative fallback art for recipes without embedded photos. These images are not photographs of the specific recipes.",
+  "images": {
+    "soup": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e623/h2Ce6gA3elXFW11oSBye5_OGJO7SEQ.png",
+      "sha256": "c2b42fa49555fad422b2ba52def54608c857ba663cbafffd1064b36f41d9bc67",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a rustic bowl of comforting homemade soup or stew, golden broth, vegetables, fresh herbs, crusty bread nearby, warm natural window light, cream stoneware, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "seafood": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e613/aQKu3O1oO5UwEV7_R4efP_3zm4IaLJ.png",
+      "sha256": "fa8ef822e60d859b44fc65d08fb11cee6b9e97bfaab950de6b27fc958d536f33",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of an appetizing home-cooked seafood supper, roasted shrimp and flaky white fish with lemon, tomatoes and herbs on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, realistic food photography, broad representative category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "poultry": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e613/vbCok8Hjf4lWFWmqrW_US_8YyesFRy.png",
+      "sha256": "30a3c4e4e1dfaf20a39dd952712ebc5bb82f2d5b694a5c95472efec22f2dccf0",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of comforting herb-roasted chicken pieces with lemon, garlic and pan vegetables on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative poultry category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "handhelds": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e614/o4nNGN9ZRIcAaUTQUGUIR_iSU42Oia.png",
+      "sha256": "e631e6bbfdd3bb9c348c1e6f778bbaaa66c21f675b8a1ad9c7f191a094c81da9",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a welcoming homemade appetizer spread with small savory sliders, toasted bites and a creamy dip, cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative handheld-food category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "meat": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e614/EvQ3thc1rcFGbYd4GP8nP_igRPiyov.png",
+      "sha256": "eb1fd72e821d351b964543122ef5e6d4b48065745d2f740a54da6d8029c8bfd7",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a hearty home-cooked roast supper, sliced beef or pork with browned edges, roasted potatoes and seasonal vegetables on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative meat category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "pasta": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e614/uPoGtdNTvA0ykJAE7EFQb_URn3Yhza.png",
+      "sha256": "cfb5dddc1aba9b199e2e04979de930c1a014f0cc97afbb27711cb5e2a848baff",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a generous bowl of homemade pasta with a nearby baked pasta casserole, tomato, herbs and grated cheese, cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative pasta category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "breakfast": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e615/W-JhPLAgZ_mMfTpgQdRyP_yZAgWZAI.png",
+      "sha256": "39328a90b99a6f6e3350428303de38b83ee9167b4296722a7573d45bf5833234",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a cozy homemade breakfast spread with golden pancakes, eggs, berries and toast on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative breakfast category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "vegetables": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e615/klB1xNu3q5-q3l5RfwFN4_henIXZlp.png",
+      "sha256": "7c0ae5837d44b886b2cf10dd606a70ea094d53e1124b437a73e15b7a86315d4b",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a colorful vegetable-centered supper, crisp salad beside roasted tomatoes, squash, mushrooms and greens on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative vegetable category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "dessert": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e616/HCs4Du_Rx2XqMCWAcFXmL_RZSaiBnp.png",
+      "sha256": "a21be7c500f5f1b20c9104ba60a4acc27895652a990cc4a684af0bbcf9ae23ff",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of an inviting homemade dessert table with a fruit tart, a slice of tender cake and scattered berries on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad representative dessert category image rather than a specific branded recipe, no text, no logos, no people, no hands, no packaging, no watermark."
+    },
+    "pantry": {
+      "provider": "FAL.ai",
+      "model": "FLUX 2 Klein 9B",
+      "sourceUrl": "https://v3b.fal.media/files/b/0aa4e616/Dn6j5H8tXM4kUzbnFseyb_sahSPhhz.png",
+      "sha256": "c6fe0e487c490a01efabcab1f7da3f3dfd01655eba3af57918d39b1f81b2389a",
+      "width": 900,
+      "height": 900,
+      "prompt": "Square top-down editorial cookbook photograph of a flexible home-kitchen supper, a golden savory skillet bake with herbs, bread and a simple side salad on cream stoneware, warm natural window light, subtle burgundy linen and sage accents, appetizing realistic food photography, broad neutral representative recipe image rather than a specific branded dish, no text, no logos, no people, no hands, no packaging, no watermark."
+    }
+  }
+}

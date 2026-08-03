@@ -309,6 +309,20 @@ kbd {
   height: 100%;
   object-fit: cover;
 }
+.cover-visual-note {
+  position: absolute;
+  z-index: 3;
+  top: 9px;
+  left: 9px;
+  padding: 4px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 999px;
+  background: rgba(37, 28, 28, 0.78);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.03em;
+}
 .cover-mark { position: relative; z-index: 1; font-family: var(--serif); font-size: clamp(2.5rem, 7vw, 4.5rem); font-weight: 800; letter-spacing: -0.08em; }
 .cover-source {
   position: absolute;
