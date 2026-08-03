@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; script-src 'self'; style-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <meta name="description" content="A private, local-first recipe browser built for Kathie.">
   <title>Kathie’s Kitchen</title>
-  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="manifest" href="./manifest.webmanifest" crossorigin="use-credentials">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="./icon-180.png">
   <link rel="stylesheet" href="./styles.css">
@@ -56,6 +56,14 @@
         </div>
       </div>
 
+      <section class="seed-status" id="seed-status" role="status" aria-live="polite" hidden>
+        <div class="seed-spinner" aria-hidden="true"></div>
+        <p class="eyebrow">Private family shelf</p>
+        <h2 id="seed-status-message">Loading the family cookbook…</h2>
+        <p id="seed-status-detail">This first visit may take a moment. Recipes will stay on this device after they arrive.</p>
+        <button class="button button-primary" id="seed-retry" type="button" hidden>Try again</button>
+      </section>
+
       <section class="empty-state" id="empty-state">
         <div class="empty-illustration" aria-hidden="true"><span>♡</span></div>
         <p class="eyebrow">Your shelf is ready</p>
@@ -63,7 +71,7 @@
         <p>Import Recipe Keeper, Paprika, or a Kathie’s Kitchen backup. The files are read here and stored only in this browser.</p>
         <div class="empty-actions">
           <button class="button button-primary" id="empty-import" type="button">Import cookbook</button>
-          <button class="button button-quiet" id="load-samples" type="button">Preview with sample cards</button>
+          <button class="button button-quiet" id="load-samples" type="button" hidden>Preview with sample cards</button>
         </div>
         <small>No account. No upload. No tracking.</small>
       </section>

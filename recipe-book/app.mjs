@@ -9,6 +9,7 @@ import {
 } from './lib/core.mjs';
 import { clearLibrary, loadLibrary, saveLibrary, saveRecipe } from './lib/db.mjs';
 import { parseRecipeFile } from './lib/importers.mjs';
+import { seedPrivateLibrary, shouldUseSamplePreview } from './lib/private-library.mjs';
 
 const SAMPLE_RECIPES = [
   {
@@ -116,6 +117,10 @@ const elements = {
   resultCount: document.querySelector('#result-count'),
   grid: document.querySelector('#recipe-grid'),
   empty: document.querySelector('#empty-state'),
+  seedStatus: document.querySelector('#seed-status'),
+  seedMessage: document.querySelector('#seed-status-message'),
+  seedDetail: document.querySelector('#seed-status-detail'),
+  seedRetry: document.querySelector('#seed-retry'),
   noResults: document.querySelector('#no-results'),
   importDialog: document.querySelector('#import-dialog'),
   detailDialog: document.querySelector('#recipe-dialog'),
@@ -125,6 +130,10 @@ const elements = {
   importStatus: document.querySelector('#import-status'),
   toast: document.querySelector('#toast'),
   installButton: document.querySelector('#install-button'),
+  openImport: document.querySelector('#open-import'),
+  emptyImport: document.querySelector('#empty-import'),
+  eraseLibrary: document.querySelector('#erase-library'),
+  loadSamples: document.querySelector('#load-samples'),
 };
 
 const state = {
@@ -135,6 +144,9 @@ const state = {
   installPrompt: null,
   wakeLock: null,
   storageReady: false,
+  storageError: false,
+  seeding: false,
+  seedError: '',
 };
 
 let favoriteWriteQueue = Promise.resolve();
@@ -317,12 +329,32 @@ function render() {
   const selected = filteredRecipes();
   const hasRecipes = state.recipes.length > 0;
   const hasResults = selected.length > 0;
+  const showSeedStatus = !hasRecipes && (state.seeding || Boolean(state.seedError));
 
-  elements.empty.hidden = hasRecipes;
+  elements.empty.hidden = hasRecipes || showSeedStatus;
+  elements.seedStatus.hidden = !showSeedStatus;
+  elements.seedStatus.classList.toggle('is-error', Boolean(state.seedError));
+  elements.seedMessage.textContent = state.storageError
+    ? 'Local recipe storage needs attention.'
+    : state.seedError ? 'The cookbook did not finish loading.' : 'Loading the family cookbook…';
+  elements.seedDetail.textContent = state.seedError
+    ? state.seedError
+    : 'This first visit may take a moment. Recipes will stay on this device after they arrive.';
+  elements.seedRetry.hidden = !state.seedError || state.seeding;
+  elements.seedRetry.textContent = state.storageError ? 'Reload cookbook' : 'Try again';
   elements.noResults.hidden = !hasRecipes || hasResults;
   elements.grid.hidden = !hasRecipes || !hasResults;
-  elements.grid.setAttribute('aria-busy', 'false');
-  elements.resultCount.textContent = `${selected.length} ${selected.length === 1 ? 'recipe' : 'recipes'}`;
+  elements.grid.setAttribute('aria-busy', String(state.seeding));
+  elements.openImport.disabled = state.seeding;
+  elements.emptyImport.disabled = state.seeding;
+  elements.eraseLibrary.disabled = state.seeding;
+  elements.files.disabled = state.seeding;
+  elements.loadSamples.hidden = !shouldUseSamplePreview(location);
+  elements.loadSamples.disabled = state.seeding;
+  elements.dropZone.setAttribute('aria-disabled', String(state.seeding));
+  elements.resultCount.textContent = state.seeding
+    ? 'Loading recipes…'
+    : `${selected.length} ${selected.length === 1 ? 'recipe' : 'recipes'}`;
   elements.grid.replaceChildren(...selected.map(makeCard));
 
   document.querySelectorAll('[data-count]').forEach((node) => {
@@ -500,6 +532,7 @@ function openDetail(recipe) {
 }
 
 function openImportDialog() {
+  if (state.seeding) return;
   elements.importStatus.textContent = '';
   elements.importDialog.showModal();
 }
@@ -511,7 +544,35 @@ function showToast(message) {
   showToast.timer = window.setTimeout(() => { elements.toast.hidden = true; }, 3600);
 }
 
+async function loadPrivateLibrary() {
+  if (state.seeding || state.recipes.length || !state.storageReady) return;
+  state.seeding = true;
+  state.seedError = '';
+  render();
+  navigator.storage?.persist?.().catch(() => {});
+  try {
+    const seeded = await seedPrivateLibrary(state.recipes);
+    state.recipes = seeded.recipes;
+    if (seeded.seeded) {
+      navigator.storage?.persist?.().catch(() => {});
+      const noun = seeded.added === 1 ? 'recipe is' : 'recipes are';
+      showToast(`${seeded.added} family ${noun} ready.`);
+    }
+  } catch (error) {
+    if (error?.code === 'AUTH_REQUIRED') {
+      location.replace('./login');
+      return;
+    }
+    state.seedError = error.message || 'The private family cookbook could not be loaded. Please try again.';
+  } finally {
+    state.seeding = false;
+    render();
+    if (state.seedError) requestAnimationFrame(() => elements.seedRetry.focus());
+  }
+}
+
 async function importFiles(fileList) {
+  if (state.seeding) return;
   const files = [...fileList];
   if (!files.length) return;
   elements.importStatus.className = 'import-status is-working';
@@ -582,6 +643,7 @@ function exportLibrary() {
 }
 
 async function eraseLocalLibrary() {
+  if (state.seeding) return;
   if (!window.confirm('Erase every recipe stored by Kathie’s Kitchen on this device? Download a backup first if you need one.')) return;
   if (!state.storageReady) {
     showToast('Local storage is unavailable; nothing was erased.');
@@ -602,6 +664,7 @@ async function eraseLocalLibrary() {
 }
 
 async function loadSamples() {
+  if (state.seeding) return;
   const importedAt = new Date().toISOString();
   const nextRecipes = mergeRecipes(state.recipes, SAMPLE_RECIPES.map((recipe) => ({ ...recipe, importedAt })));
   try {
@@ -637,6 +700,10 @@ elements.filters.addEventListener('click', (event) => {
 });
 for (const selector of ['#open-import', '#empty-import']) document.querySelector(selector).addEventListener('click', openImportDialog);
 document.querySelector('#load-samples').addEventListener('click', loadSamples);
+elements.seedRetry.addEventListener('click', () => {
+  if (state.storageError) location.reload();
+  else loadPrivateLibrary();
+});
 document.querySelector('#clear-filters').addEventListener('click', clearSearchAndFilters);
 document.querySelector('#export-button').addEventListener('click', exportLibrary);
 document.querySelector('#dialog-export').addEventListener('click', exportLibrary);
@@ -644,11 +711,13 @@ document.querySelector('#erase-library').addEventListener('click', eraseLocalLib
 elements.files.addEventListener('change', (event) => importFiles(event.target.files));
 
 elements.dropZone.addEventListener('dragover', (event) => {
+  if (state.seeding) return;
   event.preventDefault();
   elements.dropZone.classList.add('is-dragging');
 });
 elements.dropZone.addEventListener('dragleave', () => elements.dropZone.classList.remove('is-dragging'));
 elements.dropZone.addEventListener('drop', (event) => {
+  if (state.seeding) return;
   event.preventDefault();
   elements.dropZone.classList.remove('is-dragging');
   importFiles(event.dataTransfer.files);
@@ -689,20 +758,25 @@ elements.installButton.addEventListener('click', async () => {
   elements.installButton.hidden = true;
 });
 
+if ('serviceWorker' in navigator && canRegisterServiceWorker(location)) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
 try {
   state.recipes = await loadLibrary();
   state.storageReady = true;
-  if (!state.recipes.length && new URLSearchParams(location.search).get('preview') === 'samples') {
+  const useSamplePreview = !state.recipes.length && shouldUseSamplePreview(location);
+  if (useSamplePreview) {
     const importedAt = new Date().toISOString();
     state.recipes = SAMPLE_RECIPES.map((recipe) => ({ ...recipe, importedAt }));
   }
-} catch {
+  render();
+  if (!state.recipes.length && !useSamplePreview) await loadPrivateLibrary();
+} catch (error) {
   state.storageReady = false;
-  elements.importStatus.textContent = 'Local storage could not be opened in this browser. No changes will be saved.';
-  showToast('Local storage is unavailable; Kathie’s Kitchen is read-only.');
-}
-render();
-
-if ('serviceWorker' in navigator && canRegisterServiceWorker(location)) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
+  state.storageError = true;
+  state.seedError = error?.message || 'Local storage could not be opened in this browser. Close other Kathie’s Kitchen tabs and reload.';
+  elements.importStatus.textContent = state.seedError;
+  render();
+  requestAnimationFrame(() => elements.seedRetry.focus());
 }
