@@ -284,7 +284,7 @@ test('the production app renders an accessible first-run status before seeding a
 
 test('the service worker caches the seed code but never intercepts the private API', async () => {
   const worker = await readFile(new URL('../sw.js', import.meta.url), 'utf8');
-  assert.match(worker, /kathies-kitchen-shell-v13/);
+  assert.match(worker, /kathies-kitchen-shell-v14/);
   assert.match(worker, /'\.\/lib\/private-library\.mjs'/);
   assert.match(worker, /self\.skipWaiting\(\)/);
   assert.match(worker, /self\.clients\.claim\(\)/);

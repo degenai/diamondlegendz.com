@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kathies-kitchen-shell-v13';
+const CACHE_NAME = 'kathies-kitchen-shell-v14';
 const SHELL = [
   './',
   './index.html',
