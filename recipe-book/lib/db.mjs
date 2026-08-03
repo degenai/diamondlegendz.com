@@ -1,81 +1,194 @@
 const DB_NAME = 'kathies-kitchen';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const RECIPE_STORE = 'recipes';
+const META_STORE = 'metadata';
 const LEGACY_STORE = 'library';
 const LEGACY_KEY = 'recipes';
+const PRIVATE_SEED_KEY = 'private-library-seed';
+const PRIVATE_SEED_READY = 'seeded';
+export const PRIVATE_SEED_SUPPRESSED = 'suppressed';
 
-let databasePromise;
+export function reconcilePrivateSeed(existingRecipes, incomingRecipes, seedState) {
+  if (seedState === PRIVATE_SEED_SUPPRESSED) {
+    return { recipes: existingRecipes, saved: false, added: 0 };
+  }
+
+  const bySourceKey = new Map(incomingRecipes.map((recipe) => [recipe.sourceKey, recipe]));
+  for (const recipe of existingRecipes) bySourceKey.set(recipe.sourceKey, recipe);
+  const existingKeys = new Set(existingRecipes.map((recipe) => recipe.sourceKey));
+  return {
+    recipes: [...bySourceKey.values()],
+    saved: true,
+    added: incomingRecipes.filter((recipe) => !existingKeys.has(recipe.sourceKey)).length,
+  };
+}
 
 export function legacyRecipesFromRecord(record) {
   if (Array.isArray(record)) return record;
   return Array.isArray(record?.value) ? record.value : [];
 }
 
+function normalizeError(error, fallback) {
+  if (error instanceof Error) return error;
+  return new Error(fallback);
+}
+
+function requestToPromise(request) {
+  return new Promise((resolve, reject) => {
+    request.addEventListener('success', () => resolve(request.result), { once: true });
+    request.addEventListener('error', () => reject(normalizeError(request.error, 'IndexedDB request failed')), { once: true });
+  });
+}
+
+function transactionDone(transaction) {
+  return new Promise((resolve, reject) => {
+    transaction.addEventListener('complete', () => resolve(), { once: true });
+    transaction.addEventListener('abort', () => reject(normalizeError(transaction.error, 'IndexedDB transaction was aborted')), { once: true });
+    transaction.addEventListener('error', () => reject(normalizeError(transaction.error, 'IndexedDB transaction failed')), { once: true });
+  });
+}
+
 function openDatabase() {
-  if (databasePromise) return databasePromise;
-  databasePromise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
+    let settled = false;
     const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (event) => {
+    request.addEventListener('upgradeneeded', (event) => {
       const database = request.result;
       const transaction = request.transaction;
       const recipes = database.objectStoreNames.contains(RECIPE_STORE)
         ? transaction.objectStore(RECIPE_STORE)
         : database.createObjectStore(RECIPE_STORE, { keyPath: 'sourceKey' });
-
+      if (!recipes.indexNames.contains('title')) recipes.createIndex('title', 'title', { unique: false });
+      if (!database.objectStoreNames.contains(META_STORE)) {
+        database.createObjectStore(META_STORE, { keyPath: 'key' });
+      }
       if (event.oldVersion < 2 && database.objectStoreNames.contains(LEGACY_STORE)) {
         const legacyRequest = transaction.objectStore(LEGACY_STORE).get(LEGACY_KEY);
-        legacyRequest.onsuccess = () => {
+        legacyRequest.addEventListener('success', () => {
           for (const recipe of legacyRecipesFromRecord(legacyRequest.result)) {
             if (recipe?.sourceKey) recipes.put(recipe);
           }
           database.deleteObjectStore(LEGACY_STORE);
-        };
+        }, { once: true });
       }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error('Local recipe storage could not be opened'));
-    request.onblocked = () => reject(new Error('Close other Kathie’s Kitchen tabs, then try again'));
+    });
+    request.addEventListener('success', () => {
+      const database = request.result;
+      database.addEventListener('versionchange', () => database.close());
+      if (settled) {
+        database.close();
+        return;
+      }
+      settled = true;
+      resolve(database);
+    }, { once: true });
+    request.addEventListener('error', () => {
+      if (settled) return;
+      settled = true;
+      reject(normalizeError(request.error, 'Could not open the recipe library'));
+    }, { once: true });
+    request.addEventListener('blocked', () => {
+      if (settled) return;
+      settled = true;
+      reject(new Error('Close other Kathie’s Kitchen tabs and try again.'));
+    }, { once: true });
   });
-  return databasePromise;
 }
 
-function transact(mode, operation) {
-  return openDatabase().then((database) => new Promise((resolve, reject) => {
-    const transaction = database.transaction(RECIPE_STORE, mode);
-    const store = transaction.objectStore(RECIPE_STORE);
-    let request;
+async function transact(storeName, mode, work) {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction(storeName, mode);
+    const completion = transactionDone(transaction);
+    let result;
     try {
-      request = operation(store);
+      result = await work(transaction.objectStore(storeName), transaction);
     } catch (error) {
-      transaction.abort();
-      reject(error);
-      return;
+      try { transaction.abort(); } catch {}
+      await completion.catch(() => {});
+      throw error;
     }
-    transaction.oncomplete = () => resolve(request?.result);
-    transaction.onerror = () => reject(transaction.error || request?.error || new Error('Local recipe storage failed'));
-    transaction.onabort = () => reject(transaction.error || new Error('Local recipe storage was interrupted'));
-  }));
+    await completion;
+    return result;
+  } finally {
+    database.close();
+  }
 }
 
-export async function loadLibrary() {
-  const result = await transact('readonly', (store) => store.getAll());
-  return Array.isArray(result) ? result : [];
+async function replaceRecipesAndSeedState(recipes, seedState) {
+  const database = await openDatabase();
+  try {
+    const transaction = database.transaction([RECIPE_STORE, META_STORE], 'readwrite');
+    const completion = transactionDone(transaction);
+    try {
+      const recipesStore = transaction.objectStore(RECIPE_STORE);
+      const metadataStore = transaction.objectStore(META_STORE);
+      recipesStore.clear();
+      for (const recipe of recipes) recipesStore.put(recipe);
+      metadataStore.put({ key: PRIVATE_SEED_KEY, value: seedState });
+    } catch (error) {
+      try { transaction.abort(); } catch {}
+      await completion.catch(() => {});
+      throw error;
+    }
+    await completion;
+  } finally {
+    database.close();
+  }
 }
 
-export async function saveLibrary(recipes) {
-  await transact('readwrite', (store) => {
-    store.clear();
-    let finalRequest;
-    for (const recipe of recipes) finalRequest = store.put(recipe);
-    return finalRequest;
+export function loadLibrary() {
+  return transact(RECIPE_STORE, 'readonly', (store) => requestToPromise(store.getAll()));
+}
+
+export function saveRecipe(recipe) {
+  if (!recipe?.sourceKey) throw new Error('A recipe source key is required');
+  return transact(RECIPE_STORE, 'readwrite', (store) => requestToPromise(store.put(recipe)));
+}
+
+export function saveLibrary(recipes) {
+  return transact(RECIPE_STORE, 'readwrite', async (store) => {
+    await requestToPromise(store.clear());
+    for (const recipe of recipes) store.put(recipe);
   });
 }
 
-export async function saveRecipe(recipe) {
-  if (!recipe?.sourceKey) throw new Error('A recipe source key is required');
-  await transact('readwrite', (store) => store.put(recipe));
+export function getPrivateLibrarySeedState() {
+  return transact(META_STORE, 'readonly', async (store) => {
+    const record = await requestToPromise(store.get(PRIVATE_SEED_KEY));
+    return record?.value || null;
+  });
 }
 
-export async function clearLibrary() {
-  await transact('readwrite', (store) => store.clear());
+export function savePrivateSeededLibrary(recipes) {
+  return openDatabase().then(async (database) => {
+    const transaction = database.transaction([RECIPE_STORE, META_STORE], 'readwrite');
+    const complete = transactionDone(transaction);
+    try {
+      const recipesStore = transaction.objectStore(RECIPE_STORE);
+      const metadataStore = transaction.objectStore(META_STORE);
+      const [existingRecipes, seedRecord] = await Promise.all([
+        requestToPromise(recipesStore.getAll()),
+        requestToPromise(metadataStore.get(PRIVATE_SEED_KEY)),
+      ]);
+      const result = reconcilePrivateSeed(existingRecipes, recipes, seedRecord?.value ?? null);
+      if (result.saved) {
+        recipesStore.clear();
+        for (const recipe of result.recipes) recipesStore.put(recipe);
+        metadataStore.put({ key: PRIVATE_SEED_KEY, value: PRIVATE_SEED_READY });
+      }
+      await complete;
+      return result;
+    } catch (error) {
+      try { transaction.abort(); } catch {}
+      await complete.catch(() => {});
+      throw normalizeError(error, 'Could not seed the recipe library');
+    } finally {
+      database.close();
+    }
+  });
+}
+
+export function clearLibrary() {
+  return replaceRecipesAndSeedState([], PRIVATE_SEED_SUPPRESSED);
 }

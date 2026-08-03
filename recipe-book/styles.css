@@ -395,12 +395,32 @@ kbd {
 }
 .favorite-button.is-favorite { background: var(--plum); color: #fff1e5; }
 
-.empty-state, .no-results {
+.seed-status, .empty-state, .no-results {
   max-width: 650px;
   margin: clamp(42px, 9vh, 100px) auto;
   padding: 0 20px;
   text-align: center;
 }
+.seed-status h2 {
+  margin: 8px 0 10px;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  line-height: 1.05;
+}
+.seed-status > p:not(.eyebrow) { max-width: 520px; margin: 0 auto; color: var(--muted); }
+.seed-status .button { margin-top: 22px; }
+.seed-spinner {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 22px;
+  border: 5px solid var(--paper-deep);
+  border-top-color: var(--plum);
+  border-radius: 50%;
+  animation: seed-spin 0.9s linear infinite;
+}
+.seed-status.is-error .seed-spinner { display: none; }
+@keyframes seed-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .seed-spinner { animation: none; border-top-color: var(--paprika); } }
 .empty-illustration {
   position: relative;
   display: grid;
