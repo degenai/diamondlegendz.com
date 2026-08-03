@@ -508,6 +508,7 @@ summary { cursor: pointer; color: var(--muted); font-size: 0.82rem; font-weight:
   overflow: hidden;
   border-radius: 20px;
 }
+.recipe-dialog > #recipe-detail { height: 100%; min-height: 0; }
 .detail-shell { position: relative; display: grid; grid-template-columns: minmax(300px, 42%) 1fr; height: 100%; }
 .detail-close { position: absolute; z-index: 8; top: 14px; right: 14px; }
 .detail-cover { height: 100%; min-height: 440px; aspect-ratio: auto; }
