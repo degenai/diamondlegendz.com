@@ -2,6 +2,12 @@
   "name": "diamondlegendz",
   "main": "workers/site-gate.mjs",
   "compatibility_date": "2026-08-02",
+  "routes": [
+    {
+      "pattern": "diamondlegendz.com/*",
+      "zone_name": "diamondlegendz.com"
+    }
+  ],
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
