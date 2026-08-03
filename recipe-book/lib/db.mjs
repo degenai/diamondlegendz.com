@@ -8,14 +8,20 @@ const PRIVATE_SEED_KEY = 'private-library-seed';
 const PRIVATE_SEED_READY = 'seeded';
 export const PRIVATE_SEED_SUPPRESSED = 'suppressed';
 
-export function reconcilePrivateSeed(existingRecipes, incomingRecipes, seedState) {
+export function reconcilePrivateSeed(existingRecipes, incomingRecipes, seedState, options = {}) {
   if (seedState === PRIVATE_SEED_SUPPRESSED) {
     return { recipes: existingRecipes, saved: false, added: 0 };
   }
 
+  const retainedRecipes = options.replaceLegacySamples
+    ? existingRecipes.filter((recipe) => !(
+      recipe?.source?.kind === 'sample'
+      && String(recipe?.sourceKey || '').startsWith('sample:')
+    ))
+    : existingRecipes;
   const bySourceKey = new Map(incomingRecipes.map((recipe) => [recipe.sourceKey, recipe]));
-  for (const recipe of existingRecipes) bySourceKey.set(recipe.sourceKey, recipe);
-  const existingKeys = new Set(existingRecipes.map((recipe) => recipe.sourceKey));
+  for (const recipe of retainedRecipes) bySourceKey.set(recipe.sourceKey, recipe);
+  const existingKeys = new Set(retainedRecipes.map((recipe) => recipe.sourceKey));
   return {
     recipes: [...bySourceKey.values()],
     saved: true,
@@ -160,7 +166,7 @@ export function getPrivateLibrarySeedState() {
   });
 }
 
-export function savePrivateSeededLibrary(recipes) {
+export function savePrivateSeededLibrary(recipes, options = {}) {
   return openDatabase().then(async (database) => {
     const transaction = database.transaction([RECIPE_STORE, META_STORE], 'readwrite');
     const complete = transactionDone(transaction);
@@ -171,7 +177,7 @@ export function savePrivateSeededLibrary(recipes) {
         requestToPromise(recipesStore.getAll()),
         requestToPromise(metadataStore.get(PRIVATE_SEED_KEY)),
       ]);
-      const result = reconcilePrivateSeed(existingRecipes, recipes, seedRecord?.value ?? null);
+      const result = reconcilePrivateSeed(existingRecipes, recipes, seedRecord?.value ?? null, options);
       if (result.saved) {
         recipesStore.clear();
         for (const recipe of result.recipes) recipesStore.put(recipe);
