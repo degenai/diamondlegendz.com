@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Utils Math</title>
+<!--
+facet:
+  id: utils-math
+  tier: 0
+  title: Utils Math
+  description: Utility helpers map, snap, clamp, and lerp values before animation.
+  tags: [utils, math, mapping]
+  apis: [utils.mapRange, utils.snap, utils.lerp, animate]
+  parents: []
+-->
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+#stage { display: grid; place-items: center; }
+.dot { width: 22px; height: 22px; border-radius: 999px; background: #7ef2c3; position: absolute; }
+.axis { width: 280px; border-top: 1px dashed #1f1f2e; }
+</style>
+</head>
+<body>
+<div id="stage"><div class="axis"></div></div>
+<script type="module">
+import { animate, utils } from '../../../vendor/anime.esm.min.js';
+
+const stage = document.getElementById('stage');
+const COUNT = 9;
+for (let i = 0; i < COUNT; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'dot';
+  stage.appendChild(dot);
+}
+
+utils.set('.dot', {
+  x: (_el, i) => utils.mapRange(i, 0, COUNT - 1, -130, 130),
+  y: (_el, i) => utils.snap(12)(Math.sin(i) * 46),
+  scale: (_el, i) => utils.lerp(.65, 1.25, i / (COUNT - 1)),
+});
+
+animate('.dot', {
+  rotate: 360,
+  duration: 1600,
+  loop: true,
+  ease: 'linear',
+});
+</script>
+</body>
+</html>

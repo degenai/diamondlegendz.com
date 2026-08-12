@@ -3,29 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Facet — splittext-basic</title>
+<title>Facet — SplitText Basic</title>
 <!--
 facet:
   id: splittext-basic
   tier: 0
   title: SplitText Basic
-  description: Split text into per-letter spans. Animate each letter.
-  tags: [placeholder, text]
-  apis: [utils.splitText, animate, stagger]
+  description: Split one line into characters, then animate each character.
+  tags: [text, split, stagger]
+  apis: [splitText, animate, stagger]
   parents: []
 -->
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #6a6a85; font-family: ui-monospace, monospace; }
-  body { display: grid; place-items: center; }
-  .ph { text-align: center; }
-  .ph .title { color: #e0f4ff; font-size: 14px; margin-bottom: 6px; }
-  .ph .tag { color: #7ef2c3; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+.word { color: #e0f4ff; font-size: clamp(28px, 7vw, 64px); letter-spacing: .12em; font-weight: 700; }
 </style>
 </head>
 <body>
-<div class="ph">
-  <div class="title">SplitText Basic</div>
-  <div class="tag">placeholder</div>
-</div>
+<div id="stage"><div class="word">FACETS</div></div>
+<script type="module">
+import { animate, stagger, splitText } from '../../../vendor/anime.esm.min.js';
+
+const { chars } = splitText('.word', { words: false, chars: true });
+
+animate(chars, {
+  y: ['1.2em', 0],
+  opacity: [0, 1],
+  rotate: [15, 0],
+  delay: stagger(45),
+  duration: 620,
+  loop: true,
+  alternate: true,
+  loopDelay: 500,
+  ease: 'out(3)',
+});
+</script>
 </body>
 </html>

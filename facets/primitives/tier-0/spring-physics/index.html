@@ -3,32 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Facet — spring-physics</title>
+<title>Facet — Spring Physics</title>
 <!--
 facet:
   id: spring-physics
   tier: 0
   title: Spring Physics
-  description: Motion driven by spring solver. Natural bounce — stiffness and damping instead of duration.
+  description: Motion driven by the modern spring solver. Natural bounce from stiffness and damping.
   tags: [spring, physics, easing]
-  apis: [animate, createSpring]
+  apis: [animate, spring]
   parents: []
 -->
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; }
-  body { display: grid; place-items: center; }
-  #stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; }
-  .box { width: 70px; height: 70px; background: #7ef2c3; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+.box { width: 70px; height: 70px; background: #7ef2c3; }
 </style>
 </head>
 <body>
 <div id="stage"><div class="box"></div></div>
 <script type="module">
-import { animate, createSpring } from '../../../vendor/anime.esm.min.js';
+import { animate, spring } from '../../../vendor/anime.esm.min.js';
 
 animate('.box', {
   y: [-80, 80],
-  ease: createSpring({ mass: 1, stiffness: 70, damping: 8 }),
+  ease: spring({ mass: 1, stiffness: 70, damping: 8 }),
   loop: true,
   alternate: true,
 });

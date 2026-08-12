@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Stagger Draw</title>
+<!--
+facet:
+  id: stagger-draw
+  tier: 1
+  title: Stagger Draw
+  description: Multiple SVG paths draw in sequence from one staggered animation.
+  tags: [stagger, svg, draw]
+  apis: [animate, createDrawable, stagger]
+  parents: [svg-draw, stagger-line]
+-->
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, monospace; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+svg { width: 72%; height: 72%; }
+.line { stroke: #7ef2c3; stroke-width: 3; fill: none; stroke-linecap: round; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg viewBox="0 0 200 200">
+    <path class="line" d="M 25 160 L 65 60 L 105 160"/>
+    <path class="line" d="M 85 160 L 125 60 L 165 160"/>
+    <path class="line" d="M 45 118 H 145"/>
+  </svg>
+</div>
+<script type="module">
+import { animate, createDrawable, stagger } from '../../../vendor/anime.esm.min.js';
+
+const drawables = createDrawable('.line');
+animate(drawables, {
+  draw: ['0 0', '0 1'],
+  delay: stagger(220),
+  duration: 900,
+  loop: true,
+  alternate: true,
+  loopDelay: 400,
+});
+</script>
+</body>
+</html>

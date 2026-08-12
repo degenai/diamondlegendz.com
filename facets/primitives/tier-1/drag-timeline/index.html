@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Drag Timeline</title>
+<!--
+facet:
+  id: drag-timeline
+  tier: 1
+  title: Drag Timeline
+  description: A draggable handle scrubs a paused timeline by progress.
+  tags: [drag, timeline, scrubber]
+  apis: [createDraggable, createTimeline]
+  parents: [draggable-basic, timeline-sequence]
+-->
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; color: #e8e8f0; font-family: ui-monospace, monospace; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+.demo { display: grid; place-items: center; gap: 52px; }
+.target { width: 56px; height: 56px; background: #7ef2c3; }
+.rail { width: 260px; height: 46px; border: 1px dashed #1f1f2e; position: relative; display: grid; align-items: center; }
+.fill { height: 4px; background: #7ef2c3; transform-origin: 0 50%; transform: scaleX(0); }
+.handle { position: absolute; left: 0; width: 42px; height: 42px; border-radius: 999px; background: #7ef2c3; cursor: grab; }
+.handle:active { cursor: grabbing; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="demo">
+    <div class="target"></div>
+    <div class="rail"><div class="fill"></div><div class="handle"></div></div>
+  </div>
+</div>
+<script type="module">
+import { createDraggable, createTimeline } from '../../../vendor/anime.esm.min.js';
+
+const fill = document.querySelector('.fill');
+const tl = createTimeline({ autoplay: false })
+  .add('.target', { x: 90, duration: 600 })
+  .add('.target', { rotate: 360, duration: 600 })
+  .add('.target', { scale: 1.55, duration: 600 });
+
+tl.seek(0, true);
+createDraggable('.handle', {
+  container: '.rail',
+  y: false,
+  releaseEase: 'out(3)',
+  onUpdate: self => {
+    const p = self.progressX;
+    fill.style.transform = `scaleX(${p})`;
+    tl.seek(p * tl.duration, true);
+  },
+});
+</script>
+</body>
+</html>

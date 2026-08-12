@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Facet — Animatable Basic</title>
+<!--
+facet:
+  id: animatable-basic
+  tier: 0
+  title: Animatable Basic
+  description: A frequently updated target follows the pointer through createAnimatable.
+  tags: [animatable, pointer, realtime]
+  apis: [createAnimatable, utils.clamp]
+  parents: []
+-->
+<style>
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0a0a0f; font-family: ui-monospace, monospace; color: #e8e8f0; }
+body { display: grid; place-items: center; }
+#stage { width: min(90vw, 600px); aspect-ratio: 1 / 1; display: grid; place-items: center; position: relative; }
+
+#stage { border: 1px dashed #1f1f2e; overflow: hidden; cursor: crosshair; }
+.dot { width: 58px; height: 58px; border-radius: 999px; background: #7ef2c3; box-shadow: 0 0 30px rgba(126, 242, 195, .35); pointer-events: none; }
+.hint { position: absolute; bottom: 40px; color: #6a6a85; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="dot"></div>
+  <div class="hint">move pointer</div>
+</div>
+<script type="module">
+import { createAnimatable, utils } from '../../../vendor/anime.esm.min.js';
+
+const stage = document.getElementById('stage');
+const dot = createAnimatable('.dot', { x: 450, y: 450, ease: 'out(3)' });
+
+stage.addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect();
+  const x = utils.clamp(e.clientX - r.left - r.width / 2, -r.width / 2, r.width / 2);
+  const y = utils.clamp(e.clientY - r.top - r.height / 2, -r.height / 2, r.height / 2);
+  dot.x(x);
+  dot.y(y);
+});
+</script>
+</body>
+</html>
