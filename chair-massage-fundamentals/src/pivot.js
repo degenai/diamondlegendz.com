@@ -97,7 +97,7 @@ function musicCue(ctx) {
 
 function driveVan(dt, ctx) {
   const v = P.van;
-  if (!v) { arrive(ctx); return; }
+  if (!v) { if (P.phase !== 'parked') arrive(ctx); return; } // once: arriving every tick kept pushing the script back
   if (P.phase === 'drive') {
     const left = followPoly(v, P.poly, dt, driveAt, RING_CRUISE, CRUISE);
     const dc = Math.hypot(v.pos.x - ctx.world.chairSpot.x, v.pos.z - ctx.world.chairSpot.z);
