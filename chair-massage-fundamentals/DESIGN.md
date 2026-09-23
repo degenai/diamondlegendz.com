@@ -131,17 +131,27 @@ big wanted bump, and a later mini-massage on that ped is worth double. **The cha
 E near a vehicle while carrying the chair loads it (visibly in the trunk, or on the cart's rear rack);
 leaving the vehicle leaves the chair in it; a hard crash throws it out onto the road.
 
-**Peds**: wander waypoints on sidewalks and park paths. Flee when chaos happens nearby. Some are
-"clients": if the player stops near them with the chair, a 10-second mini-massage happens and pays
-money and lowers wanted level by one star (the hook: doing the actual work is how you cool heat).
+**Peds**: wander the nav graph on sidewalks and plaza paths. Flee when chaos happens nearby. **Mini-
+massage during a run** (decided 2026-09-23): set the chair down (E while carrying, on foot), the nearest
+willing ped walks over and sits, hold E for 5 s with a small pressure meter (W/S) on the HUD; on success
+they pay, wanted drops one star, the massage gun battery refills. Goons and cops within 6 m interrupt it.
+A ped who was hit by a car is worth double and says so. This is the hook: doing the actual work is how
+you cool heat.
 
-**Goons**: 3 to start, spawn from the van. Chase on foot, bat swing at melee range (20 damage, knockdown).
+**Goons** (AI decided 2026-09-23: pack pursuit with a van driver): 3 to start, spawn from the van. Two
+chase directly, one flanks to cut the player's line; the van driver stays in the van, tries to cut the
+player off on the road, and returns to the block edge to drop 3 fresh goons every 90 s. A relaxed goon
+(Healing Palm or massage gun) sits down for 8 s, then rejoins. Bat swing at melee range (20 damage, knockdown).
 Later waves arrive in black vans. Black suits, white shirts, no ties, one bat per van. Franchise name is
 locked: SERENITY GROUP INCORPORATED ("Serenity Group" on vans, "Serenity Group Incorporated" when a goon introduces himself).
 
-**Cops**: wanted 1 to 5 stars. 1: ranger on foot. 2: parks police cart. 3: city cop cars. 4: roadblocks.
-5: everything plus SWAT van. Wanted rises from: hitting goons (small), hitting peds (big), stealing
-vehicles (medium), vehicle collisions with property (small). Wanted decays when out of sight.
+**Cops** (curve decided 2026-09-23, classic GTA3): wanted 1 to 5 stars. 1: the ranger on foot, campaign
+hat asset on the person mesh, the same character as in the pivot. 2: parks police cart. 3: city cop cars
+(light bars flashing). 4: roadblocks at two road corners. 5: everything plus the SWAT van. Rises: +1 for
+the first hit goon or a stolen vehicle, +2 for hurting a ped (car or palm), +1 after 60 s of continuous
+chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated vehicle carnage (3+ ped
+hits or 3+ vehicle wrecks). Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
+and walk off pursuit for a while; wanted does not drop from that.
 
 **Health**: 100. Arrest when a cop touches you at speed 0 for 1.5s or you are knocked down within reach.
 Death at 0 health.

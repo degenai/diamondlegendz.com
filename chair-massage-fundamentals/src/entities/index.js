@@ -22,4 +22,9 @@ export function updateAll(dt, ctx) {
     const e = list[i];
     if (typeof e.update === 'function') e.update(e, dt, ctx);
   }
+  // Late pass (cameras) once everything has moved this tick.
+  for (let i = 0; i < list.length; i++) {
+    const e = list[i];
+    if (typeof e.lateUpdate === 'function') e.lateUpdate(e, dt, ctx);
+  }
 }

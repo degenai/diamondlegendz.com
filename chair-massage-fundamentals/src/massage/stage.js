@@ -33,7 +33,10 @@ export function createStage(ctx) {
       console.warn('[CMF] chair.json failed, using procedural chair', err);
       const c = makeChair(); c.rotation.y = Math.PI; return c; // procedural chair faces +Z
     })
-    .then((chair) => { chair.name = 'massageChair'; station.add(chair); });
+    .then((chair) => {
+      if (station.getObjectByName('massageChair')) return; // a chair already exists (debug RUN-first path)
+      chair.name = 'massageChair'; station.add(chair);
+    });
   return { station, client: null, therapist: null, hands: [], flinchT: 0, leaveT: 0 };
 }
 

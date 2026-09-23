@@ -1,7 +1,11 @@
 // Player: third-person on-foot controller, orbit camera, procedural walk, elbow stub.
+// Phase 4: E interactions (interact.js), driving (the vehicle reads input; the player rides
+// along hidden), chase camera (chase-cam.js), knockdown when a vehicle hits them on foot.
 import * as THREE from '../../vendor/three.module.js';
 import { spawnPerson } from '../world/people.js';
 import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
+import { handleInteract, palmVehicles } from './interact.js';
+import { updateChaseCamera, blendLook } from './chase-cam.js';
 
 const WALK = 4;
 const SPRINT = 7;
@@ -18,6 +22,8 @@ const PITCH_MIN = -0.35;
 const PITCH_MAX = 1.1;
 const MOUSE_SENS = 0.0025;
 const ELBOW_TIME = 0.2;
+const KNOCK_DECEL = 9;     // m/s^2 slide while knocked down
+const KNOCK_TILT = -1.35;  // rig tilts back (rad about local X)
 
 const _fwd = new THREE.Vector3();
 const _right = new THREE.Vector3();
@@ -29,6 +35,7 @@ const _head = new THREE.Vector3();
 export function createPlayer(scene, pos) {
   const mesh = spawnPerson('player');
   mesh.position.copy(pos);
+  mesh.rotation.order = 'YXZ'; // yaw, then the knockdown tilt about the body's own X
   scene.add(mesh);
   return {
     id: null,
@@ -47,7 +54,11 @@ export function createPlayer(scene, pos) {
     camInit: false,
     camDist: CAM_DIST,   // head-to-camera distance after the collider clamp
     floorInit: false,
+    vehicle: null,       // the vehicle being driven, or null on foot
+    knockedT: 0,         // > 0: knocked down (no control, cannot enter vehicles)
+    knockTilt: 0,
     update: updatePlayer,
+    lateUpdate: lateUpdatePlayer,
   };
 }
 
@@ -63,6 +74,17 @@ function wrapAngle(a) {
 export function updatePlayer(p, dt, ctx) {
   const input = ctx.input;
 
+  if (input && input.ePressed) handleInteract(p, ctx);
+  if (p.vehicle) {
+    // Driving: the vehicle reads the input; the player rides along hidden.
+    p.pos.copy(p.vehicle.pos);
+    p.vel.set(0, 0, 0);
+    p.knockedT = 0; p.knockTilt = 0;
+    return;
+  }
+  const knocked = p.knockedT > 0;
+  if (knocked) p.knockedT = Math.max(0, p.knockedT - dt);
+
   // --- camera orbit from mouse (pointer lock deltas) ---
   if (input) {
     p.camYaw -= input.dx * MOUSE_SENS;
@@ -74,7 +96,7 @@ export function updatePlayer(p, dt, ctx) {
   _fwd.set(-Math.sin(p.camYaw), 0, -Math.cos(p.camYaw));
   _right.set(Math.cos(p.camYaw), 0, -Math.sin(p.camYaw));
   _wish.set(0, 0, 0);
-  if (input) {
+  if (input && !knocked) {
     if (input.forward) _wish.add(_fwd);
     if (input.back) _wish.sub(_fwd);
     if (input.right) _wish.add(_right);
@@ -84,7 +106,7 @@ export function updatePlayer(p, dt, ctx) {
   if (moving) _wish.normalize();
   const speed = input && input.shift ? SPRINT : WALK;
   const tx = _wish.x * speed, tz = _wish.z * speed;
-  const a = (p.grounded ? ACCEL : AIR_ACCEL) * dt;
+  const a = (knocked ? KNOCK_DECEL : p.grounded ? ACCEL : AIR_ACCEL) * dt;
   p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
   p.vel.z += THREE.MathUtils.clamp(tz - p.vel.z, -a, a);
 
@@ -97,7 +119,7 @@ export function updatePlayer(p, dt, ctx) {
   const prevFeet = p.pos.y;
 
   // --- jump + gravity; land on the street or on the top of a low collider ---
-  if (input && input.spacePressed && p.grounded) {
+  if (input && input.spacePressed && p.grounded && !knocked) {
     p.vel.y = JUMP_V;
     p.grounded = false;
   }
@@ -127,15 +149,44 @@ export function updatePlayer(p, dt, ctx) {
   }
 
   // --- elbow strike stub ---
-  if (input && input.leftClicked && input.locked && p.elbowT <= 0) {
+  if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) {
     p.elbowT = ELBOW_TIME;
+    palmVehicles(p, ctx);
     console.log('[CMF] elbow strike', { x: +p.pos.x.toFixed(2), z: +p.pos.z.toFixed(2), yaw: +p.yaw.toFixed(2) });
   }
   if (p.elbowT > 0) p.elbowT = Math.max(0, p.elbowT - dt);
 
+  // Knockdown: tip over fast, get back up once knockedT runs out.
+  p.knockTilt += Math.max(-8 * dt, Math.min(3 * dt, (knocked ? KNOCK_TILT : 0) - p.knockTilt));
+
   animate(p, dt, hSpeed);
   syncMesh(p);
-  updateCamera(p, dt, ctx.camera, colliders);
+}
+
+// Camera runs after every entity has moved (vehicles update after the player).
+const _camColliders = [];
+// Static colliders plus a bounding box per vehicle (other than the one being driven),
+// so the camera pulls in front of cars instead of clipping through them.
+function cameraColliders(p, ctx) {
+  const world = ctx.world;
+  if (!world) return null;
+  _camColliders.length = 0;
+  for (const c of world.colliders) _camColliders.push(c);
+  for (const e of ctx.entities) {
+    if (e.kind !== 'vehicle' || e === p.vehicle || !e.spec) continue;
+    const s = Math.abs(Math.sin(e.yaw)), c = Math.abs(Math.cos(e.yaw));
+    const hx = e.spec.halfL * s + e.spec.halfW * c, hz = e.spec.halfL * c + e.spec.halfW * s;
+    _camColliders.push({ minX: e.pos.x - hx, maxX: e.pos.x + hx, minZ: e.pos.z - hz, maxZ: e.pos.z + hz,
+      maxY: e.pos.y + e.spec.height, camOnly: true });
+  }
+  return _camColliders;
+}
+
+export function lateUpdatePlayer(p, dt, ctx) {
+  if (p.exitGrace) { p.exitGrace.t -= dt; if (p.exitGrace.t <= 0) p.exitGrace = null; }
+  const colliders = cameraColliders(p, ctx);
+  if (p.vehicle) updateChaseCamera(p, p.vehicle, dt, ctx.camera, colliders, ctx.input);
+  else updateCamera(p, dt, ctx.camera, colliders);
 }
 
 function animate(p, dt, hSpeed) {
@@ -165,6 +216,7 @@ function animate(p, dt, hSpeed) {
 function syncMesh(p) {
   p.mesh.position.copy(p.pos);
   p.mesh.rotation.y = p.yaw;
+  p.mesh.rotation.x = p.knockTilt;
 }
 
 function updateCamera(p, dt, camera, colliders) {
@@ -204,5 +256,5 @@ function updateCamera(p, dt, camera, colliders) {
     }
     if (d > limit) camera.position.sub(_head).multiplyScalar(limit / d).add(_head);
   }
-  camera.lookAt(_camTarget);
+  camera.lookAt(blendLook(p, _camTarget, dt));
 }

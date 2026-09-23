@@ -1,0 +1,171 @@
+// Vehicle collisions. The body is three circles along its length (front, middle, rear).
+// Static: pushout per circle against AABB/cylinder colliders, the push becomes an impact that
+// removes the velocity into the wall and costs hp above 4 m/s. Vehicle vs vehicle: circle pairs,
+// mass-weighted separation and an impulse. Vehicle vs a body on foot: hitEntity (knockdown).
+import { supportHeight, pushCircle, circleVsCircle } from '../physics.js';
+import { throwChair } from './chair.js';
+
+const GRAVITY = 18;
+const DMG_FROM = 4;        // m/s impact before hp drops
+const DMG_K = 3.5;         // hp per m/s above DMG_FROM
+const THROW_AT = 12;       // m/s impact that throws a loaded chair out
+const RESTITUTION = 0.15;
+const HIT_SPEED = 2;       // moving faster than this knocks a body down
+
+const _c = { x: 0, z: 0 };
+const _push = { x: 0, z: 0 };
+const _circ = [{ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }];
+const _circA = [{ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }];
+
+// World-space circle centres (reused scratch unless `out` is given).
+export function vehicleCircles(v, out = _circ) {
+  const s = Math.sin(v.yaw), c = Math.cos(v.yaw), d = v.spec.circleOff;
+  for (let i = 0; i < 3; i++) {
+    const off = (1 - i) * d;
+    out[i].x = v.pos.x + s * off; out[i].y = v.pos.y; out[i].z = v.pos.z + c * off;
+  }
+  return out;
+}
+
+// Distance from a point to the vehicle's oriented footprint box (0 inside).
+export function boxDistance(v, x, z) {
+  const dx = x - v.pos.x, dz = z - v.pos.z;
+  const s = Math.sin(v.yaw), c = Math.cos(v.yaw);
+  const lf = dx * s + dz * c, ll = dx * c - dz * s;
+  return Math.hypot(Math.max(0, Math.abs(lf) - v.spec.halfL), Math.max(0, Math.abs(ll) - v.spec.halfW));
+}
+
+// Wheels climb kerbs and steps (physics STEP_UP), fall off ledges under gravity.
+export function settleHeight(v, dt, colliders) {
+  const circ = vehicleCircles(v);
+  let sup = 0;
+  for (const p of circ) sup = Math.max(sup, supportHeight(p, v.spec.circleR, v.pos.y, true, colliders));
+  if (sup >= v.pos.y) { v.pos.y = sup; v.vy = 0; }
+  else {
+    v.vy = (v.vy || 0) - GRAVITY * dt;
+    v.pos.y = Math.max(sup, v.pos.y + v.vy * dt);
+    if (v.pos.y === sup) v.vy = 0;
+  }
+}
+
+function damage(v, impact, ctx) {
+  if (impact > 1) v.lastImpact = impact;   // resting contact does not overwrite the last real hit
+  if (impact > DMG_FROM) {
+    v.hp = Math.max(0, v.hp - (impact - DMG_FROM) * DMG_K * v.spec.hpScale);
+    v.wobbleT = Math.max(v.wobbleT, Math.min(0.6, impact * 0.04));
+  }
+  if (impact > THROW_AT && v.chairLoaded && ctx) throwChair(ctx, v);
+}
+
+// Slide along walls; the velocity into the wall is the impact speed.
+export function collideStatic(v, ctx) {
+  const colliders = ctx.world.colliders;
+  const s = Math.sin(v.yaw), cs = Math.cos(v.yaw), d = v.spec.circleOff, r = v.spec.circleR;
+  let px = 0, pz = 0;
+  for (let pass = 0; pass < 3; pass++) {
+    let moved = false;
+    for (let i = 0; i < 3; i++) {
+      const off = (1 - i) * d;
+      _c.x = v.pos.x + s * off; _c.z = v.pos.z + cs * off;
+      pushCircle(_c, r, v.pos.y, colliders, _push);
+      if (_push.x === 0 && _push.z === 0) continue;
+      v.pos.x += _push.x; v.pos.z += _push.z;
+      px += _push.x; pz += _push.z;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  const len = Math.hypot(px, pz);
+  if (len < 1e-6) return false;
+  const nx = px / len, nz = pz / len;
+  const vn = v.vel.x * nx + v.vel.z * nz;
+  if (vn < 0) {
+    v.vel.x -= (1 + RESTITUTION) * vn * nx;
+    v.vel.z -= (1 + RESTITUTION) * vn * nz;
+    damage(v, -vn, ctx);
+  }
+  return true;
+}
+
+export function collideVehicles(a, b, ctx) {
+  const reach = a.spec.halfL + b.spec.halfL;
+  if (Math.abs(a.pos.x - b.pos.x) > reach || Math.abs(a.pos.z - b.pos.z) > reach) return false;
+  if (Math.abs(a.pos.y - b.pos.y) > 1.2) return false;
+  const ca = vehicleCircles(a, _circA);
+  const cb = vehicleCircles(b);
+  let px = 0, pz = 0;
+  for (const p of ca) for (const q of cb) {
+    const push = circleVsCircle(p, a.spec.circleR, q, b.spec.circleR);
+    if (push) { px += push.x; pz += push.z; }
+  }
+  const len = Math.hypot(px, pz);
+  if (len < 1e-6) return false;
+  const nx = px / len, nz = pz / len;               // points from b toward a
+  const depth = Math.min(len, a.spec.circleR);
+  const ma = a.spec.mass, mb = b.spec.mass, inv = 1 / ma + 1 / mb;
+  a.pos.x += nx * depth * (1 / ma) / inv; a.pos.z += nz * depth * (1 / ma) / inv;
+  b.pos.x -= nx * depth * (1 / mb) / inv; b.pos.z -= nz * depth * (1 / mb) / inv;
+  const vn = (a.vel.x - b.vel.x) * nx + (a.vel.z - b.vel.z) * nz;
+  if (vn < 0) {
+    const j = -(1 + RESTITUTION) * vn / inv;
+    a.vel.x += (j / ma) * nx; a.vel.z += (j / ma) * nz;
+    b.vel.x -= (j / mb) * nx; b.vel.z -= (j / mb) * nz;
+    damage(a, -vn, ctx); damage(b, -vn, ctx);
+    a.asleep = b.asleep = false; // only a real impulse wakes them; resting contact stays asleep
+  }
+  return true;
+}
+
+// A moving vehicle knocks a body down and shoves it; Phase 5 calls this for peds too
+// (opts: knockT, dmgPerMs, damage:false to spare hp). Returns { speed, dirX, dirZ }.
+export function hitEntity(v, e, opts = {}) {
+  const speed = Math.hypot(v.vel.x, v.vel.z);
+  let rx = e.pos.x - v.pos.x, rz = e.pos.z - v.pos.z;
+  const rl = Math.hypot(rx, rz) || 1;
+  rx /= rl; rz /= rl;
+  let dx = (v.vel.x / (speed || 1)) * 0.6 + rx * 0.4, dz = (v.vel.z / (speed || 1)) * 0.6 + rz * 0.4;
+  const dl = Math.hypot(dx, dz) || 1;
+  dx /= dl; dz /= dl;
+  if (e.vel) {
+    e.vel.x = dx * speed * 0.8;
+    e.vel.z = dz * speed * 0.8;
+    e.vel.y = Math.min(4, speed * 0.25);
+  }
+  e.grounded = false;
+  e.knockedT = opts.knockT ?? 1.5;
+  e.hitBy = v;
+  e.hitSpeed = speed;
+  if (e.hp !== undefined && opts.damage !== false) e.hp = Math.max(0, e.hp - speed * (opts.dmgPerMs ?? 1.5));
+  v.vel.multiplyScalar(0.92);
+  return { speed, dirX: dx, dirZ: dz };
+}
+
+// Player on foot: pushed out of the body; knocked down when the vehicle is moving.
+export function collidePlayer(v, p, ctx) {
+  if (p.pos.y > v.pos.y + v.spec.height - 0.1) return false;
+  const circ = vehicleCircles(v);
+  let px = 0, pz = 0;
+  for (const q of circ) {
+    const push = circleVsCircle(p.pos, p.radius, q, v.spec.circleR);
+    if (push) { px += push.x; pz += push.z; }
+  }
+  const len = Math.hypot(px, pz);
+  if (len < 1e-6) return false;
+  const nx = px / len, nz = pz / len;
+  p.pos.x += nx * Math.min(len, 1); p.pos.z += nz * Math.min(len, 1);
+  const speed = Math.hypot(v.vel.x, v.vel.z);
+  const grace = p.exitGrace && p.exitGrace.v === v && p.exitGrace.t > 0;
+  if (speed > HIT_SPEED && !(p.knockedT > 0) && !grace) {
+    hitEntity(v, p);
+  } else {
+    const vn = p.vel.x * nx + p.vel.z * nz;
+    if (vn < 0) { p.vel.x -= vn * nx; p.vel.z -= vn * nz; }
+  }
+  return true;
+}
+
+// Healing Palm on bodywork: small dent and a wobble. Cosmetic.
+export function dentVehicle(v, amount = 3) {
+  v.hp = Math.max(0, v.hp - amount);
+  v.wobbleT = 0.5;
+}

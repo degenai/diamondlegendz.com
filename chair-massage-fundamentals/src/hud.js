@@ -14,6 +14,8 @@ let statusEl = null;
 let crosshairEl = null;
 let hintEl = null;
 let runTitleEl = null;
+let vehicleEl = null;
+let chairEl = null;
 
 function el(tag, className, parent) {
   const n = document.createElement(tag);
@@ -34,6 +36,10 @@ export function initHud(hudRoot) {
   runTitleEl.append('Chair Massage ');
   el('s', '', runTitleEl).textContent = 'Fundamentals';
   runTitleEl.hidden = true;
+  vehicleEl = el('div', 'hud-status hud-vehicle', root);
+  vehicleEl.hidden = true;
+  chairEl = el('div', 'hud-chair', root);
+  chairEl.hidden = true;
   initMassageHud(root);
   return root;
 }
@@ -57,6 +63,21 @@ export function setHint(text) {
 
 export function setRunTitle(visible) {
   if (runTitleEl) runTitleEl.hidden = !visible;
+}
+
+// RUN: speed/vehicle line under the status line (empty text hides it).
+export function setVehicleLine(text) {
+  if (!vehicleEl) return;
+  vehicleEl.hidden = !text;
+  if (text && vehicleEl.textContent !== text) vehicleEl.textContent = text;
+}
+
+// RUN: "Don't leave the chair." strip at the bottom (empty text hides it).
+export function setChairStrip(text) {
+  if (!chairEl) return;
+  chairEl.hidden = !text;
+  if (text && chairEl.textContent !== text) chairEl.textContent = text;
+  chairEl.classList.toggle('hud-chair-warn', text === "Don't leave the chair.");
 }
 
 // --- Later-phase placeholders (names per DESIGN.md HUD list) ---

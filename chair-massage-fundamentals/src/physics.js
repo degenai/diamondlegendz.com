@@ -184,3 +184,20 @@ export function segmentHit(from, to, colliders, _step = 0.25) {
   }
   return best;
 }
+
+// Push a circle out of every collider standing above `feet` (same skip rules as resolveStatic),
+// in one pass. Mutates pos; returns the summed push in `out` ({ x, z }, zero when clear).
+// Vehicles use it per body circle and turn the push into an impact.
+export function pushCircle(pos, radius, feet, colliders, out = { x: 0, z: 0 }) {
+  out.x = 0; out.z = 0;
+  for (const c of colliders) {
+    if (c.camOnly) continue;
+    if (c.maxY !== undefined && feet >= c.maxY - SKIN) continue;
+    if (!overlapsFootprint(pos, radius, c)) continue;
+    const push = pushOf(pos, radius, c);
+    if (!push) continue;
+    pos.x += push.x; pos.z += push.z;
+    out.x += push.x; out.z += push.z;
+  }
+  return out;
+}

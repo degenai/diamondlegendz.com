@@ -10,6 +10,9 @@ import { createPlayer } from './entities/player.js';
 import { addEntity, updateAll } from './entities/index.js';
 import * as hud from './hud.js';
 import * as massage from './massage/index.js';
+import { spawnVehicles } from './world/cars.js';
+import { ensureChair, resetChair } from './entities/chair.js';
+import { runHudText, exitVehicle } from './entities/interact.js';
 
 const STEP = 1 / 60;
 const MAX_ACCUM = 0.25; // cap to avoid spiral of death after a stall
@@ -70,6 +73,8 @@ function boot() {
 
   const entities = [];
   const player = addEntity(entities, createPlayer(scene, new THREE.Vector3(0, 0, 3)));
+  // Parked sedans become drivable once their meshes load; cart, van and cop car join them.
+  world.ready.then(() => spawnVehicles(world, world.root, entities));
 
   input.initInput(canvas);
   input.onLockChangeListener((locked) => {
@@ -87,18 +92,31 @@ function boot() {
   };
   let pivotT = 0;
 
+  let interactHint = '';
   function updateHint() {
     if (getState() === STATES.RUN && !input.isLocked()) {
-      hud.setHint('Click to look around. WASD move, Shift sprint, Space jump, Left click elbow. Esc releases mouse.');
+      const base = player.vehicle
+        ? 'Click to look around. W/S drive, A/D steer, Space handbrake, E exit. Esc releases mouse.'
+        : 'Click to look around. WASD move, Shift sprint, Space jump, Left click elbow. Esc releases mouse.';
+      hud.setHint(interactHint ? `${interactHint}  |  ${base}` : base);
     } else {
-      hud.setHint('');
+      hud.setHint(getState() === STATES.RUN ? interactHint : '');
     }
+  }
+  function updateRunHud() {
+    const t = runHudText(player, ctx);
+    hud.setVehicleLine(t.vehicle);
+    hud.setChairStrip(t.chair);
+    interactHint = t.hint;
+    updateHint();
   }
 
   // --- state wiring ---
   onEnter(STATES.TITLE, () => { hud.showTitle(); input.releaseLock(); });
   onExit(STATES.TITLE, () => hud.hideTitle());
+  onEnter(STATES.MASSAGE, () => { if (player.vehicle) exitVehicle(player, ctx); player.knockedT = 0; });
   onEnter(STATES.MASSAGE, () => massage.enter(ctx));
+  onEnter(STATES.MASSAGE, () => resetChair(ctx)); // after enter: the station exists by now
   onExit(STATES.MASSAGE, () => massage.exit(ctx));
   onEnter(STATES.PIVOT, () => {
     // Phase 6 replaces this stub with the scripted van cutscene.
@@ -112,9 +130,13 @@ function boot() {
       ctx.meta.firstPivotSeen = true;
       meta.save(ctx.meta);
     }
+    ensureChair(ctx);
     hud.setRunTitle(true); updateHint();
   });
-  onExit(STATES.RUN, () => { input.releaseLock(); hud.setHint(''); hud.setRunTitle(false); });
+  onExit(STATES.RUN, () => {
+    input.releaseLock(); hud.setHint(''); hud.setRunTitle(false);
+    hud.setVehicleLine(''); hud.setChairStrip('');
+  });
 
   const beginBtn = document.getElementById('begin');
   if (beginBtn) {
@@ -141,6 +163,8 @@ function boot() {
     get massage() { return massage.debugState(); },
     massageTuning: massage.tuning,
     get meta() { return ctx.meta; },
+    get vehicles() { return world.vehicles || []; },
+    get chairState() { return world.chairState; },
   };
 
   setState(STATES.TITLE);
@@ -156,6 +180,7 @@ function boot() {
     const s = getState();
     if (s === STATES.RUN) {
       updateAll(dt, ctx);
+      updateRunHud();
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);
     } else if (s === STATES.PIVOT) {
