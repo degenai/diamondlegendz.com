@@ -2,6 +2,8 @@
 // plus a place-shaped noise bank for bursts and fricatives and a notch for nasals.
 // planUtterance is pure (runs in node); createVoice schedules everything with AudioParam automation.
 // Tuning brief (2026-09-23, "too muddy"): consonants cut, words have gaps, still a crunchy 80s chip.
+// Pass 3 ("one notch clearer"): ~6% slower, consonants +2 dB, F1/F2 Q 13, diphthongs land on target,
+// lexical stress for long words, gentler sentence-final fall, released word-final stops.
 
 // Phoneme table: [kind, F1, F2, F3, band gains (F1..F3), voicing, noise]. Vowels: Peterson & Barney male means.
 const VG = [1, 0.75, 0.45];
@@ -11,9 +13,9 @@ const PH = {
   IY: V(270, 2290, 3010), IH: V(390, 1990, 2550), EH: V(530, 1840, 2480), AE: V(660, 1720, 2410),
   AH: V(520, 1190, 2390), AA: V(730, 1090, 2440), AO: V(570, 840, 2410), UH: V(440, 1020, 2240),
   UW: V(300, 870, 2240), ER: V(490, 1350, 1690),
-  EY: D([530, 1840, 2480], [300, 2200, 2900]), AY: D([730, 1090, 2440], [390, 1990, 2550]),
-  OY: D([570, 840, 2410], [390, 1990, 2550]), AW: D([730, 1090, 2440], [440, 1020, 2240]),
-  OW: D([570, 840, 2410], [320, 900, 2240]),
+  EY: D([530, 1840, 2480], [280, 2250, 2950]), AY: D([730, 1090, 2440], [300, 2150, 2800]),
+  OY: D([570, 840, 2410], [300, 2150, 2800]), AW: D([730, 1090, 2440], [320, 870, 2240]),
+  OW: D([570, 840, 2410], [310, 870, 2240]), // off-glides go all the way to IY / UW
   // Stops: formant loci (the vowel glides out of them); the burst colour comes from PLACE below.
   P: ['stop', 400, 900, 2200, VG, 0, 1], B: ['stop', 400, 900, 2200, VG, 1, 1],
   T: ['stop', 400, 1800, 2700, VG, 0, 1], D: ['stop', 400, 1800, 2700, VG, 1, 1],
@@ -33,12 +35,12 @@ export const PHONEMES = Object.keys(PH);
 // Noise colour per consonant: which filter in the noise bank carries its burst or frication.
 const PLACE = { P: 'lab', B: 'lab', T: 'alv', D: 'alv', K: 'vel', G: 'vel', CH: 'sh', JH: 'sh', S: 's', Z: 's', SH: 'sh', ZH: 'sh', F: 'f', V: 'f', TH: 'f', DH: 'f' };
 const ANTI = { M: 1000, N: 1700, NG: 2800 }; // nasal anti-resonance (notch) frequency
-const DUR = { vowel: 100, diph: 125, stop: 75, aff: 100, fric: 95, aspir: 65, nasal: 65, liquid: 60 };
+const DUR = { vowel: 100, diph: 130, stop: 75, aff: 100, fric: 95, aspir: 65, nasal: 65, liquid: 60 };
 const FUNC = new Set('the a an of to and is in at for it on by as be or but was are i my me we he she you your'.split(' '));
 
 // Exception dictionary: the game's own words plus words the rules get wrong (checked against every line the game speaks).
 const DICT = {
-  massage: 'M AH S AA ZH', serenity: 'S ER EH N IH T IY', incorporated: 'IH N K AO R P ER EY T IH D',
+  massage: 'M AH S AA ZH', serenity: 'S AH R EH N IH T IY', incorporated: 'IH N K AO R P ER EY T IH D',
   licensee: 'L AY S AH N S IY', fundamentals: 'F AH N D AH M EH N T AH L Z', woodstock: 'W UH D S T AA K',
   permit: 'P ER M IH T', brand: 'B R AE N D', chair: 'CH EH R', plaza: 'P L AA Z AH',
   adamczyk: 'AE D AH M CH IH K', lmt: 'EH L EH M T IY', the: 'DH AH', a: 'AH', of: 'AH V', to: 'T UW',
@@ -72,6 +74,12 @@ const DICT = {
   walt: 'W AO L T', want: 'W AA N T', were: 'W ER', where: 'W EH R', who: 'HH UW', whole: 'HH OW L',
   use: 'Y UW Z', trigger: 'T R IH G ER', marcus: 'M AA R K AH S', honestly: 'AA N AH S T L IY', off: 'AO F',
   she: 'SH IY', coffee: 'K AO F IY', whoa: 'W OW', cross: 'K R AO S', long: 'L AO NG', longer: 'L AO NG G ER', ball: 'B AO L', car: 'K AA R',
+};
+// Stressed vowel (0-based vowel index) for words whose stress is not on the first vowel.
+const STRESS = {
+  serenity: 1, incorporated: 1, about: 1, licensee: 2, fundamentals: 2, massage: 1, again: 1, arrested: 1,
+  escaped: 1, escape: 1, today: 1, without: 1, unlicensed: 1, return: 1, eleven: 1, along: 1, because: 1,
+  opinions: 1, modality: 1, already: 1, administration: 3,
 };
 const LETTERS = 'EY,B IY,S IY,D IY,IY,EH F,JH IY,EY CH,AY,JH EY,K EY,EH L,EH M,EH N,OW,P IY,K Y UW,AA R,EH S,T IY,Y UW,V IY,D AH B AH L Y UW,EH K S,W AY,Z IY'.split(',');
 const DIGITS = 'zero,one,two,three,four,five,six,seven,eight,nine'.split(',');
@@ -170,7 +178,7 @@ function tokenize(text) {
       const slash = src[at + raw.length] === '/' || src[at - 1] === '/';
       const spell = raw === raw.toUpperCase() && !DICT[lw] && ( // initialisms and key names: W/S, A/D, E
         (raw.length === 1 && (!'AI'.includes(raw) || slash)) || (raw.length > 1 && raw.length <= 4 && !/[AEIOU]/.test(raw)));
-      toks.push({ phones: spell ? [...raw].flatMap((ch) => LETTERS[ch.charCodeAt(0) - 65].split(' ')) : wordToPhones(lw), func: FUNC.has(lw) });
+      toks.push({ phones: spell ? [...raw].flatMap((ch) => LETTERS[ch.charCodeAt(0) - 65].split(' ')) : wordToPhones(lw), func: FUNC.has(lw), stress: spell ? 0 : STRESS[lw] || 0 });
     } else if (m[2]) toks.push({ phones: wordToPhones(DIGITS[+m[2]]) });
     else if (m[3]) toks.push({ pause: 150 });
     else toks.push({ pause: 300, end: m[4][m[4].length - 1] });
@@ -179,12 +187,15 @@ function tokenize(text) {
 }
 
 export const PRESETS = {
-  narrator: { f0: 110, rate: 1, q: 11 },
-  goon: { f0: 72, rate: 0.85, q: 11 },   // low and slow, same formant sharpness as the narrator
-  ranger: { f0: 150, rate: 1.1, q: 11 },
-  client: { f0: 150, rate: 1.1, q: 11 },
+  narrator: { f0: 110, rate: 1, q: 13 },
+  goon: { f0: 72, rate: 0.85, q: 13 },   // low and slow, same formant sharpness as the narrator
+  ranger: { f0: 150, rate: 1.1, q: 13 },
+  client: { f0: 150, rate: 1.1, q: 13 },
 };
-const WORD_GAP = 0.04;
+// q sharpens F1/F2 only; F3 keeps its old Q 11 (scaled), F4 is fixed at 8.
+const Q3 = 11 / 13;
+const WORD_GAP = 0.055;
+const FINAL_TAIL = 0.06; // extra hold on a sentence's last sonorant so the final word is not clipped
 
 function hashRng(str) { // deterministic jitter so planUtterance stays pure
   let h = 2166136261;
@@ -202,9 +213,9 @@ export function planUtterance(text, preset = 'narrator') {
   let sentenceStart = 0;
   const closeSentence = (end) => {
     const seg = phones.slice(sentenceStart).filter((p) => p.kind !== 'sil');
-    seg.forEach((p, k) => { p.f0 *= 1 - 0.15 * (seg.length > 1 ? k / (seg.length - 1) : 0); });
+    seg.forEach((p, k) => { p.f0 *= 1 - 0.05 * (seg.length > 1 ? k / (seg.length - 1) : 0); }); // fall capped near 10%
     const voiced = seg.filter((p) => p.av > 0).slice(-3);
-    voiced.forEach((p, k) => { p.f0 *= end === '?' ? 1.1 + 0.12 * k : 0.97 - 0.05 * k; });
+    voiced.forEach((p, k) => { p.f0 *= end === '?' ? 1.1 + 0.12 * k : 0.99 - 0.02 * k; });
     sentenceStart = phones.length;
   };
   const toks = tokenize(text);
@@ -221,12 +232,16 @@ export function planUtterance(text, preset = 'narrator') {
       const [kind, f1, f2, f3, g, av, an, to] = e;
       phones.push({ ph, dur: DUR[kind] / 1000 / pr.rate, f0: pr.f0 * (1 + (rnd() - 0.5) * 0.01), f1, f2, f3, kind, av, an, g, q: pr.q, ...(to ? { to } : {}), ...(PLACE[ph] ? { place: PLACE[ph] } : {}) });
     }
-    // Crude stress: function words short, a word's first vowel a little longer, phrase-final vowel longest.
-    const vows = phones.slice(first).filter(VOWELISH);
+    // Crude stress: function words short, the stressed vowel longer, phrase-final vowel longest.
+    const word = phones.slice(first), vows = word.filter(VOWELISH);
     if (t.func) vows.forEach((p) => { p.dur *= 0.85; });
-    else if (vows.length) vows[0].dur *= 1.15;
+    else if (vows.length) vows[Math.min(t.stress || 0, vows.length - 1)].dur *= 1.2;
     const nx = toks[ti + 1];
     if (vows.length && (!nx || nx.pause)) vows[vows.length - 1].dur *= 1.2;
+    if (!nx || (nx.pause && nx.end)) { // sentence-final word: hold its last sonorant a little
+      const son = word.filter((p) => VOWELISH(p) || p.kind === 'liquid' || p.kind === 'nasal').pop();
+      if (son) son.dur += FINAL_TAIL;
+    }
     if (nx && nx.phones) phones.push(sil(WORD_GAP * 1000));
   });
   closeSentence('.');
@@ -270,13 +285,13 @@ function pulseWave(ctx) {
 
 // Noise bank: [type, frequency, Q, level]. Bursts and fricatives are shaped by place, not by the formants.
 const BANK = {
-  s: ['bandpass', 6000, 3.5, 0.38],    // S Z: high, narrow hiss
-  sh: ['bandpass', 3000, 3, 0.3],     // SH ZH CH JH
-  f: ['bandpass', 2200, 0.6, 0.14],   // F V TH DH: broad 1-4 kHz
-  alv: ['bandpass', 4000, 1.6, 0.8],  // T D burst
-  vel: ['bandpass', 2000, 2.5, 0.7],  // K G burst
-  lab: ['lowpass', 800, 0.7, 0.4],    // P B burst
-};
+  s: ['bandpass', 6000, 3.5, 0.48],    // S Z: high, narrow hiss
+  sh: ['bandpass', 3000, 3, 0.38],     // SH ZH CH JH
+  f: ['bandpass', 2200, 0.6, 0.18],    // F V TH DH: broad 1-4 kHz
+  alv: ['bandpass', 4000, 1.6, 1.0],   // T D burst
+  vel: ['bandpass', 2000, 2.5, 0.88],  // K G burst
+  lab: ['lowpass', 800, 0.7, 0.5],     // P B burst
+}; // levels are +2 dB over pass 2
 
 export function createVoice(ctx, { destination = ctx.destination } = {}) {
   const output = ctx.createGain();
@@ -296,7 +311,11 @@ export function createVoice(ctx, { destination = ctx.destination } = {}) {
     stop();
     const plan = planUtterance(text, preset);
     if (!plan.phones.length) return { duration: 0 };
-    const t0 = ctx.currentTime + 0.05, end = t0 + plan.duration;
+    // A suspended context (first line after load) gets resumed and a longer lead-in, so the output
+    // device's wake-up does not eat the first word.
+    const cold = ctx.state === 'suspended' && !ctx.startRendering; // offline renders start suspended by design
+    if (cold && ctx.resume) ctx.resume().catch(() => {});
+    const t0 = ctx.currentTime + (cold ? 0.25 : 0.05), end = t0 + plan.duration;
     const osc = ctx.createOscillator(); osc.setPeriodicWave(pulseWave(ctx));
     const a = Math.exp(-2 * Math.PI * 1000 / ctx.sampleRate);
     const tilt = ctx.createIIRFilter([1 - a], [1, -a]);
@@ -333,7 +352,7 @@ export function createVoice(ctx, { destination = ctx.destination } = {}) {
     const F3 = bands.slice(0, 3);
     let prevF = null;
     const setGains = (g, g4, t) => bands.forEach(({ bg }, i) => bg.gain.setTargetAtTime(i < 3 ? g[i] : g4, t, 0.005));
-    const setQ = (q, t) => F3.forEach(({ bp }) => bp.Q.setValueAtTime(q, t));
+    const setQ = (q, t) => F3.forEach(({ bp }, i) => bp.Q.setValueAtTime(i < 2 ? q : q * Q3, t));
     const gate = (k, t, len, lvl = 1) => { // noise-bank gate: sharp on, hold, sharp off
       const p = bank[k].g;
       p.setTargetAtTime(bank[k].lvl * lvl, t, 0.002); p.setTargetAtTime(0, t + len, 0.004);
@@ -354,20 +373,24 @@ export function createVoice(ctx, { destination = ctx.destination } = {}) {
         vg.gain.setTargetAtTime(p.av ? 0.12 * VOICE : 0, t, 0.004); ng.gain.setTargetAtTime(0, t, 0.004);
         setGains([1, 0.05, 0], 0, t); setQ(p.q, t);
         F3.forEach(({ bp }, i) => bp.frequency.setValueAtTime(i === 0 ? 220 : (prevF || F)[i], t));
-        gate(p.place, tb, p.av ? 0.01 : 0.014, p.av ? 0.7 : 1);
+        // Word-final stops are released too (longer, louder burst plus a short puff), not swallowed.
+        gate(p.place, tb, p.release ? (p.av ? 0.01 : 0.014) : 0.02, (p.av ? 0.7 : 1) * (p.release ? 1 : 1.2));
         const start = vowelF.map((v, i) => v + 0.5 * (F[i] - v)); // start from between the locus and the vowel
         F3.forEach(({ bp }, i) => { bp.frequency.setValueAtTime(start[i], tb); bp.frequency.linearRampToValueAtTime(vowelF[i], tb + 0.03); });
         setGains(VG, 0.15, tb);
-        if (p.asp) { ng.gain.setTargetAtTime(0.5, tb + 0.012, 0.003); setQ(p.q * 0.5, tb); }
+        if (p.asp) { ng.gain.setTargetAtTime(0.63, tb + 0.012, 0.003); setQ(p.q * 0.5, tb); }
         else if (p.av && p.release) vg.gain.setTargetAtTime(0.8 * VOICE, tb + 0.008, 0.005);
-        else vg.gain.setTargetAtTime(0, tb, 0.003);
+        else {
+          vg.gain.setTargetAtTime(0, tb, 0.003);
+          if (!p.av) { ng.gain.setTargetAtTime(0.35, tb + 0.01, 0.003); ng.gain.setTargetAtTime(0, tb + 0.03, 0.006); setQ(p.q * 0.5, tb); }
+        }
         prevF = vowelF;
         continue;
       }
       F3.forEach(({ bp }, i) => {
         if (prevF) { bp.frequency.setValueAtTime(prevF[i], t); bp.frequency.linearRampToValueAtTime(F[i], t + Math.min(G, p.dur)); }
         else bp.frequency.setValueAtTime(F[i], t);
-        if (p.to) bp.frequency.linearRampToValueAtTime(p.to[i], t + p.dur);
+        if (p.to) { bp.frequency.setValueAtTime(F[i], t + p.dur * 0.25); bp.frequency.linearRampToValueAtTime(p.to[i], t + p.dur * 0.65); } // land and hold
       });
       prevF = p.to || F;
       setQ(p.kind === 'aspir' ? p.q * 0.4 : p.q, t);
@@ -375,7 +398,8 @@ export function createVoice(ctx, { destination = ctx.destination } = {}) {
         const tr = t + p.dur * 0.35;
         vg.gain.setTargetAtTime(p.av ? 0.12 * VOICE : 0, t, 0.004); ng.gain.setTargetAtTime(0, t, 0.004);
         setGains([1, 0.1, 0.05], 0, t);
-        gate('sh', tr, p.dur * 0.65 - 0.01, p.av ? 0.6 : 1);
+        gate('alv', tr, 0.008, p.av ? 0.5 : 0.8); // the T-like release that makes CH a CH, not an SH
+        gate('sh', tr + 0.004, p.dur * 0.65 - 0.014, p.av ? 0.6 : 1.1);
         if (p.av) vg.gain.setTargetAtTime(0.35 * VOICE, tr, 0.005);
       } else if (p.kind === 'fric') {
         vg.gain.setTargetAtTime(p.av * VOICE, t, 0.005); ng.gain.setTargetAtTime(0, t, 0.004);
