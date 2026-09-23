@@ -1,6 +1,7 @@
 // Seeded downtown plaza block: buildBlock(seed, scene) -> world.
 // Plaza + fountain terrace (0..44), inner sidewalk (44..48), ring road (48..56), outer sidewalk
-// (56..60), low-rise lots (60..80), one escape street through a 12 m gap. See DESIGN.md "World".
+// (56..60), low-rise lots (60..80) with two dead-end alleys, one escape street through a 12 m gap,
+// and the pavilion beside the terrace. See DESIGN.md "World".
 import * as THREE from '../../vendor/three.module.js';
 import { makeRng } from '../rng.js';
 import { createBatch, buildBatch } from './batch.js';
@@ -85,12 +86,12 @@ export function buildBlock(seed, scene) {
   const batch = createBatch();
   const nav = buildNav({ stepAxis, diag: variant.includes('diag'), ring: variant.includes('ring') });
   const placer = createPlacer(nav);
-  const B = { batch, colliders, esc, variant, stepAxis, placer };
+  const B = { batch, colliders, esc, variant, stepAxis, placer, nav };
 
   buildStreets({ ...B, rng: sub(1) });
-  const plaza = buildPlaza({ ...B, rng: sub(2) });
+  const plaza = buildPlaza({ ...B, rng: sub(2), pavRng: sub(9) });
   const furn = buildFurniture({ ...B, rng: sub(3) });
-  const bld = buildBuildings({ ...B, rng: sub(4) });
+  const bld = buildBuildings({ ...B, rng: sub(4), alleyRng: sub(8) });
 
   root.add(buildBatch(batch, 'blockStatic'), bld.windows, bld.sign, ...furn.meshes);
   const marker = escapeMarker(esc.edge, esc.g);
@@ -123,7 +124,7 @@ export function buildBlock(seed, scene) {
     serenity: bld.serenity ? { aabb: bld.serenity.aabb, sign: bld.serenity.sign, door: bld.serenity.door, edge: bld.serenity.edge } : null,
     sun: planSun(sub(7)),
     layout: { variant, stepAxis, stepEdges: plaza.stepEdges, gap: esc.g },
-    lots: bld.lots, carts: furn.carts, benches: furn.benches, trees: furn.trees,
+    lots: bld.lots, alleys: bld.alleys, pavilion: plaza.pavilion, carts: furn.carts, benches: furn.benches, trees: furn.trees,
     parked: [],
     ready: null,
   };

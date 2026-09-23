@@ -127,6 +127,12 @@ carts, benches, trees in grates (cone on cylinder), the massage chair spot near 
 the ESCAPE point. Seed determines building heights and colours, plaza layout variant, planter and cart
 placement, vehicle spawns, escape edge, goon van entry. **Lighting:** late afternoon, warm sun, no shadow
 maps; each seed nudges sun azimuth, elevation, and fog distance so runs look a little different.
+**Places to hide** (ruled 2026-09-23 with the sight lines): two dead-end **alleys** per block on two
+seeded sides (never the escape edge), a 2.4 m gap between two lots from the outer sidewalk to a wall
+2 m short of the perimeter, a 1.9 m dumpster near the end (the pocket behind it is out of sight from
+the mouth), nav nodes down the middle. The plaza **pavilion** beside the terrace, abreast of the
+chair: four posts, a roof at 3 m, and on two adjacent sides a 1 m wall topped by a slatted screen to
+the roof (a 1 m wall alone cannot hide a standing head); nav nodes inside.
 Colliders: buildings are AABBs; plaza walls and planters are low AABBs the player can stand on (the
 physics needs a top-surface landing for low boxes, see Phase 3 brief); the fountain is a cylinder collider.
 Camera must not clip into buildings: clamp the third-person camera distance to the first collider hit
@@ -181,6 +187,14 @@ player off on the road, and returns to the block edge to drop 3 fresh goons ever
 (Healing Palm or massage gun) sits down for 8 s, then rejoins. Bat swing at melee range (20 damage, knockdown).
 Later waves arrive in black vans. Black suits, white shirts, no ties, one bat per van. Franchise name is
 locked: SERENITY GROUP INCORPORATED ("Serenity Group" on vans, "Serenity Group Incorporated" when a goon introduces himself).
+**Sight lines** (ruled 2026-09-23 after the first plays: "no real way to escape the goons"): a goon
+tracks the player only while he has line of sight (head to head against static colliders; vehicles do
+not block, as for cops) or is within 6 m. The pack shares one lastSeen: any goon who sees him updates
+it for all and re-alerts searchers. 4 s without sight: search (walk to lastSeen on the nav graph, turn
+in place 8 s, one "Where'd he go?"), then return to the van and idle there, loose, until seen again.
+The 8 s grab window always sees; knocked, loose and sitting goons neither look nor re-alert. A palmed
+goon is out of the chase for 12 s (down 3, up loose 1, sit 8); a car hitting him while he is loose or
+sitting starts that over instead of putting him straight back on.
 
 **Cops** (curve decided 2026-09-23, classic GTA3): wanted 1 to 5 stars. 1: the ranger on foot, campaign
 hat asset on the person mesh, the same character as in the pivot. 2: parks police cart. 3: city cop cars

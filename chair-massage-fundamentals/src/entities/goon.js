@@ -3,9 +3,17 @@
 // 1.2 s knockdown) or an unarmed shove (10 dmg). A Healing Palm puts one down; he gets up loose,
 // sits on the ground for 8 s, then his radio puts him back on. On-foot goons wait at the kerb
 // while the player is in a vehicle.
+// Perception (sight lines ruling, 2026-09-23): a goon tracks the player only while he has line of
+// sight (head to head against static colliders; vehicles never block) or is within 6 m. Any goon
+// who sees him updates the whole pack's lastSeen (and pulls searching or returning goons back
+// into the chase). 4 s without sight: `search` (walk to lastSeen on the nav graph, then turn in
+// place for 8 s; one "Where'd he go?" per search from one goon), then `return` (walk back to the
+// van and idle there, loose). The 8 s grab window always sees; knocked, loose and sitting goons
+// neither look nor get re-alerted.
 import { spawnPerson, disposePerson } from '../world/people.js';
 import { loadMesh } from '../assets.js';
 import { createNpc, stepBody, poseRig, cull, say, seek } from './npc-common.js';
+import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer } from './palm.js';
 import { sfx, shake } from '../juice.js';
@@ -23,6 +31,15 @@ const GRAB_CD = 6;
 const GRAB_PUSH = 9.5;       // m/s; the player's 30 m/s^2 ground decel turns it into about 1.5 m
 export const GRAB_WINDOW = 8;
 const grabbing = (ctx) => ctx.time < (ctx.grabUntil ?? -1);
+const SIGHT_NEAR = 6;        // always noticed this close, walls or not
+const SIGHT_FAR = 90;
+const SIGHT_EVERY = 0.2;     // line-of-sight test cadence per goon
+const LOSE_AFTER = 4;        // s without sight before the search starts
+const LOOK_TIME = 8;         // s turning in place at lastSeen
+const GO_MAX = 25;           // give up walking to lastSeen after this long (unreachable perch)
+const WALK = 2.2;            // search and return pace
+const VAN_IDLE = 3;          // idle this close to the van's kerb-side point
+const PERCEIVE = new Set(['chase', 'windup', 'recover', 'search', 'return']);
 
 export function createGoon(scene, pos, role, bat) {
   const mesh = spawnPerson('goon');
@@ -32,6 +49,8 @@ export function createGoon(scene, pos, role, bat) {
     radius: 0.4,
   });
   e.state = 'chase';
+  e.lastSeen = null;
+  e.sightT = Math.random() * SIGHT_EVERY;
   if (bat) {
     loadMesh('assets/bat.json').then((g) => {
       const b = g.getObjectByName('bat') || g;
@@ -54,6 +73,7 @@ export function updateGoon(e, dt, ctx) {
   e.wishX = e.wishZ = 0; e.speed = 0; e.faceX = undefined;
   if (e.cooldown > 0) e.cooldown -= dt;
   e.noRoad = !!p.vehicle;
+  if (e.knockedT <= 0 && PERCEIVE.has(e.state)) perceive(e, dt, ctx);
   if (e.knockedT > 0) {
     e.knockedT -= dt;
     if (e.knockedT <= 0) getUp(e, ctx);
@@ -62,7 +82,11 @@ export function updateGoon(e, dt, ctx) {
     if (e.stateT <= 0) { e.state = 'sit'; e.stateT = SIT_TIME; say(ctx, e, '...I\'m gonna sit for a minute.'); }
   } else if (e.state === 'sit') {
     e.stateT -= dt;
-    if (e.stateT <= 0) { e.state = 'chase'; e.loose = 0; say(ctx, e, '(radio) Copy. Back on it.', 'speech dim'); }
+    if (e.stateT <= 0) {
+      e.state = 'chase'; e.loose = 0; say(ctx, e, '(radio) Copy. Back on it.', 'speech dim');
+      const pk = pack(ctx);
+      if (pk.seen) e.lastSeen = { ...pk.seen };            // the radio tells him where the pack last had him
+    }
   } else if (e.state === 'windup') {
     e.stateT -= dt;
     e.faceX = p.pos.x; e.faceZ = p.pos.z;
@@ -71,13 +95,125 @@ export function updateGoon(e, dt, ctx) {
     e.stateT -= dt;
     if (e.stateT <= 0) e.state = 'chase';
   } else if (e.state === 'chase') {
-    chase(e, dt, ctx);
+    if (tracking(e, ctx)) chase(e, dt, ctx);
+    else lost(e, dt, ctx);
+  } else if (e.state === 'search') {
+    search(e, dt, ctx);
+  } else if (e.state === 'return') {
+    goHome(e, dt, ctx);
   }
-  e.pose = e.knockedT > 0 ? 'down' : e.state === 'sit' ? 'sit' : e.state === 'loose' ? 'loose'
+  e.pose = e.knockedT > 0 ? 'down' : e.state === 'sit' ? 'sit' : (e.state === 'loose' || e.idle) ? 'loose'
     : e.state === 'windup' ? (e.bat && !e.grab ? 'windup' : 'shove') : e.state === 'recover' ? (e.bat && !e.grab ? 'swing' : 'shove') : 'walk';
   stepBody(e, dt, ctx);
   poseRig(e, dt);
   cull(e, ctx);
+}
+
+// ---- perception ----
+// The pack's shared memory lives on ctx (spawner.js clears it with each run).
+function pack(ctx) {
+  return ctx.goonPack || (ctx.goonPack = { seen: null, saidFor: -1 });
+}
+
+function target(ctx) { const p = ctx.player; return p.vehicle ? p.vehicle.pos : p.pos; }
+
+export function seesPlayer(e, ctx) {
+  const t = target(ctx);
+  const d2 = (t.x - e.pos.x) ** 2 + (t.z - e.pos.z) ** 2;
+  if (d2 < SIGHT_NEAR * SIGHT_NEAR) return true;
+  if (d2 > SIGHT_FAR * SIGHT_FAR) return false;
+  return lineOfSight(ctx.world, e.pos, t);
+}
+
+function perceive(e, dt, ctx) {
+  e.sightT -= dt;
+  const grab = grabbing(ctx);
+  if (!grab && e.sightT > 0) return;
+  e.sightT = SIGHT_EVERY;
+  const t = target(ctx), pk = pack(ctx);
+  if (!grab && !seesPlayer(e, ctx)) {
+    e.sees = false;
+    // A fresh goon off the van who cannot see him starts from the radio: the pack's last
+    // sighting, or where he is right now if the pack has none.
+    if (!e.lastSeen) e.lastSeen = pk.seen ? { ...pk.seen } : { x: t.x, y: t.y, z: t.z, t: ctx.time };
+    return;
+  }
+  e.sees = true;
+  pk.seen = { x: t.x, y: t.y, z: t.z, t: ctx.time };
+  // Re-alert: every goon who is up and working gets the sighting; searchers and returners run.
+  for (const o of ctx.npcs) {
+    if (o.kind !== 'goon' || o.boss || o.knockedT > 0 || !PERCEIVE.has(o.state)) continue;
+    o.lastSeen = { ...pk.seen };
+    if (o.state === 'search' || o.state === 'return') { o.state = 'chase'; o.idle = false; o.seek.nav = -1; o.seek.t = 0; }
+  }
+}
+
+// Tracking: the pack had him within the last two sight ticks (or no memory yet: a fresh goon
+// before his first look chases like before).
+function tracking(e, ctx) {
+  return !e.lastSeen || ctx.time - e.lastSeen.t <= SIGHT_EVERY * 2 + 1e-6;
+}
+
+// Chasing but blind: run to where he was; after LOSE_AFTER s, search.
+function lost(e, dt, ctx) {
+  const L = e.lastSeen;
+  if (ctx.time - L.t >= LOSE_AFTER) {
+    e.state = 'search'; e.phase = 'go'; e.stateT = GO_MAX;
+    e.seek.nav = -1; e.seek.t = 0;
+    search(e, dt, ctx);
+    return;
+  }
+  e.speed = RUN;
+  if (seek(e, L.x, L.y, L.z, dt, ctx, 1.2)) { e.speed = 0; e.faceX = L.x; e.faceZ = L.z; }
+}
+
+function search(e, dt, ctx) {
+  const L = e.lastSeen;
+  e.stateT -= dt;
+  if (e.phase === 'go') {
+    e.speed = WALK;
+    const near = (L.x - e.pos.x) ** 2 + (L.z - e.pos.z) ** 2 < 1.3 * 1.3;
+    const there = seek(e, L.x, L.y, L.z, dt, ctx, 1.0) || near;
+    if (there || e.stateT <= 0) {
+      e.phase = 'look'; e.stateT = LOOK_TIME; e.lookA = e.yaw; e.lookDir = e.id % 2 ? 1 : -1;
+      e.wishX = e.wishZ = 0; e.speed = 0;
+      e.reachedLastSeen = there;
+      const pk = pack(ctx);
+      if (pk.saidFor !== L.t) { pk.saidFor = L.t; say(ctx, e, "Where'd he go?"); }
+    }
+    return;
+  }
+  // Look around: sweep back and forth about 100 degrees, turning in place.
+  e.wishX = e.wishZ = 0; e.speed = 0;
+  e.lookT = (e.lookT || 0) + dt;
+  e.lookA = (e.lookA ?? e.yaw) + e.lookDir * 1.1 * dt;
+  if (e.lookT > 1.6) { e.lookT = 0; e.lookDir = -e.lookDir; }
+  e.faceX = e.pos.x + Math.sin(e.lookA) * 5; e.faceZ = e.pos.z + Math.cos(e.lookA) * 5;
+  if (e.stateT <= 0) { e.state = 'return'; e.idle = false; e.seek.nav = -1; e.seek.t = 0; }
+}
+
+// Back to the van (or where it parks) at walk speed; idle there, loose, until someone sees him.
+const _home = { x: 0, y: 0, z: 0 };
+export function vanHome(ctx) {
+  const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise && x.driver !== ctx.player);
+  const at = v ? v.pos : ctx.world.spawns.vanEntry.pos;
+  // The kerb side of the van: 3 m from it toward the middle of the block.
+  const l = Math.hypot(at.x, at.z) || 1;
+  _home.x = at.x - (at.x / l) * 3; _home.z = at.z - (at.z / l) * 3; _home.y = at.y || 0;
+  return _home;
+}
+
+function goHome(e, dt, ctx) {
+  const h = vanHome(ctx);
+  const d2 = (h.x - e.pos.x) ** 2 + (h.z - e.pos.z) ** 2;
+  if (e.idle && d2 < (VAN_IDLE + 2) ** 2) { e.wishX = e.wishZ = 0; e.speed = 0; return; }
+  e.idle = false;
+  e.speed = WALK;
+  if (seek(e, h.x, h.y, h.z, dt, ctx, VAN_IDLE) || d2 < VAN_IDLE * VAN_IDLE) {
+    e.idle = true; e.speed = 0; e.wishX = e.wishZ = 0;
+    const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise);
+    if (v) { e.faceX = v.pos.x; e.faceZ = v.pos.z; }
+  }
 }
 
 function chase(e, dt, ctx) {
@@ -159,7 +295,9 @@ function onPalm(e, p, ctx) {
 }
 
 function onVehicleHit(e, v, ctx) {
-  e.knockCause = 'vehicle';
+  // A relaxed goon (loose or sitting after a palm) hit by a car stays relaxed: he gets up loose
+  // and sits his full 8 s again instead of rising straight into the chase.
+  e.knockCause = e.state === 'loose' || e.state === 'sit' ? 'palm' : 'vehicle';
   e.knockedT = 3;
   if (e.state === 'windup') e.state = 'chase';
   if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('goonHit'); // a stolen car you bailed from is still yours (ped.js)

@@ -1,8 +1,13 @@
 // Seeded low-rise lots on the four edges, 60..80 m out. One lot is the SERENITY GROUP location.
-// Window grids are one InstancedMesh; the Serenity sign is one emissive box.
+// Two alleys (a 2.4 m gap between two lots, dead-ending at a wall with a dumpster) on two seeded
+// sides that are not the escape edge. Window grids are one InstancedMesh; the Serenity sign is one
+// emissive box.
 import * as THREE from '../../vendor/three.module.js';
 import { addBox, addCyl } from './batch.js';
-import { HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, toXZ, sideBox } from './layout.js';
+import { addSpur } from './nav.js';
+import {
+  HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, OUTER_WALK, DECK_Y, ALLEY_HALF, ALLEY_END, toXZ, sideBox,
+} from './layout.js';
 
 const FLOOR_H = 3.2;
 const PALETTE = [0x9c4a3a, 0x7e3f32, 0xa8674c, 0x8a6a55, 0xd8c9a8, 0xc9a978, 0xb8b2a2, 0xd6a79a];
@@ -70,9 +75,65 @@ function planLots(rng, esc) {
   return lots;
 }
 
+// Two alleys on two seeded non-escape sides: a boundary between two lots that are both at least
+// 12 m wide, within 50 m of the side's centre (so the mouth sits on the outer sidewalk's nav
+// line). Both lots give up ALLEY_HALF each. Own rng, so the lots roll the same with or without.
+function planAlleys(rng, lots, esc) {
+  const sides = EDGES.filter((e) => e !== esc.edge);
+  for (let i = sides.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); [sides[i], sides[j]] = [sides[j], sides[i]]; }
+  const alleys = [];
+  for (const edge of sides) {
+    if (alleys.length === 2) break;
+    const row = lots.filter((l) => l.edge === edge).sort((a, c) => a.u0 - c.u0);
+    const cands = [];
+    for (let i = 0; i + 1 < row.length; i++) {
+      const a = row[i], c = row[i + 1];
+      if (Math.abs(a.u1 - c.u0) > 1e-6 || Math.abs(a.u1) > 50) continue;
+      if (a.u1 - a.u0 < 12 || c.u1 - c.u0 < 12) continue;
+      cands.push([a, c]);
+    }
+    if (!cands.length) continue;
+    const [a, c] = cands[Math.floor(rng.next() * cands.length)];
+    const u = a.u1;
+    a.u1 = u - ALLEY_HALF; c.u0 = u + ALLEY_HALF;
+    alleys.push({ edge, u, dumpSide: rng.next() < 0.5 ? -1 : 1 });
+  }
+  return alleys;
+}
+
+const ALLEY_WALL = 0x5b3b31;
+const DUMPSTER = 0x2f5a3c;
+// The dead-end wall (full alley width, ALLEY_END..HALF), a dumpster against one side near the
+// end (walkable round: 1.4 m beside it, 1.4 m behind it), and the nav spur down the middle.
+function buildAlley(b, colliders, nav, A) {
+  const { edge, u, dumpSide: s } = A;
+  const yaw = SIDE[edge].yaw;
+  const wallH = 3.6;
+  const [wx, wz] = toXZ(edge, u, (ALLEY_END + HALF) / 2);
+  addBox(b, ALLEY_HALF * 2, wallH, HALF - ALLEY_END, ALLEY_WALL, wx, DECK_Y + wallH / 2, wz, yaw);
+  const [cx, cz] = toXZ(edge, u, ALLEY_END + 0.1);
+  addBox(b, ALLEY_HALF * 2 + 0.1, 0.18, 0.45, 0x8a7a6a, cx, DECK_Y + wallH + 0.09, cz, yaw);
+  colliders.push(sideBox(edge, u - ALLEY_HALF, u + ALLEY_HALF, ALLEY_END, HALF, DECK_Y + wallH, { tag: 'alleyWall' }));
+  // Dumpster: u + s * (0.2..1.2), d 74.6..76.6, a big commercial bin 1.9 m tall (taller than a
+  // head, so the 1.4 m pocket behind it is out of sight from the mouth), a lid, two bags.
+  const du = u + s * 0.7, d0 = 74.6, d1 = 76.6, DH = 1.9;
+  const [dx, dz] = toXZ(edge, du, (d0 + d1) / 2);
+  addBox(b, 1.0, DH - 0.08, d1 - d0, DUMPSTER, dx, DECK_Y + (DH - 0.08) / 2, dz, yaw);
+  addBox(b, 1.08, 0.08, d1 - d0 + 0.08, 0x223f2b, dx, DECK_Y + DH - 0.04, dz, yaw);
+  for (const k of [0, 1]) {
+    const [bx, bz] = toXZ(edge, u + s * (0.95 - k * 0.3), d0 - 0.4 - k * 0.2);
+    addBox(b, 0.45, 0.4, 0.4, 0x222428, bx, DECK_Y + 0.2, bz, yaw + k * 0.6);
+  }
+  colliders.push(sideBox(edge, Math.min(u + s * 0.2, u + s * 1.2), Math.max(u + s * 0.2, u + s * 1.2), d0, d1, DECK_Y + DH, { tag: 'dumpster' }));
+  const P = (uu, d) => { const [x, z] = toXZ(edge, uu, d); return { x, z }; };
+  A.nav = addSpur(nav, P(u, OUTER_WALK), [P(u, 64), P(u, 71), P(u - s * 0.5, 77.3), P(u + s * 0.7, 77.3)]);
+}
+
 export function buildBuildings(B) {
   const { batch: b, colliders, rng, esc } = B;
   const lots = planLots(rng, esc);
+  const alleys = B.alleyRng ? planAlleys(B.alleyRng, lots, esc) : [];
+  for (const A of alleys) buildAlley(b, colliders, B.nav, A);
 
   const winGeo = new THREE.BoxGeometry(1.1, 1.5, 0.12);
   const winMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
@@ -144,7 +205,7 @@ export function buildBuildings(B) {
   windows.instanceMatrix.needsUpdate = true;
   if (windows.instanceColor) windows.instanceColor.needsUpdate = true;
   windows.computeBoundingSphere();
-  return { lots, windows, sign, serenity };
+  return { lots, windows, sign, serenity, alleys };
 }
 
 function shade(hex, k) {

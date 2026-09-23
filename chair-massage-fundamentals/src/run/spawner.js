@@ -42,6 +42,7 @@ export function clear(ctx) {
   clearPolice(ctx.police, ctx);
   for (const e of ctx.npcs) dispose(ctx, e);
   ctx.npcs.length = 0;
+  ctx.goonPack = null;                        // the pack forgets the last run's sightings (goon.js)
   const van = ctx.vanAI && ctx.vanAI.v;
   if (van && van.driver && van.driver !== ctx.player) { van.driver = null; van.ai = null; }
   if (van) clearDriverRig(van);               // no vehicle ticks in MASSAGE to drop the driver
@@ -68,6 +69,7 @@ export function begin(ctx, fromPivot = false) {
   ctx.runCash = 0;
   ctx.runEnd = null;
   ctx.lastChaos = null;
+  ctx.goonPack = null;
   ctx.grabUntil = ctx.time + GRAB_WINDOW;   // the opening beat: shove and grab only (goon.js)
   const p = ctx.player;
   p.hp = 100; p.prevHp = 100; p.hurtAt = -1e9; p.knockedT = 0;

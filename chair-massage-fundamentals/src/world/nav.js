@@ -81,6 +81,40 @@ export function buildNav({ stepAxis, diag, ring }) {
   return { points, edges };
 }
 
+// A dead-end spur off the graph (alleys, the pavilion): splice a point into the nearest edge at
+// `at` (or reuse an endpoint within 0.3 m), then chain `pts` from it. Returns the new ids.
+export function addSpur(nav, at, pts) {
+  const { points, edges } = nav;
+  let k = -1, bt = 0, bd = Infinity;
+  for (let i = 0; i < edges.length; i++) {
+    const a = points[edges[i][0]], b = points[edges[i][1]];
+    const ex = b.x - a.x, ez = b.z - a.z, l2 = ex * ex + ez * ez || 1;
+    const t = Math.max(0, Math.min(1, ((at.x - a.x) * ex + (at.z - a.z) * ez) / l2));
+    const d = (a.x + ex * t - at.x) ** 2 + (a.z + ez * t - at.z) ** 2;
+    if (d < bd) { bd = d; k = i; bt = t; }
+  }
+  const [ia, ib] = edges[k];
+  const la = Math.hypot(points[ib].x - points[ia].x, points[ib].z - points[ia].z);
+  let root;
+  if (bt * la < 0.3) root = ia;
+  else if ((1 - bt) * la < 0.3) root = ib;
+  else {
+    const a = points[ia], b = points[ib];
+    root = points.length;
+    points.push(new THREE.Vector3(a.x + (b.x - a.x) * bt, a.y + (b.y - a.y) * bt, a.z + (b.z - a.z) * bt));
+    edges[k] = [ia, root];
+    edges.push([ib, root]);
+  }
+  const ids = [root];
+  for (const p of pts) {
+    const i = points.length;
+    points.push(new THREE.Vector3(p.x, p.y ?? DECK_Y, p.z));
+    edges.push([ids[ids.length - 1], i]);
+    ids.push(i);
+  }
+  return ids;
+}
+
 // Shortest XZ distance from (x, z) to any nav edge. Used to keep props off the walking lines.
 export function distToNav(nav, x, z) {
   let best = Infinity;

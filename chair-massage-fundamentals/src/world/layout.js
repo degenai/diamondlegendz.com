@@ -15,6 +15,8 @@ export const DECK_Y = 0.15;       // kerb height; plaza and sidewalks sit at thi
 export const TERRACE_Y = 0.65;    // two 0.25 m risers above the deck
 export const GAP_HALF = 6;        // escape street gap is 12 m wide
 export const ESC_WALL = 92;       // invisible wall distance at the escape gap
+export const ALLEY_HALF = 1.2;    // alleys are a 2.4 m gap between two lots
+export const ALLEY_END = 78;      // an alley dead-ends at a wall 2 m short of the perimeter (HALF)
 export const EDGES = ['N', 'E', 'S', 'W'];
 
 // out = unit outward vector; yaw turns a local +Z to point outward.

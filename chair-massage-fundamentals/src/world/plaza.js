@@ -2,7 +2,7 @@
 // low walls. Furniture (carts, benches, trees) lives in furniture.js. Everything static is batched.
 import * as THREE from '../../vendor/three.module.js';
 import { addBox, addSlab, addCyl, addRing } from './batch.js';
-import { distToNav } from './nav.js';
+import { distToNav, addSpur } from './nav.js';
 import {
   PLAZA_HALF, DECK_Y, TERRACE_Y, TERRACE_HALF as TH, RING_R, EDGES, toXZ, sideBox, aabb,
 } from './layout.js';
@@ -79,6 +79,8 @@ export function buildPlaza(B) {
   // Upper bowl flares to r 1.3; give the camera something to hit there.
   colliders.push({ kind: 'cyl', x: 0, z: 0, r: 1.3, maxY: y0 + 3.6, tag: 'fountain', camOnly: true });
 
+  const pavilion = buildPavilion(b, colliders, placer, B.pavRng);
+
   // Paths: axis walks always; diagonal and ring walks by variant.
   for (const e of EDGES) {
     const r = sideBox(e, -2, 2, TH, PLAZA_HALF, 0);
@@ -125,7 +127,60 @@ export function buildPlaza(B) {
       colliders.push({ ...r, maxY: DECK_Y + h, tag: 'wall' });
     }
   }
-  return { stepEdges };
+  return { stepEdges, pavilion };
+}
+
+// The pavilion: an open-sided roofed shelter on the deck beside the terrace (east or west, seeded),
+// abreast of the chair spot. 5 x 5 m, four posts, a roof slab at 3 m. Two adjacent sides (north
+// and the outer one) are a 1 m wall topped by a close slatted screen up to the roof, so a body in
+// that corner is out of sight from the north and from outside; the terrace side and the south
+// side are open. A 1 m wall alone cannot hide a standing head (sight is head to head at 1.6 m),
+// hence the screen. Taken from the placer before the planters, benches, carts and trees, and
+// its nav spur is added first so they keep off it. Clear of every nav line by 2.4 m or more on
+// all three path variants (terrace foot at 14, the axis walk at z 0, the ring at r 26).
+const PAV = { cx: 19, cz: 6, half: 2.5, roof: 3, wall: 1, t: 0.3 };
+const PAV_WOOD = 0x7a5a3e, PAV_ROOF = 0x3f4a44, PAV_WALL = 0xb9b1a3;
+function buildPavilion(b, colliders, placer, rng) {
+  const sx = rng && rng.next() < 0.5 ? -1 : 1;
+  const { half: h, roof, wall, t } = PAV;
+  const cx = sx * PAV.cx, cz = PAV.cz, y0 = DECK_Y;
+  const x0 = cx - h, x1 = cx + h, z0 = cz - h, z1 = cz + h;
+  const xo = sx > 0 ? x1 : x0;                                  // the outer side
+  placer.take(cx, cz, h * 2 + 0.6, h * 2 + 0.6);
+  // Deck boards, posts, roof with a fascia.
+  addSlab(b, x0, x1, z0, z1, y0, y0 + 0.02, 0x9c8466);
+  for (const px of [x0 + 0.125, x1 - 0.125]) for (const pz of [z0 + 0.125, z1 - 0.125]) {
+    addBox(b, 0.25, roof, 0.25, PAV_WOOD, px, y0 + roof / 2, pz);
+  }
+  addSlab(b, x0 - 0.3, x1 + 0.3, z0 - 0.3, z1 + 0.3, y0 + roof, y0 + roof + 0.2, PAV_ROOF);
+  addSlab(b, x0 - 0.35, x1 + 0.35, z0 - 0.35, z1 + 0.35, y0 + roof + 0.2, y0 + roof + 0.26, 0x55615a);
+  colliders.push(aabb(x0 - 0.3, x1 + 0.3, z0 - 0.3, z1 + 0.3, y0 + roof + 0.26, { minY: y0 + roof, camOnly: true, tag: 'pavilionRoof' }));
+  // The two walled sides: north (z0) and outer (xo). Low wall, rails, close vertical slats.
+  const walls = [
+    aabb(x0, x1, z0, z0 + t, y0 + roof, { tag: 'pavilionWall' }),
+    aabb(Math.min(xo, xo - sx * t), Math.max(xo, xo - sx * t), z0, z1, y0 + roof, { tag: 'pavilionWall' }),
+  ];
+  for (const w of walls) {
+    addSlab(b, w.minX, w.maxX, w.minZ, w.maxZ, y0, y0 + wall, PAV_WALL);
+    addSlab(b, w.minX - 0.04, w.maxX + 0.04, w.minZ - 0.04, w.maxZ + 0.04, y0 + wall, y0 + wall + 0.06, 0xcfc8ba);
+    addSlab(b, w.minX, w.maxX, w.minZ, w.maxZ, y0 + roof - 0.12, y0 + roof, PAV_WOOD);
+    const alongX = w.maxX - w.minX > w.maxZ - w.minZ;
+    const len = alongX ? w.maxX - w.minX : w.maxZ - w.minZ;
+    const n = Math.floor(len / 0.16);
+    for (let i = 0; i < n; i++) {
+      const s = (alongX ? w.minX : w.minZ) + (i + 0.5) * (len / n);
+      const mx = alongX ? s : (w.minX + w.maxX) / 2, mz = alongX ? (w.minZ + w.maxZ) / 2 : s;
+      addBox(b, alongX ? 0.12 : 0.08, roof - wall - 0.12, alongX ? 0.08 : 0.12, PAV_WOOD, mx, y0 + wall + (roof - wall - 0.12) / 2 + 0.06, mz);
+    }
+    colliders.push(w);
+  }
+  // The open corner's post is the only free-standing one.
+  const px = sx > 0 ? x0 : x1 - 0.25;
+  colliders.push(aabb(px, px + 0.25, z1 - 0.25, z1, y0 + roof, { tag: 'pavilionPost' }));
+  // Nav: in from the terrace-foot path, to the middle, to the hiding corner.
+  const nav = addSpur(placer.nav, { x: sx * 14, z: cz }, [{ x: cx - sx * 0.6, z: cz }, { x: cx + sx * 1.3, z: z0 + 1.1 }]);
+  return { side: sx > 0 ? 'E' : 'W', centre: { x: cx, z: cz }, hide: { x: cx + sx * 1.6, z: z0 + 0.9 },
+    blockDirs: [[0, -1], [sx, 0]], openDirs: [[-sx, 0], [0, 1]], nav };
 }
 
 function planterAt(b, colliders, x, z, w, d, h) {

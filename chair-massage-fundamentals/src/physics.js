@@ -3,6 +3,7 @@
 // Colliders are grounded (minY = 0). Low ones are standable: an entity whose feet are at or
 // above maxY - SKIN is not pushed out and can land on the top surface.
 // Optional flags: floor (walk surface), invisible / noCam (ignored by the camera clamp).
+// camOnly colliders may carry a minY (a roof slab): segment tests then see only minY..maxY.
 import * as THREE from '../vendor/three.module.js';
 
 export const SKIN = 0.05;        // push-out only below maxY - SKIN
@@ -133,7 +134,7 @@ function pointInside(x, y, z, c) {
 const _cand = [];
 function slabHit(from, dx, dy, dz, len, c) {
   let t0 = 0, t1 = 1;
-  const axes = [[from.x, dx, c.minX, c.maxX], [from.z, dz, c.minZ, c.maxZ], [from.y, dy, -Infinity, c.maxY]];
+  const axes = [[from.x, dx, c.minX, c.maxX], [from.z, dz, c.minZ, c.maxZ], [from.y, dy, c.minY ?? -Infinity, c.maxY]];
   for (const [o, d, lo, hi] of axes) {
     if (Math.abs(d) < 1e-9) { if (o <= lo || o >= hi) return Infinity; continue; }
     let a = (lo - o) / d, b = (hi - o) / d;
@@ -172,10 +173,10 @@ export function segmentHit(from, to, colliders, _step = 0.25) {
   if (len < 1e-6) return 0;
   const loX = Math.min(from.x, to.x), hiX = Math.max(from.x, to.x);
   const loZ = Math.min(from.z, to.z), hiZ = Math.max(from.z, to.z);
-  const loY = Math.min(from.y, to.y);
+  const loY = Math.min(from.y, to.y), hiY = Math.max(from.y, to.y);
   let best = len;
   for (const c of colliders) {
-    if (c.invisible || c.noCam || c.maxY <= loY) continue;
+    if (c.invisible || c.noCam || c.maxY <= loY || c.minY >= hiY) continue;
     if (c.kind === 'cyl') {
       if (c.x + c.r < loX || c.x - c.r > hiX || c.z + c.r < loZ || c.z - c.r > hiZ) continue;
     } else if (c.maxX < loX || c.minX > hiX || c.maxZ < loZ || c.minZ > hiZ) continue;
