@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Audio audition</title>
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 16px; max-width: 760px; }
+  button { margin: 2px; }
+  fieldset { margin: 10px 0; }
+  #text { width: 100%; }
+  #log { font: 12px monospace; white-space: pre-wrap; background: #f3f3f3; padding: 6px; min-height: 3em; }
+</style>
+</head>
+<body>
+<h1>Audio audition</h1>
+<button id="start">Start audio</button>
+<label>Volume <input id="vol" type="range" min="0" max="1" step="0.05" value="0.7"></label>
+
+<fieldset><legend>Music state</legend>
+  <div id="states"></div>
+  <button id="pivot">pivot()</button>
+  <label>Intensity <input id="int" type="range" min="0" max="1" step="0.05" value="0"></label>
+  <button id="stop">stop()</button>
+</fieldset>
+
+<fieldset><legend>Effects</legend>
+  <div id="sfx"></div>
+  <label>engine rpm <input id="rpm" type="range" min="0" max="1" step="0.01" value="0.2"></label>
+  <label>load <input id="load" type="range" min="0" max="1" step="0.01" value="0.3"></label>
+  <label>source x <input id="sx" type="range" min="-60" max="60" step="1" value="0"></label>
+</fieldset>
+
+<fieldset><legend>Voice</legend>
+  <input id="text" value="Serenity Group Incorporated. We'd like a word about the chair.">
+  <select id="preset"></select>
+  <button id="speak">Speak</button>
+  <button id="hush">Stop voice</button>
+  <div>Lines:
+    <button class="line">Serenity Group Incorporated. We'd like a word about the chair.</button>
+    <button class="line">You're operating without a brand.</button>
+    <button class="line">Sir, they have a permit for the plaza. You don't.</button>
+    <button class="line">This certifies that the licensee escaped.</button>
+    <button class="line">Module one: pressure.</button>
+    <button class="line">[AA AA AA]</button>
+  </div>
+</fieldset>
+<div id="log">Press "Start audio" first.</div>
+
+<script type="module">
+import { createAudio, resume } from '../src/audio.js';
+import { createVoice, planUtterance, PRESETS } from '../src/voice.js';
+
+const $ = (id) => document.getElementById(id);
+const log = (s) => { $('log').textContent = s; };
+let ctx = null, audio = null, voice = null, engineOn = false, sirenOn = false;
+
+$('start').onclick = async () => {
+  if (!ctx) {
+    ctx = new AudioContext();
+    audio = createAudio(ctx);
+    voice = createVoice(ctx);
+  }
+  await resume();
+  await ctx.resume();
+  log(`Audio running at ${ctx.sampleRate} Hz.`);
+};
+const need = () => { if (!audio) { log('Press "Start audio" first.'); return false; } return true; };
+
+for (const s of ['TITLE', 'MASSAGE', 'PIVOT', 'RUN', 'SLOWMO', 'ARREST', 'SUMMARY']) {
+  const b = document.createElement('button'); b.textContent = s;
+  b.onclick = () => { if (need()) { audio.setState(s); log(`state -> ${s} (audio mode ${audio.state})`); } };
+  $('states').append(b);
+}
+$('pivot').onclick = () => { if (need()) { audio.pivot(); log('pivot: 3 s detune, collapse, 1 s silence, RUN'); } };
+$('stop').onclick = () => need() && audio.stop();
+$('int').oninput = (e) => audio && audio.setIntensity(+e.target.value);
+$('vol').oninput = (e) => audio && audio.setVolume(+e.target.value);
+
+const pos = () => ({ x: +$('sx').value, z: 0 });
+const engineUpdate = () => engineOn && audio.sfx('engine', { id: 'car1', type: 'sedan', rpm: +$('rpm').value, load: +$('load').value, ...pos() });
+$('rpm').oninput = engineUpdate; $('load').oninput = engineUpdate;
+$('sx').oninput = () => { engineUpdate(); if (sirenOn) audio.sfx('siren', { id: 'cop1', on: true, ...pos() }); };
+const fxButtons = {
+  'engine on/off': () => { engineOn = !engineOn; if (engineOn) engineUpdate(); else audio.sfx('engineStop', { id: 'car1' }); },
+  'siren on/off': () => { sirenOn = !sirenOn; audio.sfx('siren', { id: 'cop1', on: sirenOn, ...pos() }); },
+};
+for (const n of ['thud', 'tap', 'chairFold', 'pay', 'star', 'stamp']) fxButtons[n] = () => audio.sfx(n, pos());
+fxButtons['tap x8'] = () => { for (let i = 0; i < 8; i++) audio.sfx('tap', { ...pos(), at: ctx.currentTime + 0.01 + i * 0.07 }); };
+for (const [n, fn] of Object.entries(fxButtons)) {
+  const b = document.createElement('button'); b.textContent = n;
+  b.onclick = () => { if (need()) { fn(); log(`sfx ${n}`); } };
+  $('sfx').append(b);
+}
+
+for (const p of Object.keys(PRESETS)) $('preset').append(new Option(p, p));
+function say(text) {
+  if (!need()) return;
+  const preset = $('preset').value;
+  const { duration } = voice.speak(text, preset);
+  const plan = planUtterance(text, preset);
+  log(`duration ${duration.toFixed(2)} s (${preset})\n${plan.phones.map((p) => p.ph).join(' ')}` +
+    (plan.unknown.length ? `\nunknown: ${plan.unknown.join(' ')}` : ''));
+}
+$('speak').onclick = () => say($('text').value);
+$('hush').onclick = () => voice && voice.stop();
+for (const b of document.querySelectorAll('.line')) b.onclick = () => { $('text').value = b.textContent; say(b.textContent); };
+</script>
+</body>
+</html>

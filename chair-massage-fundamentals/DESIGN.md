@@ -283,4 +283,12 @@ windows, and street props.
 4. Vehicles: sedan, van, cart; enter/exit; arcade driving; collisions with world and entities.
 5. NPCs: peds, goons, cops, wanted levels, spawner.
 6. Pivot cutscene, run end conditions, summary card, meta unlocks, return loop.
-7. Audio, title screen, juice, TEST props, perf pass.
+7. Audio and voice wiring (the modules exist: `src/audio.js`, `src/voice.js`), full arcade juice
+   (hit-stop on palm hits, impact-scaled screen shake, particle puffs: dust, sparks off cars, a green
+   "relief" burst on relaxed NPCs, FOV kick on sprint and handbrake, bouncing floaters), the fake course
+   catalog on the title screen (Module 1 unlocked; Modules 2 to 6 listed and locked: Deep Tissue Ethics,
+   Documentation, Draping, Contraindications, Business of Touch; a CE credit hours line; an accreditation
+   badge that says nothing), keyboard-and-mouse only with a polite card for phones carrying the byline and
+   the real chair's address, a one-page `README.md` in the folder for Andy (run locally, the design doc,
+   the Blender skill, how phases and the relay work, where tuning lives), and a perf pass. Decided
+   2026-09-23. Gamepad and touch are v2.
