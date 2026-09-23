@@ -1,11 +1,19 @@
-// DOM HUD overlay. Phase 1: title toggle, status line, crosshair.
-// Meter / circle / wanted / cash / dialogue / cards are named stubs for later phases.
+// DOM HUD overlay: title toggle, status line, crosshair, RUN title strip.
+// The MASSAGE course skin (meter, competency, ledger, subtitles, cards) lives in hud-massage.js
+// and is re-exported here so callers only ever import hud.js.
+import { initMassageHud } from './hud-massage.js';
+
+export {
+  showMassageHud, setMeter, setMeterState, setCompetency, setClientInfo, setModality,
+  showDialogue, hideDialogue, setPrompt, setLedger, showCard, hideCard,
+} from './hud-massage.js';
 
 let root = null;
 let titleEl = null;
 let statusEl = null;
 let crosshairEl = null;
 let hintEl = null;
+let runTitleEl = null;
 
 function el(tag, className, parent) {
   const n = document.createElement(tag);
@@ -22,6 +30,11 @@ export function initHud(hudRoot) {
   crosshairEl.hidden = true;
   hintEl = el('div', 'hud-hint', root);
   hintEl.hidden = true;
+  runTitleEl = el('div', 'hud-runtitle', root);
+  runTitleEl.append('Chair Massage ');
+  el('s', '', runTitleEl).textContent = 'Fundamentals';
+  runTitleEl.hidden = true;
+  initMassageHud(root);
   return root;
 }
 
@@ -42,14 +55,10 @@ export function setHint(text) {
   if (text && hintEl.textContent !== text) hintEl.textContent = text;
 }
 
+export function setRunTitle(visible) {
+  if (runTitleEl) runTitleEl.hidden = !visible;
+}
+
 // --- Later-phase placeholders (names per DESIGN.md HUD list) ---
-export function showMeter(_visible) {}
-export function setMeter(_value, _bandLo, _bandHi) {}
-export function showCircle(_visible) {}
-export function setCircle(_x, _y, _r, _inside) {}
 export function setWanted(_stars) {}
 export function setCash(_amount) {}
-export function showDialogue(_speaker, _text) {}
-export function hideDialogue() {}
-export function showCard(_title, _lines) {}
-export function hideCard() {}

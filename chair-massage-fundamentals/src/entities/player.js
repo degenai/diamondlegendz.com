@@ -1,6 +1,6 @@
 // Player: third-person on-foot controller, orbit camera, procedural walk, elbow stub.
 import * as THREE from '../../vendor/three.module.js';
-import { makePerson } from '../world/props.js';
+import { spawnPerson } from '../world/people.js';
 import { resolveStatic } from '../physics.js';
 
 const WALK = 4;
@@ -24,7 +24,7 @@ const _camTarget = new THREE.Vector3();
 const _camDesired = new THREE.Vector3();
 
 export function createPlayer(scene, pos) {
-  const mesh = makePerson({ shirt: 0x2e9e4f, pants: 0x2a3140, skin: 0xc68e62 });
+  const mesh = spawnPerson('player');
   mesh.position.copy(pos);
   scene.add(mesh);
   return {

@@ -51,9 +51,8 @@ export function buildBlock(seed, scene) {
   colliders.push({ minX: -edge - 2, maxX: -edge, minZ: -edge, maxZ: edge, maxY: Infinity });
   colliders.push({ minX: edge, maxX: edge + 2, minZ: -edge, maxZ: edge, maxY: Infinity });
 
-  // Chair spot marker at origin.
+  // Chair spot at origin (the massage module places the baked chair here).
   const chairSpot = new THREE.Vector3(0, 0, 0);
-  addBox(scene, 0.8, 0.1, 0.8, 0xff8a1f, 0, 0.05, 0);
 
   return { ground, colliders, chairSpot, size: SIZE };
 }

@@ -17,10 +17,19 @@ show up at the park and the game becomes something else.
    Space = "switch modality" now, jump/handbrake later. E = "next client" now, enter vehicle later.
 2. **Short-term by design.** A run is 3 to 8 minutes. Runs end in arrest, death, or escape. Nothing is saved
    except meta unlocks. The game admits it is a roguelike the moment the first run ends.
-3. **Primitive stack.** Procedural geometry only (boxes, cylinders, capsules, cones). No GLB loaders,
-   no textures, no post-processing stack. Flat-shaded `MeshLambertMaterial`, one directional light, one hemisphere light, fog.
-   A few TEST props may be tried later if the procedural look wants help; not in scope until Phase 7.
-4. **Mutual aid thesis, not preached.** The antagonists are a franchise massage chain's "compliance team".
+3. **Primitive stack, two sources.** Flat-shaded low poly, no textures, no post-processing stack, one
+   directional light, one hemisphere light, fog. Anything *with a shape* (chair, vehicles, people, benches,
+   hero props) is authored as a Blender 5.2 bpy script under `tools/blender/` and baked to a loader-free
+   JSON mesh in `assets/` (format: `tools/blender/export_json.py`; reader: `src/assets.js`, ~25 lines,
+   `BufferGeometry` + vertex colours). Anything *seed-driven or numerous* (buildings, trees, roads, paths,
+   the park layout) stays procedural JS. No GLB loader is vendored. Decided 2026-09-23 after the headless
+   Blender probe: 2.5 s per asset, chair 296 tris, sedan 360 tris.
+4. **The Chex Quest rule.** This is a non-violent shooter in the Chex Quest sense (the 1996 Doom
+   conversion where you zorch Flemoids home instead of killing them). Every weapon in the game relaxes
+   its target. Goons, cops, and peds get knocked down, get up loose, and say something relieved. Nobody
+   dies, nothing bleeds, no health bars on NPCs, only a "tension" bar. Vehicles dent and smoke; they do
+   not explode.
+5. **Mutual aid thesis, not preached.** The antagonists are a franchise massage chain's "compliance team".
    The city sides with the franchise. The player never pays to work.
 
 ## Phases of a session (state machine)
@@ -59,6 +68,8 @@ stay inside it. Patterns per modality:
 - Cross-fiber friction: short fast back-and-forth.
 - Trigger point: stationary, but the circle shrinks over 4 seconds then releases.
 Space cycles modality. Each client asks for a modality by name; wrong modality gives half progress.
+Ruling (2026-09-23): the ring only gates *fill*. Over-band pressure drains and flinches even when the
+cursor is off the ring; you hurt them whether or not you are watching your hands.
 
 **Clients.** Three park regulars: a jogger (tight calves, wants Swedish), a retiree from the bench
 (upper traps, wants trigger point), a dad from the playground (forearms from pushing swings, wants
@@ -74,11 +85,19 @@ client dialogue about their day. It should feel like a real, competent, slightly
 
 ## The run (RUN)
 
-**World**: one city block containing a park, rolled from a seed per run. Block is 160m x 160m. Outer
-ring: two-lane road loop with sidewalks. Corners and edges: low-poly buildings (2 to 6 floors, boxes with
-window grids as darker boxes). Center: the park, with paths, a pond, benches, trees (cone on cylinder),
-the massage chair spot. One edge has the ESCAPE point. Seed determines building heights, tree placement,
-path layout, vehicle spawns, escape edge, goon van entry.
+**World** (decided 2026-09-23): one city block containing a **downtown plaza**, rolled from a seed per run.
+Block is 160m x 160m. Outer ring: two-lane road loop with sidewalks, parked cars along the curb. Edges and
+corners: **mixed low-rise, seeded** (2 to 6 floors, brick and stucco colours, window grids as darker boxes,
+a few storefronts with awnings; one building per block is always a SERENITY GROUP location with a lit sign).
+Centre: the plaza, paved, with a fountain, planters, low walls and steps (sittable, jumpable), a few food
+carts, benches, trees in grates (cone on cylinder), the massage chair spot near the fountain. One edge has
+the ESCAPE point. Seed determines building heights and colours, plaza layout variant, planter and cart
+placement, vehicle spawns, escape edge, goon van entry. **Lighting:** late afternoon, warm sun, no shadow
+maps; each seed nudges sun azimuth, elevation, and fog distance so runs look a little different.
+Colliders: buildings are AABBs; plaza walls and planters are low AABBs the player can stand on (the
+physics needs a top-surface landing for low boxes, see Phase 3 brief); the fountain is a cylinder collider.
+Camera must not clip into buildings: clamp the third-person camera distance to the first collider hit
+along the player-to-camera segment.
 
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
 controls camera yaw/pitch (pointer lock). Shift sprint. Space jump. E interact (enter/exit vehicle,
@@ -87,6 +106,19 @@ shake). It is the only player weapon. A hit knocks the target down for about 3 s
 they are visibly relaxed (slower posture, arms loose), say a relieved line ("...oh. Oh, that's better."),
 and a "TENSION RELEASED" floater pops. Goons who get up relaxed stop chasing for 8 seconds before
 their boss's radio puts them back on. Nobody dies from the Healing Palm.
+
+**Massage gun** (added 2026-09-23): the only ranged weapon, and it starts as a literal massage gun. Right
+click fires it. Level 0: contact range (1.5 m), percussive taps, same relaxation effect as the Healing Palm
+but faster and weaker (three taps to knock down). Range upgrades extend the percussion into a visible
+shockwave: level 1 = 4 m, level 2 = 8 m with a cone, level 3 = 14 m "Pro" with knockback that flips
+peds and dents cars. Range levels are **meta unlocks only** (earned at run summaries, persist across runs; the gun itself is
+the first unlock after run 1, so run 1 is palm-only). Battery, not ammo: 100 charge, drains per shot,
+recharges only by giving a mini-massage to a ped client (the same action that cools wanted level) or
+slowly while standing still near the chair. The chair is the charging dock, which is one more reason not
+to leave it. **Cops** react like goons: a relaxed cop walks off pursuit for a while and says something
+human; wanted level does not drop, the pressure does. Visual: a
+gold and green handheld with a round head; upgrades add a longer barrel and a bigger head. Blender asset
+`assets/massagegun.json`, one mesh per level or a scaled head.
 
 **Vehicles**: 3 types minimum: sedan, franchise van, park maintenance golf cart. Arcade physics:
 forward speed with accel/brake, steering scaled by speed, drift on Space (handbrake). Box body on
@@ -117,9 +149,10 @@ pivot fires: "Don't leave the chair." Leaving the block without it is a loss (th
 
 Persisted in localStorage under `cmf.meta.v1`:
 - `runs`, `bestTime`, `bestCash`, `escapes`
-- unlocks: bit set. Unlock order: sprint stamina up, chair auto-fold (faster pickup), "regular client"
-  (one guaranteed cooling client per run), cart keys (start with a cart), franchise disguise (goons ignore
-  you for 20s once), "block party" (peds cheer, cops slower).
+- unlocks: bit set. Unlock order: massage gun (level 0), sprint stamina up, gun range 1, chair auto-fold
+  (faster pickup), "regular client" (one guaranteed cooling client per run), gun range 2, cart keys (start
+  with a cart), franchise disguise (goons ignore you for 20s once), gun range 3 "Pro", "block party"
+  (peds cheer, cops slower).
 Each SUMMARY unlocks the next item. Massage phase between runs mentions the unlock in client dialogue.
 
 ## Technical contracts
@@ -141,7 +174,14 @@ src/physics.js     circle-vs-circle, circle-vs-AABB, vehicle vs static; no exter
 src/massage/*.js   minigame: clients, pressure meter, stroke circle, modalities, dialogue
 src/run/*.js       wanted, spawner, end conditions, summary
 src/audio.js       WebAudio procedural: engine hum, hit thud, siren, chair fold; one music loop per state
+src/assets.js      loadMesh(url) -> Group of named children from the JSON format; cache; preload(list)
+assets/*.json      baked Blender meshes (chair, sedan, van, cart, person, ...) ; regenerate via tools/blender
+tools/blender/     bpy scripts + lowpoly.py helpers + export_json.py; run headless, see the blender-lowpoly skill
 ```
+
+People from Blender are one neutral jointed `person.json` (objects named head, torso, upperArmL/R,
+lowerArmL/R, upperLegL/R, lowerLegL/R, each pivoting at its joint). Code recolours by object name
+(shirt, pants, skin, hair) so peds, clients, goons, cops are variants of one mesh, not separate files.
 
 Every entity is a plain object `{ id, kind, pos: Vector3, vel: Vector3, yaw, radius, hp, mesh, ...}`.
 `ctx` passed to updates contains `{ world, entities, player, input, rng, wanted, hud, audio, time }`.

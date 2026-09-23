@@ -35,6 +35,65 @@
   #title button:hover { background: #3f6b47; }
   #title .fine { font-size: 11px; color: #999; margin-top: 24px; }
   #mobile-note { background: #fff4d6; border: 1px solid #e0c77a; padding: 10px 14px; font-size: 13px; margin-bottom: 18px; }
+
+  /* RUN title strip: the course is over. */
+  .hud-runtitle { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font: 15px Georgia, "Times New Roman", serif;
+    color: #fff; background: rgba(0,0,0,.55); padding: 4px 12px; border-radius: 3px; letter-spacing: .02em; }
+  .hud-runtitle s { color: #ff8a7a; text-decoration-thickness: 2px; }
+
+  /* MASSAGE HUD: continuing-education course skin. */
+  :root { --cm-paper: #f3ecd8; --cm-ink: #3b3326; --cm-rule: #cdbf9a; --cm-accent: #6b5a2e; --cm-ok: #4a7a52;
+    --cm-serif: Georgia, "Times New Roman", Times, serif; }
+  body.massage #game { cursor: crosshair; }
+  body.massage .hud-status { display: none; }
+  .cm-hud { position: absolute; inset: 0; color: var(--cm-ink); font-family: var(--cm-serif); }
+  .cm-panel { position: absolute; background: var(--cm-paper); border: 1px solid var(--cm-rule);
+    box-shadow: 0 2px 6px rgba(0,0,0,.18); }
+  .cm-panel h2 { font: normal 13px var(--cm-serif); text-transform: uppercase; letter-spacing: .08em; color: var(--cm-accent);
+    margin: 0 0 8px; border-bottom: 1px solid var(--cm-rule); padding-bottom: 4px; }
+  .cm-head { top: 12px; left: 50%; transform: translateX(-50%); width: min(560px, 70vw); padding: 8px 16px 10px; }
+  .cm-kicker { font-size: 11px; color: #8a7b58; letter-spacing: .06em; text-transform: uppercase; }
+  .cm-head h1 { font: normal 22px var(--cm-serif); margin: 2px 0 2px; color: #2d2616; }
+  .cm-client { font-size: 13px; font-style: italic; color: #5d5240; min-height: 1.2em; }
+  .cm-comp { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 13px; }
+  .cm-comp-label { width: 88px; }
+  .cm-bar { flex: 1; height: 12px; background: #fffaf0; border: 1px solid var(--cm-rule); overflow: hidden; }
+  .cm-bar i { display: block; height: 100%; width: 0; background: var(--cm-ok); }
+  .cm-comp b { width: 40px; text-align: right; font-weight: normal; }
+  .cm-gauge { left: 16px; top: 50%; transform: translateY(-50%); width: 92px; padding: 10px 10px 12px; text-align: center; }
+  .cm-track { position: relative; height: 260px; width: 26px; margin: 4px auto 8px 22px; background: #fffaf0; border: 1px solid #a8996f; }
+  .cm-hintzone { position: absolute; left: 0; right: 0; background: rgba(74,122,82,.28); }
+  .cm-fill { position: absolute; left: 4px; right: 4px; bottom: 0; height: 0; background: #b89a55; opacity: .75; }
+  .cm-fill[data-zone="over"] { background: #b8473a; }
+  .cm-fill[data-zone="in"] { background: #6f8f4e; }
+  .cm-needle { position: absolute; left: -6px; right: -6px; height: 2px; margin-bottom: -1px; background: #2d2616; }
+  .cm-tick { position: absolute; left: 100%; width: 6px; height: 1px; background: #8a7b58; }
+  .cm-tick-major { width: 11px; }
+  .cm-tick span { position: absolute; left: 14px; top: -7px; font-size: 11px; color: #6d6048; }
+  .cm-pval { font-size: 20px; }
+  .cm-keys { font-size: 11px; color: #8a7b58; }
+  .cm-mod { right: 16px; top: 132px; width: 210px; padding: 10px 12px; font-size: 14px; }
+  .cm-mod-cur { font-size: 18px; color: var(--cm-ok); }
+  .cm-mod-cur.cm-wrong { color: #a0463a; }
+  .cm-mod-req, .cm-mod-note { font-size: 12px; color: #6d6048; margin-top: 4px; }
+  .cm-ledger { right: 16px; bottom: 96px; width: 250px; padding: 10px 12px; font-size: 13px; line-height: 1.5; }
+  .cm-ledger-top { font-size: 15px; color: #2d2616; }
+  .cm-ledger-row { color: #5d5240; }
+  .cm-prompt { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); background: #4a7a52; color: #fff;
+    font: 15px var(--cm-serif); padding: 7px 16px; border: 1px solid #3a6242; }
+  .cm-sub { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); max-width: min(760px, 80vw);
+    background: rgba(35,30,20,.78); color: #fbf6e6; font: 17px var(--cm-serif); padding: 8px 16px; text-align: center; }
+  .cm-sub b { color: #e6cf8e; font-weight: normal; }
+  .cm-card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 5; }
+  .cm-card-course { background: rgba(40,34,22,.35); }
+  .cm-card-course .cm-card-inner { background: var(--cm-paper); color: var(--cm-ink); border: 1px solid var(--cm-rule);
+    max-width: 520px; padding: 22px 28px; font: 16px/1.55 var(--cm-serif); box-shadow: 0 6px 22px rgba(0,0,0,.3); }
+  .cm-card-course h2 { font: normal 24px var(--cm-serif); margin: 0 0 10px; color: #2d2616; }
+  .cm-card-course p { margin: 0 0 10px; }
+  .cm-card-course p:last-child { margin: 14px 0 0; font-size: 13px; color: #8a7b58; font-style: italic; }
+  .cm-card-black { background: #000; }
+  .cm-card-black .cm-card-inner { color: #eee; font: 22px var(--mono); letter-spacing: .04em; text-align: center; padding: 0 24px; }
+  .cm-card-black h2 { font: inherit; margin: 0; }
 </style>
 </head>
 <body>

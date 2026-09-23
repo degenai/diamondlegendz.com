@@ -4,7 +4,8 @@ import { STATES, setState, getState, onEnter, onExit } from './state.js';
 import * as input from './input.js';
 import { makeRng, hashSeed } from './rng.js';
 import { buildBlock } from './world/block.js';
-import { makeChair } from './world/props.js';
+import { preload } from './assets.js';
+import * as meta from './meta.js';
 import { createPlayer } from './entities/player.js';
 import { addEntity, updateAll } from './entities/index.js';
 import * as hud from './hud.js';
@@ -60,9 +61,8 @@ function boot() {
   const rng = makeRng(seed);
   const world = buildBlock(seed, scene);
 
-  const chair = makeChair();
-  chair.position.set(world.chairSpot.x + 1.2, 0, world.chairSpot.z);
-  scene.add(chair);
+  // Baked meshes: the chair is placed by the massage module at world.chairSpot.
+  preload(['assets/chair.json']).catch((err) => console.warn('[CMF] preload failed', err));
 
   const entities = [];
   const player = addEntity(entities, createPlayer(scene, new THREE.Vector3(0, 0, 3)));
@@ -77,7 +77,11 @@ function boot() {
     world, entities, player, input: null, rng,
     wanted: null, hud, audio: null, time: 0,
     camera, scene, seed,
+    meta: meta.load(),
+    massageTotals: { you: 0, host: 0 },
+    station: null,
   };
+  let pivotT = 0;
 
   function updateHint() {
     if (getState() === STATES.RUN && !input.isLocked()) {
@@ -92,16 +96,28 @@ function boot() {
   onExit(STATES.TITLE, () => hud.hideTitle());
   onEnter(STATES.MASSAGE, () => massage.enter(ctx));
   onExit(STATES.MASSAGE, () => massage.exit(ctx));
-  onEnter(STATES.RUN, () => updateHint());
-  onExit(STATES.RUN, () => { input.releaseLock(); hud.setHint(''); });
+  onEnter(STATES.PIVOT, () => {
+    // Phase 6 replaces this stub with the scripted van cutscene.
+    pivotT = 0;
+    hud.showCard('SERENITY GROUP INCORPORATED would like a word.', [], 'black');
+  });
+  onExit(STATES.PIVOT, () => hud.hideCard());
+  onEnter(STATES.RUN, (prev) => {
+    // The lie is only spent once the player actually reaches the run.
+    if (prev === STATES.PIVOT && !ctx.meta.firstPivotSeen) {
+      ctx.meta.firstPivotSeen = true;
+      meta.save(ctx.meta);
+    }
+    hud.setRunTitle(true); updateHint();
+  });
+  onExit(STATES.RUN, () => { input.releaseLock(); hud.setHint(''); hud.setRunTitle(false); });
 
   const beginBtn = document.getElementById('begin');
   if (beginBtn) {
     beginBtn.addEventListener('click', () => {
-      // TODO(Phase 2): go to STATES.MASSAGE here instead of straight to RUN.
+      // MASSAGE uses the absolute mouse; pointer lock waits for RUN (next canvas click).
       beginBtn.blur();
-      setState(STATES.RUN);
-      input.requestLock();
+      setState(STATES.MASSAGE);
     });
   }
 
@@ -117,7 +133,10 @@ function boot() {
   window.CMF = {
     scene, camera, entities, player, world, renderer,
     state: { get current() { return getState(); }, STATES },
-    input, setState,
+    input, setState, ctx,
+    get massage() { return massage.debugState(); },
+    massageTuning: massage.tuning,
+    get meta() { return ctx.meta; },
   };
 
   setState(STATES.TITLE);
@@ -135,6 +154,9 @@ function boot() {
       updateAll(dt, ctx);
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);
+    } else if (s === STATES.PIVOT) {
+      pivotT += dt;
+      if (pivotT >= 3) setState(STATES.RUN);
     }
   }
 
