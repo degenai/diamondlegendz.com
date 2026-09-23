@@ -1,7 +1,7 @@
 // Player: third-person on-foot controller, orbit camera, procedural walk, elbow stub.
 import * as THREE from '../../vendor/three.module.js';
 import { spawnPerson } from '../world/people.js';
-import { resolveStatic } from '../physics.js';
+import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
 
 const WALK = 4;
 const SPRINT = 7;
@@ -12,6 +12,8 @@ const GRAVITY = 18;
 const CAM_DIST = 6;
 const CAM_HEIGHT = 2.5;
 const LOOK_HEIGHT = 1.5;
+const HEAD_HEIGHT = 1.6;   // camera clamp ray starts here
+const CAM_PAD = 0.3;       // stay this far in front of the first collider hit
 const PITCH_MIN = -0.35;
 const PITCH_MAX = 1.1;
 const MOUSE_SENS = 0.0025;
@@ -22,6 +24,7 @@ const _right = new THREE.Vector3();
 const _wish = new THREE.Vector3();
 const _camTarget = new THREE.Vector3();
 const _camDesired = new THREE.Vector3();
+const _head = new THREE.Vector3();
 
 export function createPlayer(scene, pos) {
   const mesh = spawnPerson('player');
@@ -42,6 +45,8 @@ export function createPlayer(scene, pos) {
     walkPhase: 0,
     elbowT: 0,
     camInit: false,
+    camDist: CAM_DIST,   // head-to-camera distance after the collider clamp
+    floorInit: false,
     update: updatePlayer,
   };
 }
@@ -83,7 +88,15 @@ export function updatePlayer(p, dt, ctx) {
   p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
   p.vel.z += THREE.MathUtils.clamp(tz - p.vel.z, -a, a);
 
-  // --- jump + gravity (ground at y = 0) ---
+  const colliders = ctx.world ? ctx.world.colliders : null;
+  // First tick after spawn: stand on whatever walk surface is under the spawn point.
+  if (colliders && !p.floorInit) {
+    p.pos.y = Math.max(p.pos.y, floorHeightAt(p.pos.x, p.pos.z, colliders));
+    p.floorInit = true;
+  }
+  const prevFeet = p.pos.y;
+
+  // --- jump + gravity; land on the street or on the top of a low collider ---
   if (input && input.spacePressed && p.grounded) {
     p.vel.y = JUMP_V;
     p.grounded = false;
@@ -91,13 +104,19 @@ export function updatePlayer(p, dt, ctx) {
   p.vel.y -= GRAVITY * dt;
 
   p.pos.addScaledVector(p.vel, dt);
-  if (p.pos.y <= 0) {
-    p.pos.y = 0;
+  const floor = colliders ? supportHeight(p.pos, p.radius, prevFeet, p.grounded, colliders) : 0;
+  if (p.pos.y <= floor) {
+    p.pos.y = floor;
     if (p.vel.y < 0) p.vel.y = 0;
     p.grounded = true;
+  } else if (p.grounded && p.vel.y <= 0 && p.pos.y - floor <= LAND_BAND) {
+    p.pos.y = floor;          // walking down a kerb or a step
+    p.vel.y = 0;
+  } else {
+    p.grounded = false;
   }
 
-  if (ctx.world) resolveStatic(p, ctx.world.colliders);
+  if (colliders) resolveStatic(p, colliders);
 
   // --- facing: turn toward movement direction ---
   const hSpeed = Math.hypot(p.vel.x, p.vel.z);
@@ -116,7 +135,7 @@ export function updatePlayer(p, dt, ctx) {
 
   animate(p, dt, hSpeed);
   syncMesh(p);
-  updateCamera(p, dt, ctx.camera);
+  updateCamera(p, dt, ctx.camera, colliders);
 }
 
 function animate(p, dt, hSpeed) {
@@ -144,7 +163,7 @@ function syncMesh(p) {
   p.mesh.rotation.y = p.yaw;
 }
 
-function updateCamera(p, dt, camera) {
+function updateCamera(p, dt, camera, colliders) {
   if (!camera) return;
   _camTarget.set(p.pos.x, p.pos.y + LOOK_HEIGHT, p.pos.z);
   const horiz = Math.cos(p.camPitch) * CAM_DIST;
@@ -154,11 +173,26 @@ function updateCamera(p, dt, camera) {
     p.pos.z + Math.cos(p.camYaw) * horiz,
   );
   _camDesired.y = Math.max(0.3, _camDesired.y);
+
+  // Clamp: march from the head toward the camera; stop CAM_PAD short of the first collider.
+  _head.set(p.pos.x, p.pos.y + HEAD_HEIGHT, p.pos.z);
+  const full = _head.distanceTo(_camDesired);
+  let dist = full;
+  if (colliders && full > 1e-4) {
+    const hit = segmentHit(_head, _camDesired, colliders, 0.25);
+    if (hit < full) dist = Math.max(0.2, hit - CAM_PAD);
+  }
+  p.camDist = dist;
+  if (dist < full) _camDesired.sub(_head).multiplyScalar(dist / full).add(_head);
+
   if (!p.camInit) {
     camera.position.copy(_camDesired);
     p.camInit = true;
   } else {
     camera.position.lerp(_camDesired, 1 - Math.exp(-10 * dt));
+    // Never let the smoothing drag the camera back through the wall it was clamped by.
+    const d = camera.position.distanceTo(_head);
+    if (d > dist) camera.position.sub(_head).multiplyScalar(dist / d).add(_head);
   }
   camera.lookAt(_camTarget);
 }

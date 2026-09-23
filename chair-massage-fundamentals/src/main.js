@@ -43,23 +43,27 @@ function boot() {
   renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
-  const sky = 0xbcd6e8;
-  scene.background = new THREE.Color(sky);
-  scene.fog = new THREE.Fog(sky, 40, 170);
-
-  scene.add(new THREE.HemisphereLight(0xdfefff, 0x4a5a3a, 0.9));
-  const sun = new THREE.DirectionalLight(0xfff2dd, 1.6);
-  sun.position.set(40, 80, 25);
-  sun.castShadow = false;
-  scene.add(sun);
 
   const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 400);
   camera.position.set(0, 3, -8);
   camera.lookAt(0, 1, 0);
 
-  const seed = hashSeed(String(Date.now()));
+  // Run seed: ?seed=<number or text> pins it (debug / sharing); otherwise the clock.
+  const seedParam = new URLSearchParams(window.location.search).get('seed');
+  const seed = seedParam === null ? hashSeed(String(Date.now()))
+    : /^\d+$/.test(seedParam) ? Number(seedParam) >>> 0 : hashSeed(seedParam);
   const rng = makeRng(seed);
   const world = buildBlock(seed, scene);
+
+  // Late-afternoon lighting, nudged per seed by the block (world.sun). No shadow maps.
+  const sunInfo = world.sun;
+  scene.background = new THREE.Color(sunInfo.sky);
+  scene.fog = new THREE.Fog(sunInfo.sky, sunInfo.fogNear, sunInfo.fogFar);
+  scene.add(new THREE.HemisphereLight(sunInfo.hemiSky, sunInfo.ground, sunInfo.hemi));
+  const sun = new THREE.DirectionalLight(sunInfo.color, sunInfo.intensity);
+  sun.position.copy(sunInfo.dir).multiplyScalar(120);
+  sun.castShadow = false;
+  scene.add(sun);
 
   // Baked meshes: the chair is placed by the massage module at world.chairSpot.
   preload(['assets/chair.json']).catch((err) => console.warn('[CMF] preload failed', err));

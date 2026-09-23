@@ -86,3 +86,58 @@ export function makeChair({ pad = 0x1d2a3a, frame = 0x9aa3ad } = {}) {
   g.add(part(cyl(0.02, 0.02, 0.5, 6), frame, 0, 0.95, 0.22));          // center post
   return g;
 }
+
+// --- Street furniture. Each factory is a list of box parts in a local frame (facing +Z, origin
+// on the ground), used both by the Group factories and by the static batcher (one draw call).
+
+// Bench: seat slab, back, two legs. Seat front faces +Z. Footprint 1.8 x 0.6, seat 0.45 high.
+export function benchParts({ wood = 0x8a5a36, iron = 0x2f3336 } = {}) {
+  return [
+    { w: 1.8, h: 0.08, d: 0.5, c: wood, x: 0, y: 0.45, z: 0.02 },               // seat slab
+    { w: 1.8, h: 0.42, d: 0.07, c: wood, x: 0, y: 0.72, z: -0.24, tilt: -0.12 }, // back
+    { w: 0.08, h: 0.45, d: 0.5, c: iron, x: -0.75, y: 0.22, z: 0 },             // legs
+    { w: 0.08, h: 0.45, d: 0.5, c: iron, x: 0.75, y: 0.22, z: 0 },
+  ];
+}
+
+// Food cart: body, wheels, corner posts, roof, awning over the serving side (+Z).
+// Footprint 2.2 x 1.3 (x by z), roof at 2.3 m.
+export function cartParts({ awning = 0xd9534f, body = 0xdad7cf } = {}) {
+  const parts = [
+    { w: 2.2, h: 1.0, d: 1.2, c: body, x: 0, y: 0.85, z: 0 },
+    { w: 2.24, h: 0.08, d: 1.28, c: 0x8d9296, x: 0, y: 1.39, z: 0 },          // counter top
+    { w: 0.12, h: 0.5, d: 0.5, c: 0x222222, x: -0.8, y: 0.25, z: 0 },          // wheels
+    { w: 0.12, h: 0.5, d: 0.5, c: 0x222222, x: 0.8, y: 0.25, z: 0 },
+    { w: 2.4, h: 0.1, d: 1.5, c: awning, x: 0, y: 2.3, z: 0 },                 // roof
+    { w: 2.4, h: 0.05, d: 0.8, c: awning, x: 0, y: 2.12, z: 1.05, tilt: 0.45 }, // awning
+    { w: 2.2, h: 0.18, d: 0.03, c: 0xf4f1e8, x: 0, y: 1.1, z: 0.62 },         // menu stripe
+  ];
+  for (const [x, z] of [[-1.05, -0.6], [1.05, -0.6], [-1.05, 0.6], [1.05, 0.6]]) {
+    parts.push({ w: 0.05, h: 0.9, d: 0.05, c: 0x8d9296, x, y: 1.85, z });
+  }
+  return parts;
+}
+
+function groupFromParts(parts, name) {
+  const g = new THREE.Group();
+  g.name = name;
+  for (const p of parts) {
+    const m = part(box(p.w, p.h, p.d), p.c, p.x, p.y, p.z);
+    if (p.tilt) m.rotation.x = p.tilt;
+    g.add(m);
+  }
+  return g;
+}
+
+export function makeBench(opts) { return groupFromParts(benchParts(opts), 'bench'); }
+export function makeFoodCart(opts) { return groupFromParts(cartParts(opts), 'foodCart'); }
+
+// Place a part list into a batch at (x, y, z) turned by yaw. addBoxFn = batch.addBox.
+export function placeParts(addBoxFn, batch, parts, x, y, z, yaw) {
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  for (const p of parts) {
+    const wx = x + p.x * c + p.z * s;
+    const wz = z - p.x * s + p.z * c;
+    addBoxFn(batch, p.w, p.h, p.d, p.c, wx, y + p.y, wz, yaw, p.tilt || 0);
+  }
+}
