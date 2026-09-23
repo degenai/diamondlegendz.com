@@ -175,7 +175,7 @@ function boot() {
     onEnter(s, () => {
       // Debug entry without a runEnd: an ESCAPE that nobody verified cannot know the chair came along.
       if (!ctx.runEnd) ctx.runEnd = { reason: s === STATES.ARREST ? 'arrest' : s === STATES.DEATH ? 'death' : 'left', time: ctx.time };
-      player.massaging = false;
+      player.massaging = false; player.foldT = 0; // a fold in progress must not finish under the slow motion
       resetEscapeMarker(ctx);
       startSlowmo(ctx, ctx.runEnd.reason);
     });
