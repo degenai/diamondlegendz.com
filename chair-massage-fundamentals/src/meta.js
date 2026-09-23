@@ -27,7 +27,9 @@ export function load() {
   try { data = JSON.parse(window.localStorage.getItem(KEY) || 'null'); } catch (_) { data = null; }
   const m = { ...DEFAULTS, unlocks: [] };
   if (data && typeof data === 'object') {
-    for (const k of ['runs', 'bestTime', 'bestCash', 'escapes']) if (Number.isFinite(data[k])) m[k] = data[k];
+    // Counts are whole and nobody escapes in negative time: a hand-edited value that is not falls back.
+    for (const k of ['runs', 'bestTime', 'bestCash', 'escapes']) if (Number.isFinite(data[k]) && data[k] >= 0 && data[k] < 1e9) m[k] = data[k];
+    m.runs = Math.floor(m.runs); m.escapes = Math.min(Math.floor(m.escapes), m.runs);
     m.firstPivotSeen = data.firstPivotSeen === true;
     if (Array.isArray(data.unlocks)) m.unlocks = data.unlocks.filter((id) => UNLOCKS.some((u) => u.id === id));
     if (typeof data.lastOutcome === 'string') m.lastOutcome = data.lastOutcome;
