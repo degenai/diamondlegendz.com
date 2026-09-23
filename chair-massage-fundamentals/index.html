@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+<title>Chair Massage Fundamentals</title>
+<link rel="icon" href="data:,">
+<style>
+  :root { --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", "Courier New", monospace; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #bcd6e8; font-family: var(--mono); }
+  #game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  #hud { position: fixed; inset: 0; pointer-events: none; color: #fff; }
+  [hidden] { display: none !important; }
+  .hud-status { position: absolute; top: 8px; left: 10px; font-size: 12px; padding: 3px 6px;
+    background: rgba(0,0,0,.45); border-radius: 3px; white-space: pre; }
+  .hud-crosshair { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px;
+    border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+  .hud-hint { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); font-size: 13px;
+    padding: 6px 10px; background: rgba(0,0,0,.55); border-radius: 3px; max-width: 90vw; text-align: center; }
+
+  /* Title: a deliberately dull continuing-education landing page. */
+  #title { position: fixed; inset: 0; background: #f3f3ef; color: #333; overflow: auto; z-index: 10; }
+  #title .bar { background: #3d5a73; color: #e9eef2; padding: 10px 24px; font-size: 13px; display: flex; justify-content: space-between; }
+  #title .wrap { max-width: 760px; margin: 40px auto; padding: 0 16px; }
+  #title .crumb { font-size: 12px; color: #777; margin-bottom: 14px; }
+  #title h1 { font-size: 28px; font-weight: normal; margin: 0 0 6px; color: #23394d; }
+  #title h2 { font-size: 17px; font-weight: normal; margin: 0 0 22px; color: #555; }
+  #title .card { background: #fff; border: 1px solid #d6d6cf; padding: 18px 22px; margin-bottom: 18px; font-size: 14px; line-height: 1.6; }
+  #title .card h3 { font-size: 14px; margin: 0 0 8px; color: #3d5a73; text-transform: uppercase; letter-spacing: .04em; }
+  #title ul { margin: 0; padding-left: 20px; }
+  #title .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; font-size: 13px; color: #555; }
+  #title button { font-family: var(--mono); font-size: 15px; background: #4a7a52; color: #fff; border: 1px solid #3a6242;
+    padding: 10px 22px; cursor: pointer; }
+  #title button:hover { background: #3f6b47; }
+  #title .fine { font-size: 11px; color: #999; margin-top: 24px; }
+  #mobile-note { background: #fff4d6; border: 1px solid #e0c77a; padding: 10px 14px; font-size: 13px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="hud"></div>
+
+<div id="title">
+  <div class="bar"><span>Continuing Education Portal</span><span>Course 101-CM &middot; 0.5 CE hours</span></div>
+  <div class="wrap">
+    <div class="crumb">Home &rsaquo; Courses &rsaquo; Bodywork &rsaquo; Chair Massage Fundamentals</div>
+    <h1>Chair Massage Fundamentals</h1>
+    <h2>Module 1: Pressure</h2>
+    <div id="mobile-note" hidden>This module requires a keyboard and mouse. Please continue on a desktop or laptop computer.</div>
+    <div class="card">
+      <h3>Learning objectives</h3>
+      <ul>
+        <li>Apply appropriate pressure using the pressure meter (W / S).</li>
+        <li>Track stroke patterns with the mouse.</li>
+        <li>Select the requested modality (Space).</li>
+        <li>Transition efficiently between clients (E).</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="meta">
+        <div>Format: Interactive</div>
+        <div>Duration: approx. 5 min</div>
+        <div>Prerequisites: None</div>
+        <div>Assessment: None</div>
+      </div>
+    </div>
+    <button id="begin" type="button">Begin Module</button>
+    <div class="fine">Completion of this module does not constitute licensure. Please consult your state board.</div>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
