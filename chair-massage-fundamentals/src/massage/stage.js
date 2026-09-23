@@ -137,3 +137,72 @@ export function placeHands(st, spot, pressure, v) {
   // the therapist faces the client's back, so the client's left-of-spine hand is the therapist's right
   poseReaching(st.therapist, THERAPIST_LEAN, _r, _l);
 }
+
+// ---- Phase 6: the pivot and the hand-off to the run ----
+// Head pivots for speech bubbles (null when the cast is gone).
+export function castHeads(st) {
+  return {
+    client: st && st.client ? st.client.userData.head : null,
+    therapist: st && st.therapist ? st.therapist.userData.head : null,
+  };
+}
+
+// PIVOT: hands off the back, the therapist straightens up; the client stays in the chair.
+export function pivotPose(st) {
+  st.hands.forEach((h) => { h.visible = false; });
+  if (st.therapist) resetPose(st.therapist);
+}
+
+// World-space therapist spot and facing (the player takes over from here).
+export function therapistSpot(st, out) {
+  st.station.localToWorld(out.set(THERAPIST.x, 0, THERAPIST.z));
+  return STATION_YAW + THERAPIST.yaw;
+}
+
+// PIVOT -> RUN: the therapist becomes the player; the client stands up beside the chair and
+// walks off loose, away from (awayX, awayZ). The station keeps only the chair.
+export function releaseCast(st, scene, awayX, awayZ) {
+  if (st.therapist) { st.station.remove(st.therapist); disposePerson(st.therapist); st.therapist = null; }
+  st.hands.forEach((h) => { scene.remove(h); });
+  if (st.hands[0]) st.hands[0].geometry.dispose();
+  st.hands = [];
+  const m = st.client;
+  st.client = null;
+  if (!m) return;
+  resetPose(m);
+  st.station.localToWorld(_v.set(0.55, 0, -0.75));
+  scene.add(m);
+  m.position.copy(_v);
+  let dx = _v.x - awayX, dz = _v.z - awayZ;
+  const d = Math.hypot(dx, dz) || 1;
+  dx /= d; dz /= d;
+  m.rotation.set(0, Math.atan2(dx, dz), 0);
+  st.leaver = { m, t: 0, dx, dz };
+}
+
+// Per tick in RUN until the client is gone (about 9 s).
+export function updateLeaver(st, dt, scene) {
+  const L = st && st.leaver;
+  if (!L) return false;
+  L.t += dt;
+  const m = L.m, j = m.userData.joints;
+  const walking = L.t > 0.6;
+  if (walking) { m.position.x += L.dx * 1.0 * dt; m.position.z += L.dz * 1.0 * dt; }
+  const sw = walking ? Math.sin(L.t * 5.5) * 0.5 : 0;
+  j.upperLegL.rotation.x = sw; j.upperLegR.rotation.x = -sw;
+  // Loose: arms hang wide and heavy, head tipped back, a slow sway.
+  j.upperArmL.rotation.set(-sw * 0.4, 0, 0.2 + Math.sin(L.t * 0.8) * 0.05);
+  j.upperArmR.rotation.set(sw * 0.4, 0, -0.2 - Math.sin(L.t * 0.8) * 0.05);
+  m.userData.head.rotation.x = -0.2;
+  m.userData.torso.rotation.z = Math.sin(L.t * 0.6) * 0.04;
+  if (L.t > 9) removeLeaver(st, scene);
+  return true;
+}
+
+export function removeLeaver(st, scene) {
+  const L = st && st.leaver;
+  if (!L) return;
+  scene.remove(L.m);
+  disposePerson(L.m);
+  st.leaver = null;
+}

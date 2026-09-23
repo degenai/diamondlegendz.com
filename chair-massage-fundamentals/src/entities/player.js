@@ -4,10 +4,11 @@
 import * as THREE from '../../vendor/three.module.js';
 import { spawnPerson } from '../world/people.js';
 import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
-import { handleInteract } from './interact.js';
+import { handleInteract, interaction } from './interact.js';
 import { updateChaseCamera, blendLook } from './chase-cam.js';
 import { startPalm, updatePalm, updateHealth, applyShake } from './palm.js';
 import { poseTherapist } from '../run/minimassage.js';
+import { updateGun, poseGun } from './gun.js';
 
 const WALK = 4;
 const SPRINT = 7;
@@ -25,6 +26,8 @@ const PITCH_MAX = 1.1;
 const MOUSE_SENS = 0.0025;
 const KNOCK_DECEL = 9;     // m/s^2 slide while knocked down
 const KNOCK_TILT = -1.35;  // rig tilts back (rad about local X)
+const FOLD = 0.5;          // s to fold the chair onto your back / into a vehicle (auto-fold halves it)
+const FOLD_ACTS = new Set(['pickup', 'take', 'load']);
 
 const _fwd = new THREE.Vector3();
 const _right = new THREE.Vector3();
@@ -75,8 +78,19 @@ function wrapAngle(a) {
 export function updatePlayer(p, dt, ctx) {
   const input = ctx.input;
 
-  if (input && input.ePressed) handleInteract(p, ctx);
+  // Chair folding takes a moment (standing still); every other E acts at once.
+  if (input && input.ePressed && !(p.foldT > 0)) {
+    const act = p.vehicle ? null : interaction(p, ctx).act;
+    if (FOLD_ACTS.has(act)) { p.foldT = FOLD * ((ctx.perks && ctx.perks.foldMul) || 1); p.foldAct = act; }
+    else handleInteract(p, ctx);
+  }
+  if (p.foldT > 0) {
+    p.foldT -= dt;
+    if (p.knockedT > 0 || p.vehicle) p.foldT = 0;
+    else if (p.foldT <= 0) { p.foldT = 0; if (interaction(p, ctx).act === p.foldAct) handleInteract(p, ctx); }
+  }
   updateHealth(p, dt, ctx);
+  updateGun(p, dt, ctx);
   if (p.vehicle) {
     // Driving: the vehicle reads the input; the player rides along hidden.
     p.pos.copy(p.vehicle.pos);
@@ -105,7 +119,7 @@ export function updatePlayer(p, dt, ctx) {
   _fwd.set(-Math.sin(p.camYaw), 0, -Math.cos(p.camYaw));
   _right.set(Math.cos(p.camYaw), 0, -Math.sin(p.camYaw));
   _wish.set(0, 0, 0);
-  if (input && !knocked) {
+  if (input && !knocked && !(p.foldT > 0)) {
     if (input.forward) _wish.add(_fwd);
     if (input.back) _wish.sub(_fwd);
     if (input.right) _wish.add(_right);
@@ -113,7 +127,7 @@ export function updatePlayer(p, dt, ctx) {
   }
   const moving = _wish.lengthSq() > 0;
   if (moving) _wish.normalize();
-  const speed = input && input.shift ? SPRINT : WALK;
+  const speed = input && input.shift ? SPRINT * ((ctx.perks && ctx.perks.sprintMul) || 1) : WALK;
   const tx = _wish.x * speed, tz = _wish.z * speed;
   const a = (knocked ? KNOCK_DECEL : p.grounded ? ACCEL : AIR_ACCEL) * dt;
   p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
@@ -151,7 +165,7 @@ export function updatePlayer(p, dt, ctx) {
 
   // --- facing: turn toward movement direction ---
   const hSpeed = Math.hypot(p.vel.x, p.vel.z);
-  if (moving && !(p.palmT > 0)) { // hold the strike's facing through the wind-up
+  if (moving && !(p.palmT > 0) && !(p.gunFireT > 0)) { // hold the strike's facing through the wind-up
     const targetYaw = Math.atan2(_wish.x, _wish.z);
     p.yaw += wrapAngle(targetYaw - p.yaw) * Math.min(1, 12 * dt);
     p.yaw = wrapAngle(p.yaw);
@@ -166,6 +180,8 @@ export function updatePlayer(p, dt, ctx) {
   p.knockTilt += Math.max(-8 * dt, Math.min(3 * dt, (knocked ? KNOCK_TILT : 0) - p.knockTilt));
 
   animate(p, dt, hSpeed);
+  if (p.foldT > 0) { const l = p.mesh.userData.limbs; l.armL.rotation.x = -1.1; l.armR.rotation.x = -1.1; }
+  else poseGun(p);
   syncMesh(p);
 }
 

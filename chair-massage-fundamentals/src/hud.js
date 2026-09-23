@@ -4,13 +4,15 @@
 // and is re-exported here so callers only ever import hud.js.
 import { initMassageHud } from './hud-massage.js';
 import { initRunHud } from './hud-run.js';
+import { initBubbles } from './bubbles.js';
 
 export {
   showMassageHud, setMeter, setMeterState, setCompetency, setClientInfo, setModality,
-  showDialogue, hideDialogue, setPrompt, setLedger, showCard, hideCard,
+  showDialogue, hideDialogue, setPrompt, setLedger, showCard, hideCard, tearOffMassageHud, massageHudTearing,
 } from './hud-massage.js';
 export {
   showRunHud, setWanted, setHealth, setCash, flashChaos, floater, updateFloaters, setMini, activeFloaters,
+  setBattery, setHeatLine, showStamp, hideStamp, stampText,
 } from './hud-run.js';
 
 let root = null;
@@ -47,6 +49,7 @@ export function initHud(hudRoot) {
   chairEl.hidden = true;
   initMassageHud(root);
   initRunHud(root);
+  initBubbles(root);
   return root;
 }
 
@@ -67,8 +70,12 @@ export function setHint(text) {
   if (text && hintEl.textContent !== text) hintEl.textContent = text;
 }
 
-export function setRunTitle(visible) {
-  if (runTitleEl) runTitleEl.hidden = !visible;
+// strike: animate the line through "Fundamentals" (the pivot's hand-off to the run).
+export function setRunTitle(visible, strike = false) {
+  if (!runTitleEl) return;
+  runTitleEl.hidden = !visible;
+  runTitleEl.classList.remove('strike');
+  if (visible && strike) { void runTitleEl.offsetWidth; runTitleEl.classList.add('strike'); }
 }
 
 // RUN: speed/vehicle line under the status line (empty text hides it).

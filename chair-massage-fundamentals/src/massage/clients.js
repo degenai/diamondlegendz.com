@@ -1,4 +1,6 @@
 // Client roster (DESIGN.md "Clients") and the timed subtitle scheduler.
+import { unlockInfo } from '../meta.js';
+
 // Difficulty follows the boredom curve: band width 30 -> 18 -> 12, ring 0.18 -> 0.14 -> 0.11 m.
 
 export const MODALITIES = ['Swedish', 'Cross-fiber', 'Trigger point'];
@@ -45,8 +47,48 @@ export const OUCH = ['Ouch.', 'Easy!', 'Ow. OW.', 'Too much, too much.', 'Hey!']
 
 const LINE_TIME = 5.0;
 
+// Between runs the jogger comes back with two new lines: one about how the last run ended,
+// one about the new unlock ({gift}). Three variants per outcome, rotated by the run count.
+const RETURN = {
+  escape: [
+    ['Word is you got out clean. Chair and all.', 'Somebody left {gift} by the fountain. Said it was for you.'],
+    ['The van guys were circling the block all night. Looking for you, I think.', "I brought {gift}. Don't ask where from."],
+    ["You made the news. Well, the neighborhood app. 'Chair guy escapes.'", 'Walt says you should have {gift}. He dropped it off.'],
+  ],
+  arrest: [
+    ['I saw them put you in the back of the car. Over a chair.', 'We passed the hat. Got you {gift}.'],
+    ['How was booking? Walt says the coffee is terrible.', "There's {gift} under the bench. From the regulars."],
+    ["They let you out already? The chair's still here, anyway.", 'Marcus found {gift} at a yard sale. Figured you could use it.'],
+  ],
+  death: [
+    ['You look wrecked. Somebody should work on you for once.', 'Take it easy. Here, {gift}. You earned it.'],
+    ['Heard you took a bat for this chair. Is that in the course?', 'The dads chipped in for {gift}.'],
+    ['You were face down by the fountain. I thought you were napping.', 'Dana, jogger, I know. I brought {gift}.'],
+  ],
+  left: [
+    ['You left the chair out here all night. Walt sat in it.', "Nobody brought you anything. You left the chair, man."],
+    ['Where did you go? The chair was just sitting here.', "No gifts today. The chair's the whole point."],
+    ['The van guys took pictures of your chair. Just sitting there.', "Don't leave it again, okay? It's the only one."],
+  ],
+};
+
 export function roster(meta) {
-  return meta && meta.firstPivotSeen ? [CLIENTS[0]] : CLIENTS.slice();
+  if (!meta || !meta.firstPivotSeen) return CLIENTS.slice();
+  const out = meta.lastOutcome && RETURN[meta.lastOutcome];
+  if (!out) return [CLIENTS[0]];
+  const pair = out[(meta.runs || 0) % out.length];
+  const info = unlockInfo(meta.lastUnlock);
+  const gift = info ? info.gift : 'a thank-you card';
+  const base = CLIENTS[0];
+  return [{
+    ...base,
+    lines: [
+      [1.0, 'Back again. Swedish, please. Same calves, new problems.'],
+      [7.0, pair[0]],
+      [14.0, pair[1].replace('{gift}', gift)],
+      [22.0, base.lines[3][1]],
+    ],
+  }];
 }
 
 // Plain-object scheduler: scheduled lines plus one-off interjections (ouch, done).

@@ -1,8 +1,11 @@
 // Run population: seeded peds on the nav graph, the Serenity Group goons and their van driver,
 // the police (police.js), wanted bookkeeping from vehicles (wrecks, property), and the per-run
 // reset. main.js calls begin() on entering RUN, update() after updateAll, clear() on MASSAGE.
+// The first three goons come out of the van during the PIVOT (pivot.js calls spawnGoons);
+// begin() only spawns them itself on the debug path that skips the pivot.
 import * as THREE from '../../vendor/three.module.js';
 import { makeRng } from '../rng.js';
+import { floorHeightAt } from '../physics.js';
 import { preload } from '../assets.js';
 import { addEntity, removeEntity } from '../entities/index.js';
 import { createPed, disposePed } from '../entities/ped.js';
@@ -43,8 +46,20 @@ export function clear(ctx) {
   ctx.vanAI = null;
 }
 
-export function begin(ctx) {
-  clear(ctx);
+// MASSAGE re-entry: the franchise van goes home to vanEntry, engine off, repaired.
+export function resetVan(ctx) {
+  const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise);
+  if (!v) return;
+  const e = ctx.world.spawns.vanEntry;
+  if (v.driver && v.driver !== ctx.player) v.driver = null;
+  v.ai = null; v.aiBackT = 0; v.aiStuckT = 0;
+  v.pos.copy(e.pos); v.yaw = e.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0;
+  v.hp = 100; v.parked = true; v.asleep = true; v.wreckSeen = false; v.chairLoaded = false;
+  v.mesh.position.copy(v.pos); v.mesh.rotation.set(0, v.yaw, 0);
+}
+
+export function begin(ctx, fromPivot = false) {
+  if (!fromPivot) clear(ctx);
   ctx.wanted.reset();
   ctx.runCash = 0;
   ctx.runEnd = null;
@@ -53,8 +68,24 @@ export function begin(ctx) {
   p.hp = 100; p.prevHp = 100; p.hurtAt = -1e9; p.knockedT = 0;
   const rng = makeRng((ctx.world.seed ^ 0x9ed5) >>> 0);
   spawnPeds(ctx, rng);
+  if (ctx.perks && ctx.perks.regular) spawnRegular(ctx, rng);
   ctx.vanAI = { v: null, mode: 'park', waveT: 0, dropT: 0, spawnedAt: -1 };
-  spawnGoons(ctx, 3);
+  if (countKind(ctx, 'goon') === 0) spawnGoons(ctx, 3);
+}
+
+// "Regular client" unlock: one guaranteed willing ped idling a few metres from the chair spot.
+function spawnRegular(ctx, rng) {
+  const { points } = navInfo(ctx.world);
+  const c = ctx.world.chairSpot;
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < points.length; i++) {
+    const d = Math.abs(Math.hypot(points[i].x - c.x, points[i].z - c.z) - 6);
+    if (d < bd) { bd = d; best = i; }
+  }
+  const e = createPed(ctx.scene, points[best].clone(), best, rng);
+  e.regular = true; e.idleT = 6;
+  addEntity(ctx.entities, e);
+  ctx.npcs.push(e);
 }
 
 function spawnPeds(ctx, rng) {
@@ -97,7 +128,8 @@ export function spawnGoons(ctx, n) {
   const side = (at.x + c * off) ** 2 + (at.z - s * off) ** 2 < (at.x - c * off) ** 2 + (at.z + s * off) ** 2 ? 1 : -1;
   for (let k = 0; k < n; k++) {
     const along = (k - 1) * 1.1;
-    const pos = new THREE.Vector3(at.x + c * off * side + s * along, 0, at.z - s * off * side + c * along);
+    const x = at.x + c * off * side + s * along, z = at.z - s * off * side + c * along;
+    const pos = new THREE.Vector3(x, floorHeightAt(x, z, ctx.world.colliders, (at.y || 0) + 0.3), z); // the van may be up on the terrace
     const idx = alive + k;
     const g = createGoon(ctx.scene, pos, idx % 3 === 2 ? 'flank' : 'direct', idx % 3 === 0);
     g.yaw = yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2);

@@ -6,6 +6,7 @@ let wrap = null;
 let els = {};
 let cardEl = null;
 let last = {};
+let tearTimer = 0;
 
 function el(tag, className, parent, text) {
   const n = document.createElement(tag);
@@ -24,7 +25,7 @@ export function initMassageHud(root) {
   wrap.hidden = true;
 
   const head = el('div', 'cm-panel cm-head', wrap);
-  el('div', 'cm-kicker', head, 'Chair Massage Fundamentals · Course 101-CM');
+  el('div', 'cm-kicker', head, 'Chair Massage Fundamentals · Course 101-CM · Instructor: Alex Adamczyk, LMT');
   el('h1', '', head, 'Module 1: Pressure');
   els.client = el('div', 'cm-client', head);
   const comp = el('div', 'cm-comp', head);
@@ -70,9 +71,20 @@ export function initMassageHud(root) {
 }
 
 export function showMassageHud(visible) {
-  if (wrap) wrap.hidden = !visible;
+  if (tearTimer) { clearTimeout(tearTimer); tearTimer = 0; }
+  if (wrap) { wrap.hidden = !visible; wrap.classList.remove('cm-tear'); }
   document.body.classList.toggle('massage', !!visible);
 }
+
+// PIVOT -> RUN: the course panels slide off the screen over 0.6 s, then the skin is gone.
+export function tearOffMassageHud() {
+  if (!wrap || wrap.hidden) return;
+  els.sub.hidden = true;
+  wrap.classList.add('cm-tear');
+  document.body.classList.remove('massage');
+  tearTimer = setTimeout(() => { tearTimer = 0; showMassageHud(false); }, 600);
+}
+export function massageHudTearing() { return !!wrap && wrap.classList.contains('cm-tear'); }
 
 export function setMeter(value, hintLo, hintHi) {
   if (!wrap) return;

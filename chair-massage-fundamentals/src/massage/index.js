@@ -1,10 +1,12 @@
-// MASSAGE: the minigame loop. Intro card -> clients (meter + stroke guide + subtitles)
-// -> payout and ledger -> E for the next client -> after the last one, PIVOT.
+// MASSAGE: the minigame loop. Intro card -> clients (meter + stroke guide + speech bubbles)
+// -> payout and ledger -> E for the next client. The last client never gets up: the moment
+// they are done, PIVOT fires with them still in the chair (the cast stays for the cutscene).
 import { STATES, setState } from '../state.js';
 import { roster, createDialogue, updateDialogue, say, OUCH } from './clients.js';
 import { createMeter, updateMeter, hintRange } from './meter.js';
 import { createGuide, updateGuide, cycleModality, modality, disposeGuide } from './guide.js';
 import * as stage from './stage.js';
+import { say as bubble } from '../bubbles.js';
 
 const INTRO_TITLE = 'Module 1: Pressure and Stroke.';
 const INTRO_BODY = 'Use W/S to set pressure, A/D to move along the back, keep the cursor on the stroke guide. '
@@ -18,8 +20,12 @@ const S = {
 
 const usd = (n) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
-function showDialogue(hud) {
-  if (S.dlg.changed) { hud.showDialogue(S.dlg.speaker, S.dlg.text); S.dlg.changed = false; }
+// Client lines go in a bubble over the client's head (the narrator keeps the strip).
+function showDialogue(ctx) {
+  const d = S.dlg;
+  if (!d.changed) return;
+  d.changed = false;
+  if (d.text && st.client) bubble(ctx, st.client, d.text, { skin: 'course', preset: 'client', seconds: Math.max(1, d.showUntil - d.t) });
 }
 
 function startClient(ctx, i) {
@@ -45,13 +51,19 @@ function finishClient(ctx) {
   S.paid.push({ id: c.id, pay: c.pay });
   ctx.massageTotals = { ...S.totals }; // becomes the run's starting cash later
   say(S.dlg, c.name, c.done, 4);
+  showDialogue(ctx);
   ctx.hud.setLedger([
     `${c.name} paid ${usd(c.pay)}`,
     `You ${usd(half)} / Host cause ${usd(half)}`,
     `Session total: You ${usd(S.totals.you)} / Host cause ${usd(S.totals.host)}`,
   ]);
-  const lastOne = S.idx >= S.roster.length - 1;
-  ctx.hud.setPrompt(lastOne ? 'Module complete. Press E to continue.' : 'Client complete. Press E for the next client.');
+  if (S.idx >= S.roster.length - 1) {     // the last client stays seated into the pivot
+    S.guide.mesh.visible = false;
+    S.phase = 'pivot';
+    setState(STATES.PIVOT);
+    return;
+  }
+  ctx.hud.setPrompt('Client complete. Press E for the next client.');
   stage.standClient(st);
   S.guide.mesh.visible = false;
   S.phase = 'paid';
@@ -59,6 +71,8 @@ function finishClient(ctx) {
 
 export function enter(ctx) {
   if (!st) { st = stage.createStage(ctx); ctx.station = st.station; }
+  stage.removeLeaver(st, ctx.scene);
+  if (st.therapist || st.client) stage.removeCast(st, ctx.scene); // a run that never reached RUN
   stage.addCast(st, ctx.scene);
   S.roster = roster(ctx.meta);
   S.idx = 0; S.client = null; S.totals = { you: 0, host: 0 }; S.paid = []; S.meter = null; S.time = 0;
@@ -79,12 +93,18 @@ export function enter(ctx) {
   S.phase = 'intro';
 }
 
-export function exit(ctx) {
-  stage.removeCast(st, ctx.scene);
+export function exit(ctx, target) {
   if (S.guide) disposeGuide(S.guide, ctx.scene);
   S.guide = null;
   ctx.hud.hideCard();
   ctx.hud.hideDialogue();
+  if (target === STATES.PIVOT) {        // the cast and the course HUD stay for the cutscene
+    ctx.hud.setPrompt('');
+    stage.pivotPose(st);
+    S.phase = 'idle';
+    return;
+  }
+  stage.removeCast(st, ctx.scene);
   ctx.hud.showMassageHud(false);
   const p = ctx.player;
   if (p && p.mesh) {
@@ -127,7 +147,7 @@ function updateSession(dt, ctx) {
   ctx.hud.setMeterState(zone);
   ctx.hud.setCompetency(S.competency);
   ctx.hud.setModality(modality(S.guide), c.wants);
-  showDialogue(ctx.hud);
+  showDialogue(ctx);
   if (S.competency >= 100) finishClient(ctx);
 }
 
@@ -143,7 +163,7 @@ export function update(dt, ctx) {
     updateSession(dt, ctx);
   } else if (S.phase === 'paid') {
     updateDialogue(S.dlg, dt);
-    showDialogue(ctx.hud);
+    showDialogue(ctx);
     stage.walkOff(st, dt);
     if (input && input.ePressed) {
       if (S.idx + 1 < S.roster.length) startClient(ctx, S.idx + 1);
@@ -151,6 +171,25 @@ export function update(dt, ctx) {
     }
   }
 }
+
+// ---- PIVOT / RUN hand-off (pivot.js) ----
+export function castHeads() { return stage.castHeads(st); }
+export function station() { return st; }
+
+// PIVOT -> RUN: the player stands where the therapist stood; the client gets up and walks off.
+export function releaseToRun(ctx, awayX, awayZ) {
+  if (!st) return;
+  const p = ctx.player;
+  if (st.therapist && p) {
+    p.yaw = stage.therapistSpot(st, p.pos);
+    p.vel.set(0, 0, 0);
+    p.floorInit = false;
+  }
+  stage.releaseCast(st, ctx.scene, awayX, awayZ);
+  ctx.hud.hideDialogue();
+}
+
+export function updateLeaving(dt, ctx) { return stage.updateLeaver(st, dt, ctx.scene); }
 
 export const tuning = { CAM_POS: stage.CAM_POS, CAM_LOOK: stage.CAM_LOOK, THERAPIST: stage.THERAPIST };
 
@@ -176,3 +215,6 @@ export function debugState() {
     subtitle: S.dlg && S.dlg.text ? `${S.dlg.speaker}: ${S.dlg.text}` : '',
   };
 }
+
+// Debug / headless tests: the current client reaches 100% on the next tick.
+export function debugComplete() { if (S.phase === 'session') S.competency = 100; }

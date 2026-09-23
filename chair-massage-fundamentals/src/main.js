@@ -17,9 +17,16 @@ import { createWanted } from './run/wanted.js';
 import * as spawner from './run/spawner.js';
 import { createMini, updateMini } from './run/minimassage.js';
 import { startPalm } from './entities/palm.js';
+import { resetGun } from './entities/gun.js';
+import * as pivot from './pivot.js';
+import { speechHud, updateBubbles, clearBubbles, activeBubbles } from './bubbles.js';
+import { checkEscape, resetEscapeMarker } from './run/end.js';
+import { startSlowmo, tickSlowmo, clearSlowmo, slowmoLog, NEUTRAL } from './run/slowmo.js';
+import { startStats, trackStats, showSummary, hideSummary } from './run/summary.js';
 
 const STEP = 1 / 60;
 const MAX_ACCUM = 0.25; // cap to avoid spiral of death after a stall
+const END = [STATES.ARREST, STATES.DEATH, STATES.ESCAPE];
 
 function isMobile() {
   const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
@@ -73,7 +80,7 @@ function boot() {
   scene.add(sun);
 
   // Baked meshes: the chair is placed by the massage module at world.chairSpot.
-  preload(['assets/chair.json']).catch((err) => console.warn('[CMF] preload failed', err));
+  preload(['assets/chair.json', 'assets/massagegun.json']).catch((err) => console.warn('[CMF] preload failed', err));
 
   const entities = [];
   const player = addEntity(entities, createPlayer(scene, new THREE.Vector3(0, 0, 3)));
@@ -88,24 +95,25 @@ function boot() {
 
   const ctx = {
     world, entities, player, input: null, rng,
-    wanted: createWanted(), hud, audio: null, time: 0,
+    wanted: createWanted(), hud: null, audio: null, voice: null, time: 0, timeScale: 1,
     npcs: [], mini: createMini(), runCash: 0, runEnd: null,
     perf: { last: 0, max: 0, sum: 0, n: 0 },
     camera, scene, seed,
     meta: meta.load(),
     massageTotals: { you: 0, host: 0 },
-    station: null,
+    station: null, perks: null, runStats: null, lastSummary: null,
   };
-  let pivotT = 0;
-  let endT = 0;
+  ctx.perks = meta.perks(ctx.meta);
+  ctx.hud = speechHud(ctx, hud);    // goons, cops and mini-massage clients talk in bubbles
   spawner.initSpawner(ctx);
 
   let interactHint = '';
   function updateHint() {
     if (getState() === STATES.RUN && !input.isLocked()) {
+      const gun = ctx.perks.gun >= 0 ? (player.gunEquipped ? ' Right click massage gun, Q palm.' : ' Q massage gun.') : '';
       const base = player.vehicle
         ? 'Click to look around. W/S drive, A/D steer, Space handbrake, E exit. Esc releases mouse.'
-        : 'Click to look around. WASD move, Shift sprint, Space jump, Left click Healing Palm. Esc releases mouse.';
+        : `Click to look around. WASD move, Shift sprint, Space jump, Left click Healing Palm.${gun} Esc releases mouse.`;
       hud.setHint(interactHint ? `${interactHint}  |  ${base}` : base);
     } else {
       hud.setHint(getState() === STATES.RUN ? interactHint : '');
@@ -115,9 +123,11 @@ function boot() {
     hud.setWanted(ctx.wanted.level, ctx.wanted.risingT > 0);
     hud.setHealth(player.hp);
     hud.setCash((ctx.massageTotals ? ctx.massageTotals.you : 0) + (ctx.runCash || 0));
+    hud.setBattery(ctx.perks.gun >= 0 ? player.battery ?? 100 : null);
     const t = runHudText(player, ctx);
     hud.setVehicleLine(t.vehicle);
     hud.setChairStrip(t.chair);
+    hud.setHeatLine(checkEscape(ctx));
     interactHint = t.hint;
     updateHint();
   }
@@ -126,22 +136,24 @@ function boot() {
   onEnter(STATES.TITLE, () => { hud.showTitle(); input.releaseLock(); });
   onExit(STATES.TITLE, () => hud.hideTitle());
   onEnter(STATES.MASSAGE, () => {
+    // Everything the last run created goes: NPCs (pivot goons included), police, the van's trip.
     if (player.vehicle) exitVehicle(player, ctx);
-    player.knockedT = 0; player.massaging = false; player.palmT = 0; player.hp = 100;
+    player.knockedT = 0; player.massaging = false; player.palmT = 0; player.hp = 100; player.foldT = 0;
     spawner.clear(ctx);
+    spawner.resetVan(ctx);
+    pivot.reset();
+    clearBubbles(); clearSlowmo(ctx); hideSummary(); resetEscapeMarker(ctx);
     hud.showRunHud(false);
     ctx.mini = createMini();
     ctx.wanted.reset();
+    ctx.runEnd = null; ctx.runStats = null;
   });
   onEnter(STATES.MASSAGE, () => massage.enter(ctx));
   onEnter(STATES.MASSAGE, () => resetChair(ctx)); // after enter: the station exists by now
-  onExit(STATES.MASSAGE, () => massage.exit(ctx));
-  onEnter(STATES.PIVOT, () => {
-    // Phase 6 replaces this stub with the scripted van cutscene.
-    pivotT = 0;
-    hud.showCard('SERENITY GROUP INCORPORATED would like a word.', [], 'black');
-  });
-  onExit(STATES.PIVOT, () => hud.hideCard());
+  onExit(STATES.MASSAGE, (next) => massage.exit(ctx, next));
+  onEnter(STATES.PIVOT, () => pivot.start(ctx));
+  // Any way out of the cutscene other than the run restores the van's steering and clears the cast.
+  onExit(STATES.PIVOT, (next) => { if (next !== STATES.RUN) pivot.reset(); });
   onEnter(STATES.RUN, (prev) => {
     // The lie is only spent once the player actually reaches the run.
     if (prev === STATES.PIVOT && !ctx.meta.firstPivotSeen) {
@@ -150,22 +162,34 @@ function boot() {
     }
     ensureChair(ctx);
     ctx.mini = createMini();
-    spawner.begin(ctx);
-    hud.setRunTitle(true); hud.showRunHud(true); updateHint();
+    ctx.perks = meta.perks(ctx.meta);
+    ctx.timeScale = 1;
+    resetGun(player);
+    if (prev === STATES.PIVOT) pivot.beginRun(ctx); else hud.setRunTitle(true);
+    spawner.begin(ctx, prev === STATES.PIVOT);
+    startStats(ctx);
+    hud.showRunHud(true); updateHint();
   });
   onExit(STATES.RUN, () => {
     input.releaseLock(); hud.setHint(''); hud.setRunTitle(false);
-    hud.setVehicleLine(''); hud.setChairStrip(''); hud.setMini(null);
+    hud.setVehicleLine(''); hud.setChairStrip(''); hud.setMini(null); hud.setHeatLine('');
   });
-  // Placeholder end cards; Phase 6 replaces them with the run summary.
-  const endCard = (title, line) => () => {
-    endT = 0;
-    player.massaging = false;
-    hud.showCard(title, [line], 'black');
-  };
-  onEnter(STATES.ARREST, endCard('ARRESTED', 'The city sides with the franchise.'));
-  onEnter(STATES.DEATH, endCard('OVERWORKED', 'Nobody pays you to take a bat for a chair.'));
-  for (const s of [STATES.ARREST, STATES.DEATH]) onExit(s, () => { hud.hideCard(); hud.showRunHud(false); });
+  // Run end: slow motion and a stamp (run/slowmo.js), then the certificate (run/summary.js).
+  for (const s of END) {
+    onEnter(s, () => {
+      // Debug entry without a runEnd: an ESCAPE that nobody verified cannot know the chair came along.
+      if (!ctx.runEnd) ctx.runEnd = { reason: s === STATES.ARREST ? 'arrest' : s === STATES.DEATH ? 'death' : 'left', time: ctx.time };
+      player.massaging = false;
+      resetEscapeMarker(ctx);
+      startSlowmo(ctx, ctx.runEnd.reason);
+    });
+    onExit(s, () => { hud.showRunHud(false); ctx.timeScale = 1; });
+  }
+  onEnter(STATES.SUMMARY, () => {
+    hud.hideStamp();
+    showSummary(ctx, hudRoot, () => setState(STATES.MASSAGE));
+  });
+  onExit(STATES.SUMMARY, () => hideSummary());
 
   const beginBtn = document.getElementById('begin');
   if (beginBtn) {
@@ -197,7 +221,10 @@ function boot() {
     get npcs() { return ctx.npcs; },
     get wanted() { return ctx.wanted; },
     spawner,
-    debug: { palm: () => startPalm(player) },
+    pivot: { get state() { return pivot.pivotState(); } },
+    bubbles: activeBubbles,
+    slowmoLog,
+    debug: { palm: () => startPalm(player), finishClient: massage.debugComplete },
   };
 
   setState(STATES.TITLE);
@@ -207,10 +234,11 @@ function boot() {
   let accum = 0;
   let fpsFrames = 0, fpsTime = 0, fps = 0;
 
-  function tick(dt) {
+  function tick(realDt) {
+    const s = getState();
+    const dt = realDt * (ctx.timeScale || 1);  // 0.25 under the run-end slow motion
     ctx.time += dt;
     ctx.input = input.snapshot();
-    const s = getState();
     if (s === STATES.RUN) {
       const t0 = performance.now();
       updateAll(dt, ctx);
@@ -221,18 +249,23 @@ function boot() {
       spawner.update(dt, ctx);
       if (getState() !== STATES.RUN) return;
       updateMini(dt, ctx);
+      trackStats(ctx);
+      pivot.runTick(dt, ctx);
       hud.updateFloaters(dt, camera);
       updateRunHud();
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);
-    } else if (s === STATES.ARREST || s === STATES.DEATH) {
-      endT += dt;
+    } else if (END.includes(s)) {
+      ctx.input = NEUTRAL;                     // input ignored under the slow motion
+      updateAll(dt, ctx);
+      spawner.update(dt, ctx);
+      massage.updateLeaving(dt, ctx);
       hud.updateFloaters(dt, camera);
-      if (endT >= 3) setState(STATES.MASSAGE);
+      if (tickSlowmo(realDt, ctx)) setState(STATES.SUMMARY);
     } else if (s === STATES.PIVOT) {
-      pivotT += dt;
-      if (pivotT >= 3) setState(STATES.RUN);
+      pivot.update(dt, ctx);
     }
+    updateBubbles(dt, camera);
   }
 
   function frame(now) {

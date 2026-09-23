@@ -10,6 +10,7 @@ const SPEECH_LIFE = 2.4;
 const RISE = 60;           // px over the floater's life
 
 let wrap = null, stars = [], hpFill = null, cashEl = null, flashEl = null, miniEl = null, mini = {};
+let batWrap = null, batFill = null, heatEl = null, stampEl = null;
 const floaters = [];
 const last = {};
 const _v = new THREE.Vector3();
@@ -31,7 +32,15 @@ export function initRunHud(root) {
   for (let i = 0; i < WANTED_CAP; i++) stars.push(el('span', 'rh-star', row, '★'));
   const bar = el('div', 'rh-hp', box);
   hpFill = el('i', '', bar);
+  batWrap = el('div', 'rh-bat', box);
+  el('span', 'rh-bat-label', batWrap, 'GUN');
+  batFill = el('i', '', el('div', 'rh-bat-bar', batWrap));
+  batWrap.hidden = true;
   cashEl = el('div', 'rh-cash', box, '$0');
+  heatEl = el('div', 'rh-heat', wrap);
+  heatEl.hidden = true;
+  stampEl = el('div', 'rh-stamp', root);
+  stampEl.hidden = true;
   miniEl = el('div', 'rh-mini', wrap);
   miniEl.hidden = true;
   el('div', 'rh-mini-title', miniEl, 'Chair massage');
@@ -74,6 +83,36 @@ export function setHealth(hp) {
   hpFill.style.width = `${v}%`;
   hpFill.classList.toggle('low', v < 35);
 }
+
+// Massage gun battery (0..100) next to health; null hides it (gun still locked).
+export function setBattery(v) {
+  if (!batWrap) return;
+  const key = v === null ? 'off' : String(Math.round(v));
+  if (last.bat === key) return;
+  last.bat = key;
+  batWrap.hidden = v === null;
+  if (v !== null) { batFill.style.width = `${Math.max(0, Math.min(100, v)).toFixed(0)}%`; batFill.classList.toggle('low', v < 20); }
+}
+
+// "Lose the heat first." inside the escape zone with stars; '' hides it.
+export function setHeatLine(text) {
+  if (!heatEl || last.heat === text) return;
+  last.heat = text;
+  heatEl.hidden = !text;
+  heatEl.textContent = text || '';
+}
+
+// Run-end stamp (ARRESTED / OVERWORKED / ESCAPED): red, rotated, slams in with a bounce.
+export function showStamp(text, variant = 'bad') {
+  if (!stampEl) return;
+  stampEl.textContent = text;
+  stampEl.className = `rh-stamp rh-stamp-${variant}`;
+  stampEl.hidden = false;
+  void stampEl.offsetWidth;
+  stampEl.classList.add('go');
+}
+export function hideStamp() { if (stampEl) { stampEl.hidden = true; stampEl.classList.remove('go'); } }
+export function stampText() { return stampEl && !stampEl.hidden ? stampEl.textContent : ''; }
 
 export function setCash(amount) {
   const text = `$${Math.round(amount)}`;

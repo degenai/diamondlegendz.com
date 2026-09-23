@@ -50,6 +50,10 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   Straight GTA menace, no slapstick; the absurdity is that this is about a massage chair. Controls
   unlock while the ranger is mid-sentence; the course HUD tears off (panels slide away), the spa loop
   detunes and collapses, the title strip strikes "Fundamentals". The client gets up and walks off.
+  Gate rulings (2026-09-23, after Phase 6): the pivot may run up to 30 s because the van's drive in is
+  the tension; the goons speak as soon as it stops. The one-seed-in-five case where the van cannot reach
+  the chair and the goons walk up from 28 m is left as character. The slow-motion stamp for escaping
+  without the chair reads LEFT THE CHAIR in the same red, matching the certificate.
 - **RUN**: open park block. Goons hunt the player. Wanted level rises with chaos. Player can steal
   vehicles, run, fight (elbow strikes, it's The People's Elbow), and reach an ESCAPE point (a client's
   house on the far edge of the block, or the highway on-ramp) once wanted level has cooled to zero.
