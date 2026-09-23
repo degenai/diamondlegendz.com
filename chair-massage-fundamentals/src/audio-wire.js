@@ -150,7 +150,9 @@ export function audioFrame(ctx, dt) {
   if (engineT < ENGINE_EVERY) return;
   engineT = 0;
   _on.clear(); _siren.clear();
-  const list = ctx.world.vehicles || [];
+  // Engines and sirens belong to the street: the pivot's van and the run. Under the slow motion
+  // and the certificate they wind down (the player is still sitting in the car until MASSAGE).
+  const list = (s === STATES.RUN || s === STATES.PIVOT) ? ctx.world.vehicles || [] : [];
   for (let i = 0; i < list.length; i++) {
     const v = list[i];
     if (v.removed) continue;
@@ -160,7 +162,7 @@ export function audioFrame(ctx, dt) {
       audio.sfx('engine', { id, type: v.type, rpm: 0.1 + 0.9 * Math.min(1, Math.abs(v.speed) / v.spec.maxSpeed),
         load: v.throttle ? 0.85 : 0.25, x: v.pos.x, z: v.pos.z });
     }
-    if (v.lightbar && v.lights && v.hp > 0 && s !== STATES.MASSAGE) { // a wreck's siren dies with it
+    if (v.lightbar && v.lights && v.hp > 0) { // a wreck's siren dies with it
       _siren.add(v.id);
       audio.sfx('siren', { id: v.id, on: true, x: v.pos.x, z: v.pos.z });
     }

@@ -1,6 +1,7 @@
 // Player: third-person on-foot controller, orbit camera, procedural walk, Healing Palm (palm.js).
-// Phase 4: E interactions (interact.js), driving (the vehicle reads input; the player rides
-// along hidden), chase camera (chase-cam.js), knockdown when a vehicle hits them on foot.
+// Phase 4: E interactions (interact.js), driving (the vehicle reads input; the player sits
+// visibly at the wheel, seated.js), chase camera (chase-cam.js), knockdown when a vehicle hits them
+// on foot. Sprint stamina: a 3 s pool (4.5 s with the "sprint" unlock), shown under the health bar.
 import * as THREE from '../../vendor/three.module.js';
 import { spawnPerson } from '../world/people.js';
 import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
@@ -9,6 +10,7 @@ import { updateChaseCamera, blendLook } from './chase-cam.js';
 import { startPalm, updatePalm, updateHealth, applyShake } from './palm.js';
 import { poseTherapist } from '../run/minimassage.js';
 import { updateGun, poseGun } from './gun.js';
+import { setStamina } from '../hud-run.js';
 
 const WALK = 4;
 const SPRINT = 7;
@@ -28,6 +30,10 @@ const KNOCK_DECEL = 9;     // m/s^2 slide while knocked down
 const KNOCK_TILT = -1.35;  // rig tilts back (rad about local X)
 const FOLD = 0.5;          // s to fold the chair onto your back / into a vehicle (auto-fold halves it)
 const FOLD_ACTS = new Set(['pickup', 'take', 'load']);
+const STAMINA = 3;         // s of sprint in a full pool
+const STAMINA_PERK = 1.5;  // the "sprint" unlock (perks.sprintMul > 1): a 50% bigger pool
+const REFILL = 6;          // s of not sprinting to refill an empty pool
+const WINDED = 1;          // s of recharge before an emptied pool lets you sprint again
 
 const _fwd = new THREE.Vector3();
 const _right = new THREE.Vector3();
@@ -92,7 +98,8 @@ export function updatePlayer(p, dt, ctx) {
   updateHealth(p, dt, ctx);
   updateGun(p, dt, ctx);
   if (p.vehicle) {
-    // Driving: the vehicle reads the input; the player rides along hidden.
+    // Driving: the vehicle reads the input; the player sits at the wheel (seated.js).
+    tickStamina(p, dt, ctx, false);
     p.pos.copy(p.vehicle.pos);
     p.vel.set(0, 0, 0);
     p.knockedT = 0; p.knockTilt = 0;
@@ -127,7 +134,8 @@ export function updatePlayer(p, dt, ctx) {
   }
   const moving = _wish.lengthSq() > 0;
   if (moving) _wish.normalize();
-  const speed = input && input.shift ? SPRINT * ((ctx.perks && ctx.perks.sprintMul) || 1) : WALK;
+  const sprinting = tickStamina(p, dt, ctx, !!(input && input.shift && moving && !knocked && !(p.foldT > 0)));
+  const speed = sprinting ? SPRINT : WALK;
   const tx = _wish.x * speed, tz = _wish.z * speed;
   const a = (knocked ? KNOCK_DECEL : p.grounded ? ACCEL : AIR_ACCEL) * dt;
   p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
@@ -183,6 +191,31 @@ export function updatePlayer(p, dt, ctx) {
   if (p.foldT > 0) { const l = p.mesh.userData.limbs; l.armL.rotation.x = -1.1; l.armR.rotation.x = -1.1; }
   else poseGun(p);
   syncMesh(p);
+}
+
+// Sprint stamina, seconds in the pool. Draws while sprinting; empty means walk until it has
+// recharged for WINDED s; refills at pool/REFILL per s whenever not sprinting (driving too).
+// Returns whether this tick may sprint. The bar (hud-run.js) reads p.stamina / p.staminaMax.
+export function tickStamina(p, dt, ctx, wants) {
+  const max = STAMINA * ((ctx.perks && ctx.perks.sprintMul) > 1 ? STAMINA_PERK : 1);
+  // First tick, or back after a MASSAGE (no player ticks there): a full pool.
+  if (p.staminaMax !== max || p.stamina === undefined || ctx.time - (p.staminaAt ?? -1e9) > 1) {
+    p.staminaMax = max; p.stamina = max; p.winded = false; p.windT = 0;
+  }
+  p.staminaAt = ctx.time;
+  const sprint = wants && !p.winded && p.stamina > 0;
+  if (sprint) {
+    p.stamina = Math.max(0, p.stamina - dt);
+    if (p.stamina <= 0) { p.winded = true; p.windT = 0; }
+  } else {
+    // Holding Shift while winded is panic, not rest: no refill and no recovery until you let go.
+    if (!(p.winded && wants)) {
+      p.stamina = Math.min(max, p.stamina + (max / REFILL) * dt);
+      if (p.winded && (p.windT += dt) >= WINDED) p.winded = false;
+    }
+  }
+  setStamina(p.stamina / max, ctx.time);
+  return sprint;
 }
 
 // Camera runs after every entity has moved (vehicles update after the player).

@@ -7,7 +7,7 @@ import { createNpc, stepBody, poseRig, cull, say, seek } from './npc-common.js';
 import { emitChaos } from '../run/wanted.js';
 
 const SPEED = { ranger: 5, cop: 5.5, swat: 5.5 };
-const OUTFIT = {
+export const OUTFIT = {
   ranger: { shirt: 0xc2a878, pants: 0x3f5a36, shoes: 0x3a2a1e },
   cop: null,
   swat: { shirt: 0x1f2226, pants: 0x1f2226, shoes: 0x0a0a0a },
@@ -94,6 +94,6 @@ function onPalm(e, p, ctx) {
 function onVehicleHit(e, v, ctx) {
   e.knockCause = 'vehicle';
   e.knockedT = 3;
-  if (v.driver === ctx.player && ctx.wanted) ctx.wanted.report('pedHurt');
+  if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('pedHurt'); // a stolen car you bailed from is still yours (ped.js)
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');
 }

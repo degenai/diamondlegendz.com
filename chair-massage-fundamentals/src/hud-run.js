@@ -10,7 +10,8 @@ const SPEECH_LIFE = 2.4;
 const RISE = 60;           // px over the floater's life
 
 let wrap = null, stars = [], hpFill = null, cashEl = null, flashEl = null, miniEl = null, mini = {};
-let batWrap = null, batFill = null, heatEl = null, stampEl = null;
+let batWrap = null, batFill = null, heatEl = null, stampEl = null, stamBar = null, stamFill = null;
+const STAM_HIDE = 2;       // s the stamina bar lingers once full
 const floaters = [];
 const last = {};
 const _v = new THREE.Vector3();
@@ -32,6 +33,12 @@ export function initRunHud(root) {
   for (let i = 0; i < WANTED_CAP; i++) stars.push(el('span', 'rh-star', row, '★'));
   const bar = el('div', 'rh-hp', box);
   hpFill = el('i', '', bar);
+  // Sprint stamina: a thinner bar under health (inline styles: .rh-* live in index.html).
+  stamBar = el('div', 'rh-stam', box);
+  stamBar.style.cssText = 'height:3px;margin:3px 0 0 auto;width:138px;background:rgba(0,0,0,.5);border:1px solid rgba(0,0,0,.6)';
+  stamFill = el('i', '', stamBar);
+  stamFill.style.cssText = 'display:block;height:100%;width:100%;background:#8fd3ff';
+  stamBar.hidden = true;
   batWrap = el('div', 'rh-bat', box);
   el('span', 'rh-bat-label', batWrap, 'GUN');
   batFill = el('i', '', el('div', 'rh-bat-bar', batWrap));
@@ -83,6 +90,18 @@ export function setHealth(hp) {
   last.hp = v;
   hpFill.style.width = `${v}%`;
   hpFill.classList.toggle('low', v < 35);
+}
+
+// Sprint stamina 0..1 at sim time `time`; hidden once it has been full for STAM_HIDE s.
+export function setStamina(frac, time) {
+  if (!stamBar) return;
+  const f = Math.max(0, Math.min(1, frac));
+  if (f < 1) last.stamFullAt = null;
+  else if (last.stamFullAt == null || time < last.stamFullAt) last.stamFullAt = stamBar.hidden ? -1e9 : time; // a full pool that was never drawn stays hidden
+  const hide = f >= 1 && time - last.stamFullAt >= STAM_HIDE;
+  const w = (f * 100).toFixed(0);
+  if (last.stamW !== w) { last.stamW = w; stamFill.style.width = `${w}%`; stamFill.style.background = f < 0.2 ? '#e0533d' : '#8fd3ff'; }
+  if (stamBar.hidden !== hide) stamBar.hidden = hide;
 }
 
 // Massage gun battery (0..100) next to health; null hides it (gun still locked).

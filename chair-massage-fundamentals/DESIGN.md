@@ -54,10 +54,26 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   the tension; the goons speak as soon as it stops. The one-seed-in-five case where the van cannot reach
   the chair and the goons walk up from 28 m is left as character. The slow-motion stamp for escaping
   without the chair reads LEFT THE CHAIR in the same red, matching the certificate.
+  Rulings (2026-09-23, post-v1 relay): the 14 s intro narration stays as it is; any key skips it.
+  A van that loads late (after the pivot has started) stays parked where it is and the crew walks
+  up from its drop point, the same beat as the van stopping short.
   **Opening beat** (ruled 2026-09-23 after the loop test showed a still player dies in 10 s): for the
   first 8 s of RUN the goons only shove and grab (10 damage, no knockdown, a "Come with us." bubble);
   bats come out after 8 s or at the first Healing Palm. **The ranger hangs back**: wanted starts at 0,
   he stands by the chair for 15 s ("I'm calling this in.") and only pursues once wanted reaches 1.
+  **The lines read the record** (ruled 2026-09-23 after the first plays; `src/pivot-lines.js`): the
+  three goon lines and the ranger's are chosen by `meta.runs` and `meta.lastOutcome`, escalating
+  polite menace. Run 1 as above. Run 2 names how the last run ended (escaped: they know where you
+  went; arrested: "The county was very helpful."; overworked: "You looked tired last time."; left the
+  chair: "You left the chair. We kept it warm."). Run 3: the boss (grey suit, no bat) steps out of
+  the passenger door, speaks the first line and gets back in; he never chases. Run 4: the ranger's
+  line drifts ("I'm sorry, Alex. My hands are tied."). Runs 5 and 6 name an unlock the player owns
+  ("Nice gun." / "The cart keys. Cute."). Run 7 on: two late sets alternate (never the same set twice
+  in a row; the second brings the boss back with an offer on the chair). The third line stays "..."
+  so the pivot's timing is unchanged. **Skipping it is an unlock** (the last one, "Module review:
+  skippable. You've seen enough."): a course-skin line "Press any key to skip the module review" shows
+  for the whole cutscene and any key or click jumps to the moment controls unlock (van at its stop,
+  the crew on their marks, the ranger at the chair, the client already gone). No skip before it.
 - **RUN**: open park block. Goons hunt the player. Wanted level rises with chaos. Player can steal
   vehicles, run, fight (elbow strikes, it's The People's Elbow), and reach an ESCAPE point (a client's
   house on the far edge of the block, or the highway on-ramp) once wanted level has cooled to zero.
@@ -117,7 +133,8 @@ Camera must not clip into buildings: clamp the third-person camera distance to t
 along the player-to-camera segment.
 
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
-controls camera yaw/pitch (pointer lock). Shift sprint. Space jump. E interact (enter/exit vehicle,
+controls camera yaw/pitch (pointer lock). Shift sprint (a 3 s stamina pool, a thin bar under health in
+RUN; empty means walk until it has recharged 1 s; full again after 6 s off Shift). Space jump. E interact (enter/exit vehicle,
 pick up chair). Left click: the **Healing Palm**. A big wind-up wrestling strike (lunge, THUD, screen
 shake). It is the only player weapon. A hit knocks the target down for about 3 seconds; when they get up
 they are visibly relaxed (slower posture, arms loose), say a relieved line ("...oh. Oh, that's better."),
@@ -142,7 +159,10 @@ all from `assets/*.json` with named wheels (`Wheel_FL/FR/RL/RR`, left is +X faci
 bars. Arcade GTA3 handling: fast accel, grippy, steering tight at low speed and wide at high, Space is a
 handbrake that kicks the tail out. Van heavy and slow, cart quick and tippy, cop car fastest. **Chase
 camera** while driving: settles behind the car's heading at a longer distance, mouse can look around
-and it recentres when you drive. Vehicles dent and smoke at 0 health, never explode. E enters and exits.
+and it recentres when you drive. **Drivers are visible**: the player and every AI driver (cops, the
+ranger's cart, SWAT, the Serenity goon at the van's wheel) sit posed at the type's `seat`, through tinted
+glass; AI drivers are cosmetic rigs, never NPCs (no palm, no gun, no collisions). Vehicles dent and
+smoke at 0 health, never explode. E enters and exits.
 **Peds hit by a car**: they tumble, lie for 3 s, get up holding their back (not relaxed, the opposite),
 big wanted bump, and a later mini-massage on that ped is worth double. **The chair travels by car**:
 E near a vehicle while carrying the chair loads it (visibly in the trunk, or on the cart's rear rack);
@@ -169,6 +189,10 @@ the first hit goon or a stolen vehicle, +2 for hurting a ped (car or palm), +1 a
 chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated vehicle carnage (3+ ped
 hits or 3+ vehicle wrecks). Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
 and walk off pursuit for a while; wanted does not drop from that.
+Rulings (2026-09-23, post-v1 relay): a stolen car still rolling after you bail out is yours; it
+raises wanted for anyone it hits, ped, goon, or cop, the same as if you were driving. A hit by an
+AI-driven car (cop car, the franchise van) raises no wanted, but the street still reacts: peds nearby
+flee and the chaos flash shows.
 
 **Health**: 100. Arrest when a cop touches you at speed 0 for 1.5s or you are knocked down within reach.
 Death at 0 health.
@@ -230,10 +254,10 @@ Every spoken line has two halves and both are required; a subtitle strip alone d
 
 Persisted in localStorage under `cmf.meta.v1`:
 - `runs`, `bestTime`, `bestCash`, `escapes`
-- unlocks: bit set. Unlock order: massage gun (level 0), sprint stamina up, gun range 1, chair auto-fold
+- unlocks: bit set. Unlock order: massage gun (level 0), sprint stamina up (+50% pool), gun range 1, chair auto-fold
   (faster pickup), "regular client" (one guaranteed cooling client per run), gun range 2, cart keys (start
   with a cart), franchise disguise (goons ignore you for 20s once), gun range 3 "Pro", "block party"
-  (peds cheer, cops slower).
+  (peds cheer, cops slower), skippable module review (any key skips the van cutscene).
 Each SUMMARY unlocks the next item. Massage phase between runs mentions the unlock in client dialogue.
 
 ## Technical contracts

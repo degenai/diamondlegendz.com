@@ -162,6 +162,6 @@ function onVehicleHit(e, v, ctx) {
   e.knockCause = 'vehicle';
   e.knockedT = 3;
   if (e.state === 'windup') e.state = 'chase';
-  if (v.driver === ctx.player && ctx.wanted) ctx.wanted.report('goonHit');
+  if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('goonHit'); // a stolen car you bailed from is still yours (ped.js)
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');
 }

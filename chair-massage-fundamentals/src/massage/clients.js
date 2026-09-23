@@ -2,15 +2,19 @@
 import { unlockInfo } from '../meta.js';
 
 // Difficulty follows the boredom curve: band width 30 -> 18 -> 12, ring 0.18 -> 0.14 -> 0.11 m.
+// Every session runs in segments (owner ruling 2026-09-23): Swedish warm-up, then cross-fiber,
+// then trigger point, each a third of competency. `asks` are the client's requests in that order;
+// `notIt` is said once per segment after 3 s on the wrong modality.
 
 export const MODALITIES = ['Swedish', 'Cross-fiber', 'Trigger point'];
 
 export const CLIENTS = [
   {
     id: 'jogger', name: 'Dana', role: 'jogger', kind: 'jogger',
-    wants: 'Swedish', pay: 40, bandWidth: 30, ringRadius: 0.18, fillRate: 5, spineV: -0.02,
+    pay: 40, bandWidth: 30, ringRadius: 0.18, fillRate: 5, spineV: -0.02,
+    asks: ['Long strokes first. Slow. My calves are cooked.', 'Now the cross-fiber, right across the knot.', 'Now hold that spot. Right there.'],
+    notIt: "That's not it.",
     lines: [
-      [1.0, 'Hi. Swedish, please. Long and slow. My calves are cooked.'],
       [8.0, 'Pond loop twice this morning. The geese have opinions about my pace.'],
       [15.0, 'The new place at the strip mall wants ninety bucks for this.'],
       [22.0, 'I only stopped because I saw the chair. Honestly I should stop more.'],
@@ -19,9 +23,10 @@ export const CLIENTS = [
   },
   {
     id: 'retiree', name: 'Walt', role: 'retiree, the bench by the pond', kind: 'retiree',
-    wants: 'Trigger point', pay: 45, bandWidth: 18, ringRadius: 0.14, fillRate: 4, spineV: 0.14,
+    pay: 45, bandWidth: 18, ringRadius: 0.14, fillRate: 4, spineV: 0.14,
+    asks: ['Long strokes first. These shoulders are old.', "Now the cross-fiber. Don't be shy about it.", 'Now hold that spot. Upper traps. Hold it.'],
+    notIt: "That's not it, kid.",
     lines: [
-      [1.0, "Trigger point, please. Upper traps. Don't be shy about it."],
       [8.5, 'Same bench eleven years. The pigeons know my car.'],
       [16.0, 'Some guys in a black van were asking who runs the chair.'],
       [24.0, "I told them it's a chair. It runs itself. They didn't laugh."],
@@ -30,9 +35,10 @@ export const CLIENTS = [
   },
   {
     id: 'dad', name: 'Marcus', role: 'dad from the playground', kind: 'dad',
-    wants: 'Cross-fiber', pay: 60, bandWidth: 12, ringRadius: 0.11, fillRate: 3.5, spineV: 0.06,
+    pay: 60, bandWidth: 12, ringRadius: 0.11, fillRate: 3.5, spineV: 0.06,
+    asks: ['Long strokes first. It all runs up from the forearms.', 'Now the cross-fiber, across the forearm.', 'Now hold that spot. That one. Yes.'],
+    notIt: "Hm. That's not it.",
     lines: [
-      [1.0, "Cross-fiber, if you do that. It's the forearms, but it runs all the way up."],
       [7.0, 'Four hundred swing pushes. I counted. "Higher" every single time.'],
       [13.0, "There's a sign-up sheet for the swings now. Laminated. Who laminates?"],
       [19.0, 'My HOA got a letter about unlicensed vendors, is that you?'],
@@ -42,6 +48,9 @@ export const CLIENTS = [
     done: 'Okay. Okay, wow. Worth every dollar.',
   },
 ];
+
+// Segment plan per client: MODALITIES in order, or only the first `segments` of them (between runs).
+export function segmentsOf(client) { return MODALITIES.slice(0, client.segments || MODALITIES.length); }
 
 export const OUCH = ['Ouch.', 'Easy!', 'Ow. OW.', 'Too much, too much.', 'Hey!'];
 
@@ -75,35 +84,38 @@ const RETURN = {
 export function roster(meta) {
   if (!meta || !meta.firstPivotSeen) return CLIENTS.slice();
   const out = meta.lastOutcome && RETURN[meta.lastOutcome];
-  if (!out) return [CLIENTS[0]];
+  if (!out) return [{ ...CLIENTS[0], segments: 2 }];
   const pair = out[(meta.runs || 0) % out.length];
   const info = unlockInfo(meta.lastUnlock);
   const gift = info ? info.gift : 'a thank-you card';
   const base = CLIENTS[0];
   return [{
     ...base,
+    segments: 2, // between runs: Swedish, then cross-fiber
+    asks: ['Back again. Long strokes first. Same calves, new problems.', base.asks[1]],
     lines: [
-      [1.0, 'Back again. Swedish, please. Same calves, new problems.'],
       [7.0, pair[0]],
       [14.0, pair[1].replace('{gift}', gift)],
-      [22.0, base.lines[3][1]],
+      [22.0, base.lines[2][1]],
     ],
   }];
 }
 
 // Plain-object scheduler: scheduled lines plus one-off interjections (ouch, done).
+// hold: a priority line (a segment request) keeps the scheduled chatter waiting until it is done.
 export function createDialogue(client) {
-  return { client, t: 0, next: 0, speaker: '', text: '', showUntil: -1, changed: true };
+  return { client, t: 0, next: 0, speaker: '', text: '', showUntil: -1, holdUntil: -1, changed: true };
 }
 
-export function say(d, speaker, text, dur = 2.2) {
+export function say(d, speaker, text, dur = 2.2, hold = false) {
   d.speaker = speaker; d.text = text; d.showUntil = d.t + dur; d.changed = true;
+  if (hold) d.holdUntil = d.showUntil;
 }
 
 export function updateDialogue(d, dt) {
   d.t += dt;
   const lines = d.client.lines;
-  if (d.next < lines.length && d.t >= lines[d.next][0]) {
+  if (d.next < lines.length && d.t >= lines[d.next][0] && d.t >= d.holdUntil) {
     say(d, d.client.name, lines[d.next][1], LINE_TIME);
     d.next++;
   }

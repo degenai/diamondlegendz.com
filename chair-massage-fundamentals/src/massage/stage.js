@@ -118,7 +118,7 @@ export function poseClient(st, dt, time) {
   m.updateMatrixWorld(true);
 }
 
-// Hands sit on the back at the working spot (A/D), pressed in a little by pressure (W/S).
+// Hands sit on the back at the working spot (they ride the stroke ring), pressed in a little by pressure (W/S).
 export function placeHands(st, spot, pressure, v) {
   const back = st.client.userData.back;
   back.getWorldQuaternion(_q);
