@@ -164,6 +164,30 @@ export function collidePlayer(v, p, ctx) {
   return true;
 }
 
+// NPC on foot (ped, goon, cop): pushed out; knocked down (3 s, no hp) when the vehicle is moving
+// faster than HIT_SPEED. e.onVehicleHit(e, v, ctx) does the wanted/flee/sore bookkeeping.
+export function collideNpc(v, e, ctx) {
+  const reach = v.spec.halfL + 1;
+  const dx0 = e.pos.x - v.pos.x, dz0 = e.pos.z - v.pos.z;
+  if (dx0 * dx0 + dz0 * dz0 > reach * reach || e.pos.y > v.pos.y + v.spec.height - 0.1 || e.fixed) return false;
+  const circ = vehicleCircles(v);
+  let px = 0, pz = 0;
+  for (const q of circ) {
+    const r = e.radius + v.spec.circleR, dx = e.pos.x - q.x, dz = e.pos.z - q.z, d2 = dx * dx + dz * dz;
+    if (d2 >= r * r || d2 < 1e-8) continue;
+    const d = Math.sqrt(d2);
+    px += (dx / d) * (r - d); pz += (dz / d) * (r - d);
+  }
+  if (px === 0 && pz === 0) return false;
+  e.pos.x += px; e.pos.z += pz;
+  const speed = Math.hypot(v.vel.x, v.vel.z);
+  if (speed > HIT_SPEED && !(e.knockedT > 0)) {
+    hitEntity(v, e, { knockT: 3, damage: false });
+    if (e.onVehicleHit) e.onVehicleHit(e, v, ctx);
+  }
+  return true;
+}
+
 // Healing Palm on bodywork: small dent and a wobble. Cosmetic.
 export function dentVehicle(v, amount = 3) {
   v.hp = Math.max(0, v.hp - amount);

@@ -4,7 +4,7 @@
 // turns and under braking (cosmetic, the collider never rotates off the ground plane).
 import * as THREE from '../../vendor/three.module.js';
 import { VEHICLE_TYPES } from './vehicle-types.js';
-import { collideStatic, collideVehicles, collidePlayer, settleHeight } from './vehicle-collide.js';
+import { collideStatic, collideVehicles, collidePlayer, collideNpc, settleHeight } from './vehicle-collide.js';
 import { updateFx } from './vehicle-fx.js';
 
 export { VEHICLE_TYPES } from './vehicle-types.js';
@@ -71,13 +71,20 @@ export const update = updateVehicle;
 export function updateVehicle(v, dt, ctx) {
   const T = v.spec;
   const input = v.driver && v.driver === ctx.player ? ctx.input : null;
+  // AI drivers (goon van, cop cars) write v.ai = { throttle, steer, handbrake } (run/driver.js).
+  const ai = !input && v.driver && v.ai ? v.ai : null;
   let throttle = 0, steerIn = 0;
   v.handbrake = false;
   if (input) {
     throttle = (input.forward ? 1 : 0) - (input.back ? 1 : 0);
     steerIn = (input.left ? 1 : 0) - (input.right ? 1 : 0);
     v.handbrake = !!input.space;
+  } else if (ai) {
+    throttle = Math.max(-1, Math.min(1, ai.throttle || 0));
+    steerIn = Math.max(-1, Math.min(1, ai.steer || 0));
+    v.handbrake = !!ai.handbrake;
   }
+  const driven = !!(input || ai);
   const dead = v.hp <= 0;
 
   let s = Math.sin(v.yaw), c = Math.cos(v.yaw);
@@ -86,15 +93,15 @@ export function updateVehicle(v, dt, ctx) {
   let vl = -v.vel.x * c + v.vel.z * s;
   const vf0 = vf;
 
-  if (!input) {
+  if (!driven) {
     vf = approach(vf, 0, PARKED_BRAKE * dt);
   } else {
     if (throttle > 0) {
-      if (vf < -0.3) vf = approach(vf, 0, T.brake * dt);
-      else if (!dead) vf += T.accel * dt * Math.max(0, 1 - Math.pow(Math.max(0, vf) / T.maxSpeed, 3));
+      if (vf < -0.3) vf = approach(vf, 0, T.brake * dt * throttle);
+      else if (!dead) vf += T.accel * throttle * dt * Math.max(0, 1 - Math.pow(Math.max(0, vf) / T.maxSpeed, 3));
     } else if (throttle < 0) {
-      if (vf > 0.3) vf = approach(vf, 0, T.brake * dt);
-      else if (!dead) vf = Math.max(-T.maxReverse, vf - T.accel * 0.6 * dt);
+      if (vf > 0.3) vf = approach(vf, 0, T.brake * dt * -throttle);
+      else if (!dead) vf = Math.max(-T.maxReverse, vf + T.accel * 0.6 * throttle * dt);
     } else {
       vf = approach(vf, 0, COAST * dt);
     }
@@ -121,7 +128,7 @@ export function updateVehicle(v, dt, ctx) {
   v.speed = vf;
   v.slip = vl;
 
-  const moving = Math.abs(vf) > SLEEP_V || Math.abs(vl) > SLEEP_V || !!input;
+  const moving = Math.abs(vf) > SLEEP_V || Math.abs(vl) > SLEEP_V || driven;
   if (moving) v.asleep = false;
   const colliders = ctx.world ? ctx.world.colliders : null;
   if (!v.asleep) {
@@ -139,6 +146,7 @@ export function updateVehicle(v, dt, ctx) {
     for (let j = i + 1; j < list.length; j++) collideVehicles(v, list[j], ctx);
   }
   if (ctx.player && !ctx.player.vehicle) collidePlayer(v, ctx.player, ctx);
+  if (ctx.npcs && !v.asleep) for (let i = 0; i < ctx.npcs.length; i++) collideNpc(v, ctx.npcs[i], ctx);
   if (v.driver && v.driver.pos) v.driver.pos.copy(v.pos);
 
   animate(v, dt, vf, vf0);

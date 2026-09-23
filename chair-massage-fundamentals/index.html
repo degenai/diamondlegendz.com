@@ -98,6 +98,39 @@
   .cm-card-black { background: #000; }
   .cm-card-black .cm-card-inner { color: #eee; font: 22px var(--mono); letter-spacing: .04em; text-align: center; padding: 0 24px; }
   .cm-card-black h2 { font: inherit; margin: 0; }
+  /* RUN HUD: wanted stars, health, cash, floaters, chaos flash, mini-massage meter. */
+  .rh { position: absolute; inset: 0; }
+  .rh-box { position: absolute; top: 10px; right: 12px; width: 150px; text-align: right; }
+  .rh-stars { font-size: 24px; letter-spacing: 2px; line-height: 1; }
+  .rh-star { color: rgba(0,0,0,.35); text-shadow: 0 0 2px rgba(255,255,255,.35); }
+  .rh-star.on { color: #ffd23a; text-shadow: 0 0 4px rgba(0,0,0,.7); }
+  .rh-star.rising { animation: rh-blink .35s steps(2) infinite; }
+  @keyframes rh-blink { 50% { color: #fff6c8; opacity: .35; } }
+  .rh-hp { height: 5px; margin: 6px 0 0 auto; width: 138px; background: rgba(0,0,0,.5); border: 1px solid rgba(0,0,0,.6); }
+  .rh-hp i { display: block; height: 100%; width: 100%; background: #6fd26a; }
+  .rh-hp i.low { background: #e0533d; }
+  .rh-cash { margin-top: 5px; font-size: 18px; color: #9cf29a; text-shadow: 0 1px 2px #000; }
+  .rh-float { position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform, opacity;
+    font-size: 14px; text-shadow: 0 1px 2px #000, 0 0 4px #000; }
+  .rh-thud { font-size: 26px; font-weight: bold; color: #ffe14a; letter-spacing: .06em; }
+  .rh-released { font-size: 16px; font-weight: bold; color: #7ff0c0; }
+  .rh-speech { font: italic 15px Georgia, "Times New Roman", serif; color: #fff; }
+  .rh-dim { color: #c9c9c9; font-size: 13px; }
+  .rh-cash.rh-float, .rh-float.rh-cash { font-size: 20px; color: #9cf29a; font-weight: bold; }
+  .rh-flash { position: absolute; inset: 0; box-shadow: inset 0 0 90px 24px rgba(220,40,30,.0); pointer-events: none; }
+  .rh-flash.go { animation: rh-flash .5s ease-out; }
+  @keyframes rh-flash { 0% { box-shadow: inset 0 0 90px 24px rgba(220,40,30,.55); } 100% { box-shadow: inset 0 0 90px 24px rgba(220,40,30,0); } }
+  .rh-mini { position: absolute; right: 16px; bottom: 120px; width: 120px; padding: 8px 10px; background: rgba(0,0,0,.55);
+    border-radius: 3px; font-size: 12px; text-align: center; }
+  .rh-mini-title { margin-bottom: 6px; color: #ffe9b0; }
+  .rh-mini-track { position: relative; height: 120px; width: 22px; margin: 0 auto 6px; background: rgba(255,255,255,.12); border: 1px solid #999; }
+  .rh-mini-band { position: absolute; left: 0; right: 0; background: rgba(111,210,106,.45); }
+  .rh-mini-needle { position: absolute; left: -5px; right: -5px; height: 3px; margin-bottom: -1px; background: #fff; }
+  .rh-mini-needle[data-zone="over"] { background: #e0533d; }
+  .rh-mini-needle[data-zone="in"] { background: #9cf29a; }
+  .rh-mini-prog { height: 6px; background: rgba(255,255,255,.15); margin-bottom: 4px; }
+  .rh-mini-prog i { display: block; height: 100%; width: 0; background: #9cf29a; }
+  .rh-mini-note { font-size: 11px; color: #ddd; }
 </style>
 </head>
 <body>

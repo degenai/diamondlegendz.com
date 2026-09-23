@@ -62,7 +62,7 @@ export function pickUpChair(ctx, p) {
   const cs = chairState(ctx.world);
   if (cs.vehicle) cs.vehicle.chairLoaded = false;
   mount(c, back, BACK_MOUNT);
-  Object.assign(chairState(ctx.world), { where: 'player', vehicle: null });
+  Object.assign(chairState(ctx.world), { setDown: false, where: 'player', vehicle: null });
   return true;
 }
 
@@ -71,7 +71,7 @@ export function loadChair(ctx, v) {
   if (!c) return false;
   mount(c, v.body, v.spec.chair);
   v.chairLoaded = true;
-  Object.assign(chairState(ctx.world), { where: 'vehicle', vehicle: v });
+  Object.assign(chairState(ctx.world), { setDown: false, where: 'vehicle', vehicle: v });
   return true;
 }
 
@@ -94,7 +94,7 @@ export function throwChair(ctx, v) {
   c.rotation.set(0, v.yaw + 2.2, 0);
   const home = ctx.world._chairHome;
   if (home) c.scale.copy(home.scale); else c.scale.set(1, 1, 1);
-  Object.assign(chairState(ctx.world), { where: 'ground', vehicle: null, thrownAt: ctx.time });
+  Object.assign(chairState(ctx.world), { setDown: false, where: 'ground', vehicle: null, thrownAt: ctx.time });
   return true;
 }
 

@@ -13,6 +13,10 @@ import * as massage from './massage/index.js';
 import { spawnVehicles } from './world/cars.js';
 import { ensureChair, resetChair } from './entities/chair.js';
 import { runHudText, exitVehicle } from './entities/interact.js';
+import { createWanted } from './run/wanted.js';
+import * as spawner from './run/spawner.js';
+import { createMini, updateMini } from './run/minimassage.js';
+import { startPalm } from './entities/palm.js';
 
 const STEP = 1 / 60;
 const MAX_ACCUM = 0.25; // cap to avoid spiral of death after a stall
@@ -84,26 +88,33 @@ function boot() {
 
   const ctx = {
     world, entities, player, input: null, rng,
-    wanted: null, hud, audio: null, time: 0,
+    wanted: createWanted(), hud, audio: null, time: 0,
+    npcs: [], mini: createMini(), runCash: 0, runEnd: null,
+    perf: { last: 0, max: 0, sum: 0, n: 0 },
     camera, scene, seed,
     meta: meta.load(),
     massageTotals: { you: 0, host: 0 },
     station: null,
   };
   let pivotT = 0;
+  let endT = 0;
+  spawner.initSpawner(ctx);
 
   let interactHint = '';
   function updateHint() {
     if (getState() === STATES.RUN && !input.isLocked()) {
       const base = player.vehicle
         ? 'Click to look around. W/S drive, A/D steer, Space handbrake, E exit. Esc releases mouse.'
-        : 'Click to look around. WASD move, Shift sprint, Space jump, Left click elbow. Esc releases mouse.';
+        : 'Click to look around. WASD move, Shift sprint, Space jump, Left click Healing Palm. Esc releases mouse.';
       hud.setHint(interactHint ? `${interactHint}  |  ${base}` : base);
     } else {
       hud.setHint(getState() === STATES.RUN ? interactHint : '');
     }
   }
   function updateRunHud() {
+    hud.setWanted(ctx.wanted.level, ctx.wanted.risingT > 0);
+    hud.setHealth(player.hp);
+    hud.setCash((ctx.massageTotals ? ctx.massageTotals.you : 0) + (ctx.runCash || 0));
     const t = runHudText(player, ctx);
     hud.setVehicleLine(t.vehicle);
     hud.setChairStrip(t.chair);
@@ -114,7 +125,14 @@ function boot() {
   // --- state wiring ---
   onEnter(STATES.TITLE, () => { hud.showTitle(); input.releaseLock(); });
   onExit(STATES.TITLE, () => hud.hideTitle());
-  onEnter(STATES.MASSAGE, () => { if (player.vehicle) exitVehicle(player, ctx); player.knockedT = 0; });
+  onEnter(STATES.MASSAGE, () => {
+    if (player.vehicle) exitVehicle(player, ctx);
+    player.knockedT = 0; player.massaging = false; player.palmT = 0; player.hp = 100;
+    spawner.clear(ctx);
+    hud.showRunHud(false);
+    ctx.mini = createMini();
+    ctx.wanted.reset();
+  });
   onEnter(STATES.MASSAGE, () => massage.enter(ctx));
   onEnter(STATES.MASSAGE, () => resetChair(ctx)); // after enter: the station exists by now
   onExit(STATES.MASSAGE, () => massage.exit(ctx));
@@ -131,12 +149,23 @@ function boot() {
       meta.save(ctx.meta);
     }
     ensureChair(ctx);
-    hud.setRunTitle(true); updateHint();
+    ctx.mini = createMini();
+    spawner.begin(ctx);
+    hud.setRunTitle(true); hud.showRunHud(true); updateHint();
   });
   onExit(STATES.RUN, () => {
     input.releaseLock(); hud.setHint(''); hud.setRunTitle(false);
-    hud.setVehicleLine(''); hud.setChairStrip('');
+    hud.setVehicleLine(''); hud.setChairStrip(''); hud.setMini(null);
   });
+  // Placeholder end cards; Phase 6 replaces them with the run summary.
+  const endCard = (title, line) => () => {
+    endT = 0;
+    player.massaging = false;
+    hud.showCard(title, [line], 'black');
+  };
+  onEnter(STATES.ARREST, endCard('ARRESTED', 'The city sides with the franchise.'));
+  onEnter(STATES.DEATH, endCard('OVERWORKED', 'Nobody pays you to take a bat for a chair.'));
+  for (const s of [STATES.ARREST, STATES.DEATH]) onExit(s, () => { hud.hideCard(); hud.showRunHud(false); });
 
   const beginBtn = document.getElementById('begin');
   if (beginBtn) {
@@ -165,6 +194,10 @@ function boot() {
     get meta() { return ctx.meta; },
     get vehicles() { return world.vehicles || []; },
     get chairState() { return world.chairState; },
+    get npcs() { return ctx.npcs; },
+    get wanted() { return ctx.wanted; },
+    spawner,
+    debug: { palm: () => startPalm(player) },
   };
 
   setState(STATES.TITLE);
@@ -179,10 +212,23 @@ function boot() {
     ctx.input = input.snapshot();
     const s = getState();
     if (s === STATES.RUN) {
+      const t0 = performance.now();
       updateAll(dt, ctx);
+      const ms = performance.now() - t0;
+      const P = ctx.perf;
+      P.last = ms; P.max = Math.max(P.max, ms); P.sum += ms; P.n++;
+      if (getState() !== STATES.RUN) return;
+      spawner.update(dt, ctx);
+      if (getState() !== STATES.RUN) return;
+      updateMini(dt, ctx);
+      hud.updateFloaters(dt, camera);
       updateRunHud();
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);
+    } else if (s === STATES.ARREST || s === STATES.DEATH) {
+      endT += dt;
+      hud.updateFloaters(dt, camera);
+      if (endT >= 3) setState(STATES.MASSAGE);
     } else if (s === STATES.PIVOT) {
       pivotT += dt;
       if (pivotT >= 3) setState(STATES.RUN);

@@ -1,12 +1,17 @@
-// DOM HUD overlay: title toggle, status line, crosshair, RUN title strip.
+// DOM HUD overlay: title toggle, status line, crosshair, RUN title strip. The RUN overlay (wanted,
+// health, cash, floaters) lives in hud-run.js.
 // The MASSAGE course skin (meter, competency, ledger, subtitles, cards) lives in hud-massage.js
 // and is re-exported here so callers only ever import hud.js.
 import { initMassageHud } from './hud-massage.js';
+import { initRunHud } from './hud-run.js';
 
 export {
   showMassageHud, setMeter, setMeterState, setCompetency, setClientInfo, setModality,
   showDialogue, hideDialogue, setPrompt, setLedger, showCard, hideCard,
 } from './hud-massage.js';
+export {
+  showRunHud, setWanted, setHealth, setCash, flashChaos, floater, updateFloaters, setMini, activeFloaters,
+} from './hud-run.js';
 
 let root = null;
 let titleEl = null;
@@ -41,6 +46,7 @@ export function initHud(hudRoot) {
   chairEl = el('div', 'hud-chair', root);
   chairEl.hidden = true;
   initMassageHud(root);
+  initRunHud(root);
   return root;
 }
 
@@ -79,7 +85,3 @@ export function setChairStrip(text) {
   if (text && chairEl.textContent !== text) chairEl.textContent = text;
   chairEl.classList.toggle('hud-chair-warn', text === "Don't leave the chair.");
 }
-
-// --- Later-phase placeholders (names per DESIGN.md HUD list) ---
-export function setWanted(_stars) {}
-export function setCash(_amount) {}

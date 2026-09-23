@@ -3,6 +3,8 @@
 import { boxDistance, dentVehicle, vehicleCircles } from './vehicle-collide.js';
 import { overlapsFootprint, floorHeightAt } from '../physics.js';
 import { chairState, chairWorldPos, pickUpChair, loadChair, findChair } from './chair.js';
+import { setChairDown, canStart, startMassage } from '../run/minimassage.js';
+import { emitChaos } from '../run/wanted.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
 export const CHAIR_DIST = 2;
@@ -29,13 +31,14 @@ function chairDistance(p, ctx) {
   return Math.hypot(w.x - p.pos.x, w.z - p.pos.z);
 }
 
-// What E would do right now: { act, v } with act in enter|exit|load|pickup|null.
+// What E would do right now: { act, v } with act in enter|exit|load|setdown|massage|pickup|take|null.
 export function interaction(p, ctx) {
   if (p.vehicle) return { act: 'exit', v: p.vehicle };
-  if (p.knockedT > 0) return { act: null };
+  if (p.knockedT > 0 || p.massaging) return { act: null };
   const nv = nearestVehicle(p, ctx);
   const cs = chairState(ctx.world);
-  if (cs.where === 'player') return nv ? { act: 'load', v: nv.v } : { act: null };
+  if (cs.where === 'player') return nv ? { act: 'load', v: nv.v } : { act: ctx.mini ? 'setdown' : null };
+  if (ctx.mini && canStart(p, ctx)) return { act: 'massage' };
   const cd = chairDistance(p, ctx);
   if (cs.where === 'vehicle') {
     if (cd <= TAKE_DIST && (!nv || cd < nv.d)) return { act: 'take' };
@@ -49,12 +52,18 @@ export function handleInteract(p, ctx) {
   else if (it.act === 'enter') enterVehicle(p, it.v, ctx);
   else if (it.act === 'load') loadChair(ctx, it.v);
   else if (it.act === 'pickup' || it.act === 'take') pickUpChair(ctx, p);
+  else if (it.act === 'setdown') setChairDown(p, ctx);
+  else if (it.act === 'massage') startMassage(p, ctx);
   return it.act;
 }
 
 export function enterVehicle(p, v, ctx) {
   if (p.knockedT > 0 || v.driver) return false;
-  if (v.parked) v.stolen = true;       // Phase 5 reads this for the wanted level
+  if (v.parked) {                      // stealing: wanted +1 the first time, +0.5 after
+    v.stolen = true;
+    if (ctx.wanted) ctx.wanted.report('stealVehicle');
+    emitChaos(ctx, v.pos.x, v.pos.z, 'steal');
+  }
   v.parked = false;
   v.driver = p;
   v.asleep = false;
@@ -132,7 +141,8 @@ export function palmVehicles(p, ctx) {
   return null;
 }
 
-const HINTS = { enter: 'E enter vehicle', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair' };
+const HINTS = { enter: 'E enter vehicle', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
+  setdown: 'E set chair down', massage: 'Hold E: start massage (W/S pressure)' };
 
 // RUN HUD strings for main.js: { hint, vehicle, chair }.
 export function runHudText(p, ctx) {

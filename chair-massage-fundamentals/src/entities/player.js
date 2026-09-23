@@ -1,11 +1,13 @@
-// Player: third-person on-foot controller, orbit camera, procedural walk, elbow stub.
+// Player: third-person on-foot controller, orbit camera, procedural walk, Healing Palm (palm.js).
 // Phase 4: E interactions (interact.js), driving (the vehicle reads input; the player rides
 // along hidden), chase camera (chase-cam.js), knockdown when a vehicle hits them on foot.
 import * as THREE from '../../vendor/three.module.js';
 import { spawnPerson } from '../world/people.js';
 import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
-import { handleInteract, palmVehicles } from './interact.js';
+import { handleInteract } from './interact.js';
 import { updateChaseCamera, blendLook } from './chase-cam.js';
+import { startPalm, updatePalm, updateHealth, applyShake } from './palm.js';
+import { poseTherapist } from '../run/minimassage.js';
 
 const WALK = 4;
 const SPRINT = 7;
@@ -21,7 +23,6 @@ const CAM_PAD = 0.3;       // stay this far in front of the first collider hit
 const PITCH_MIN = -0.35;
 const PITCH_MAX = 1.1;
 const MOUSE_SENS = 0.0025;
-const ELBOW_TIME = 0.2;
 const KNOCK_DECEL = 9;     // m/s^2 slide while knocked down
 const KNOCK_TILT = -1.35;  // rig tilts back (rad about local X)
 
@@ -75,6 +76,7 @@ export function updatePlayer(p, dt, ctx) {
   const input = ctx.input;
 
   if (input && input.ePressed) handleInteract(p, ctx);
+  updateHealth(p, dt, ctx);
   if (p.vehicle) {
     // Driving: the vehicle reads the input; the player rides along hidden.
     p.pos.copy(p.vehicle.pos);
@@ -89,6 +91,13 @@ export function updatePlayer(p, dt, ctx) {
   if (input) {
     p.camYaw -= input.dx * MOUSE_SENS;
     p.camPitch = Math.min(PITCH_MAX, Math.max(PITCH_MIN, p.camPitch + input.dy * MOUSE_SENS));
+  }
+  // Mini-massage: planted at the chair, both palms on the client's back (run/minimassage.js).
+  if (p.massaging && !knocked) {
+    p.vel.set(0, 0, 0);
+    p.knockTilt = 0;
+    poseTherapist(p, ctx);
+    return;
   }
 
   // --- movement relative to camera yaw ---
@@ -142,18 +151,15 @@ export function updatePlayer(p, dt, ctx) {
 
   // --- facing: turn toward movement direction ---
   const hSpeed = Math.hypot(p.vel.x, p.vel.z);
-  if (moving) {
+  if (moving && !(p.palmT > 0)) { // hold the strike's facing through the wind-up
     const targetYaw = Math.atan2(_wish.x, _wish.z);
     p.yaw += wrapAngle(targetYaw - p.yaw) * Math.min(1, 12 * dt);
     p.yaw = wrapAngle(p.yaw);
   }
 
-  // --- elbow strike stub ---
-  if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) {
-    p.elbowT = ELBOW_TIME;
-    palmVehicles(p, ctx);
-    console.log('[CMF] elbow strike', { x: +p.pos.x.toFixed(2), z: +p.pos.z.toFixed(2), yaw: +p.yaw.toFixed(2) });
-  }
+  // --- Healing Palm: wind-up, then the strike (palm.js) ---
+  if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) startPalm(p);
+  updatePalm(p, dt, ctx);
   if (p.elbowT > 0) p.elbowT = Math.max(0, p.elbowT - dt);
 
   // Knockdown: tip over fast, get back up once knockedT runs out.
@@ -187,6 +193,7 @@ export function lateUpdatePlayer(p, dt, ctx) {
   const colliders = cameraColliders(p, ctx);
   if (p.vehicle) updateChaseCamera(p, p.vehicle, dt, ctx.camera, colliders, ctx.input);
   else updateCamera(p, dt, ctx.camera, colliders);
+  applyShake(p, ctx.camera);
 }
 
 function animate(p, dt, hSpeed) {
@@ -197,10 +204,14 @@ function animate(p, dt, hSpeed) {
   limbs.legL.rotation.x = swing;
   limbs.legR.rotation.x = -swing;
   limbs.armL.rotation.x = -swing * 0.8;
-  if (p.elbowT > 0) {
-    // Snap the right arm out forward, bent across the body.
+  if (p.palmT > 0) {
+    // Wind-up: the palm draws back past the hip.
+    limbs.armR.rotation.x = 1.3;
+    limbs.armR.rotation.z = -0.25;
+  } else if (p.elbowT > 0) {
+    // The Healing Palm: right arm straight out, heel of the hand first.
     limbs.armR.rotation.x = -Math.PI / 2;
-    limbs.armR.rotation.z = 0.5;
+    limbs.armR.rotation.z = 0.15;
   } else {
     limbs.armR.rotation.x = swing * 0.8;
     limbs.armR.rotation.z = 0;

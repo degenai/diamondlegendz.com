@@ -42,16 +42,25 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
 - **MASSAGE**: the minigame. Client sits in a massage chair in a city park. Sequence of clients. On the
   first ever playthrough, the pivot fires after client 3 (about 2.5 minutes). Afterwards, the pivot
   fires after 1 client (the player knows).
-- **PIVOT**: scripted 20 seconds. A black van pulls onto the park path. Three heavies in suits get out,
-  one carrying a bat. Straight GTA menace, no slapstick; the absurdity is that they are here about a
-  massage chair. Dialogue over HUD. Ranger arrives, sides with the heavies. Controls unlock
-  mid-cutscene (the player can walk away while the ranger is still talking). Music changes. Title card:
-  "Chair Massage Fundamentals" with "Fundamentals" struck through.
+- **PIVOT** (decided 2026-09-23): scripted about 20 seconds, mid-massage, client 3 still in the chair.
+  The black van drives in from `spawns.vanEntry` along the road and onto the plaza path, stops 8 m from
+  the chair. Three heavies in suits get out, one with a bat. One line each over the HUD ("Serenity Group
+  Incorporated. We'd like a word about the chair." / "You're operating without a brand." / "..."). The
+  ranger jogs in from the sidewalk and sides with them ("Sir, they have a permit for the plaza. You don't.").
+  Straight GTA menace, no slapstick; the absurdity is that this is about a massage chair. Controls
+  unlock while the ranger is mid-sentence; the course HUD tears off (panels slide away), the spa loop
+  detunes and collapses, the title strip strikes "Fundamentals". The client gets up and walks off.
 - **RUN**: open park block. Goons hunt the player. Wanted level rises with chaos. Player can steal
   vehicles, run, fight (elbow strikes, it's The People's Elbow), and reach an ESCAPE point (a client's
   house on the far edge of the block, or the highway on-ramp) once wanted level has cooled to zero.
-- **ARREST / DEATH / ESCAPE**: end of run. Freeze frame, stat card.
-- **SUMMARY**: run stats, unlock reveal, "Return to the chair" button.
+- **ARREST / DEATH / ESCAPE** (decided 2026-09-23): "Wasted"-style slow motion. Time scales to 0.25
+  for 2 s, the camera tilts and drifts, the colour desaturates, and a stamp slams in: ARRESTED,
+  OVERWORKED (health, nobody dies), or ESCAPED. Then the summary.
+- **SUMMARY**: a continuing-education **certificate parody** on the beige course skin: "This certifies
+  that the licensee ESCAPED / WAS ARRESTED / WAS OVERWORKED", run time, cash raised for the host cause,
+  tension released count, one unlock revealed under a wax seal. "Return to the chair" button.
+- **Between runs**: one client (the jogger returns) with two new lines that reference the last run and
+  the new unlock, then the van arrives faster. About 40 s of massage between runs.
 
 ## The massage minigame (MASSAGE)
 
@@ -160,6 +169,52 @@ Death at 0 health.
 vehicle). Escape is a win; the chair is the run's real objective. The HUD says it from the moment the
 pivot fires: "Don't leave the chair." Leaving the block without it is a loss (the ESCAPE state with a
 "You left the chair" card and no unlock).
+
+## Version one decisions (council sitting, 2026-09-23)
+
+- **Wanted cap for v1 is 3 stars** (ranger, parks cart, cop cars). Levels 4 and 5 (roadblocks, SWAT
+  van) stay implemented behind `WANTED_CAP = 3` in `src/run/wanted.js`; raise it later.
+- **Home is the People's Elbow site**, not diamondlegendz: the game is Elbow content. Build it here,
+  then move or mirror to peoples-elbow.com when the loop is polished. The certificate ends with the real
+  chair's address: a line and a link to peoples-elbow.com ("The real chair is at ...").
+- **Andy is co-designer after Phase 7** (audio and juice), not a blind tester; strangers come from the
+  real chair. "Proud" means the full loop plays clean with audio: massage, pivot, run, slow motion,
+  certificate, back to the chair, spa loop that breaks. Alex plays it himself after Phase 7, not before.
+- **Certificate last line** (second sitting): a dry sentence and an address, no pitch, no button copy.
+  "The real chair is at The People's Elbow, Woodstock, GA." with a plain link to peoples-elbow.com.
+- **Unlock balance**: two viable late builds, gun range and the neighborhood (regulars, block party),
+  tuned equal. Neither dominates.
+- **Byline**: one line, on the title screen footer and the certificate footer: "Made by The People's
+  Elbow, a.k.a. Alex Adamczyk, LMT." The course header can still say "Instructor: Alex Adamczyk, LMT"
+  as part of the CEU skin. The certificate's licensee line is the player.
+- **Audio for v1**: full procedural WebAudio score in three states. Spa pad with rain (MASSAGE), the
+  detune-and-collapse at the PIVOT, a driving bass pulse (RUN), silence under the slow motion. Effects:
+  engine hum per vehicle type, thud, siren, chair fold, massage gun percussion. No audio files.
+
+## Dialogue: speech bubbles and a C64 voice (decided 2026-09-23)
+
+Every spoken line has two halves and both are required; a subtitle strip alone does not read.
+
+- **Speech bubbles**: a comic-style DOM bubble (rounded box, small tail pointing down) anchored over
+  the speaker's head, projected from the head pivot's world position each frame like the floaters,
+  clamped to the viewport with the tail pointing toward the speaker when they are off screen. One
+  bubble per speaker, queued lines replace in place, bubble lifetime = speech duration + 0.8 s. Same
+  beige course skin in MASSAGE; white with a black outline in RUN. The massage clients' lines move from
+  the subtitle strip into bubbles. The narrator (the course voice with no body) keeps the strip.
+- **Voice** (decided 2026-09-23, after finding the SAM JS port is unlicensed abandonware): **our own
+  formant robot voice**, `src/voice.js`, a few hundred lines of WebAudio, no files, no dependencies.
+  Design: a glottal buzz source (a sawtooth or pulse at the pitch) plus a noise source for fricatives,
+  through two or three bandpass formant filters whose centre frequencies step through a small phoneme
+  table (about 40 entries: vowels by F1/F2, stops as short silences plus a burst, fricatives as shaped
+  noise, nasals as a low resonance). Text goes through a crude letter-to-phoneme rule set (English
+  digraphs, silent e, a short exception list for the game's own words). Timing: fixed 70 to 110 ms per
+  phoneme, pitch contour drops at a full stop and rises at a question mark. It should sound like a 1980s
+  speech chip, not like a person; intelligibility with the subtitle bubble present is the bar, not alone.
+  Three presets of one synth: narrator (mid pitch, even), goons (low pitch, slow, wider formant
+  bandwidth), ranger and clients (higher pitch, faster). Peds' floaters stay text only. Who speaks:
+  narrator, clients, goons, ranger, the certificate. Built in Phase 7 with the rest of the audio; the
+  bubbles are built in Phase 6 with the pivot, since the pivot needs them. Bubble lifetime is driven by
+  the synth's reported duration for the line.
 
 ## Roguelike meta
 
