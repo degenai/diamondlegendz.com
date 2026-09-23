@@ -54,6 +54,9 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   the tension; the goons speak as soon as it stops. The one-seed-in-five case where the van cannot reach
   the chair and the goons walk up from 28 m is left as character. The slow-motion stamp for escaping
   without the chair reads LEFT THE CHAIR in the same red, matching the certificate.
+  Rulings (2026-09-23, post-v1 relay): the 14 s intro narration stays as it is; any key skips it.
+  A van that loads late (after the pivot has started) stays parked where it is and the crew walks
+  up from its drop point, the same beat as the van stopping short.
   **Opening beat** (ruled 2026-09-23 after the loop test showed a still player dies in 10 s): for the
   first 8 s of RUN the goons only shove and grab (10 damage, no knockdown, a "Come with us." bubble);
   bats come out after 8 s or at the first Healing Palm. **The ranger hangs back**: wanted starts at 0,
@@ -169,6 +172,10 @@ the first hit goon or a stolen vehicle, +2 for hurting a ped (car or palm), +1 a
 chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated vehicle carnage (3+ ped
 hits or 3+ vehicle wrecks). Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
 and walk off pursuit for a while; wanted does not drop from that.
+Rulings (2026-09-23, post-v1 relay): a stolen car still rolling after you bail out is yours; it
+raises wanted for anyone it hits, ped, goon, or cop, the same as if you were driving. A hit by an
+AI-driven car (cop car, the franchise van) raises no wanted, but the street still reacts: peds nearby
+flee and the chaos flash shows.
 
 **Health**: 100. Arrest when a cop touches you at speed 0 for 1.5s or you are knocked down within reach.
 Death at 0 health.
