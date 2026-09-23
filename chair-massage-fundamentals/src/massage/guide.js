@@ -4,7 +4,10 @@ import * as THREE from '../../vendor/three.module.js';
 import { MODALITIES } from './clients.js';
 
 const WHITE = new THREE.Color(0xfdf8ea);
+const GREEN = new THREE.Color(0x9be08a);
 const RED = new THREE.Color(0xe0322c);
+const SWEDISH_PERIOD = 4;    // s: the warm-up is the slow one
+const SWEDISH_SCALE = 1.3;   // and the big one
 const _c = new THREE.Vector3();
 const _p = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -22,15 +25,24 @@ export function createGuide(scene) {
   scene.add(mesh);
   return {
     mesh, modalityIdx: 0, t: 0, baseRadius: 0.18, radius: 0.18, u: 0, v: 0, spineV: 0,
-    inside: false, screen: { x: 0, y: 0, r: 0 }, world: new THREE.Vector3(),
+    inside: false, screen: { x: 0, y: 0, r: 0, ax: 0, ay: 0, bx: 0, by: 0 }, world: new THREE.Vector3(),
   };
 }
 
 export function modality(g) { return MODALITIES[g.modalityIdx]; }
 
-export function cycleModality(g) {
-  g.modalityIdx = (g.modalityIdx + 1) % MODALITIES.length;
+// A = back (-1), D = forward (+1) through Swedish, Cross-fiber, Trigger point (wraps).
+export function cycleModality(g, dir = 1) {
+  const n = MODALITIES.length;
+  g.modalityIdx = (g.modalityIdx + (dir < 0 ? n - 1 : 1)) % n;
   g.t = 0;
+}
+
+// The ring is the pressure gauge's colour too: red over the band, green in it, white under.
+// Off the ring (cursor outside) it dims instead of turning red, so red only ever means "too hard".
+export function toneGuide(g, zone) {
+  g.mesh.material.color.copy(zone === 'over' ? RED : zone === 'in' ? GREEN : WHITE);
+  g.mesh.material.opacity = g.inside ? 0.9 : 0.4;
 }
 
 export function disposeGuide(g, scene) {
@@ -43,9 +55,9 @@ export function disposeGuide(g, scene) {
 function pattern(g) {
   const t = g.t;
   const m = modality(g);
-  if (m === 'Swedish') { // long slow ellipse, long axis up the spine, 3 s period
-    const w = (t / 3) * Math.PI * 2;
-    g.u = 0.09 * Math.sin(w); g.v = 0.16 * Math.cos(w); g.radius = g.baseRadius;
+  if (m === 'Swedish') { // long slow ellipse, long axis up the spine; the easy warm-up
+    const w = (t / SWEDISH_PERIOD) * Math.PI * 2;
+    g.u = 0.09 * Math.sin(w); g.v = 0.16 * Math.cos(w); g.radius = g.baseRadius * SWEDISH_SCALE;
   } else if (m === 'Cross-fiber') { // short fast back-and-forth, 8 cm travel, 0.6 s period
     g.u = 0.04 * Math.sin((t / 0.6) * Math.PI * 2); g.v = 0; g.radius = g.baseRadius;
   } else { // trigger point: stationary, shrinks over 4 s then releases
@@ -90,6 +102,6 @@ export function updateGuide(g, dt, back, camera, mouseX, mouseY, w, h) {
   g.inside = inside;
   g.screen.x = _sc.x; g.screen.y = _sc.y;
   g.screen.r = (Math.hypot(ax, ay) + Math.hypot(bx, by)) / 2;
-  g.mesh.material.color.copy(inside ? WHITE : RED);
+  g.screen.ax = ax; g.screen.ay = ay; g.screen.bx = bx; g.screen.by = by; // for the HUD gauge
   return inside;
 }

@@ -1,12 +1,12 @@
-// Pressure meter (W/S) and working spot (A/D) with a hidden, drifting sweet-spot band.
+// Pressure meter (W/S) with a hidden, drifting sweet-spot band. A/D belong to the modality now
+// (guide.js); the hands follow the ring on their own.
 const RATE = 40;       // pressure units per second
-const SPOT_RATE = 1.2; // spot units per second
 const HINT_SCALE = 1.3;
 
 export function createMeter(bandWidth, rng, pressure = 0) {
   const c = rng.range(35, 60);
   return {
-    pressure, spot: 0,
+    pressure,
     baseWidth: bandWidth, bandWidth, bandCentre: c, bandTarget: c,
     retarget: rng.range(3, 6), phase: rng.range(0, 6.28), t: 0,
     zone: 'under',
@@ -18,11 +18,8 @@ export function updateMeter(m, input, dt, rng) {
   if (input) {
     if (input.forward) m.pressure += RATE * dt;
     if (input.back) m.pressure -= RATE * dt;
-    if (input.right) m.spot += SPOT_RATE * dt;
-    if (input.left) m.spot -= SPOT_RATE * dt;
   }
   m.pressure = Math.max(0, Math.min(100, m.pressure));
-  m.spot = Math.max(-1, Math.min(1, m.spot));
 
   // Slow drift: centre eases toward a target re-rolled every few seconds; width breathes a little.
   m.retarget -= dt;

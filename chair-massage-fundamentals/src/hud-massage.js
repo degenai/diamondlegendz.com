@@ -1,5 +1,8 @@
 // MASSAGE HUD: a continuing-education course skin. Beige panels, serif headings,
-// vertical pressure gauge, competency bar, modality panel, ledger, subtitle strip.
+// competency bar, modality panel, ledger, subtitle strip. Pressure has no panel: the stroke ring
+// is the gauge (owner ruling 2026-09-23). An SVG arc on the projected ring fills clockwise from the
+// bottom with pressure 0..100, the hinted sweet band is a lighter arc on the same ellipse, red over
+// the band, green in it; the number sits small beside it and CLIENT WANTS sits over it.
 // Also owns the generic centred card (course intro, pivot stub). Styles live in index.html.
 
 let wrap = null;
@@ -7,6 +10,16 @@ let els = {};
 let cardEl = null;
 let last = {};
 let tearTimer = 0;
+const SVGNS = 'http://www.w3.org/2000/svg';
+const GAUGE_SCALE = 1.16; // the gauge ellipse sits just outside the ring mesh's outer edge
+const G = { value: 0, lo: 0, hi: 0, zone: 'under', ring: null };
+
+function svg(tag, cls, parent) {
+  const n = document.createElementNS(SVGNS, tag);
+  if (cls) n.setAttribute('class', cls);
+  parent.appendChild(n);
+  return n;
+}
 
 function el(tag, className, parent, text) {
   const n = document.createElement(tag);
@@ -34,25 +47,21 @@ export function initMassageHud(root) {
   els.compFill = el('i', '', bar);
   els.compPct = el('b', '', comp, '0%');
 
-  const gauge = el('div', 'cm-panel cm-gauge', wrap);
-  el('h2', '', gauge, 'Pressure');
-  const track = el('div', 'cm-track', gauge);
-  els.hint = el('div', 'cm-hintzone', track);
-  els.fill = el('div', 'cm-fill', track);
-  els.needle = el('div', 'cm-needle', track);
-  for (let v = 0; v <= 100; v += 10) {
-    const tick = el('div', v % 50 === 0 ? 'cm-tick cm-tick-major' : 'cm-tick', track);
-    tick.style.bottom = `${v}%`;
-    if (v % 50 === 0) el('span', '', tick, String(v));
-  }
-  els.pVal = el('div', 'cm-pval', gauge, '0');
-  el('div', 'cm-keys', gauge, 'W / S');
+  els.ringSvg = svg('svg', 'cm-ring', wrap);
+  els.ringTrack = svg('path', 'cm-ring-track', els.ringSvg);
+  els.ringBand = svg('path', 'cm-ring-band', els.ringSvg);
+  els.ringFill = svg('path', 'cm-ring-fill', els.ringSvg);
+  els.ringSvg.style.display = 'none';
+  els.pVal = el('div', 'cm-ring-val', wrap, '0');
+  els.pVal.hidden = true;
+  els.wants = el('div', 'cm-wants', wrap);
+  els.wants.hidden = true;
 
   const mod = el('div', 'cm-panel cm-mod', wrap);
   el('h2', '', mod, 'Modality');
   els.modCur = el('div', 'cm-mod-cur', mod);
   els.modReq = el('div', 'cm-mod-req', mod);
-  els.modNote = el('div', 'cm-mod-note', mod, 'Space: change modality');
+  els.modNote = el('div', 'cm-mod-note', mod, 'A / D: change modality');
 
   const ledger = el('div', 'cm-panel cm-ledger', wrap);
   el('h2', '', ledger, 'Ledger');
@@ -87,24 +96,58 @@ export function tearOffMassageHud() {
 export function massageHudTearing() { return !!wrap && wrap.classList.contains('cm-tear'); }
 
 export function setMeter(value, hintLo, hintHi) {
+  G.value = Math.max(0, Math.min(100, value));
+  G.lo = Math.max(0, Math.min(100, hintLo)); G.hi = Math.max(G.lo, Math.min(100, hintHi));
   if (!wrap) return;
-  const v = Math.round(value);
-  if (last.meter !== v) {
-    els.fill.style.height = `${v}%`;
-    els.needle.style.bottom = `${v}%`;
-    els.pVal.textContent = String(v);
-    last.meter = v;
-  }
-  const lo = Math.round(hintLo), hi = Math.round(hintHi);
-  if (last.hlo !== lo || last.hhi !== hi) {
-    els.hint.style.bottom = `${lo}%`;
-    els.hint.style.height = `${Math.max(0, hi - lo)}%`;
-    last.hlo = lo; last.hhi = hi;
-  }
+  const v = Math.round(G.value);
+  if (last.meter !== v) { els.pVal.textContent = String(v); last.meter = v; }
 }
 
 export function setMeterState(zone) {
-  if (wrap && last.zone !== zone) { els.fill.dataset.zone = zone; last.zone = zone; }
+  G.zone = zone;
+  if (wrap && last.zone !== zone) { els.ringSvg.dataset.zone = zone; els.pVal.dataset.zone = zone; last.zone = zone; }
+}
+
+// Arc on the projected ring from pressure fraction f0 to f1 (0 = bottom, clockwise on screen).
+// r: { x, y, ax, ay, bx, by } where a/b are the ring's in-plane axes in px (b points up the spine).
+function arc(r, f0, f1) {
+  if (f1 - f0 <= 1e-4) return '';
+  const k = GAUGE_SCALE, dir = r.ax * r.by - r.ay * r.bx > 0 ? 1 : -1; // screen y is down
+  const n = Math.max(2, Math.ceil((f1 - f0) * 72));
+  let d = '';
+  for (let i = 0; i <= n; i++) {
+    const f = f0 + ((f1 - f0) * i) / n;
+    const phi = -Math.PI / 2 + dir * f * Math.PI * 2;
+    const c = Math.cos(phi) * k, s = Math.sin(phi) * k;
+    d += `${i ? 'L' : 'M'}${(r.x + r.ax * c + r.bx * s).toFixed(1)} ${(r.y + r.ay * c + r.by * s).toFixed(1)}`;
+  }
+  return d;
+}
+
+// Called every session tick with the guide's projected ring (null hides the gauge).
+export function setRing(r) {
+  G.ring = r ? { x: r.x, y: r.y, ax: r.ax, ay: r.ay, bx: r.bx, by: r.by } : null;
+  if (!wrap) return;
+  const on = !!r && Number.isFinite(r.x) && Math.hypot(r.ax, r.ay) > 1;
+  els.ringSvg.style.display = on ? '' : 'none';
+  els.pVal.hidden = !on;
+  if (!on) { els.wants.hidden = true; return; }
+  els.ringTrack.setAttribute('d', arc(r, 0, 0.9999));
+  els.ringBand.setAttribute('d', arc(r, G.lo / 100, G.hi / 100));
+  els.ringFill.setAttribute('d', arc(r, 0, G.value / 100));
+  const rx = Math.hypot(r.ax, r.bx) * GAUGE_SCALE, ry = Math.hypot(r.ay, r.by) * GAUGE_SCALE;
+  els.pVal.style.transform = `translate(${Math.round(r.x + rx + 10)}px, ${Math.round(r.y - 9)}px)`;
+  els.wants.style.transform = `translate(${Math.round(r.x)}px, ${Math.round(r.y - ry - 14)}px) translate(-50%, -100%)`;
+  els.wants.hidden = !last.wantsText;
+}
+
+// Debug / tests: what the gauge is drawing right now.
+export function gaugeState() {
+  return {
+    value: G.value, lo: G.lo, hi: G.hi, zone: G.zone, ring: G.ring, visible: !!els.ringSvg && els.ringSvg.style.display !== 'none',
+    fillPath: els.ringFill ? els.ringFill.getAttribute('d') || '' : '',
+    wants: els.wants && !els.wants.hidden ? els.wants.textContent : '', wantsPulse: !!els.wants && els.wants.classList.contains('cm-pulse'),
+  };
 }
 
 export function setCompetency(pct) {
@@ -121,6 +164,10 @@ export function setModality(current, requested) {
   setText('modReq', els.modReq, requested ? `Client requested: ${requested}` : '');
   const ok = !requested || current === requested;
   els.modCur.classList.toggle('cm-wrong', !ok);
+  last.wantsText = requested ? `CLIENT WANTS: ${requested.toUpperCase()}` : '';
+  setText('wants', els.wants, last.wantsText);
+  els.wants.classList.toggle('cm-pulse', !ok);
+  if (!requested) els.wants.hidden = true;
 }
 
 export function showDialogue(speaker, text) {
