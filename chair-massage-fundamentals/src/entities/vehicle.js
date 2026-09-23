@@ -6,6 +6,7 @@ import * as THREE from '../../vendor/three.module.js';
 import { VEHICLE_TYPES } from './vehicle-types.js';
 import { collideStatic, collideVehicles, collidePlayer, collideNpc, settleHeight } from './vehicle-collide.js';
 import { updateFx } from './vehicle-fx.js';
+import { syncDriverRig } from './seated.js';
 
 export { VEHICLE_TYPES } from './vehicle-types.js';
 export { hitEntity, vehicleCircles, boxDistance, dentVehicle } from './vehicle-collide.js';
@@ -21,6 +22,17 @@ function wrapAngle(a) {
   while (a < -Math.PI) a += Math.PI * 2;
   return a;
 }
+// Tinted see-through glass so the driver shows (sedan/cop car 'Cabin', vans 'Glass'); drawn after
+// the opaque pass without writing depth, so the seated rig behind it stays visible.
+let glassMat = null;
+function glaze(mesh) {
+  if (!glassMat) glassMat = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0.42, depthWrite: false });
+  for (const n of ['Cabin', 'Glass']) {
+    const g = mesh.getObjectByName(n);
+    if (g && g.isMesh) g.material = glassMat;
+  }
+}
+
 function approach(v, target, step) {
   return v < target ? Math.min(target, v + step) : Math.max(target, v - step);
 }
@@ -35,6 +47,7 @@ export function createVehicle(type, mesh, pos, yaw, opts = {}) {
     const w = mesh.getObjectByName('Wheel_' + n);
     if (w) { w.rotation.order = 'YXZ'; wheels[n] = w; } // steer about Y, then spin about the axle (X)
   }
+  glaze(mesh);
   mesh.position.copy(pos);
   mesh.rotation.set(0, yaw, 0);
   return {
@@ -149,6 +162,7 @@ export function updateVehicle(v, dt, ctx) {
   if (ctx.player && !ctx.player.vehicle) collidePlayer(v, ctx.player, ctx);
   if (ctx.npcs && !v.asleep) for (let i = 0; i < ctx.npcs.length; i++) collideNpc(v, ctx.npcs[i], ctx);
   if (v.driver && v.driver.pos) v.driver.pos.copy(v.pos);
+  syncDriverRig(v, ctx);            // AI drivers sit visibly at the wheel (seated.js)
 
   animate(v, dt, vf, vf0);
   updateFx(v, dt, ctx);

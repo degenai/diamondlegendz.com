@@ -120,7 +120,8 @@ Camera must not clip into buildings: clamp the third-person camera distance to t
 along the player-to-camera segment.
 
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
-controls camera yaw/pitch (pointer lock). Shift sprint. Space jump. E interact (enter/exit vehicle,
+controls camera yaw/pitch (pointer lock). Shift sprint (a 3 s stamina pool, a thin bar under health in
+RUN; empty means walk until it has recharged 1 s; full again after 6 s off Shift). Space jump. E interact (enter/exit vehicle,
 pick up chair). Left click: the **Healing Palm**. A big wind-up wrestling strike (lunge, THUD, screen
 shake). It is the only player weapon. A hit knocks the target down for about 3 seconds; when they get up
 they are visibly relaxed (slower posture, arms loose), say a relieved line ("...oh. Oh, that's better."),
@@ -145,7 +146,10 @@ all from `assets/*.json` with named wheels (`Wheel_FL/FR/RL/RR`, left is +X faci
 bars. Arcade GTA3 handling: fast accel, grippy, steering tight at low speed and wide at high, Space is a
 handbrake that kicks the tail out. Van heavy and slow, cart quick and tippy, cop car fastest. **Chase
 camera** while driving: settles behind the car's heading at a longer distance, mouse can look around
-and it recentres when you drive. Vehicles dent and smoke at 0 health, never explode. E enters and exits.
+and it recentres when you drive. **Drivers are visible**: the player and every AI driver (cops, the
+ranger's cart, SWAT, the Serenity goon at the van's wheel) sit posed at the type's `seat`, through tinted
+glass; AI drivers are cosmetic rigs, never NPCs (no palm, no gun, no collisions). Vehicles dent and
+smoke at 0 health, never explode. E enters and exits.
 **Peds hit by a car**: they tumble, lie for 3 s, get up holding their back (not relaxed, the opposite),
 big wanted bump, and a later mini-massage on that ped is worth double. **The chair travels by car**:
 E near a vehicle while carrying the chair loads it (visibly in the trunk, or on the cart's rear rack);
@@ -237,7 +241,7 @@ Every spoken line has two halves and both are required; a subtitle strip alone d
 
 Persisted in localStorage under `cmf.meta.v1`:
 - `runs`, `bestTime`, `bestCash`, `escapes`
-- unlocks: bit set. Unlock order: massage gun (level 0), sprint stamina up, gun range 1, chair auto-fold
+- unlocks: bit set. Unlock order: massage gun (level 0), sprint stamina up (+50% pool), gun range 1, chair auto-fold
   (faster pickup), "regular client" (one guaranteed cooling client per run), gun range 2, cart keys (start
   with a cart), franchise disguise (goons ignore you for 20s once), gun range 3 "Pro", "block party"
   (peds cheer, cops slower).

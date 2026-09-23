@@ -5,6 +5,7 @@ import { overlapsFootprint, floorHeightAt } from '../physics.js';
 import { chairState, chairWorldPos, pickUpChair, loadChair, findChair } from './chair.js';
 import { setChairDown, canStart, startMassage } from '../run/minimassage.js';
 import { emitChaos } from '../run/wanted.js';
+import { seatRig, unseatRig } from './seated.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
 export const CHAIR_DIST = 2;
@@ -69,7 +70,10 @@ export function enterVehicle(p, v, ctx) {
   v.asleep = false;
   p.vehicle = v;
   p.vel.set(0, 0, 0);
-  p.mesh.visible = false;
+  // Sit at the wheel: the rig rides on the vehicle's body (leans with it), visible.
+  p.seatHome = p.seatHome || p.mesh.parent || ctx.scene;
+  p.knockTilt = 0;
+  seatRig(p.mesh, v);
   p.chaseYaw = p.camYaw;               // the chase camera starts from the on-foot orbit
   p.orbitYaw = 0; p.orbitPitch = 0; p.orbitIdle = 9;
   p.camBlendT = 0;
@@ -121,7 +125,7 @@ export function exitVehicle(p, ctx) {
   p.camYaw = (p.chaseYaw ?? v.yaw + Math.PI) + (p.orbitYaw || 0);
   p.camPitch = 0.25;
   p.camBlendT = 0;
-  p.mesh.visible = true;
+  unseatRig(p.mesh, p.seatHome || ctx.scene, p.pos, p.yaw);
   v.driver = null;
   p.vehicle = null;
   return true;

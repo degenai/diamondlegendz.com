@@ -7,6 +7,7 @@ import { loadMesh } from '../assets.js';
 import { createVehicle, VEHICLE_TYPES } from '../entities/vehicle.js';
 import { addEntity, removeEntity } from '../entities/index.js';
 import { createCop, disposeCop, copHostile } from '../entities/cop.js';
+import { clearDriverRig } from '../entities/seated.js';
 import { lineOfSight } from '../entities/npc-nav.js';
 import { ringS, ringPoint, ringDelta, ringYaw, driveRing, driveAt, brake } from './driver.js';
 import { endRun } from './end.js';
@@ -37,6 +38,7 @@ export function removeVehicle(ctx, v) {
   const L = ctx.world.vehicles, i = L.indexOf(v);
   if (i >= 0) L.splice(i, 1);
   removeEntity(ctx.entities, v);
+  clearDriverRig(v);                          // the cosmetic driver goes with the car
   if (v.mesh.parent) v.mesh.parent.remove(v.mesh);
   if (v.lightbar) { v.lightbar.geo.dispose(); v.lightbar.mat.dispose(); }
 }
@@ -219,6 +221,7 @@ function bail(ctx, u) {
     u.cops.push(addCop(ctx, pos, u.rank));
   }
   v.driver = null; v.ai = null; v.parked = true;
+  clearDriverRig(v);                          // the driver is one of the crew now, on foot
   u.kind = 'bailed';
 }
 

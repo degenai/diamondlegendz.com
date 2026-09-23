@@ -11,6 +11,7 @@ import { addEntity, removeEntity } from '../entities/index.js';
 import { createPed, disposePed } from '../entities/ped.js';
 import { createGoon, disposeGoon, GRAB_WINDOW } from '../entities/goon.js';
 import { disposeCop } from '../entities/cop.js';
+import { clearDriverRig } from '../entities/seated.js';
 import { navInfo } from '../entities/npc-nav.js';
 import { updateWanted, emitChaos } from './wanted.js';
 import { createPolice, updatePolice, clearPolice } from './police.js';
@@ -43,6 +44,7 @@ export function clear(ctx) {
   ctx.npcs.length = 0;
   const van = ctx.vanAI && ctx.vanAI.v;
   if (van && van.driver && van.driver !== ctx.player) { van.driver = null; van.ai = null; }
+  if (van) clearDriverRig(van);               // no vehicle ticks in MASSAGE to drop the driver
   ctx.vanAI = null;
 }
 
@@ -52,6 +54,7 @@ export function resetVan(ctx) {
   if (!v) return;
   const e = ctx.world.spawns.vanEntry;
   if (v.driver && v.driver !== ctx.player) v.driver = null;
+  clearDriverRig(v);
   v.ai = null; v.aiBackT = 0; v.aiStuckT = 0;
   v.pos.copy(e.pos); v.yaw = e.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0;
   v.hp = 100; v.parked = true; v.asleep = true; v.wreckSeen = false; v.chairLoaded = false;
