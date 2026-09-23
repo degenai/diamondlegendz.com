@@ -3,14 +3,14 @@
 import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
 import { makeChair, mat } from '../world/props.js';
-import { spawnPerson, poseKneeling, poseReaching, resetPose, PALETTES } from '../world/people.js';
+import { spawnPerson, poseKneeling, poseReaching, resetPose, disposePerson, PALETTES, KNEEL } from '../world/people.js';
 
 export const STATION_YAW = 0.7;     // chair faces station -Z; the camera looks out across the park
-const CLIENT_LEAN = 1.05;
 const THERAPIST_LEAN = 0.32;
 const SWAY = THREE.MathUtils.degToRad(0.5);
 const SWAY_PERIOD = 4;
 const FLINCH_TIME = 0.4;
+const HAND_T = 0.05; // palm box thickness
 // station-local placements (exported so they can be tuned live from window.CMF)
 export const CAM_POS = new THREE.Vector3(0.6, 2.0, 2.3);
 export const CAM_LOOK = new THREE.Vector3(-0.05, 1.1, -0.3);
@@ -42,14 +42,15 @@ export function addCast(st, scene) {
   st.therapist.position.set(THERAPIST.x, 0, THERAPIST.z);
   st.therapist.rotation.y = THERAPIST.yaw;
   st.station.add(st.therapist);
-  const hg = new THREE.BoxGeometry(0.1, 0.05, 0.14);
-  const skin = mat(PALETTES.therapist.skin);
+  // flat palms on the back (back frame: x across, y up the spine, z out), big enough to read
+  const hg = new THREE.BoxGeometry(0.12, 0.12, HAND_T);
+  const skin = mat(st.therapist.userData.colours.skin ?? PALETTES.therapist.skin);
   st.hands = [0, 1].map(() => { const h = new THREE.Mesh(hg, skin); h.visible = false; scene.add(h); return h; });
 }
 
 export function removeCast(st, scene) {
   removeClient(st);
-  if (st.therapist) st.station.remove(st.therapist);
+  if (st.therapist) { st.station.remove(st.therapist); disposePerson(st.therapist); }
   st.therapist = null;
   st.hands.forEach((h) => scene.remove(h));
   if (st.hands[0]) st.hands[0].geometry.dispose();
@@ -59,10 +60,10 @@ export function removeCast(st, scene) {
 export function seatClient(st, kind) {
   removeClient(st);
   const m = spawnPerson(kind);
-  m.position.set(0, -0.02, 0.06);
-  m.rotation.y = Math.PI;
-  poseKneeling(m, CLIENT_LEAN);
+  m.position.set(0, 0, 0);
+  m.rotation.y = Math.PI; // person faces +Z, the chair's face cradle is at station -Z
   st.station.add(m);
+  poseKneeling(m);
   st.client = m;
   st.flinchT = 0;
   st.hands.forEach((h) => { h.visible = true; });
@@ -70,7 +71,7 @@ export function seatClient(st, kind) {
 }
 
 export function removeClient(st) {
-  if (st.client) st.station.remove(st.client);
+  if (st.client) { st.station.remove(st.client); disposePerson(st.client); }
   st.client = null;
 }
 
@@ -109,7 +110,7 @@ export function poseClient(st, dt, time) {
   if (st.flinchT > 0) st.flinchT = Math.max(0, st.flinchT - dt);
   const k = st.flinchT / FLINCH_TIME;
   const jerk = Math.sin(k * Math.PI) * (0.5 + 0.5 * Math.sin(time * 60));
-  m.userData.torso.rotation.x = CLIENT_LEAN - 0.22 * jerk;
+  m.userData.torso.rotation.x = KNEEL.lean - 0.22 * jerk;
   m.position.x = 0.03 * jerk;
   m.updateMatrixWorld(true);
 }
@@ -119,15 +120,17 @@ export function placeHands(st, spot, pressure, v) {
   const back = st.client.userData.back;
   back.getWorldQuaternion(_q);
   const centreU = spot * 0.14;
-  [-0.06, 0.06].forEach((du, i) => {
+  [-0.07, 0.07].forEach((du, i) => {
     const u = centreU + du;
-    const curve = 0.28 - Math.sqrt(Math.max(0, 0.28 * 0.28 - u * u)); // capsule falls away at the sides
-    back.localToWorld(st.hands[i].position.set(u, v, 0.035 - curve - pressure * 0.00018));
+    const curve = 0.9 * u * u; // the baked torso is a flat-backed taper; ease off at the sides
+    back.localToWorld(st.hands[i].position.set(u, v, HAND_T / 2 + 0.005 - curve - pressure * 0.00018));
     st.hands[i].quaternion.copy(_q);
   });
   st.therapist.position.set(THERAPIST.x, 0, THERAPIST.z);
   st.therapist.rotation.y = THERAPIST.yaw;
-  _l.copy(st.hands[0].position); _r.copy(st.hands[1].position);
+  // the mesh hands land just outside the palm boxes
+  _v.set(0, 0, 0.05).applyQuaternion(_q);
+  _l.copy(st.hands[0].position).add(_v); _r.copy(st.hands[1].position).add(_v);
   // the therapist faces the client's back, so the client's left-of-spine hand is the therapist's right
   poseReaching(st.therapist, THERAPIST_LEAN, _r, _l);
 }
