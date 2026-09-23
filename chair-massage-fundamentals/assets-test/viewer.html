@@ -11,7 +11,10 @@
 // Loader-free path: cmf-mesh-1 JSON (tools/blender/export_json.py) -> BufferGeometry. No GLTFLoader.
 import * as THREE from '../vendor/three.module.js';
 
-const name = new URLSearchParams(location.search).get('a') || 'chair';
+// ?a=chair|sedan|van|cart|person|goon   (&pose=1 swings limbs to prove the joint hierarchy)
+const params = new URLSearchParams(location.search);
+const name = (params.get('a') || 'chair').replace(/[^a-z0-9_-]/gi, '');
+const pose = params.get('pose') === '1';
 const info = document.getElementById('info');
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -58,12 +61,15 @@ function buildFromJson(data) {
 }
 
 const res = await fetch(`./${name}.json`);
+if (!res.ok) throw new Error(`${name}.json: HTTP ${res.status}`);
 const data = await res.json();
 const { root, nodes } = buildFromJson(data);
 scene.add(root);
 
-// prove the goon hierarchy is animatable: pose one arm and one knee
-if (nodes.UpperArm_R) { nodes.UpperArm_R.rotation.x = -1.1; nodes.LowerArm_R.rotation.x = -0.9; nodes.UpperLeg_L.rotation.x = 0.4; nodes.LowerLeg_L.rotation.x = -0.6; }
+// prove the hierarchy is animatable: pose one arm and one knee (children must follow parents)
+if (pose && nodes.UpperArm_R) { nodes.UpperArm_R.rotation.x = -1.1; nodes.LowerArm_R.rotation.x = -0.9; nodes.UpperLeg_L.rotation.x = 0.4; nodes.LowerLeg_L.rotation.x = -0.6; }
+if (pose && nodes.upperArmR) { nodes.upperArmR.rotation.x = -1.1; nodes.lowerArmR.rotation.x = -0.9; nodes.upperLegL.rotation.x = -0.6; nodes.lowerLegL.rotation.x = 0.9; nodes.torso.rotation.y = 0.3; }
+if (pose && nodes.Wheel_FL) { nodes.Wheel_FL.rotation.y = 0.4; nodes.Wheel_FR.rotation.y = 0.4; }
 
 const box = new THREE.Box3().setFromObject(root);
 const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());

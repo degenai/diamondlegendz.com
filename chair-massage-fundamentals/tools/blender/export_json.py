@@ -8,8 +8,11 @@ Format (Y-up, metres, three.js conventions):
     { "name", "parent": name|null,
       "parentTransform": {"position":[x,y,z], "quaternion":[x,y,z,w], "scale":[x,y,z]},
       "positions":[...], "normals":[...], "colors":[...linear RGB...], "indices":[...] }
-  ]
+  ],
+  "materials": {"Pad": {"color":[linear r,g,b], "hex":"#006937"}, ...}   (optional, added 2026-09-23)
 }
+"materials" maps every material name used to the exact linear colour written into "colors", so
+code can recolour a region by matching colour values (e.g. person.json: skin/shirt/pants/hair/shoes).
 Geometry is in object-local space; parentTransform is the local transform relative
 to "parent" (or the scene root). Flat shading: every triangle gets its face normal,
 vertices are deduplicated on (position, normal, colour) so indices stay useful.
@@ -77,6 +80,7 @@ def _mesh_arrays(ob, dg):
 def export(path):
     dg = bpy.context.evaluated_depsgraph_get()
     objs = []
+    mats = {}
     tris = 0
     # parents before children so the loader can build the tree in one pass
     def depth(o):
@@ -100,9 +104,16 @@ def export(path):
             entry.update(positions=p, normals=n, colors=c, indices=i)
             tris += len(i) // 3
         objs.append(entry)
+        for slot in (ob.material_slots if ob.type == "MESH" else []):
+            m = slot.material
+            if m is not None and m.name not in mats:
+                c = m.diffuse_color
+                mats[m.name] = {"color": [round(c[0], 4), round(c[1], 4), round(c[2], 4)],
+                                "hex": m.get("hex", "")}
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "w") as f:
-        json.dump({"format": "cmf-mesh-1", "upAxis": "Y", "triangles": tris, "objects": objs}, f, separators=(",", ":"))
+        json.dump({"format": "cmf-mesh-1", "upAxis": "Y", "triangles": tris, "objects": objs,
+                   "materials": mats}, f, separators=(",", ":"))
     print(f"[export_json] wrote {path} ({os.path.getsize(path)} bytes, {tris} tris, {len(objs)} objects)")
 
 
