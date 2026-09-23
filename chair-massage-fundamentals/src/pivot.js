@@ -4,6 +4,8 @@
 // bubbles; the ranger jogs in from the sidewalk and sides with them. Mid-sentence, controls
 // unlock: RUN begins, the course HUD tears off, the client walks off, the camera blends into
 // the third-person view, and the goons start pursuing 1.5 s later.
+// The lines read the record (pivot-lines.js); on the third run and some late ones the passenger
+// door opens too. With the skipPivot unlock any key or click cuts straight to RUN (skip()).
 import * as THREE from '../vendor/three.module.js';
 import * as stage from './massage/stage.js';
 import { STATES, setState } from './state.js';
@@ -11,12 +13,17 @@ import { updateVehicle } from './entities/vehicle.js';
 import { driveAt, brake, ringS, ringPoint, ringYaw, ringDelta } from './run/driver.js';
 import { spawnGoons, clear as clearSpawner } from './run/spawner.js';
 import { createCop } from './entities/cop.js';
-import { addEntity } from './entities/index.js';
-import { seek, stepBody, poseRig } from './entities/npc-common.js';
+import { addEntity, removeEntity } from './entities/index.js';
+import { seek, stepBody, poseRig, createNpc } from './entities/npc-common.js';
 import { navInfo } from './entities/npc-nav.js';
-import { say as bubble } from './bubbles.js';
+import { say as bubble, clearBubbles } from './bubbles.js';
 import * as massage from './massage/index.js';
 import { planVanPath, planEntry, buildPoly, followPoly } from './pivot-path.js';
+import { pivotLines } from './pivot-lines.js';
+import { has } from './meta.js';
+import { spawnPerson } from './world/people.js';
+import { disposeGoon } from './entities/goon.js';
+import { floorHeightAt } from './physics.js';
 
 const STOP_AT = 8;          // metres from the chair
 const CRUISE = 12;
@@ -25,14 +32,10 @@ const DRIVE_MAX = 20;       // seconds before the van just stops where it is
 const CAM_EASE = 3;
 const RUN_BLEND = 1.2;
 const PURSUE_AFTER = 1.5;
-const LINES = [
-  "Serenity Group Incorporated. We'd like a word about the chair.",
-  "You're operating without a brand.",
-  '...',
-];
-const RANGER_LINE = "Sir, they have a permit for the plaza. You don't.";
 const HANG_LINE = "I'm calling this in.";   // the ranger hangs back at the chair (police.js)
 const LINE_GAP = 0.2;                        // goon lines follow each other; one voice each
+const BOSS_SUIT = { shirt: 0x6d6f74, pants: 0x5f6166, shoes: 0x1a1a1a };
+const SKIP_TEXT = 'Press any key to skip the module review';
 
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
@@ -44,11 +47,12 @@ let P = null;
 
 export function pivotState() { return P; }
 
-function goons(ctx) { return ctx.npcs.filter((e) => e.kind === 'goon'); }
+// The pursuing crew; the boss is a goon-kind NPC too but never one of them.
+function goons(ctx) { return ctx.npcs.filter((e) => e.kind === 'goon' && !e.boss); }
 
 export function start(ctx) {
   clearSpawner(ctx);
-  if (ctx.station && stage.removeLeaver) stage.removeLeaver(ctx.station, ctx.scene); // no frozen leaver from a prior pivot
+  stage.removeLeaver(massage.station(), ctx.scene); // no frozen leaver from a prior pivot (the stage, not ctx.station)
   const world = ctx.world, chair = world.chairSpot, cam = ctx.camera;
   const van = world.vehicles && world.vehicles.find((v) => v.franchise);
   P = {
@@ -57,7 +61,10 @@ export function start(ctx) {
     cam0: cam.position.clone(), q0: cam.quaternion.clone(),
     camPos: new THREE.Vector3(), camLook: new THREE.Vector3(), dest: new THREE.Vector3(),
     runT: -1, wide: null, released: false,
+    lines: pivotLines(ctx.meta), boss: null, bossDoor: null, bossBackAt: Infinity,
+    canSkip: has(ctx.meta, 'skipPivot'), skipped: false, skipEl: null,
   };
+  if (P.canSkip) showSkip();
   // The hidden player stands where the therapist is (the van must not find it on the road).
   const p = ctx.player;
   if (p && !p.vehicle) { p.pos.set(chair.x, chair.y, chair.z + 1); p.vel.set(0, 0, 0); }
@@ -130,7 +137,52 @@ function spawnCrew(ctx) {
     g.goal = { x: c.x + (dx / d) * 5.5 - (dz / d) * side, z: c.z + (dz / d) * 5.5 + (dx / d) * side };
   });
   P.crewT = P.t;
+  if (P.lines.boss) spawnBoss(ctx);
 }
+
+// The boss: grey suit, no bat, out of the passenger door on the crew's side, two steps toward the
+// chair. He speaks the first line, walks back and gets in (removed at the door); he never chases.
+function spawnBoss(ctx) {
+  const v = P.van, c = ctx.world.chairSpot;
+  const at = v ? v.pos : ctx.world.spawns.vanEntry.pos, yaw = v ? v.yaw : ctx.world.spawns.vanEntry.yaw;
+  const s = Math.sin(yaw), co = Math.cos(yaw), off = (v ? v.spec.halfW : 1) + 0.7;
+  const side = (at.x + co * off - c.x) ** 2 + (at.z - s * off - c.z) ** 2 < (at.x - co * off - c.x) ** 2 + (at.z + s * off - c.z) ** 2 ? 1 : -1;
+  const x = at.x + co * off * side + s * 1.6, z = at.z - s * off * side + co * 1.6;   // the front door
+  const pos = new THREE.Vector3(x, floorHeightAt(x, z, ctx.world.colliders, (at.y || 0) + 0.3), z);
+  const b = createNpc('goon', spawnPerson('goon', BOSS_SUIT), pos, { role: 'boss', bat: false, radius: 0.4, update: null });
+  ctx.scene.add(b.mesh);
+  b.boss = true; b.state = 'script'; b.yaw = yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2);
+  addEntity(ctx.entities, b);
+  ctx.npcs.push(b);
+  const dx = c.x - x, dz = c.z - z, d = Math.hypot(dx, dz) || 1;
+  b.goal = { x: x + (dx / d) * 2.2, z: z + (dz / d) * 2.2 };
+  P.boss = b; P.bossDoor = { x, z };
+}
+
+function dropBoss(ctx) {
+  const b = P && P.boss;
+  if (!b) return;
+  P.boss = null;
+  const i = ctx.npcs.indexOf(b);
+  if (i >= 0) ctx.npcs.splice(i, 1);
+  removeEntity(ctx.entities, b);
+  disposeGoon(b, ctx.scene);
+}
+
+// A course-skin line for the whole cutscene once the skip is unlocked.
+function showSkip() {
+  const root = document.getElementById('hud');
+  if (!root) return;
+  const n = document.createElement('div');
+  n.className = 'pv-skip';
+  n.textContent = SKIP_TEXT;
+  n.style.cssText = 'position:absolute;bottom:16px;left:50%;transform:translateX(-50%);pointer-events:none;'
+    + 'background:var(--cm-paper,#f3ecd8);color:var(--cm-ink,#3b3326);border:1px solid var(--cm-rule,#cdbf9a);'
+    + 'font:13px var(--cm-serif,Georgia,serif);padding:5px 12px;box-shadow:0 2px 6px rgba(0,0,0,.25);';
+  root.appendChild(n);
+  P.skipEl = n;
+}
+function hideSkip() { if (P && P.skipEl) { P.skipEl.remove(); P.skipEl = null; } }
 
 // The ranger: from a sidewalk / path nav point 12..26 m from the chair that the wide shot can
 // see (else any), farthest from the van, to 4 m off the chair on the goons' side.
@@ -180,17 +232,19 @@ function script(ctx) {
     if (far && P.t - P.crewT < 10) return;     // the van stopped short: they walk up first
     P.lineIdx = 1; spawnRanger(ctx);
   }
-  const k = Math.floor(P.lineIdx) - 1;
+  const k = Math.floor(P.lineIdx) - 1, LINES = P.lines.goons;
   if (k < LINES.length) {
-    // Whoever has walked up closest to the chair and has not spoken yet takes the next line.
+    // Whoever has walked up closest to the chair and has not spoken yet takes the next line
+    // (the boss, when he is out, takes the first).
     const c = ctx.world.chairSpot, d = (e) => Math.hypot(e.pos.x - c.x, e.pos.z - c.z);
-    const g = gs.filter((e) => !e.spoke).sort((a, b) => d(a) - d(b))[0] || gs[0];
+    const g = k === 0 && P.boss ? P.boss : gs.filter((e) => !e.spoke).sort((a, b) => d(a) - d(b))[0] || gs[0];
     if (g) g.spoke = true;
     const dur = line(ctx, g || P.van && P.van.mesh, LINES[k], 'goon');
+    if (g && g === P.boss) P.bossBackAt = P.t + dur;
     P.lineIdx++;
     P.next = P.t + (k === LINES.length - 1 ? 1.0 : dur + LINE_GAP);  // the silent '...' is short; the ranger cuts in
   } else if (k === LINES.length) {
-    const dur = line(ctx, P.ranger, RANGER_LINE, 'ranger');
+    const dur = line(ctx, P.ranger, P.lines.ranger, 'ranger');
     P.rangerEnd = P.t + dur;
     P.lineIdx++;
     P.runAt = P.t + dur * 0.45;          // controls unlock mid-sentence
@@ -221,18 +275,78 @@ function camera(dt, ctx) {
 export function update(dt, ctx) {
   if (!P) return;
   P.t += dt;
+  const inp = ctx.input;
+  if (P.canSkip && inp && (inp.pressed.size || inp.clicked.size)) { skip(ctx); return; }
   driveVan(dt, ctx);
   script(ctx);
   for (const g of goons(ctx)) walkNpc(g, g.goal, g.goal && Math.hypot(g.goal.x - g.pos.x, g.goal.z - g.pos.z) > 6 ? 3.5 : 1.6, dt, ctx);
   if (P.ranger) walkNpc(P.ranger, P.rangerGoal, 4.5, dt, ctx);
+  if (P.boss) {
+    const b = P.boss;
+    if (P.t >= P.bossBackAt) b.goal = P.bossDoor;
+    walkNpc(b, b.goal, 1.6, dt, ctx);
+    if (b.goal === P.bossDoor && Math.hypot(b.pos.x - b.goal.x, b.pos.z - b.goal.z) < 0.6) dropBoss(ctx); // back in the van
+  }
   camera(dt, ctx);
   musicCue(ctx);
   if (P.runAt >= 0 && P.t >= P.runAt) setState(STATES.RUN);
 }
 
+// Where the drive would have come to rest: along the route from the van's progress, the first point
+// STOP_AT + 0.8 m from the chair, else the route's end (the van brakes into it), and its heading.
+function stopPoint(ctx) {
+  const { pts, cum, total } = P.poly, c = ctx.world.chairSpot;
+  let i = 1, x = pts[0].x, z = pts[0].z, yaw = P.van.yaw;
+  for (let d = Math.max(0, P.poly.prog || 0); d <= total + 0.25; d += 0.25) {
+    const dd = Math.min(d, total);
+    while (i < pts.length - 1 && cum[i] < dd) i++;
+    const a = pts[i - 1], b = pts[i], L = cum[i] - cum[i - 1] || 1, t = Math.max(0, Math.min(1, (dd - cum[i - 1]) / L));
+    x = a.x + (b.x - a.x) * t; z = a.z + (b.z - a.z) * t;
+    if (b.x !== a.x || b.z !== a.z) yaw = Math.atan2(b.x - a.x, b.z - a.z);
+    if (Math.hypot(x - c.x, z - c.z) < STOP_AT + 0.8) break;
+  }
+  return { x, z, yaw };
+}
+
+// The skipPivot unlock: jump to the moment controls unlock, as if the scene had played. The van
+// parks at its stop, the crew stands on their marks and the ranger by the chair; RUN begins and
+// beginRun takes the client away at once instead of walking them off.
+function skip(ctx) {
+  P.skipped = true;
+  hideSkip();
+  if (ctx.voice && typeof ctx.voice.stop === 'function') ctx.voice.stop();
+  clearBubbles();
+  const v = P.van;
+  if (v && P.phase !== 'parked' && P.poly && P.poly.pts.length > 1) {
+    const s = stopPoint(ctx);
+    // Up on the plaza: settleHeight only steps up gradually, and a van left at road height inside
+    // the terrace's footprint gets pushed out of it.
+    v.pos.set(s.x, floorHeightAt(s.x, s.z, ctx.world.colliders, ctx.world.chairSpot.y + 0.5), s.z); v.yaw = s.yaw;
+  }
+  if (P.phase !== 'parked') arrive(ctx);
+  if (v) { v.steer = 0; v.yawRate = 0; v.mesh.position.copy(v.pos); v.mesh.rotation.y = v.yaw; }
+  if (!goons(ctx).length) spawnCrew(ctx);
+  dropBoss(ctx);
+  const c = ctx.world.chairSpot;
+  for (const g of goons(ctx)) {
+    if (!g.goal) continue;
+    g.pos.set(g.goal.x, floorHeightAt(g.goal.x, g.goal.z, ctx.world.colliders, g.pos.y + 0.3), g.goal.z);
+    g.vel.set(0, 0, 0); g.yaw = Math.atan2(c.x - g.pos.x, c.z - g.pos.z); g.mesh.position.copy(g.pos);
+  }
+  if (!P.ranger) spawnRanger(ctx);
+  const r = P.ranger, rg = P.rangerGoal;
+  r.pos.set(rg.x, floorHeightAt(rg.x, rg.z, ctx.world.colliders, rg.y + 0.3), rg.z);
+  r.vel.set(0, 0, 0); r.mesh.position.copy(r.pos);
+  P.rangerEnd = P.t;                        // his permit line is behind us: the hang line comes at once
+  P.lineIdx = P.lines.goons.length + 2; P.next = Infinity; P.runAt = P.t;
+  setState(STATES.RUN);
+}
+
 // RUN entered from PIVOT: tear the course off and hand the player the controls.
 export function beginRun(ctx) {
   if (!P) return;
+  hideSkip();
+  dropBoss(ctx);                              // still walking back to the door: he got in
   const p = ctx.player, hud = ctx.hud, v = P.van;
   if (v) { v.driver = null; v.ai = null; if (P.spec) v.spec = P.spec; }
   const at = P.dest;
@@ -253,6 +367,7 @@ export function beginRun(ctx) {
     P.hangAt = Math.max(0, (P.rangerEnd ?? P.t) - P.t) + 0.3;  // after his permit line finishes
   }
   for (const g of goons(ctx)) { g.goal = null; }
+  if (P.skipped) stage.removeLeaver(massage.station(), ctx.scene);   // skipped: the client is already gone
   hud.tearOffMassageHud();
   hud.setRunTitle(true, true);
 }
@@ -281,6 +396,7 @@ export function runTick(dt, ctx) {
 }
 
 export function reset() {
+  hideSkip();
   if (P && P.van && P.spec) P.van.spec = P.spec;
   P = null;
 }

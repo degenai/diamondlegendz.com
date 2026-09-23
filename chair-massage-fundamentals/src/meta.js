@@ -15,6 +15,8 @@ export const UNLOCKS = [
   { id: 'disguise', name: 'Franchise disguise', desc: 'Goons ignore you for 20 s, once.', gift: 'a Serenity Group polo' },
   { id: 'gun3', name: 'Gun range 3 "Pro"', desc: 'The massage gun reaches 14 m.', gift: 'the Pro head' },
   { id: 'blockparty', name: 'Block party', desc: 'Peds cheer, cops slower.', gift: 'a block party flyer' },
+  // Ruled 2026-09-23 after the first plays: any key skips the van cutscene straight to RUN (pivot.js).
+  { id: 'skipPivot', name: 'Module review: skippable', desc: "You've seen enough.", gift: 'a hall pass from the course office' },
 ];
 
 const DEFAULTS = {
@@ -61,6 +63,7 @@ export function perks(meta) {
     cartKeys: has(meta, 'cartkeys'),      // TODO(v2)
     disguise: has(meta, 'disguise'),      // TODO(v2)
     blockParty: has(meta, 'blockparty'),  // TODO(v2)
+    skipPivot: has(meta, 'skipPivot'),
   };
 }
 

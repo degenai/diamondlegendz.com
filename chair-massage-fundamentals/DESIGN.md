@@ -61,6 +61,19 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   first 8 s of RUN the goons only shove and grab (10 damage, no knockdown, a "Come with us." bubble);
   bats come out after 8 s or at the first Healing Palm. **The ranger hangs back**: wanted starts at 0,
   he stands by the chair for 15 s ("I'm calling this in.") and only pursues once wanted reaches 1.
+  **The lines read the record** (ruled 2026-09-23 after the first plays; `src/pivot-lines.js`): the
+  three goon lines and the ranger's are chosen by `meta.runs` and `meta.lastOutcome`, escalating
+  polite menace. Run 1 as above. Run 2 names how the last run ended (escaped: they know where you
+  went; arrested: "The county was very helpful."; overworked: "You looked tired last time."; left the
+  chair: "You left the chair. We kept it warm."). Run 3: the boss (grey suit, no bat) steps out of
+  the passenger door, speaks the first line and gets back in; he never chases. Run 4: the ranger's
+  line drifts ("I'm sorry, Alex. My hands are tied."). Runs 5 and 6 name an unlock the player owns
+  ("Nice gun." / "The cart keys. Cute."). Run 7 on: two late sets alternate (never the same set twice
+  in a row; the second brings the boss back with an offer on the chair). The third line stays "..."
+  so the pivot's timing is unchanged. **Skipping it is an unlock** (the last one, "Module review:
+  skippable. You've seen enough."): a course-skin line "Press any key to skip the module review" shows
+  for the whole cutscene and any key or click jumps to the moment controls unlock (van at its stop,
+  the crew on their marks, the ranger at the chair, the client already gone). No skip before it.
 - **RUN**: open park block. Goons hunt the player. Wanted level rises with chaos. Player can steal
   vehicles, run, fight (elbow strikes, it's The People's Elbow), and reach an ESCAPE point (a client's
   house on the far edge of the block, or the highway on-ramp) once wanted level has cooled to zero.
@@ -244,7 +257,7 @@ Persisted in localStorage under `cmf.meta.v1`:
 - unlocks: bit set. Unlock order: massage gun (level 0), sprint stamina up (+50% pool), gun range 1, chair auto-fold
   (faster pickup), "regular client" (one guaranteed cooling client per run), gun range 2, cart keys (start
   with a cart), franchise disguise (goons ignore you for 20s once), gun range 3 "Pro", "block party"
-  (peds cheer, cops slower).
+  (peds cheer, cops slower), skippable module review (any key skips the van cutscene).
 Each SUMMARY unlocks the next item. Massage phase between runs mentions the unlock in client dialogue.
 
 ## Technical contracts
