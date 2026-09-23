@@ -120,10 +120,16 @@ human; wanted level does not drop, the pressure does. Visual: a
 gold and green handheld with a round head; upgrades add a longer barrel and a bigger head. Blender asset
 `assets/massagegun.json`, one mesh per level or a scaled head.
 
-**Vehicles**: 3 types minimum: sedan, franchise van, park maintenance golf cart. Arcade physics:
-forward speed with accel/brake, steering scaled by speed, drift on Space (handbrake). Box body on
-4 cylinder wheels. Vehicles damage on collision; at 0 health they smoke and stop. Player can be hit by
-vehicles (knockdown, health loss).
+**Vehicles** (decided 2026-09-23): sedan, franchise van (black), park maintenance cart, cop car, SWAT van,
+all from `assets/*.json` with named wheels (`Wheel_FL/FR/RL/RR`, left is +X facing forward) and light
+bars. Arcade GTA3 handling: fast accel, grippy, steering tight at low speed and wide at high, Space is a
+handbrake that kicks the tail out. Van heavy and slow, cart quick and tippy, cop car fastest. **Chase
+camera** while driving: settles behind the car's heading at a longer distance, mouse can look around
+and it recentres when you drive. Vehicles dent and smoke at 0 health, never explode. E enters and exits.
+**Peds hit by a car**: they tumble, lie for 3 s, get up holding their back (not relaxed, the opposite),
+big wanted bump, and a later mini-massage on that ped is worth double. **The chair travels by car**:
+E near a vehicle while carrying the chair loads it (visibly in the trunk, or on the cart's rear rack);
+leaving the vehicle leaves the chair in it; a hard crash throws it out onto the road.
 
 **Peds**: wander waypoints on sidewalks and park paths. Flee when chaos happens nearby. Some are
 "clients": if the player stops near them with the chair, a 10-second mini-massage happens and pays

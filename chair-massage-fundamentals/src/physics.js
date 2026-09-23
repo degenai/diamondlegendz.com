@@ -68,6 +68,7 @@ export function resolveStatic(entity, colliders, iterations = 3) {
   for (let iter = 0; iter < iterations; iter++) {
     let moved = false;
     for (const c of colliders) {
+      if (c.camOnly) continue;
       if (c.maxY !== undefined && feet >= c.maxY - SKIN) continue;
       const push = pushOf(entity.pos, entity.radius, c);
       if (!push) continue;
@@ -93,21 +94,30 @@ export function supportHeight(pos, radius, prevFeet, grounded, colliders) {
   let best = 0;
   const rs = radius * SUPPORT_K;
   for (const c of colliders) {
+    if (c.camOnly) continue;
     const top = c.maxY;
     if (!(top > best) || top === Infinity) continue;
     const landing = prevFeet >= top - SKIN;
     const step = grounded && top - prevFeet <= STEP_UP && top - prevFeet > -SKIN;
-    if (landing && overlapsFootprint(pos, rs, c)) best = top;
+    // Grounded walk-off uses the smaller support radius so edges feel natural; a
+    // descending airborne entity uses its full radius so no dead ring exists where
+    // pushout fires but landing does not.
+    if (landing && overlapsFootprint(pos, grounded ? rs : radius, c)) best = top;
     else if (step && overlapsFootprint(pos, radius + 0.02, c)) best = top;
   }
   return best;
 }
 
 // Walk-surface height directly under a point (only colliders flagged floor). For spawning.
-export function floorHeightAt(x, z, colliders) {
+// Only tops within `reach` metres above `y` count, so a spawn inside a building
+// footprint is not lifted onto its roof.
+export function floorHeightAt(x, z, colliders, y = 0, reach = 1.0) {
   let best = 0;
   const p = { x, z };
-  for (const c of colliders) if (c.floor && c.maxY > best && overlapsFootprint(p, 0.01, c)) best = c.maxY;
+  for (const c of colliders) {
+    if (!c.floor || !(c.maxY > best) || c.maxY > y + reach) continue;
+    if (overlapsFootprint(p, 0.01, c)) best = c.maxY;
+  }
   return best;
 }
 
@@ -117,30 +127,60 @@ function pointInside(x, y, z, c) {
   return x > c.minX && x < c.maxX && z > c.minZ && z < c.maxZ;
 }
 
-// Stepped march from `from` toward `to` (every `step` m). Returns the distance to the first
-// sample inside a visible collider, or the full length if clear.
+// Analytic segment test from `from` toward `to`. Returns the distance to the first
+// visible collider entered (slab test for boxes, quadratic for cylinders, capped by
+// each collider's top), or the full length if clear. Thin walls cannot be skipped.
 const _cand = [];
-export function segmentHit(from, to, colliders, step = 0.25) {
+function slabHit(from, dx, dy, dz, len, c) {
+  let t0 = 0, t1 = 1;
+  const axes = [[from.x, dx, c.minX, c.maxX], [from.z, dz, c.minZ, c.maxZ], [from.y, dy, -Infinity, c.maxY]];
+  for (const [o, d, lo, hi] of axes) {
+    if (Math.abs(d) < 1e-9) { if (o <= lo || o >= hi) return Infinity; continue; }
+    let a = (lo - o) / d, b = (hi - o) / d;
+    if (a > b) { const tmp = a; a = b; b = tmp; }
+    if (a > t0) t0 = a;
+    if (b < t1) t1 = b;
+    if (t0 > t1) return Infinity;
+  }
+  return t0 * len;
+}
+function cylHit(from, dx, dy, dz, len, c) {
+  const fx = from.x - c.x, fz = from.z - c.z;
+  const A = dx * dx + dz * dz, B = 2 * (fx * dx + fz * dz), C = fx * fx + fz * fz - c.r * c.r;
+  let t0, t1;
+  if (A < 1e-12) { if (C >= 0) return Infinity; t0 = 0; t1 = 1; }
+  else {
+    const disc = B * B - 4 * A * C;
+    if (disc < 0) return Infinity;
+    const sq = Math.sqrt(disc);
+    t0 = (-B - sq) / (2 * A); t1 = (-B + sq) / (2 * A);
+    if (t1 < 0 || t0 > 1) return Infinity;
+    t0 = Math.max(0, t0); t1 = Math.min(1, t1);
+  }
+  // Clip to below the top.
+  if (Math.abs(dy) < 1e-9) { if (from.y >= c.maxY) return Infinity; }
+  else {
+    const ty = (c.maxY - from.y) / dy;
+    if (dy > 0) t1 = Math.min(t1, ty); else t0 = Math.max(t0, ty);
+    if (t0 > t1) return Infinity;
+  }
+  return t0 * len;
+}
+export function segmentHit(from, to, colliders, _step = 0.25) {
   const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
   const len = Math.hypot(dx, dy, dz);
   if (len < 1e-6) return 0;
   const loX = Math.min(from.x, to.x), hiX = Math.max(from.x, to.x);
   const loZ = Math.min(from.z, to.z), hiZ = Math.max(from.z, to.z);
   const loY = Math.min(from.y, to.y);
-  _cand.length = 0;
+  let best = len;
   for (const c of colliders) {
     if (c.invisible || c.noCam || c.maxY <= loY) continue;
     if (c.kind === 'cyl') {
       if (c.x + c.r < loX || c.x - c.r > hiX || c.z + c.r < loZ || c.z - c.r > hiZ) continue;
     } else if (c.maxX < loX || c.minX > hiX || c.maxZ < loZ || c.minZ > hiZ) continue;
-    _cand.push(c);
+    const h = c.kind === 'cyl' ? cylHit(from, dx, dy, dz, len, c) : slabHit(from, dx, dy, dz, len, c);
+    if (h < best) best = h;
   }
-  if (!_cand.length) return len;
-  const n = Math.ceil(len / step);
-  for (let i = 1; i <= n; i++) {
-    const t = Math.min(1, (i * step) / len);
-    const x = from.x + dx * t, y = from.y + dy * t, z = from.z + dz * t;
-    for (const c of _cand) if (pointInside(x, y, z, c)) return t * len;
-  }
-  return len;
+  return best;
 }

@@ -74,8 +74,10 @@ export function buildPlaza(B) {
   addCyl(b, 1.3, 0.6, 0.35, 14, STONE, 0, y0 + 2.5, 0);
   addCyl(b, 1.12, 1.12, 0.02, 14, WATER, 0, y0 + 2.85, 0);
   addCyl(b, 0.12, 0.2, 0.7, 8, STONE, 0, y0 + 2.85, 0);
-  colliders.push({ kind: 'cyl', x: 0, z: 0, r: 4, maxY: y0 + 0.6, tag: 'fountain' });
-  colliders.push({ kind: 'cyl', x: 0, z: 0, r: 0.6, maxY: y0 + 3.6, tag: 'fountain' });
+  colliders.push({ kind: 'cyl', x: 0, z: 0, r: 4.1, maxY: y0 + 0.6, tag: 'fountain' });
+  colliders.push({ kind: 'cyl', x: 0, z: 0, r: 0.6, maxY: y0 + 2.5, tag: 'fountain' });
+  // Upper bowl flares to r 1.3; give the camera something to hit there.
+  colliders.push({ kind: 'cyl', x: 0, z: 0, r: 1.3, maxY: y0 + 3.6, tag: 'fountain', camOnly: true });
 
   // Paths: axis walks always; diagonal and ring walks by variant.
   for (const e of EDGES) {

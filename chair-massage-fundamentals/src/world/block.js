@@ -104,7 +104,7 @@ export function buildBlock(seed, scene) {
   const [vx, vz] = toXZ(vanEdge, prng.pick([-30, 30]), (DECK_HALF + ROAD_OUT) / 2 - 2); // inner lane
   const [fx, fz] = SIDE[vanEdge].out;
   const spawns = {
-    parking: parking.map((p) => ({ pos: p.pos.clone(), yaw: p.yaw })),
+    parking: parking.map((p) => ({ pos: p.pos.clone(), yaw: p.yaw, edge: p.edge, colour: p.colour })),
     peds: pedIdx.map((i) => nav.points[i].clone()),
     vanEntry: { pos: new THREE.Vector3(vx, 0, vz), yaw: Math.atan2(-fz, fx), edge: vanEdge },
     escape: {

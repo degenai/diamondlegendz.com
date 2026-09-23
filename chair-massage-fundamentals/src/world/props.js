@@ -109,7 +109,7 @@ export function cartParts({ awning = 0xd9534f, body = 0xdad7cf } = {}) {
     { w: 0.12, h: 0.5, d: 0.5, c: 0x222222, x: -0.8, y: 0.25, z: 0 },          // wheels
     { w: 0.12, h: 0.5, d: 0.5, c: 0x222222, x: 0.8, y: 0.25, z: 0 },
     { w: 2.4, h: 0.1, d: 1.5, c: awning, x: 0, y: 2.3, z: 0 },                 // roof
-    { w: 2.4, h: 0.05, d: 0.8, c: awning, x: 0, y: 2.12, z: 1.05, tilt: 0.45 }, // awning
+    { w: 2.4, h: 0.05, d: 0.8, c: awning, x: 0, y: 2.36, z: 1.05, tilt: 0.45 }, // awning, low edge clears 2.15 m
     { w: 2.2, h: 0.18, d: 0.03, c: 0xf4f1e8, x: 0, y: 1.1, z: 0.62 },         // menu stripe
   ];
   for (const [x, z] of [[-1.05, -0.6], [1.05, -0.6], [-1.05, 0.6], [1.05, 0.6]]) {

@@ -91,7 +91,7 @@ export function updatePlayer(p, dt, ctx) {
   const colliders = ctx.world ? ctx.world.colliders : null;
   // First tick after spawn: stand on whatever walk surface is under the spawn point.
   if (colliders && !p.floorInit) {
-    p.pos.y = Math.max(p.pos.y, floorHeightAt(p.pos.x, p.pos.z, colliders));
+    p.pos.y = Math.max(p.pos.y, floorHeightAt(p.pos.x, p.pos.z, colliders, p.pos.y));
     p.floorInit = true;
   }
   const prevFeet = p.pos.y;
@@ -154,8 +154,12 @@ function animate(p, dt, hSpeed) {
     limbs.armR.rotation.x = swing * 0.8;
     limbs.armR.rotation.z = 0;
   }
-  // Small bob while moving.
-  p.mesh.userData.body.position.y = 1.15 + Math.abs(Math.sin(p.walkPhase)) * 0.05 * amt;
+  // Small bob while moving: bob the torso so the feet stay planted.
+  const torso = p.mesh.userData.torso;
+  if (torso) {
+    if (torso.userData.restY === undefined) torso.userData.restY = torso.position.y;
+    torso.position.y = torso.userData.restY + Math.abs(Math.sin(p.walkPhase)) * 0.05 * amt;
+  }
 }
 
 function syncMesh(p) {
@@ -190,9 +194,15 @@ function updateCamera(p, dt, camera, colliders) {
     p.camInit = true;
   } else {
     camera.position.lerp(_camDesired, 1 - Math.exp(-10 * dt));
-    // Never let the smoothing drag the camera back through the wall it was clamped by.
+    // Never let the smoothing drag the camera through a wall: re-test along the
+    // direction the lerp actually produced, not the desired ray.
     const d = camera.position.distanceTo(_head);
-    if (d > dist) camera.position.sub(_head).multiplyScalar(dist / d).add(_head);
+    let limit = dist;
+    if (colliders && d > 1e-4) {
+      const hit2 = segmentHit(_head, camera.position, colliders, 0.25);
+      if (hit2 < d) limit = Math.min(limit, Math.max(0.2, hit2 - CAM_PAD));
+    }
+    if (d > limit) camera.position.sub(_head).multiplyScalar(limit / d).add(_head);
   }
   camera.lookAt(_camTarget);
 }
