@@ -16,6 +16,7 @@ const DRAG = 0.04;        // linear drag, 1/s
 const PARKED_BRAKE = 7;   // driverless vehicles roll to a stop at this rate
 const HB_YAW = 1.5;       // handbrake yaw-rate boost (kicks the tail out)
 const SLEEP_V = 0.05;
+const CULL_R = 120;
 
 function wrapAngle(a) {
   while (a > Math.PI) a -= Math.PI * 2;
@@ -166,6 +167,11 @@ export function updateVehicle(v, dt, ctx) {
 
   animate(v, dt, vf, vf0);
   updateFx(v, dt, ctx);
+  // Distance culling: a vehicle is ~7 draw calls; past CULL_R it is fog anyway.
+  if (ctx.camera) {
+    const cx = v.pos.x - ctx.camera.position.x, cz = v.pos.z - ctx.camera.position.z;
+    v.mesh.visible = cx * cx + cz * cz < CULL_R * CULL_R || v.driver === ctx.player;
+  }
 }
 
 function animate(v, dt, vf, vf0) {

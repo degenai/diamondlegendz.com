@@ -6,7 +6,7 @@ import * as THREE from '../../vendor/three.module.js';
 import { addBox, addCyl } from './batch.js';
 import { addSpur } from './nav.js';
 import {
-  HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, OUTER_WALK, DECK_Y, ALLEY_HALF, ALLEY_END, toXZ, sideBox,
+  HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, OUTER_WALK, DECK_Y, ALLEY_HALF, ALLEY_END, toXZ, sideBox, cutGaps,
 } from './layout.js';
 
 const FLOOR_H = 3.2;
@@ -16,7 +16,7 @@ const TEAL = 0x2ec4b6;
 const SERENITY_WHITE = 0xf1f0ea;
 const GLASS = [0x2d3a48, 0x3a4958, 0x26303a];
 const LIT = 0xf2c77a;
-const MAX_WINDOWS = 2400;
+const MAX_WINDOWS = 2800;
 
 const _m = new THREE.Matrix4();
 const _q = new THREE.Quaternion();
@@ -38,19 +38,25 @@ function splitSpan(rng, u0, u1, n) {
   return out;
 }
 
-function planLots(rng, esc) {
+function planLots(rng, esc, gaps) {
   const lots = [];
   for (const edge of EDGES) {
     const span = edge === 'N' || edge === 'S' ? HALF : LOT_FRONT;
     const n = rng.int(3, 5);
+    const parts = cutGaps(gaps, edge, -span, span);
     let spans;
-    if (edge === esc.edge) {
-      const a = [-span, esc.g - GAP_HALF], c = [esc.g + GAP_HALF, span];
-      const la = a[1] - a[0], lc = c[1] - c[0];
-      const na = Math.max(1, Math.min(n - 1, Math.round((n * la) / (la + lc))));
-      spans = [...splitSpan(rng, a[0], a[1], na), ...splitSpan(rng, c[0], c[1], n - na)];
+    if (parts.length > 1) {
+      // Share the n lots among the pieces the gaps leave, by length (at least one each).
+      const total = parts.reduce((a, [u0, u1]) => a + u1 - u0, 0);
+      let left = Math.max(n, parts.length);
+      spans = [];
+      parts.forEach(([u0, u1], k) => {
+        const m = k === parts.length - 1 ? left : Math.max(1, Math.min(left - (parts.length - 1 - k), Math.round((n * (u1 - u0)) / total)));
+        left -= m;
+        spans.push(...splitSpan(rng, u0, u1, m));
+      });
     } else {
-      spans = splitSpan(rng, -span, span, n);
+      spans = splitSpan(rng, parts[0][0], parts[0][1], n);
     }
     for (const [u0, u1] of spans) {
       const floors = rng.int(2, 6);
@@ -61,14 +67,16 @@ function planLots(rng, esc) {
         color: PALETTE[Math.floor(rng.next() * PALETTE.length)],
         store: rng.next() < 0.5,
         awning: AWNINGS[Math.floor(rng.next() * AWNINGS.length)],
-        gapSide: edge === esc.edge ? (u1 === esc.g - GAP_HALF ? 1 : u0 === esc.g + GAP_HALF ? -1 : 0) : 0,
+        gapSide: gaps.some((q) => q.edge === edge && Math.abs(u1 - (q.g - GAP_HALF)) < 1e-6) ? 1
+          : gaps.some((q) => q.edge === edge && Math.abs(u0 - (q.g + GAP_HALF)) < 1e-6) ? -1 : 0,
         serenity: false,
       });
     }
   }
   // Exactly one Serenity lot: a reasonably wide lot not on the escape edge.
-  const cands = lots.filter((l) => l.edge !== esc.edge && l.u1 - l.u0 >= 16 && Math.abs((l.u0 + l.u1) / 2) < 50);
-  const pool = cands.length ? cands : lots.filter((l) => l.edge !== esc.edge);
+  const escEdge = esc ? esc.edge : null;
+  const cands = lots.filter((l) => l.edge !== escEdge && l.u1 - l.u0 >= 16 && Math.abs((l.u0 + l.u1) / 2) < 50);
+  const pool = cands.length ? cands : lots.filter((l) => l.edge !== escEdge);
   const s = pool[Math.floor(rng.next() * pool.length)];
   s.serenity = true; s.floors = Math.max(3, s.floors); s.h = s.floors * FLOOR_H;
   s.front = LOT_FRONT; s.store = true; s.color = SERENITY_WHITE;
@@ -79,7 +87,7 @@ function planLots(rng, esc) {
 // 12 m wide, within 50 m of the side's centre (so the mouth sits on the outer sidewalk's nav
 // line). Both lots give up ALLEY_HALF each. Own rng, so the lots roll the same with or without.
 function planAlleys(rng, lots, esc) {
-  const sides = EDGES.filter((e) => e !== esc.edge);
+  const sides = EDGES.filter((e) => !esc || e !== esc.edge);
   for (let i = sides.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); [sides[i], sides[j]] = [sides[j], sides[i]]; }
   const alleys = [];
   for (const edge of sides) {
@@ -130,12 +138,14 @@ function buildAlley(b, colliders, nav, A) {
 }
 
 export function buildBuildings(B) {
-  const { batch: b, colliders, rng, esc } = B;
-  const lots = planLots(rng, esc);
+  const { batch: b, colliders, rng, esc, gaps } = B;
+  const lots = planLots(rng, esc, gaps);
   const alleys = B.alleyRng ? planAlleys(B.alleyRng, lots, esc) : [];
   for (const A of alleys) buildAlley(b, colliders, B.nav, A);
 
-  const winGeo = new THREE.BoxGeometry(1.1, 1.5, 0.12);
+  // A flat pane 7 cm proud of the wall, facing local +Z (2 triangles, not a 12-triangle box: the
+  // district has 16 blocks of windows).
+  const winGeo = new THREE.PlaneGeometry(1.1, 1.5).translate(0, 0, 0.07);
   const winMat = new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true });
   const windows = new THREE.InstancedMesh(winGeo, winMat, MAX_WINDOWS);
   windows.name = 'windows';
@@ -176,7 +186,7 @@ export function buildBuildings(B) {
     for (let f = firstFloor; f < lot.floors; f++) {
       for (let k = 0; k < cols; k++) {
         const [x, z] = toXZ(edge, u0 + 1 + step * (k + 0.5), front - 0.04);
-        addWindow(x, f * FLOOR_H + 1.8, z, yaw, glass(lot));
+        addWindow(x, f * FLOOR_H + 1.8, z, yaw + Math.PI, glass(lot));   // facing the street
       }
     }
     // Side face along the escape street.

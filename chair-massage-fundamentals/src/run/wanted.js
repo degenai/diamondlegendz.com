@@ -50,6 +50,7 @@ export function report(w, kind) {
   w.decayT = 0;
   if (kind === 'goonHit') { if (!w.goonHitDone) { w.goonHitDone = true; add(w, 1); } }
   else if (kind === 'stealVehicle') { add(w, w.stolen === 0 ? 1 : 0.5); w.stolen++; }
+  else if (kind === 'carjack') { add(w, 1); w.stolen++; }            // pulling a driver out: always a full star
   else if (kind === 'pedHurt') { w.carnage += 1; add(w, 2); }
   else if (kind === 'vehicleWreck') { w.carnage += 1; add(w, 1); }
   else if (kind === 'propertyHit') add(w, 0.25);

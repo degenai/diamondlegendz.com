@@ -54,8 +54,10 @@ export function unseatRig(rig, parent, pos, yaw) {
   rig.visible = true;
 }
 
-// Which cosmetic driver an AI vehicle gets: police by type, anything else is Serenity (a goon).
+// Which cosmetic driver an AI vehicle gets: police by type, a civilian in traffic, anything else
+// is Serenity (a goon).
 function driverKind(v) {
+  if (v.civilian) return { kind: 'ped', rank: null };
   if (!v.police) return { kind: 'goon', rank: null };
   const rank = v.type === 'cart' ? 'ranger' : v.type === 'swatvan' ? 'swat' : 'cop';
   return { kind: 'cop', rank };

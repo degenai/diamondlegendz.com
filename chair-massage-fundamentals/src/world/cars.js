@@ -1,7 +1,7 @@
-// Parked sedans along the outer kerb. Spots are planned synchronously (spawns.parking); the baked
-// meshes arrive async and get a recoloured Body (vertex colours rewritten, geometry cached per colour).
-// Phase 4: spawnVehicles() turns them into drivable vehicle entities once world.ready resolves
-// and adds the maintenance cart (plaza), the black franchise van (spawns.vanEntry) and a cop car.
+// Parked sedans along the outer kerb: planned per block (spawns.parking), shown and woken by
+// parked.js; recolourBody gives each a paint colour (vertex colours rewritten, cached per colour).
+// spawnVehicles() adds the maintenance cart (plaza), the black franchise van (spawns.vanEntry)
+// and a cop car once world.ready resolves.
 import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
 import { ROAD_OUT, DECK_HALF, GAP_HALF, EDGES, toXZ, laneForward, boxAt } from './layout.js';
@@ -9,16 +9,17 @@ import { createVehicle, VEHICLE_TYPES } from '../entities/vehicle.js';
 import { addEntity } from '../entities/index.js';
 import { overlapsFootprint, floorHeightAt } from '../physics.js';
 
-const CAR_COLOURS = [0xb8322c, 0x2c5aa0, 0xe8e4da, 0x2b2d30, 0x8a9096, 0x3f7a4a, 0xd9a441, 0x6d2f4f];
+export const CAR_COLOURS = [0xb8322c, 0x2c5aa0, 0xe8e4da, 0x2b2d30, 0x8a9096, 0x3f7a4a, 0xd9a441, 0x6d2f4f];
 const CAR_W = 1.9, CAR_L = 4.4, CAR_H = 1.5;
 
-export function planParking(rng, esc) {
+// Kerbside spots on the outer lane, clear of the crosswalks and every gap mouth (link and escape).
+export function planParking(rng, gaps) {
   const spots = [];
   const d = ROAD_OUT - 0.95;
   for (const e of EDGES) {
     for (let u = -43; u <= 43; u += 6.5) {
-      if (Math.abs(u) < 7) continue;                                     // crosswalk
-      if (e === esc.edge && Math.abs(u - esc.g) < GAP_HALF + 3.5) continue; // escape street mouth
+      if (Math.abs(u) < 7 || Math.abs(u) > 31) continue;                  // crosswalk; corners (cars swing wide)
+      if (gaps.some((q) => q.edge === e && Math.abs(u - q.g) < GAP_HALF + 3.5)) continue; // street mouths
       const [x, z] = toXZ(e, u, d);
       const [fx, fz] = laneForward(e);
       spots.push({ pos: new THREE.Vector3(x, 0, z), yaw: Math.atan2(fx, fz), edge: e });
@@ -39,7 +40,7 @@ export function carCollider(spot) {
 
 const bodyCache = new Map(); // asset:colour -> recoloured Body geometry
 
-function recolourBody(car, colour) {
+export function recolourBody(car, colour) {
   const body = car.getObjectByName('Body');
   const paint = car.userData.materials && car.userData.materials.Paint;
   if (!body || !body.geometry.getAttribute('color') || !paint) return false;
@@ -62,23 +63,6 @@ function recolourBody(car, colour) {
   return true;
 }
 
-// Adds each car mesh + collider to the world; resolves with the parked list.
-export function loadParked(world, root, spots) {
-  return Promise.all(spots.map((spot) => loadMesh('assets/sedan.json').then((car) => {
-    recolourBody(car, spot.colour);
-    car.position.copy(spot.pos);
-    car.rotation.y = spot.yaw;
-    car.name = 'parkedSedan';
-    root.add(car);
-    const collider = carCollider(spot);
-    world.colliders.push(collider);
-    world.parked.push({ mesh: car, collider, spawn: spot });
-    return car;
-  }))).catch((err) => {
-    console.warn('[CMF] parked cars failed to load', err);
-  }).then(() => world.parked);
-}
-
 // --- Phase 4: vehicles ---
 
 function footprintFree(world, type, x, y, z, yaw) {
@@ -94,7 +78,7 @@ function footprintFree(world, type, x, y, z, yaw) {
   return true;
 }
 
-function place(world, root, entities, type, mesh, pos, yaw) {
+export function placeVehicle(world, root, entities, type, mesh, pos, yaw) {
   root.add(mesh);
   const v = createVehicle(type, mesh, pos, yaw);
   world.vehicles.push(v);
@@ -130,34 +114,30 @@ function copSpot(world) {
   return null;
 }
 
-// Call after world.ready: converts world.parked into vehicles and adds cart, van, cop car.
-// Resolves with world.vehicles. Parked-car AABB colliders leave world.colliders (the vehicle
-// collides dynamically instead); each world.parked entry gains .vehicle.
+// Call after world.ready: adds the maintenance cart, the franchise van and the parked cop car
+// (each remembers its home for the between-runs reset). Parked sedans are parked.js's: proxies
+// that become vehicles near the player. Resolves with world.vehicles.
 export function spawnVehicles(world, root, entities) {
   if (world.vehicles) return Promise.resolve(world.vehicles);
   world.vehicles = [];
-  for (const pk of world.parked) {
-    const i = world.colliders.indexOf(pk.collider);
-    if (i >= 0) world.colliders.splice(i, 1);
-    pk.vehicle = place(world, root, entities, 'sedan', pk.mesh, pk.spawn.pos, pk.spawn.yaw);
-  }
   const cart = cartSpot(world);
   const cop = copSpot(world);
   const van = world.spawns.vanEntry;
+  const home = (v, pos, yaw) => { v.home = { pos: pos.clone(), yaw }; return v; };
   const jobs = [
     loadMesh(VEHICLE_TYPES.cart.asset).then((m) => {
       m.name = 'maintenanceCart';
-      place(world, root, entities, 'cart', m, cart.pos, cart.yaw);
+      home(placeVehicle(world, root, entities, 'cart', m, cart.pos, cart.yaw), cart.pos, cart.yaw);
     }),
     loadMesh(VEHICLE_TYPES.van.asset).then((m) => {
       recolourBody(m, 0x111214);  // franchise black
       m.name = 'franchiseVan';
-      const v = place(world, root, entities, 'van', m, van.pos, van.yaw);
+      const v = home(placeVehicle(world, root, entities, 'van', m, van.pos, van.yaw), van.pos, van.yaw);
       v.franchise = true;
     }),
     cop && loadMesh(VEHICLE_TYPES.copcar.asset).then((m) => {
       m.name = 'copCar';
-      const v = place(world, root, entities, 'copcar', m, cop.pos, cop.yaw);
+      const v = home(placeVehicle(world, root, entities, 'copcar', m, cop.pos, cop.yaw), cop.pos, cop.yaw);
       v.lights = false;           // light bar off until Phase 5
     }),
   ];

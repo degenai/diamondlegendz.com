@@ -1,45 +1,18 @@
-// AI drivers for the ring road: pure pursuit on a lookahead point along the square loop
-// (centreline 52 m out, perimeter 416 m), a direct chase when close, and a back-up-and-turn
-// when stuck. Writes v.ai = { throttle, steer, handbrake }; vehicle.js reads it.
-const H = 52;                 // ring centreline half size
-const PER = 8 * H;            // perimeter
-const LOOK = 11;
+// AI drivers on the street graph (world/roads.js): a route of intersections, pure pursuit on a
+// lookahead point along its lane (pivot-path.js followPoly, which also brakes for bends), a
+// direct chase when close, and a back-up-and-turn when stuck. Writes v.ai = { throttle, steer,
+// handbrake }; vehicle.js reads it.
+import { nodeAhead, nearestEdge, route, lanePoints } from '../world/roads.js';
+import { followPoly } from '../pivot-path.js';
+const REPLAN = 1.0;
+// Street corners are 90 degrees with parked cars 2 m outside the lane: brake early, turn slowly.
+const STREET_BEND = [16, 24, 3.5];   // fast cars (cops, the van)
+const TOWN_BEND = [10, 16, 3.5];
 
 function wrap(a) {
   while (a > Math.PI) a -= Math.PI * 2;
   while (a < -Math.PI) a += Math.PI * 2;
   return a;
-}
-function modP(s) { return ((s % PER) + PER) % PER; }
-
-// Perimeter parameter of the nearest ring point: N side (z=-H) west->east, E, S east->west, W.
-export function ringS(x, z) {
-  const cx = Math.max(-H, Math.min(H, x)), cz = Math.max(-H, Math.min(H, z));
-  const dN = Math.abs(z + H), dS = Math.abs(z - H), dE = Math.abs(x - H), dW = Math.abs(x + H);
-  const m = Math.min(dN, dS, dE, dW);
-  if (m === dN) return cx + H;
-  if (m === dE) return 2 * H + (cz + H);
-  if (m === dS) return 4 * H + (H - cx);
-  return 6 * H + (H - cz);
-}
-export function ringPoint(s, out) {
-  s = modP(s);
-  if (s < 2 * H) { out.x = s - H; out.z = -H; }
-  else if (s < 4 * H) { out.x = H; out.z = s - 3 * H; }
-  else if (s < 6 * H) { out.x = 5 * H - s; out.z = H; }
-  else { out.x = -H; out.z = 7 * H - s; }
-  return out;
-}
-// Signed shortest perimeter delta from a to b.
-export function ringDelta(a, b) {
-  let d = modP(b - a);
-  if (d > PER / 2) d -= PER;
-  return d;
-}
-// Tangent yaw of travel at s in direction dir (+1 / -1).
-export function ringYaw(s, dir) {
-  const a = ringPoint(s, { x: 0, z: 0 }), b = ringPoint(s + dir * 1, { x: 0, z: 0 });
-  return Math.atan2(b.x - a.x, b.z - a.z);
 }
 
 function ai(v) { if (!v.ai) v.ai = { throttle: 0, steer: 0, handbrake: false }; return v.ai; }
@@ -74,17 +47,30 @@ export function driveAt(v, tx, tz, cruise, dt, left) {
   return d;
 }
 
-const _p = { x: 0, z: 0 };
-// Follow the loop toward perimeter parameter goalS; hands over to driveAt within `near` m.
-export function driveRing(v, goalS, cruise, dt) {
-  const s = ringS(v.pos.x, v.pos.z);
-  const delta = ringDelta(s, goalS);
-  if (Math.abs(delta) < LOOK) {
-    ringPoint(goalS, _p);
-    return driveAt(v, _p.x, _p.z, cruise, dt);
-  }
-  // Corners: the lookahead swings round them, so ease off when it bends away from the heading.
-  ringPoint(s + Math.sign(delta) * LOOK, _p);
-  driveAt(v, _p.x, _p.z, cruise, dt, Math.abs(delta));
-  return Math.abs(delta);
+// ---- the street graph (world/roads.js): route to a node, then pure pursuit on the lane ----
+function makePoly(pts) {
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].z - pts[i - 1].z));
+  return { pts, cum, total: cum[cum.length - 1], ringEnd: pts.length, prog: 0, seg: 0 };
+}
+
+// Lane polyline to node `goal`: the street the vehicle is on (from the node behind it, so the
+// pursuit carrot sits on the lane and pulls it back in after a wide corner), then the shortest route.
+export function planRoute(v, G, goal, lane) {
+  const e = nearestEdge(G, v.pos.x, v.pos.z);
+  const start = nodeAhead(G, v.pos.x, v.pos.z, Math.sin(v.yaw), Math.cos(v.yaw));
+  const ids = start < 0 ? [] : route(G, start, goal);
+  if (e && ids.length && e.d < 12) { const back = start === e.a ? e.b : e.a; if (ids[1] !== back) ids.unshift(back); }
+  const pts = ids.length > 1 ? lanePoints(G, ids, lane) : [{ x: v.pos.x, z: v.pos.z }, ...lanePoints(G, ids, lane)];
+  if (pts.length < 2) pts.push({ x: v.pos.x + Math.sin(v.yaw), z: v.pos.z + Math.cos(v.yaw) });
+  return makePoly(pts);
+}
+
+// Follow the street graph to node `goal` at up to `cruise`; returns the metres left on the route.
+export function driveRoute(v, G, goal, cruise, dt, lane) {
+  const R = v.route;
+  if (!R || R.goal !== goal || R.t <= 0 || R.lane !== lane) {
+    v.route = { goal, lane, t: REPLAN, poly: planRoute(v, G, goal, lane) };
+  } else R.t -= dt;
+  return followPoly(v, v.route.poly, dt, driveAt, cruise, cruise, cruise > 11 ? STREET_BEND : TOWN_BEND);
 }

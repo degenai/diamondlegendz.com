@@ -8,24 +8,27 @@ import { makeRng } from '../rng.js';
 import { floorHeightAt } from '../physics.js';
 import { preload } from '../assets.js';
 import { addEntity, removeEntity } from '../entities/index.js';
-import { createPed, disposePed } from '../entities/ped.js';
+import { disposePed } from '../entities/ped.js';
 import { createGoon, disposeGoon, GRAB_WINDOW } from '../entities/goon.js';
 import { disposeCop } from '../entities/cop.js';
 import { clearDriverRig } from '../entities/seated.js';
-import { navInfo } from '../entities/npc-nav.js';
 import { updateWanted, emitChaos } from './wanted.js';
 import { createPolice, updatePolice, clearPolice } from './police.js';
-import { ringS, ringDelta, ringPoint, ringYaw, driveRing, driveAt, brake } from './driver.js';
+import { driveRoute, driveAt, brake } from './driver.js';
+import { nearestNode, nodeAhead } from '../world/roads.js';
+import { spawnPeds, spawnRegular, recyclePeds } from './peds.js';
+import { createTraffic, beginTraffic, clearTraffic, updateTraffic } from './traffic.js';
+import { resetVehicles } from './reset.js';
 
 const WAVE = 90;
 const GOON_CAP = 9;
 const VAN_CRUISE = 14;
 const _cops = [];
-const _p = { x: 0, z: 0 };
 
 export function initSpawner(ctx) {
   ctx.npcs = ctx.npcs || [];
   ctx.police = createPolice();
+  ctx.traffic = createTraffic(ctx.world.seed);
   ctx.runCash = 0;
   preload(['assets/bat.json', 'assets/ranger.json', 'assets/copcar.json', 'assets/swatvan.json', 'assets/cart.json'])
     .catch((err) => console.warn('[CMF] NPC asset preload failed', err));
@@ -40,6 +43,7 @@ function dispose(ctx, e) {
 
 export function clear(ctx) {
   clearPolice(ctx.police, ctx);
+  clearTraffic(ctx);
   for (const e of ctx.npcs) dispose(ctx, e);
   ctx.npcs.length = 0;
   ctx.goonPack = null;                        // the pack forgets the last run's sightings (goon.js)
@@ -49,19 +53,8 @@ export function clear(ctx) {
   ctx.vanAI = null;
 }
 
-// MASSAGE re-entry: the franchise van goes home to vanEntry, engine off, repaired.
-export function resetVan(ctx) {
-  const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise);
-  if (!v) return;
-  const e = ctx.world.spawns.vanEntry;
-  if (v.driver && v.driver !== ctx.player) v.driver = null;
-  clearDriverRig(v);
-  v.ai = null; v.aiBackT = 0; v.aiStuckT = 0;
-  v.pos.copy(e.pos); v.yaw = e.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0;
-  v.hp = 100; v.parked = true; v.asleep = true; v.wreckSeen = false; v.chairLoaded = false;
-  v.stolen = false; // home and repaired: last run's theft no longer makes its driverless bumps yours
-  v.mesh.position.copy(v.pos); v.mesh.rotation.set(0, v.yaw, 0);
-}
+// MASSAGE re-entry: every vehicle goes home, repaired, engine off (run/reset.js).
+export function resetVan(ctx) { resetVehicles(ctx); }
 
 export function begin(ctx, fromPivot = false) {
   if (!fromPivot) clear(ctx);
@@ -78,43 +71,7 @@ export function begin(ctx, fromPivot = false) {
   if (ctx.perks && ctx.perks.regular) spawnRegular(ctx, rng);
   ctx.vanAI = { v: null, mode: 'park', waveT: 0, dropT: 0, spawnedAt: -1 };
   if (countKind(ctx, 'goon') === 0) spawnGoons(ctx, 3);
-}
-
-// "Regular client" unlock: one guaranteed willing ped idling a few metres from the chair spot.
-function spawnRegular(ctx, rng) {
-  const { points } = navInfo(ctx.world);
-  const c = ctx.world.chairSpot;
-  let best = 0, bd = Infinity;
-  for (let i = 0; i < points.length; i++) {
-    const d = Math.abs(Math.hypot(points[i].x - c.x, points[i].z - c.z) - 6);
-    if (d < bd) { bd = d; best = i; }
-  }
-  const e = createPed(ctx.scene, points[best].clone(), best, rng);
-  e.regular = true; e.idleT = 6;
-  addEntity(ctx.entities, e);
-  ctx.npcs.push(e);
-}
-
-function spawnPeds(ctx, rng) {
-  const world = ctx.world;
-  const { adj, points } = navInfo(world);
-  const n = rng.int(18, 26);
-  const base = world.spawns.peds;
-  const p = ctx.player.pos;
-  for (let i = 0; i < n; i++) {
-    let idx;
-    if (i < base.length) idx = points.findIndex((q) => q.distanceToSquared(base[i]) < 1e-6);
-    if (idx === undefined || idx < 0) idx = rng.int(0, points.length - 1);
-    if ((points[idx].x - p.x) ** 2 + (points[idx].z - p.z) ** 2 < 36) idx = rng.int(0, points.length - 1);
-    const nb = adj[idx].length ? adj[idx][rng.int(0, adj[idx].length - 1)] : idx;
-    const t = rng.range(0, 0.7);
-    const a = points[idx], b = points[nb];
-    const pos = new THREE.Vector3(a.x + (b.x - a.x) * t, Math.max(a.y, b.y), a.z + (b.z - a.z) * t);
-    const e = createPed(ctx.scene, pos, idx, rng);
-    e.navFrom = idx; e.navTo = nb;
-    addEntity(ctx.entities, e);
-    ctx.npcs.push(e);
-  }
+  if (ctx.world.vehicles) beginTraffic(ctx);
 }
 
 export function countKind(ctx, kind) {
@@ -164,7 +121,7 @@ function updateVan(ctx, dt) {
     A.dropT += dt;
     const e = ctx.world.spawns.vanEntry.pos;
     const d = Math.hypot(e.x - v.pos.x, e.z - v.pos.z);
-    if (d > 16) driveRing(v, ringS(e.x, e.z), VAN_CRUISE, dt);
+    if (d > 16) driveRoute(v, ctx.world.roads, nearestNode(ctx.world.roads, e.x, e.z), VAN_CRUISE, dt);
     else if (d > 3.5) driveAt(v, e.x, e.z, 7, dt);
     else brake(v);
     if ((d <= 3.5 && Math.abs(v.speed) < 0.5) || A.dropT > 30) {
@@ -174,14 +131,13 @@ function updateVan(ctx, dt) {
     return;
   }
   if (p.vehicle && v.hp > 0) {
+    // Cut him off: wait at the next intersection he is driving toward.
     A.mode = 'cut';
-    const pv = p.vehicle, sp = ringS(pv.pos.x, pv.pos.z);
-    const ty = ringYaw(sp, 1);
-    const along = pv.vel.x * Math.sin(ty) + pv.vel.z * Math.cos(ty);
-    const goal = sp + (along >= 0 ? 1 : -1) * 25;
-    ringPoint(goal, _p);
-    if (Math.abs(ringDelta(ringS(v.pos.x, v.pos.z), goal)) < 6 && Math.hypot(_p.x - v.pos.x, _p.z - v.pos.z) < 6) brake(v);
-    else driveRing(v, goal, VAN_CRUISE, dt);
+    const G = ctx.world.roads, pv = p.vehicle;
+    const goal = nodeAhead(G, pv.pos.x, pv.pos.z, pv.vel.x, pv.vel.z);
+    const n = G.nodes[goal];
+    if (goal >= 0 && Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 6) brake(v);
+    else if (goal >= 0) driveRoute(v, G, goal, VAN_CRUISE, dt);
   } else {
     A.mode = 'park';
     brake(v);
@@ -212,6 +168,8 @@ function watchVehicles(ctx, dt) {
 
 export function update(dt, ctx) {
   updateVan(ctx, dt);
+  updateTraffic(ctx, dt);
+  recyclePeds(ctx, dt, dispose);
   watchVehicles(ctx, dt);
   _cops.length = 0;
   for (const e of ctx.npcs) if (e.kind === 'cop') _cops.push(e);

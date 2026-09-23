@@ -23,9 +23,12 @@ function shuffle(rng, arr) {
   return arr;
 }
 
+// B.furn (optional, district centres): { carts: [lo, hi], benches: [lo, hi], trees: [lo, hi] }
+// counts; B.trees0: trees a centre already placed (they share the block's two InstancedMeshes).
 export function buildFurniture(B) {
   const { batch: b, colliders, rng, variant, placer } = B;
-  const carts = [], benches = [], trees = [];
+  const F = B.furn || { carts: [3, 4], benches: [8, 12], trees: [8, 12] };
+  const carts = [], benches = [], trees = (B.trees0 || []).slice();
 
   // Food carts beside the axis walks, serving side toward the walk.
   const cartSpots = [];
@@ -36,7 +39,7 @@ export function buildFurniture(B) {
       cartSpots.push({ x, z, yaw: Math.atan2(-s * (ux - ox), -s * (uz - oz)) });
     }
   }
-  let nCarts = rng.int(3, 4);
+  let nCarts = rng.int(F.carts[0], F.carts[1]);
   for (const c of shuffle(rng, cartSpots)) {
     if (!nCarts) break;
     const [w, d] = footprint(2.4, 1.6, c.yaw);
@@ -75,7 +78,7 @@ export function buildFurniture(B) {
       spots.push({ x: sx * t + px, z: sz * t + pz, yaw: Math.atan2(-px, -pz) });
     }
   }
-  let nBench = rng.int(8, 12);
+  let nBench = rng.int(F.benches[0], F.benches[1]);
   for (const s of shuffle(rng, spots)) {
     if (!nBench) break;
     const [w, d] = footprint(1.8, 0.6, s.yaw);
@@ -88,7 +91,7 @@ export function buildFurniture(B) {
   }
 
   // Trees in grates: scattered in the plaza + a row along the inner sidewalk.
-  let nTree = rng.int(8, 12);
+  let nTree = rng.int(F.trees[0], F.trees[1]);
   for (let t = 0; t < 400 && nTree > 0; t++) {
     const x = rng.range(-41, 41), z = rng.range(-41, 41);
     if (!placer.free(x, z, 1.4, 1.4, 1.8, 1.5)) continue;
@@ -98,7 +101,7 @@ export function buildFurniture(B) {
   }
   for (const e of EDGES) {
     for (let u = -40; u <= 40; u += 10) {
-      if (Math.abs(u) < 5) continue;
+      if (Math.abs(u) < 15) continue;                 // clear of the link street's turns at u = 0
       const [x, z] = toXZ(e, u + rng.range(-1, 1), DECK_HALF - 0.9);
       trees.push({ x, z, s: rng.range(0.85, 1.15) });
     }
@@ -110,7 +113,7 @@ export function buildFurniture(B) {
   return { carts, benches, trees, meshes: treeMeshes(trees, rng) };
 }
 
-function treeMeshes(trees, rng) {
+export function treeMeshes(trees, rng) {
   const trunkGeo = new THREE.CylinderGeometry(0.15, 0.2, 2.2, 6).translate(0, 1.1, 0);
   const coneGeo = new THREE.ConeGeometry(1.5, 3.4, 7).translate(0, 3.6, 0);
   const trunks = new THREE.InstancedMesh(trunkGeo, new THREE.MeshLambertMaterial({ color: 0x6b4a32, flatShading: true }), trees.length);

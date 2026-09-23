@@ -21,8 +21,8 @@ const SOIL = 0x5a4632;
 const GREEN = [0x4f7a3a, 0x5d8a3f, 0x3f6b35];
 
 // Occupancy + placement test shared with furniture.js.
-export function createPlacer(nav) {
-  const occ = [aabb(-TH - 1.8, TH + 1.8, -TH - 1.8, TH + 1.8, 0)];
+export function createPlacer(nav, terrace = true) {
+  const occ = terrace ? [aabb(-TH - 1.8, TH + 1.8, -TH - 1.8, TH + 1.8, 0)] : [];
   const overlaps = (r, m) => occ.some((o) => r.minX < o.maxX + m && r.maxX > o.minX - m && r.minZ < o.maxZ + m && r.maxZ > o.minZ - m);
   return {
     occ,
@@ -81,19 +81,7 @@ export function buildPlaza(B) {
 
   const pavilion = buildPavilion(b, colliders, placer, B.pavRng);
 
-  // Paths: axis walks always; diagonal and ring walks by variant.
-  for (const e of EDGES) {
-    const r = sideBox(e, -2, 2, TH, PLAZA_HALF, 0);
-    addSlab(b, r.minX, r.maxX, r.minZ, r.maxZ, 0.1, DECK_Y + 0.01, PATH_AXIS);
-  }
-  if (variant.includes('diag')) {
-    const d0 = 13, d1 = PLAZA_HALF - 1.5;
-    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
-      const c = (d0 + d1) / 2;
-      addBox(b, 3, 0.08, (d1 - d0) * Math.SQRT2, PATH_DIAG, sx * c, DECK_Y - 0.02, sz * c, Math.atan2(sx, sz));
-    }
-  }
-  if (variant.includes('ring')) addRing(b, RING_R - 1.5, RING_R + 1.5, 64, PATH_RING, 0, DECK_Y + 0.03, 0);
+  drawPaths(b, variant, TH);
 
   // Planters: a grid in the quadrants, or scattered.
   if (variant.includes('grid')) {
@@ -128,6 +116,22 @@ export function buildPlaza(B) {
     }
   }
   return { stepEdges, pavilion };
+}
+
+// Paths: axis walks always (from `from` out to the plaza rim); diagonal and ring walks by variant.
+export function drawPaths(b, variant, from, colors = [PATH_AXIS, PATH_DIAG, PATH_RING]) {
+  for (const e of EDGES) {
+    const r = sideBox(e, -2, 2, from, PLAZA_HALF, 0);
+    addSlab(b, r.minX, r.maxX, r.minZ, r.maxZ, 0.1, DECK_Y + 0.01, colors[0]);
+  }
+  if (variant.includes('diag')) {
+    const d0 = 13, d1 = PLAZA_HALF - 1.5;
+    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+      const c = (d0 + d1) / 2;
+      addBox(b, 3, 0.08, (d1 - d0) * Math.SQRT2, colors[1], sx * c, DECK_Y - 0.02, sz * c, Math.atan2(sx, sz));
+    }
+  }
+  if (variant.includes('ring')) addRing(b, RING_R - 1.5, RING_R + 1.5, 64, colors[2], 0, DECK_Y + 0.03, 0);
 }
 
 // The pavilion: an open-sided roofed shelter on the deck beside the terrace (east or west, seeded),
@@ -183,7 +187,7 @@ function buildPavilion(b, colliders, placer, rng) {
     blockDirs: [[0, -1], [sx, 0]], openDirs: [[-sx, 0], [0, 1]], nav };
 }
 
-function planterAt(b, colliders, x, z, w, d, h) {
+export function planterAt(b, colliders, x, z, w, d, h) {
   planterBox(b, colliders, aabb(x - w / 2, x + w / 2, z - d / 2, z + d / 2, 0), DECK_Y, h);
 }
 

@@ -201,6 +201,7 @@ export function planEntry(world, van, chair, stopAt, ring) {
 // ---- following the route: pure pursuit on a polyline (carrot LOOK m ahead of the van's
 // projected progress, which only moves forward), speed from run/driver.js driveAt. ----
 const LOOK = 6;
+const BEND_AT = [8, 14, 6];
 
 // route from planEntry (ring leg + plaza leg) or planVanPath (plaza leg only).
 export function buildPoly(van, route, ring) {
@@ -234,7 +235,8 @@ const _c = new THREE.Vector3();
 const _p0 = new THREE.Vector3();
 const _p1 = new THREE.Vector3();
 // Returns the metres left; the caller brakes when it is small.
-export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise) {
+// bendAt: [from, to] m ahead where the bend brake looks, and the speed for a sharp bend.
+export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise, bendAt = BEND_AT) {
   const { pts, cum } = P;
   // Progress: best projection on the current segment or the next two.
   let bestD = Infinity;
@@ -250,10 +252,10 @@ export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise) {
   // Brake for the bend ahead: heading change between the next 4 m and 8..14 m on.
   pointAt(P, P.prog, _p0); pointAt(P, Math.min(P.total, P.prog + 4), _p1);
   const h0 = Math.atan2(_p1.x - _p0.x, _p1.z - _p0.z);
-  pointAt(P, Math.min(P.total, P.prog + 8), _p0); pointAt(P, Math.min(P.total, P.prog + 14), _p1);
+  pointAt(P, Math.min(P.total, P.prog + bendAt[0]), _p0); pointAt(P, Math.min(P.total, P.prog + bendAt[1]), _p1);
   let bend = Math.abs(Math.atan2(_p1.x - _p0.x, _p1.z - _p0.z) - h0);
   if (bend > Math.PI) bend = Math.PI * 2 - bend;
-  if (bend > 1.0) cruise = Math.min(cruise, 6); else if (bend > 0.5) cruise = Math.min(cruise, 9);
+  if (bend > 1.0) cruise = Math.min(cruise, bendAt[2] ?? 6); else if (bend > 0.5) cruise = Math.min(cruise, 9);
   driveAt(v, _c.x, _c.z, cruise, dt, left);
   return left;
 }

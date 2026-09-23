@@ -9,12 +9,17 @@ import { addEntity, removeEntity } from '../entities/index.js';
 import { createCop, disposeCop, copHostile } from '../entities/cop.js';
 import { clearDriverRig } from '../entities/seated.js';
 import { lineOfSight } from '../entities/npc-nav.js';
-import { ringS, ringPoint, ringDelta, ringYaw, driveRing, driveAt, brake } from './driver.js';
+import { driveRoute, driveAt, brake } from './driver.js';
+import { nearestNode, route, edgeSpot } from '../world/roads.js';
+import { floorHeightAt } from '../physics.js';
+import { SIZE } from '../world/layout.js';
 import { endRun } from './end.js';
+import { setupLights, updateLights } from './lights.js';
+
+export { updateLights };
 
 const CRUISE = { copcar: 20, swatvan: 15, cart: 11 };
 const BAIL = { copcar: 12, swatvan: 12, cart: 8 };
-const _p = { x: 0, z: 0 };
 
 export function createPolice() { return { units: [], tiers: {}, episode: false, arrestT: 0, pending: [] }; }
 
@@ -43,36 +48,6 @@ export function removeVehicle(ctx, v) {
   if (v.lightbar) { v.lightbar.geo.dispose(); v.lightbar.mat.dispose(); }
 }
 
-// Unlit per-vehicle light bar: red and blue halves swap bright/dim at 4 Hz.
-function setupLights(v) {
-  const bar = v.mesh.getObjectByName('lightbar');
-  if (!bar || !bar.geometry) return;
-  const geo = bar.geometry.clone();
-  const col = geo.getAttribute('color');
-  const red = [], blue = [];
-  for (let i = 0; i < col.count; i++) {
-    const r = col.getX(i), b = col.getZ(i);
-    if (r > 0.5 && b < 0.1) red.push(i); else if (b > 0.5 && r < 0.1) blue.push(i);
-  }
-  const mat = new THREE.MeshBasicMaterial({ vertexColors: true });
-  bar.geometry = geo; bar.material = mat;
-  v.lightbar = { geo, mat, red, blue, phase: -1, toggles: 0 };
-  v.lights = true;
-}
-
-export function updateLights(v, time) {
-  if (!v || v.removed || !v.lightbar) return;
-  const L = v.lightbar;
-  const phase = v.lights ? Math.floor(time * 4) % 2 : 2;
-  if (phase === L.phase) return;
-  L.phase = phase; L.toggles++;
-  const col = L.geo.getAttribute('color');
-  const rOn = phase === 0, bOn = phase === 1;
-  for (const i of L.red) col.setXYZ(i, rOn ? 1 : 0.18, rOn ? 0.08 : 0.01, rOn ? 0.06 : 0.01);
-  for (const i of L.blue) col.setXYZ(i, bOn ? 0.1 : 0.01, bOn ? 0.35 : 0.03, bOn ? 1 : 0.16);
-  col.needsUpdate = true;
-}
-
 // ---- spawning ----
 function footSpawn(ctx) {
   const pts = ctx.world.nav.points, p = ctx.player.pos;
@@ -87,23 +62,30 @@ function footSpawn(ctx) {
   return (best || fallback || pts[0]).clone();
 }
 
+// A lane spot on the street grid 2..3 blocks from the player (nearest 2.5 blocks first), just out
+// of an intersection on the street that leads toward him.
 function roadSpawn(ctx) {
+  const G = ctx.world.roads;
   const p = ctx.player.vehicle ? ctx.player.vehicle.pos : ctx.player.pos;
-  const sp = ringS(p.x, p.z);
   const vs = ctx.world.vehicles || [];
   const taken = ctx.police.pending;         // spawns still loading their mesh
-  for (let k = 0; k < 12; k++) {
-    const s = sp + 208 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 18;
-    ringPoint(s, _p);
-    if (vs.some((v) => (v.pos.x - _p.x) ** 2 + (v.pos.z - _p.z) ** 2 < 49)) continue;
-    if (taken.some((q) => (q.x - _p.x) ** 2 + (q.z - _p.z) ** 2 < 49)) continue;
-    const dir = Math.sign(ringDelta(s, sp)) || 1;
-    const spot = { x: _p.x, z: _p.z, yaw: ringYaw(s, dir) };
+  const cands = G.nodes.map((n, i) => ({ i, d: Math.hypot(n.x - p.x, n.z - p.z) }))
+    .filter((c) => G.nodes[c.i].deg >= 2 && c.i !== G.exitNode)
+    .sort((a, b) => Math.abs(a.d - 2.5 * SIZE) - Math.abs(b.d - 2.5 * SIZE));
+  for (const c of cands) {
+    // The street out of this node that heads most directly at the player.
+    let best = -1, bd = Infinity;
+    for (const m of G.adj[c.i]) { const n = G.nodes[m], d = Math.hypot(n.x - p.x, n.z - p.z); if (d < bd) { bd = d; best = m; } }
+    if (best < 0) continue;
+    const s = edgeSpot(G, c.i, best, 9);
+    if (vs.some((v) => (v.pos.x - s.x) ** 2 + (v.pos.z - s.z) ** 2 < 49)) continue;
+    if (taken.some((q) => (q.x - s.x) ** 2 + (q.z - s.z) ** 2 < 49)) continue;
+    const spot = { x: s.x, z: s.z, yaw: s.yaw, node: c.i, d: c.d };
     taken.push(spot);
     return spot;
   }
-  ringPoint(sp + 208, _p);
-  return { x: _p.x, z: _p.z, yaw: ringYaw(sp + 208, 1) };
+  const s = edgeSpot(G, cands[0].i, G.adj[cands[0].i][0], 9);
+  return { x: s.x, z: s.z, yaw: s.yaw };
 }
 
 function addCop(ctx, pos, rank, guard) {
@@ -133,26 +115,32 @@ function spawnTier(ctx, P, tier) {
   else if (tier === 5) drive('swatvan', 4, 'swat');
 }
 
-// Two cop cars nose to nose across the road near the two ring corners closest to the player.
+// Two roadblocks at the first two intersections on the player's route to the escape (skipping
+// any within 60 m of him): two cop cars nose to nose across the street just past the junction,
+// a guard on the sidewalk beside them.
 function roadblocks(ctx, P) {
-  const p = ctx.player.pos;
-  const corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]]
-    .sort((a, b) => ((a[0] * 52 - p.x) ** 2 + (a[1] * 52 - p.z) ** 2) - ((b[0] * 52 - p.x) ** 2 + (b[1] * 52 - p.z) ** 2));
-  for (const [sx, sz] of corners.slice(0, 2)) {
-    const vs = ctx.world.vehicles || [];
-    let u = 38;
-    for (const cand of [38, 34, 42, 30, 26]) {
-      if (!vs.some((v) => Math.abs(v.pos.x - sx * cand) < 3.5 && Math.abs(Math.abs(v.pos.z) - 52) < 5 && Math.sign(v.pos.z) === sz)) { u = cand; break; }
-    }
-    const unit = { kind: 'block', cops: [], cars: [] };
+  const G = ctx.world.roads, p = ctx.player.vehicle ? ctx.player.vehicle.pos : ctx.player.pos;
+  const path = route(G, nearestNode(G, p.x, p.z), G.exitNode);
+  const picks = [];
+  for (let k = 0; k + 1 < path.length && picks.length < 2; k++) {
+    const n = G.nodes[path[k]];
+    if (n.deg < 3 || Math.hypot(n.x - p.x, n.z - p.z) < 60) continue;
+    picks.push([path[k], path[k + 1]]);
+  }
+  P.roadblocks = picks.map(([a]) => a);
+  for (const [a, b] of picks) {
+    const c = edgeSpot(G, a, b, 10, 0), rx = -Math.cos(c.yaw), rz = Math.sin(c.yaw);  // right of travel
+    const unit = { kind: 'block', cops: [], cars: [], node: a };
     P.units.push(unit);
     for (const k of [-1, 1]) {
-      spawnVehicle(ctx, 'copcar', sx * u, sz * 52 + k * 2.5, k < 0 ? 0 : Math.PI).then((v) => {
+      const x = c.x + rx * 2.4 * k, z = c.z + rz * 2.4 * k;
+      spawnVehicle(ctx, 'copcar', x, z, Math.atan2(-rx * k, -rz * k)).then((v) => {
         if (!P.units.includes(unit)) { removeVehicle(ctx, v); return; }
         unit.cars.push(v); v.parked = true;
       }).catch((err) => console.warn('[CMF] roadblock failed', err));
     }
-    unit.cops.push(addCop(ctx, new THREE.Vector3(sx * u + 3, 0.15, sz * 46.5), 'cop', true));
+    const gx = c.x + rx * 5.2 + Math.sin(c.yaw) * 3, gz = c.z + rz * 5.2 + Math.cos(c.yaw) * 3;
+    unit.cops.push(addCop(ctx, new THREE.Vector3(gx, floorHeightAt(gx, gz, ctx.world.colliders, 0.5), gz), 'cop', true));
   }
 }
 
@@ -197,19 +185,28 @@ export function updatePolice(P, dt, ctx) {
 }
 
 function driveUnit(ctx, u, tgt, dt) {
-  const v = u.v, p = ctx.player;
+  const v = u.v, p = ctx.player, G = ctx.world.roads;
   u.t += dt;
-  if (u.standDown) { driveRing(v, ringS(tgt.x, tgt.z) + 208, CRUISE[u.type], dt); return; }
+  if (u.standDown) {                          // off down the street, away from him
+    if (u.away === undefined) {
+      let far = 0, fd = -1;
+      G.nodes.forEach((n, i) => { const d = Math.hypot(n.x - tgt.x, n.z - tgt.z); if (d > fd && d < 3 * SIZE && i !== G.exitNode) { fd = d; far = i; } });
+      u.away = far;
+    }
+    driveRoute(v, G, u.away, CRUISE[u.type], dt);
+    return;
+  }
   const d = Math.hypot(tgt.x - v.pos.x, tgt.z - v.pos.z);
-  if (!p.vehicle && (d < BAIL[u.type] || u.t > 35)) {
+  if (!p.vehicle && (d < BAIL[u.type] || u.t > 35 && d < 60)) {
     brake(v);
     if (Math.abs(v.speed) < 1.5) bail(ctx, u);
     return;
   }
-  // Close, or already at the loop point nearest the player (they are deep in the plaza): go in.
-  const onPoint = Math.abs(ringDelta(ringS(v.pos.x, v.pos.z), ringS(tgt.x, tgt.z))) < 12;
+  // Close, or already at the street node nearest the player (he is deep in a block): go in.
+  const goal = nearestNode(G, tgt.x, tgt.z), n = G.nodes[goal];
+  const onPoint = Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 12;
   if (d < 30 || onPoint) driveAt(v, tgt.x, tgt.z, p.vehicle ? CRUISE[u.type] : 10, dt);
-  else driveRing(v, ringS(tgt.x, tgt.z), CRUISE[u.type], dt);
+  else driveRoute(v, G, goal, CRUISE[u.type], dt);
 }
 
 function bail(ctx, u) {

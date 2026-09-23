@@ -3,7 +3,9 @@
 import * as THREE from '../../vendor/three.module.js';
 import { DECK_Y, TERRACE_Y, TERRACE_HALF, INNER_WALK, OUTER_WALK, RING_R } from './layout.js';
 
-export function buildNav({ stepAxis, diag, ring }) {
+// plain: a block without the fountain terrace (district.js centres): the axis walks meet at the
+// centre instead of climbing the steps.
+export function buildNav({ stepAxis, diag, ring, plain = false }) {
   const points = [];
   const edges = [];
   const index = new Map();
@@ -40,10 +42,11 @@ export function buildNav({ stepAxis, diag, ring }) {
 
   square(INNER_WALK, 6, DECK_Y);
   square(OUTER_WALK, 7, DECK_Y);
-  square(TERRACE_HALF + 2, 1, DECK_Y); // path around the terrace foot
+  if (!plain) square(TERRACE_HALF + 2, 1, DECK_Y); // path around the terrace foot
 
-  // Crosswalks + axis paths from the inner sidewalk to the terrace foot.
-  const axisD = ring ? [INNER_WALK, 37, RING_R, 19, TERRACE_HALF + 2] : [INNER_WALK, 38, 30, 22, TERRACE_HALF + 2];
+  // Crosswalks + axis paths from the inner sidewalk to the terrace foot (or the centre).
+  const foot = plain ? 0 : TERRACE_HALF + 2;
+  const axisD = ring ? [INNER_WALK, 37, RING_R, 19, foot] : [INNER_WALK, 38, 30, 22, foot];
   for (const [ax, az] of AX) {
     link(pt(ax * INNER_WALK, az * INNER_WALK), pt(ax * OUTER_WALK, az * OUTER_WALK));
     chain(axisD.map((d) => pt(ax * d, az * d)));
@@ -60,12 +63,13 @@ export function buildNav({ stepAxis, diag, ring }) {
 
   if (diag) {
     const dr = RING_R * Math.SQRT1_2;
-    const diagD = ring ? [INNER_WALK, 37, 28, dr, TERRACE_HALF + 2] : [INNER_WALK, 37, 28, 20, TERRACE_HALF + 2];
+    const diagD = ring ? [INNER_WALK, 37, 28, dr, foot] : [INNER_WALK, 37, 28, 20, foot];
     for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
       chain(diagD.map((d) => (d === dr ? pt(Math.cos(Math.atan2(sz, sx)) * RING_R, Math.sin(Math.atan2(sz, sx)) * RING_R) : pt(sx * d, sz * d))));
     }
   }
 
+  if (plain) return { points, edges };
   // Terrace: up the steps to a ring around the fountain.
   const top = [];
   for (let k = 0; k < 8; k++) {

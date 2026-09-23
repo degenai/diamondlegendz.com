@@ -138,6 +138,20 @@ physics needs a top-surface landing for low boxes, see Phase 3 brief); the fount
 Camera must not clip into buildings: clamp the third-person camera distance to the first collider hit
 along the player-to-camera segment.
 
+**District** (experiment on `feature/district`, 2026-09-23: "copy and paste this out to a 16-block
+something, just to see how that works"): the block tiled 4 x 4 (640 x 640 m). The chair's plaza block
+is grid (1, 1) and keeps the origin, so the district runs mostly +X/+Z (x, z in -240..400). The other
+fifteen roll a plain centre from their own seed (run seed mixed with the block index): a parking lot
+with parked cars, a green with trees and benches, or a smaller paved square with planters. The block
+is inside-out (ring road around the plaza, lots on the outside), so neighbours meet lot-back to
+lot-back: a **link street** (the escape street's 12 m gap, 8 m road) at the middle of every interior
+side joins the two ring roads. Walls on the district edge only; one escape street, on an outer side of
+the corner block farthest from the plaza. AI drivers route on a street graph (ring corners and side
+midpoints as nodes, link streets as edges, lane 1 m right of the centreline); the pivot van still
+enters from the plaza's own ring. Peds live within two blocks of the player and jump 1..2 blocks
+ahead of him past 2.5; six civilian cars drive the grid (carjack with E under 3 m/s); parked cars are
+instanced proxies that become drivable within 100 m. Every vehicle goes home, repaired, between runs.
+
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
 controls camera yaw/pitch (pointer lock). Shift sprint (a 3 s stamina pool, a thin bar under health in
 RUN; empty means walk until it has recharged 1 s; full again after 6 s off Shift). Space jump. E interact (enter/exit vehicle,

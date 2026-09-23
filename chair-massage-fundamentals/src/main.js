@@ -3,7 +3,8 @@ import * as THREE from '../vendor/three.module.js';
 import { STATES, setState, getState, onEnter, onExit } from './state.js';
 import * as input from './input.js';
 import { makeRng, hashSeed } from './rng.js';
-import { buildBlock } from './world/block.js';
+import { buildDistrict } from './world/district.js';
+import { initParked, updateParked } from './world/parked.js';
 import { preload } from './assets.js';
 import * as meta from './meta.js';
 import { createPlayer } from './entities/player.js';
@@ -50,7 +51,6 @@ function boot() {
   renderer.shadowMap.enabled = false;
 
   const scene = new THREE.Scene();
-
   const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 400);
   camera.position.set(0, 3, -8);
   camera.lookAt(0, 1, 0);
@@ -60,12 +60,14 @@ function boot() {
   const seed = seedParam === null ? hashSeed(String(Date.now()))
     : /^\d+$/.test(seedParam) ? Number(seedParam) >>> 0 : hashSeed(seedParam);
   const rng = makeRng(seed);
-  const world = buildBlock(seed, scene);
+  const world = buildDistrict(seed, scene);
+  world.ready = initParked(world);   // parked-car proxies; sedans near the player go live (parked.js)
 
   // Late-afternoon lighting, nudged per seed by the block (world.sun). No shadow maps.
   const sunInfo = world.sun;
   scene.background = new THREE.Color(sunInfo.sky);
   scene.fog = new THREE.Fog(sunInfo.sky, sunInfo.fogNear, sunInfo.fogFar);
+  camera.far = sunInfo.fogFar + 2; camera.updateProjectionMatrix(); // past the fog it is all sky colour
   scene.add(new THREE.HemisphereLight(sunInfo.hemiSky, sunInfo.ground, sunInfo.hemi));
   const sun = new THREE.DirectionalLight(sunInfo.color, sunInfo.intensity);
   sun.position.copy(sunInfo.dir).multiplyScalar(120);
@@ -214,7 +216,7 @@ function boot() {
     get meta() { return ctx.meta; },
     get vehicles() { return world.vehicles || []; },
     get chairState() { return world.chairState; },
-    get npcs() { return ctx.npcs; },
+    get npcs() { return ctx.npcs; }, get traffic() { return ctx.traffic; },
     get wanted() { return ctx.wanted; },
     get audio() { return audioInternals(); },
     juice: ctx.juice,
@@ -266,6 +268,7 @@ function boot() {
     } else if (s === STATES.PIVOT) {
       pivot.update(dt, ctx);
     }
+    updateParked(ctx, dt);
     updateBubbles(dt, camera);
   }
 

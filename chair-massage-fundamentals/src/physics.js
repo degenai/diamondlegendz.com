@@ -5,6 +5,9 @@
 // Optional flags: floor (walk surface), invisible / noCam (ignored by the camera clamp).
 // camOnly colliders may carry a minY (a roof slab): segment tests then see only minY..maxY.
 import * as THREE from '../vendor/three.module.js';
+import { query } from './physics-grid.js';
+
+const _qa = [], _qb = [], _qc = [], _qd = [], _qe = [];
 
 export const SKIN = 0.05;        // push-out only below maxY - SKIN
 export const STEP_UP = 0.3;      // grounded entities walk up ledges this high (kerbs, steps)
@@ -66,6 +69,8 @@ export function overlapsFootprint(pos, radius, c) {
 export function resolveStatic(entity, colliders, iterations = 3) {
   let hit = false;
   const feet = entity.pos.y;
+  const m = entity.radius + 1.5;
+  colliders = query(colliders, entity.pos.x - m, entity.pos.x + m, entity.pos.z - m, entity.pos.z + m, _qa);
   for (let iter = 0; iter < iterations; iter++) {
     let moved = false;
     for (const c of colliders) {
@@ -94,6 +99,7 @@ export function resolveStatic(entity, colliders, iterations = 3) {
 export function supportHeight(pos, radius, prevFeet, grounded, colliders) {
   let best = 0;
   const rs = radius * SUPPORT_K;
+  colliders = query(colliders, pos.x - radius - 0.1, pos.x + radius + 0.1, pos.z - radius - 0.1, pos.z + radius + 0.1, _qb);
   for (const c of colliders) {
     if (c.camOnly) continue;
     const top = c.maxY;
@@ -115,6 +121,7 @@ export function supportHeight(pos, radius, prevFeet, grounded, colliders) {
 export function floorHeightAt(x, z, colliders, y = 0, reach = 1.0) {
   let best = 0;
   const p = { x, z };
+  colliders = query(colliders, x - 0.1, x + 0.1, z - 0.1, z + 0.1, _qc);
   for (const c of colliders) {
     if (!c.floor || !(c.maxY > best) || c.maxY > y + reach) continue;
     if (overlapsFootprint(p, 0.01, c)) best = c.maxY;
@@ -175,6 +182,7 @@ export function segmentHit(from, to, colliders, _step = 0.25) {
   const loZ = Math.min(from.z, to.z), hiZ = Math.max(from.z, to.z);
   const loY = Math.min(from.y, to.y), hiY = Math.max(from.y, to.y);
   let best = len;
+  colliders = query(colliders, loX - 0.1, hiX + 0.1, loZ - 0.1, hiZ + 0.1, _qd);
   for (const c of colliders) {
     if (c.invisible || c.noCam || c.maxY <= loY || c.minY >= hiY) continue;
     if (c.kind === 'cyl') {
@@ -191,6 +199,8 @@ export function segmentHit(from, to, colliders, _step = 0.25) {
 // Vehicles use it per body circle and turn the push into an impact.
 export function pushCircle(pos, radius, feet, colliders, out = { x: 0, z: 0 }) {
   out.x = 0; out.z = 0;
+  const m = radius + 1;
+  colliders = query(colliders, pos.x - m, pos.x + m, pos.z - m, pos.z + m, _qe);
   for (const c of colliders) {
     if (c.camOnly) continue;
     if (c.maxY !== undefined && feet >= c.maxY - SKIN) continue;

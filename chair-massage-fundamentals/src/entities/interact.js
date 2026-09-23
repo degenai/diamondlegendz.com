@@ -5,11 +5,17 @@ import { overlapsFootprint, floorHeightAt } from '../physics.js';
 import { chairState, chairWorldPos, pickUpChair, loadChair, findChair } from './chair.js';
 import { setChairDown, canStart, startMassage } from '../run/minimassage.js';
 import { emitChaos } from '../run/wanted.js';
-import { seatRig, unseatRig } from './seated.js';
+import { seatRig, unseatRig, clearDriverRig } from './seated.js';
+import { createPed } from './ped.js';
+import { addEntity } from './index.js';
+import { nearestNav } from './npc-nav.js';
+import { takeCivilian } from '../run/traffic.js';
+import { makeRng } from '../rng.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
 export const CHAIR_DIST = 2;
-export const TAKE_DIST = 1.5;   // standing at a loaded chair (trunk, rack, passenger door) takes it back out
+export const TAKE_DIST = 1.5;
+export const JACK_SPEED = 3;     // a civilian car moving faster than this ignores E   // standing at a loaded chair (trunk, rack, passenger door) takes it back out
 const PALM_REACH = 1.3;
 
 export function nearestVehicle(p, ctx, maxD = ENTER_DIST) {
@@ -32,6 +38,17 @@ function chairDistance(p, ctx) {
   return Math.hypot(w.x - p.pos.x, w.z - p.pos.z);
 }
 
+// A civilian car in traffic, slow enough to pull its driver out of.
+export function jackableVehicle(p, ctx, maxD = ENTER_DIST) {
+  let best = null, bestD = maxD;
+  for (const v of (ctx.world && ctx.world.vehicles) || []) {
+    if (!v.civilian || !v.driver || v.driver === p || Math.abs(v.speed) >= JACK_SPEED || Math.abs(v.pos.y - p.pos.y) > 1.5) continue;
+    const d = boxDistance(v, p.pos.x, p.pos.z);
+    if (d <= bestD) { best = v; bestD = d; }
+  }
+  return best;
+}
+
 // What E would do right now: { act, v } with act in enter|exit|load|setdown|massage|pickup|take|null.
 export function interaction(p, ctx) {
   if (p.vehicle) return { act: 'exit', v: p.vehicle };
@@ -44,13 +61,16 @@ export function interaction(p, ctx) {
   if (cs.where === 'vehicle') {
     if (cd <= TAKE_DIST && (!nv || cd < nv.d)) return { act: 'take' };
   } else if (cd <= CHAIR_DIST && (!nv || cd < nv.d)) return { act: 'pickup' };
-  return nv ? { act: 'enter', v: nv.v } : { act: null };
+  if (nv) return { act: 'enter', v: nv.v };
+  const jv = jackableVehicle(p, ctx);
+  return jv ? { act: 'carjack', v: jv } : { act: null };
 }
 
 export function handleInteract(p, ctx) {
   const it = interaction(p, ctx);
   if (it.act === 'exit') exitVehicle(p, ctx);
   else if (it.act === 'enter') enterVehicle(p, it.v, ctx);
+  else if (it.act === 'carjack') carjack(p, it.v, ctx);
   else if (it.act === 'load') loadChair(ctx, it.v);
   else if (it.act === 'pickup' || it.act === 'take') pickUpChair(ctx, p);
   else if (it.act === 'setdown') setChairDown(p, ctx);
@@ -77,6 +97,31 @@ export function enterVehicle(p, v, ctx) {
   p.chaseYaw = p.camYaw;               // the chase camera starts from the on-foot orbit
   p.orbitYaw = 0; p.orbitPitch = 0; p.orbitIdle = 9;
   p.camBlendT = 0;
+  return true;
+}
+
+// Pull the civilian out of the driver's door: he lands sore (up in ~1 s holding his back) and is
+// an ordinary ped from then on; wanted +1 as a stolen vehicle, a chaos event, and the player is
+// at the wheel of a car that is his (stolen) from now on.
+export function carjack(p, v, ctx) {
+  if (p.knockedT > 0 || !v.civilian || !v.driver || Math.abs(v.speed) >= JACK_SPEED) return false;
+  const s = Math.sin(v.yaw), c = Math.cos(v.yaw), off = v.spec.halfW + 0.7;
+  const x = v.pos.x + c * off, z = v.pos.z - s * off;
+  clearDriverRig(v);
+  takeCivilian(ctx, v);
+  v.driver = null; v.ai = null; v.route = null; v.jacked = true;
+  const rng = makeRng((ctx.world.seed ^ Math.floor(ctx.time * 1000)) >>> 0);
+  const pos = { x, y: floorHeightAt(x, z, ctx.world.colliders, v.pos.y + 0.3), z };
+  const e = createPed(ctx.scene, v.pos.clone().set(pos.x, pos.y, pos.z), nearestNav(ctx.world, x, z), rng);
+  e.yaw = v.yaw + Math.PI / 2; e.knockedT = 1.2; e.knockCause = 'vehicle'; e.jackedFrom = v;
+  e.vel.set(c * 1.5, 1.2, -s * 1.5); e.grounded = false;
+  addEntity(ctx.entities, e);
+  ctx.npcs.push(e);
+  if (ctx.wanted) ctx.wanted.report('carjack');
+  emitChaos(ctx, x, z, 'carjack');
+  v.parked = false; v.stolen = true;
+  enterVehicle(p, v, ctx);
+  ctx.lastCarjack = { t: ctx.time, v: v.id, ped: e.id };
   return true;
 }
 
@@ -145,7 +190,7 @@ export function palmVehicles(p, ctx) {
   return null;
 }
 
-const HINTS = { enter: 'E enter vehicle', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
+const HINTS = { enter: 'E enter vehicle', carjack: 'E pull the driver out', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
   setdown: 'E set chair down', massage: 'Hold E: start massage (W/S pressure)' };
 
 // RUN HUD strings for main.js: { hint, vehicle, chair }.
