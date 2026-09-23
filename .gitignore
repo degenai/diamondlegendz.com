@@ -1,3 +1,5 @@
 node_modules
 .wrangler
 sealed-portfolio/portfolio-*.json
+__pycache__/
+*.pyc
