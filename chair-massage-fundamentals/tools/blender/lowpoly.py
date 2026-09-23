@@ -393,6 +393,10 @@ def export_glb(path):
 
 def check(max_tris=600):
     """Numeric guards before export: triangle cap, sits on the ground, overall size in metres."""
+    # Transforms set earlier in this script are not applied to matrix_world
+    # until the view layer updates; without this the ground check reads stale
+    # matrices (found by the massage gun build, 2026-09-23).
+    bpy.context.view_layer.update()
     lo, hi = Vector((1e9,) * 3), Vector((-1e9,) * 3)
     for ob in bpy.context.scene.objects:
         if ob.type == "MESH":
