@@ -55,6 +55,7 @@ export function resetVan(ctx) {
   v.ai = null; v.aiBackT = 0; v.aiStuckT = 0;
   v.pos.copy(e.pos); v.yaw = e.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0;
   v.hp = 100; v.parked = true; v.asleep = true; v.wreckSeen = false; v.chairLoaded = false;
+  v.stolen = false; // home and repaired: last run's theft no longer makes its driverless bumps yours
   v.mesh.position.copy(v.pos); v.mesh.rotation.set(0, v.yaw, 0);
 }
 
