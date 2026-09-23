@@ -214,7 +214,9 @@ Every spoken line has two halves and both are required; a subtitle strip alone d
   bandwidth), ranger and clients (higher pitch, faster). Peds' floaters stay text only. Who speaks:
   narrator, clients, goons, ranger, the certificate. Built in Phase 7 with the rest of the audio; the
   bubbles are built in Phase 6 with the pivot, since the pivot needs them. Bubble lifetime is driven by
-  the synth's reported duration for the line.
+  the synth's reported duration for the line. First listen (Alex, 2026-09-23): "too muddy, needs to be
+  more intelligible." Direction: sharper consonants, slower rate, narrower formant bandwidth, clearer
+  word gaps; robotic is fine, mushy is not.
 
 ## Roguelike meta
 
