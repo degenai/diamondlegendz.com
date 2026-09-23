@@ -208,8 +208,11 @@ export function tickStamina(p, dt, ctx, wants) {
     p.stamina = Math.max(0, p.stamina - dt);
     if (p.stamina <= 0) { p.winded = true; p.windT = 0; }
   } else {
-    p.stamina = Math.min(max, p.stamina + (max / REFILL) * dt);
-    if (p.winded && (p.windT += dt) >= WINDED) p.winded = false;
+    // Holding Shift while winded is panic, not rest: no refill and no recovery until you let go.
+    if (!(p.winded && wants)) {
+      p.stamina = Math.min(max, p.stamina + (max / REFILL) * dt);
+      if (p.winded && (p.windT += dt) >= WINDED) p.winded = false;
+    }
   }
   setStamina(p.stamina / max, ctx.time);
   return sprint;
