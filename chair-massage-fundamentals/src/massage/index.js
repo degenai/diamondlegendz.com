@@ -7,6 +7,7 @@ import { createMeter, updateMeter, hintRange } from './meter.js';
 import { createGuide, updateGuide, cycleModality, modality, disposeGuide } from './guide.js';
 import * as stage from './stage.js';
 import { say as bubble } from '../bubbles.js';
+import { sfx } from '../juice.js';
 
 const INTRO_TITLE = 'Module 1: Pressure and Stroke.';
 const INTRO_BODY = 'Use W/S to set pressure, A/D to move along the back, keep the cursor on the stroke guide. '
@@ -50,6 +51,7 @@ function finishClient(ctx) {
   S.totals.you += half; S.totals.host += half;
   S.paid.push({ id: c.id, pay: c.pay });
   ctx.massageTotals = { ...S.totals }; // becomes the run's starting cash later
+  sfx(ctx, 'pay');
   say(S.dlg, c.name, c.done, 4);
   showDialogue(ctx);
   ctx.hud.setLedger([
@@ -90,6 +92,7 @@ export function enter(ctx) {
   hud.hideDialogue();
   hud.setPrompt('');
   hud.showCard(INTRO_TITLE, [INTRO_BODY, 'Press any key to begin.'], 'course');
+  if (ctx.voice) ctx.voice.speak(`${INTRO_TITLE} ${INTRO_BODY}`, 'narrator', 'narrator'); // the course voice
   S.phase = 'intro';
 }
 
@@ -158,7 +161,11 @@ export function update(dt, ctx) {
   const input = ctx.input;
 
   if (S.phase === 'intro') {
-    if (input && input.pressed.size > 0) { ctx.hud.hideCard(); startClient(ctx, 0); }
+    if (input && input.pressed.size > 0) {
+      ctx.hud.hideCard();
+      if (ctx.voice) ctx.voice.stop('narrator');   // any key skips the narration with the card
+      startClient(ctx, 0);
+    }
   } else if (S.phase === 'session') {
     updateSession(dt, ctx);
   } else if (S.phase === 'paid') {

@@ -93,8 +93,14 @@ export function initInput(canvas) {
   // Escape releases lock natively in browsers; nothing else to do here.
 }
 
+// Per-tick Sets are recycled (Phase 7 perf pass): a snapshot is only read during its own tick, so
+// the edge sets double-buffer and keys / mouseButtons are refilled in place.
+const keysBuf = new Set(), buttonsBuf = new Set();
+const spare = { pressed: new Set(), released: new Set(), clicked: new Set() };
+function refill(dst, src) { dst.clear(); for (const k of src) dst.add(k); return dst; }
+
 export function snapshot() {
-  const keys = new Set(held);
+  const keys = refill(keysBuf, held);
   const snap = Object.freeze({
     keys,
     pressed: pressedEdge,
@@ -108,7 +114,7 @@ export function snapshot() {
     spacePressed: pressedEdge.has('Space'),
     e: held.has('KeyE'),
     ePressed: pressedEdge.has('KeyE'),
-    mouseButtons: new Set(buttons),
+    mouseButtons: refill(buttonsBuf, buttons),
     mouseLeft: buttons.has(0),
     mouseRight: buttons.has(2),
     clicked: clickedEdge,
@@ -117,9 +123,10 @@ export function snapshot() {
     mouseX, mouseY,
     locked,
   });
-  pressedEdge = new Set();
-  releasedEdge = new Set();
-  clickedEdge = new Set();
+  const p = spare.pressed, r = spare.released, c = spare.clicked;
+  spare.pressed = pressedEdge; spare.released = releasedEdge; spare.clicked = clickedEdge;
+  pressedEdge = p; releasedEdge = r; clickedEdge = c;
+  p.clear(); r.clear(); c.clear();
   dx = dy = 0;
   return snap;
 }

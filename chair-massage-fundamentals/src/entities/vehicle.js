@@ -85,6 +85,7 @@ export function updateVehicle(v, dt, ctx) {
     v.handbrake = !!ai.handbrake;
   }
   const driven = !!(input || ai);
+  v.throttle = throttle;          // the engine sound's load (audio-wire.js)
   const dead = v.hp <= 0;
 
   let s = Math.sin(v.yaw), c = Math.cos(v.yaw);

@@ -1,8 +1,8 @@
 // Speech bubbles (DESIGN.md "Dialogue"): a comic DOM bubble over the speaker's head pivot,
 // projected each frame like the floaters, clamped to the viewport with the tail pointing at the
 // speaker when they are off screen. One bubble per speaker; a new line replaces the old in place.
-// Lifetime = speech duration + 0.8 s. The duration comes from ctx.voice.speak() when Phase 7's
-// voice exists, else 0.06 s per character + 1.2 (min 2 s). Skins: 'course' (beige) and 'run'.
+// Lifetime = speech duration + 0.8 s. The duration comes from ctx.voice.speak() (Phase 7: the
+// synth's own duration, spoken or not), else 0.06 s per character + 1.2 (min 2 s). Skins: 'course' (beige) and 'run'.
 import * as THREE from '../vendor/three.module.js';
 
 const TAIL_GAP = 0.32;   // metres above the head pivot
@@ -30,7 +30,7 @@ export function say(ctx, speaker, text, opts = {}) {
   if (voice && typeof voice.speak === 'function') {
     // voice.speak returns { duration } in seconds; never let a synth error break a line.
     try {
-      const r = voice.speak(text, opts.preset || 'client');
+      const r = voice.speak(text, opts.preset || 'client', anchor); // one voice per speaker
       const d = r && typeof r === 'object' ? r.duration : r;
       if (Number.isFinite(d) && d > 0) secs = d;
     } catch (err) { console.warn('[bubbles] voice failed', err); }
@@ -51,6 +51,7 @@ export function say(ctx, speaker, text, opts = {}) {
   b.n.className = `bb bb-${opts.skin === 'course' ? 'course' : 'run'}`;
   b.body.textContent = text;
   b.text = text;
+  b.bw = 0; b.bh = 0; b.tf = ''; b.op = ''; // re-measure once for the new text
   b.t = 0;
   b.life = secs + 0.8;
   b.n.hidden = true;
@@ -86,7 +87,7 @@ function setSide(b, side) {
 export function updateBubbles(dt, camera) {
   if (!camera || !bubbles.size) return;
   const W = window.innerWidth, H = window.innerHeight;
-  for (const b of [...bubbles.values()]) {
+  for (const b of bubbles.values()) {   // deleting the current entry mid-iteration is safe for a Map
     b.t += dt;
     if (b.t >= b.life || !inScene(b.anchor)) { drop(b); continue; }
     b.anchor.updateWorldMatrix(true, false);
@@ -97,8 +98,10 @@ export function updateBubbles(dt, camera) {
     let hx = (_v.x * 0.5 + 0.5) * W, hy = (-_v.y * 0.5 + 0.5) * H;
     if (behind) { hx = W - hx; hy = H + 40; } // behind the camera: mirror, pin to the bottom
     b.hx = hx; b.hy = hy;
-    b.n.hidden = false;
-    const bw = b.n.offsetWidth, bh = b.n.offsetHeight;
+    if (b.n.hidden) b.n.hidden = false;
+    // Size only changes with the text: measuring every tick forced a layout per bubble per tick.
+    if (!b.bw) { b.bw = b.n.offsetWidth; b.bh = b.n.offsetHeight; }
+    const bw = b.bw, bh = b.bh;
     // Preferred: bubble centred above the head, tail down to it.
     let x = hx - bw / 2, y = hy - bh - 12;
     const clamp = (val, lo, hi) => Math.max(lo, Math.min(hi, val));
@@ -119,15 +122,18 @@ export function updateBubbles(dt, camera) {
     let tipX, tipY;
     if (side === 'bottom' || side === 'top') {
       tipX = clamp(hx, x + 14, x + bw - 14); tipY = side === 'bottom' ? y + bh + 10 : y - 10;
-      b.tail.style.left = `${(tipX - x).toFixed(1)}px`; b.tail.style.top = '';
+      const tl = `${(tipX - x).toFixed(1)}px`;
+      if (b.tl !== tl) { b.tl = tl; b.tail.style.left = tl; b.tail.style.top = ''; }
     } else {
       tipY = clamp(hy, y + 12, y + bh - 12); tipX = side === 'right' ? x + bw + 10 : x - 10;
-      b.tail.style.top = `${(tipY - y).toFixed(1)}px`; b.tail.style.left = '';
+      const tl = `t${(tipY - y).toFixed(1)}`;
+      if (b.tl !== tl) { b.tl = tl; b.tail.style.top = `${(tipY - y).toFixed(1)}px`; b.tail.style.left = ''; }
     }
     b.x = x; b.y = y; b.tipX = tipX; b.tipY = tipY;
-    b.n.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-    const fade = Math.min(1, (b.life - b.t) / 0.3, b.t / 0.12);
-    b.n.style.opacity = fade.toFixed(2);
+    const tf = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    if (b.tf !== tf) { b.tf = tf; b.n.style.transform = tf; }
+    const op = Math.min(1, (b.life - b.t) / 0.3, b.t / 0.12).toFixed(2);
+    if (b.op !== op) { b.op = op; b.n.style.opacity = op; }
   }
 }
 

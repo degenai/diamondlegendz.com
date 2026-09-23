@@ -11,6 +11,7 @@ import { seek, say } from '../entities/npc-common.js';
 import { hostile } from '../entities/goon.js';
 import { copHostile } from '../entities/cop.js';
 import { THERAPIST } from '../massage/stage.js';
+import { sfx } from '../juice.js';
 
 const CALL_R2 = 12 * 12;
 const THREAT_R2 = 6 * 6;
@@ -39,6 +40,7 @@ export function setChairDown(p, ctx) {
   Object.assign(chairState(ctx.world), { where: 'ground', vehicle: null, setDown: true });
   const M = ctx.mini;
   M.phase = 'waiting'; M.cool = 0.5; M.chairYaw = p.yaw + Math.PI; M.pos.set(x, y, z);
+  sfx(ctx, 'chairFold', x, z);
   return true;
 }
 
@@ -171,6 +173,7 @@ function succeed(ctx) {
   M.done++;
   e.paid = true; e.loose = 25;
   ctx.hud.floater(`+$${pay}`, M.pos.x, M.pos.y + 1.9, M.pos.z, 'cash');
+  sfx(ctx, 'pay', M.pos.x, M.pos.z);
   ctx.hud.floater('TENSION RELEASED', M.pos.x, M.pos.y + 2.3, M.pos.z, 'released');
   release(ctx, e.sore ? 'My back... it\'s fixed? Here, take double.' : 'Oh, that\'s so much better. Here.', true);
   e.soreT = 0; e.sore = false;

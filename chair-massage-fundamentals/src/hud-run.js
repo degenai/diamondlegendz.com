@@ -62,6 +62,7 @@ export function showRunHud(visible) {
   if (!visible) {
     for (const f of floaters) { f.on = false; f.n.hidden = true; }
     if (miniEl) miniEl.hidden = true;
+    last.mini = 'off';
   }
 }
 
@@ -153,10 +154,14 @@ export function updateFloaters(dt, camera) {
     _v.set(f.x, f.y, f.z).project(camera);
     if (_v.z > 1 || _v.z < -1 || Math.abs(_v.x) > 1.2 || Math.abs(_v.y) > 1.2) { f.n.hidden = true; continue; }
     const k = f.t / f.life;
-    const sx = (_v.x * 0.5 + 0.5) * w, sy = (-_v.y * 0.5 + 0.5) * h - k * RISE;
-    f.n.hidden = false;
-    f.n.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) translate(-50%, -100%)`;
-    f.n.style.opacity = String(Math.min(1, (1 - k) * 2.2).toFixed(2));
+    // Pop and bounce: a damped overshoot on the scale, a small hop on the way up.
+    const pop = 1 + 0.55 * Math.exp(-f.t * 7) * Math.cos(f.t * 19);
+    const hop = Math.abs(Math.sin(f.t * 9)) * 10 * Math.exp(-f.t * 3);
+    const sx = (_v.x * 0.5 + 0.5) * w, sy = (-_v.y * 0.5 + 0.5) * h - k * RISE - hop;
+    if (f.n.hidden) f.n.hidden = false;
+    f.n.style.transform = `translate(${sx.toFixed(1)}px, ${sy.toFixed(1)}px) translate(-50%, -100%) scale(${pop.toFixed(3)})`;
+    const op = Math.min(1, (1 - k) * 2.2).toFixed(2);
+    if (f.op !== op) { f.op = op; f.n.style.opacity = op; }
   }
 }
 
@@ -164,6 +169,10 @@ export function updateFloaters(dt, camera) {
 // client is kneeling, null to hide.
 export function setMini(M) {
   if (!miniEl) return;
+  const key = !M ? 'off' : M.ready ? 'ready'
+    : `${M.lo.toFixed(3)}|${M.hi.toFixed(3)}|${M.pressure.toFixed(3)}|${M.zone}|${Math.min(1, M.progress).toFixed(3)}`;
+  if (last.mini === key) return;           // per tick; only touch the DOM when something moved
+  last.mini = key;
   miniEl.hidden = !M;
   if (!M) return;
   if (M.ready) {

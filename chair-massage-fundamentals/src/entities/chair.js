@@ -6,6 +6,7 @@ import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
 import { floorHeightAt, overlapsFootprint } from '../physics.js';
 import { STATION_YAW } from '../massage/stage.js';
+import { sfx } from '../juice.js';
 
 const FOLD = 0.22;                  // folded depth factor (the chair collapses to a slab)
 const BACK_MOUNT = { pos: [0, -0.5, 0.12], rot: [0, 0, 0], scale: 0.85 };
@@ -63,6 +64,7 @@ export function pickUpChair(ctx, p) {
   if (cs.vehicle) cs.vehicle.chairLoaded = false;
   mount(c, back, BACK_MOUNT);
   Object.assign(chairState(ctx.world), { setDown: false, where: 'player', vehicle: null });
+  sfx(ctx, 'chairFold', p.pos.x, p.pos.z);
   return true;
 }
 
@@ -72,6 +74,7 @@ export function loadChair(ctx, v) {
   mount(c, v.body, v.spec.chair);
   v.chairLoaded = true;
   Object.assign(chairState(ctx.world), { setDown: false, where: 'vehicle', vehicle: v });
+  sfx(ctx, 'chairFold', v.pos.x, v.pos.z);
   return true;
 }
 

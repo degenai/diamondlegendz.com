@@ -54,6 +54,10 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   the tension; the goons speak as soon as it stops. The one-seed-in-five case where the van cannot reach
   the chair and the goons walk up from 28 m is left as character. The slow-motion stamp for escaping
   without the chair reads LEFT THE CHAIR in the same red, matching the certificate.
+  **Opening beat** (ruled 2026-09-23 after the loop test showed a still player dies in 10 s): for the
+  first 8 s of RUN the goons only shove and grab (10 damage, no knockdown, a "Come with us." bubble);
+  bats come out after 8 s or at the first Healing Palm. **The ranger hangs back**: wanted starts at 0,
+  he stands by the chair for 15 s ("I'm calling this in.") and only pursues once wanted reaches 1.
 - **RUN**: open park block. Goons hunt the player. Wanted level rises with chaos. Player can steal
   vehicles, run, fight (elbow strikes, it's The People's Elbow), and reach an ESCAPE point (a client's
   house on the far edge of the block, or the highway on-ramp) once wanted level has cooled to zero.

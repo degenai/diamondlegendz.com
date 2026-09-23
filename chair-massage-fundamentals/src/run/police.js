@@ -155,9 +155,28 @@ function roadblocks(ctx, P) {
 }
 
 // ---- per tick ----
+const HANG = 15;   // s the pivot ranger stands by the chair at wanted 0 before he leaves
+
+// The pivot's ranger (pivot.js beginRun): the 1-star unit if wanted reaches 1, else he stands down.
+function hangUnits(P, dt, level) {
+  for (const u of P.units) {
+    if (!u.hang) continue;
+    u.t += dt;
+    const r = u.cops[0];
+    if (level > 0 && !P.tiers[1]) {
+      P.tiers[1] = true; u.hang = false;
+      if (r) { r.hang = false; if (r.state === 'hang') r.state = 'chase'; }
+    } else if (u.t >= HANG || level > 0) {
+      u.hang = false; u.standDown = true;
+      if (r) { r.hang = false; r.standDown = true; }
+    }
+  }
+}
+
 export function updatePolice(P, dt, ctx) {
   const level = ctx.wanted.level;
   const p = ctx.player;
+  hangUnits(P, dt, level);
   if (level > 0) {
     P.episode = true;
     for (let t = 1; t <= level; t++) if (!P.tiers[t]) { P.tiers[t] = true; spawnTier(ctx, P, t); }

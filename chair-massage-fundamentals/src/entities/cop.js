@@ -53,7 +53,11 @@ export function updateCop(e, dt, ctx) {
   } else if (e.state === 'walkoff') {
     e.stateT -= dt;
     walkAway(e, tgt, 1.3);
-    if (e.stateT <= 0) { e.state = 'chase'; e.loose = 0; }
+    if (e.stateT <= 0) { e.state = e.hang ? 'hang' : 'chase'; e.loose = 0; }
+  } else if (e.state === 'hang') {
+    // The pivot ranger hanging back by the chair (police.js decides when he pursues).
+    const post = e.post || e.pos;
+    if (seek(e, post.x, post.y ?? e.pos.y, post.z, dt, ctx, 0.6)) { e.faceX = tgt.x; e.faceZ = tgt.z; } else e.speed = 2.2;
   } else if (e.state === 'guard') {
     e.faceX = tgt.x; e.faceZ = tgt.z;
     if (!p.vehicle && (tgt.x - e.pos.x) ** 2 + (tgt.z - e.pos.z) ** 2 < GUARD_R * GUARD_R) e.state = 'chase';

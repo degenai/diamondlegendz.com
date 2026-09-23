@@ -2,6 +2,7 @@
 // time with input ignored, the camera tilts 12 degrees and drifts back, the canvas desaturates
 // (CSS filter), and a red stamp slams in. main.js scales the fixed-step dt by ctx.timeScale.
 import * as THREE from '../../vendor/three.module.js';
+import { sfx } from '../juice.js';
 
 export const SLOW = 0.25;
 export const DURATION = 2;
@@ -29,6 +30,7 @@ export function startSlowmo(ctx, reason) {
   ctx.timeScale = SLOW;
   document.body.classList.add('slowmo');
   ctx.hud.showStamp(STAMPS[reason] || 'ESCAPED', reason === 'escape' || reason === 'left' ? 'escape' : 'bad');
+  sfx(ctx, 'stamp');
 }
 
 // Per fixed tick (real dt), after the slowed simulation. Returns true when it is over.

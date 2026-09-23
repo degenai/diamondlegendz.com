@@ -6,6 +6,7 @@ import { palmVehicles } from './interact.js';
 import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { endRun } from '../run/end.js';
+import { sfx, knockFx, shake } from '../juice.js';
 
 const WIND = 0.25;
 const REACH = 1.6;
@@ -45,6 +46,9 @@ export function updatePalm(p, dt, ctx) {
     hit.vel.x = (dx / d) * KNOCK_PUSH; hit.vel.z = (dz / d) * KNOCK_PUSH; hit.vel.y = 1.5;
     hit.grounded = false;
     p.shakeT = SHAKE;
+    ctx.grabUntil = 0;                        // the first palm brings the bats out (goon.js)
+    knockFx(ctx, hit, p);
+    sfx(ctx, 'thud', hit.pos.x, hit.pos.z);
     if (ctx.hud && ctx.hud.floater) ctx.hud.floater('THUD', hit.pos.x, hit.pos.y + 1.6, hit.pos.z, 'thud');
     if (hit.onPalm) hit.onPalm(hit, p, ctx);
     emitChaos(ctx, hit.pos.x, hit.pos.z, 'palm');
@@ -52,6 +56,8 @@ export function updatePalm(p, dt, ctx) {
   const v = palmVehicles(p, ctx);
   if (v) {
     p.shakeT = SHAKE;
+    shake(ctx, 0.2);
+    if (!hit) sfx(ctx, 'thud', p.pos.x + fx, p.pos.z + fz, 0.7);
     if (ctx.wanted) ctx.wanted.report('propertyHit');
     if (!hit && ctx.hud && ctx.hud.floater) ctx.hud.floater('THUD', p.pos.x + fx, p.pos.y + 1.3, p.pos.z + fz, 'thud');
   }

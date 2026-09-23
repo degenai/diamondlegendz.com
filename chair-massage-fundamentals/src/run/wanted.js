@@ -73,7 +73,7 @@ export function updateWanted(w, dt, ctx, cops) {
     const p = ctx.player;
     for (let i = 0; i < cops.length && !w.seen; i++) {
       const c = cops[i];
-      if (c.knockedT > 0 || c.standDown || c.state === 'walkoff' || c.loose > 0) continue;   // relaxed cops relieve the pressure
+      if (c.knockedT > 0 || c.standDown || c.state === 'walkoff' || c.state === 'hang' || c.loose > 0) continue;   // relaxed cops relieve the pressure
       const dx = c.pos.x - p.pos.x, dz = c.pos.z - p.pos.z;
       if (dx * dx + dz * dz > 90 * 90) continue;
       if (lineOfSight(ctx.world, c.pos, p.pos)) w.seen = true;

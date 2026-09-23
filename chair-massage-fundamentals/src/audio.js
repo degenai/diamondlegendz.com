@@ -10,6 +10,7 @@ const SLOW = new Set(['SLOWMO', 'ARREST', 'DEATH', 'ESCAPE']);
 const PENTA = [1174.7, 1318.5, 1480.0, 1760.0, 1975.5, 2349.3]; // D major pentatonic, high
 const BASS = [0, 0, 12, 0, 0, 0, 10, 0, 0, 0, 12, 0, 3, 3, 5, 7]; // two bars of 8ths over A1
 const semi = (n) => Math.pow(2, n / 12);
+export const MUSIC_LEVEL = 0.28, SFX_LEVEL = 1, VOICE_LEVEL = 1.6; // bus gains (see README, audio balance)
 
 function hold(param, t) {
   if (param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(t);
@@ -23,7 +24,9 @@ export function createAudio(ctx) {
   comp.connect(ctx.destination);
   const master = ctx.createGain(); master.gain.value = 0.7; master.connect(comp);
   const bus = (v = 1) => { const g = ctx.createGain(); g.gain.value = v; g.connect(master); return g; };
-  const music = bus(), sfxBus = bus(), direct = bus();
+  // Balance (Phase 7, measured in headless Chrome): music sits about 12 dB under a voice line,
+  // effects over both. The voice bus bypasses the slow-motion duck; voice.js feeds voiceIn.
+  const music = bus(MUSIC_LEVEL), sfxBus = bus(SFX_LEVEL), direct = bus(), voiceBus = bus(VOICE_LEVEL);
   const noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
   { const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
   const listener = { x: 0, z: 0 };
@@ -133,13 +136,13 @@ export function createAudio(ctx) {
     for (const b of [music, sfxBus]) { hold(b.gain, t); b.gain.linearRampToValueAtTime(0, t + 0.3); }
     const o = osc('sine', 49), o2 = osc('triangle', 49, 3), g = gain(0, direct), g2 = gain(0.3, g);
     o.connect(g); o2.connect(g2);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.28, t + 0.5);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.14, t + 0.5); // Phase 7 balance: was 0.28
     o.start(t); o2.start(t);
     slowTone = { g, srcs: [o, o2] };
   }
 
   function leaveSlow(t) {
-    for (const b of [music, sfxBus]) { hold(b.gain, t); b.gain.linearRampToValueAtTime(1, t + 0.3); }
+    for (const [b, v] of [[music, MUSIC_LEVEL], [sfxBus, SFX_LEVEL]]) { hold(b.gain, t); b.gain.linearRampToValueAtTime(v, t + 0.3); }
     if (!slowTone) return;
     hold(slowTone.g.gain, t); slowTone.g.gain.setTargetAtTime(0, t, 0.1);
     for (const s of slowTone.srcs) s.stop(t + 0.8);
@@ -215,6 +218,8 @@ export function createAudio(ctx) {
       mode = null; want = null;
     },
     get state() { return mode; },
+    voiceIn: voiceBus,
+    nodes: { master, comp, music, sfx: sfxBus, direct, voice: voiceBus }, // tests tap these
     sfxNames: fx.names,
     _pump: pump, // offline rendering: schedule loops up to a time without the timer
   };

@@ -23,26 +23,19 @@ import { speechHud, updateBubbles, clearBubbles, activeBubbles } from './bubbles
 import { checkEscape, resetEscapeMarker } from './run/end.js';
 import { startSlowmo, tickSlowmo, clearSlowmo, slowmoLog, NEUTRAL } from './run/slowmo.js';
 import { startStats, trackStats, showSummary, hideSummary } from './run/summary.js';
+import { initAudio, audioFrame, audioInternals } from './audio-wire.js';
+import { initTitle } from './title.js';
+import { initJuice, juiceTick, juiceCamera, preTick, frozen, tickFrozen, resetJuice, clearHitStop } from './juice.js';
 
 const STEP = 1 / 60;
 const MAX_ACCUM = 0.25; // cap to avoid spiral of death after a stall
 const END = [STATES.ARREST, STATES.DEATH, STATES.ESCAPE];
 
-function isMobile() {
-  const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-  const fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
-  return coarse && !fine;
-}
-
 function boot() {
   const canvas = document.getElementById('game');
   const hudRoot = document.getElementById('hud');
   hud.initHud(hudRoot);
-
-  if (isMobile()) {
-    const note = document.getElementById('mobile-note');
-    if (note) note.hidden = false;
-  }
+  initTitle();                      // course catalog, phone card on touch-only devices
 
   let renderer;
   try {
@@ -104,6 +97,8 @@ function boot() {
     station: null, perks: null, runStats: null, lastSummary: null,
   };
   ctx.perks = meta.perks(ctx.meta);
+  initAudio(ctx, hudRoot);          // before the state wiring: its MASSAGE hook hushes the voice first
+  initJuice(ctx);
   ctx.hud = speechHud(ctx, hud);    // goons, cops and mini-massage clients talk in bubbles
   spawner.initSpawner(ctx);
 
@@ -142,7 +137,7 @@ function boot() {
     spawner.clear(ctx);
     spawner.resetVan(ctx);
     pivot.reset();
-    clearBubbles(); clearSlowmo(ctx); hideSummary(); resetEscapeMarker(ctx);
+    clearBubbles(); clearSlowmo(ctx); hideSummary(); resetEscapeMarker(ctx); resetJuice(ctx);
     hud.showRunHud(false);
     ctx.mini = createMini();
     ctx.wanted.reset();
@@ -155,6 +150,7 @@ function boot() {
   // Any way out of the cutscene other than the run restores the van's steering and clears the cast.
   onExit(STATES.PIVOT, (next) => { if (next !== STATES.RUN) pivot.reset(); });
   onEnter(STATES.RUN, (prev) => {
+    clearHitStop(); // no hit-stop or shake carried in from a previous state
     // The lie is only spent once the player actually reaches the run.
     if (prev === STATES.PIVOT && !ctx.meta.firstPivotSeen) {
       ctx.meta.firstPivotSeen = true;
@@ -220,6 +216,8 @@ function boot() {
     get chairState() { return world.chairState; },
     get npcs() { return ctx.npcs; },
     get wanted() { return ctx.wanted; },
+    get audio() { return audioInternals(); },
+    juice: ctx.juice,
     spawner,
     pivot: { get state() { return pivot.pivotState(); } },
     bubbles: activeBubbles,
@@ -236,12 +234,14 @@ function boot() {
 
   function tick(realDt) {
     const s = getState();
+    if (s === STATES.RUN && frozen()) { tickFrozen(realDt); return; } // hit-stop: the sim holds, the render goes on
     const dt = realDt * (ctx.timeScale || 1);  // 0.25 under the run-end slow motion
     ctx.time += dt;
     ctx.input = input.snapshot();
     if (s === STATES.RUN) {
       const t0 = performance.now();
       updateAll(dt, ctx);
+      juiceTick(dt, ctx);
       const ms = performance.now() - t0;
       const P = ctx.perf;
       P.last = ms; P.max = Math.max(P.max, ms); P.sum += ms; P.n++;
@@ -258,6 +258,7 @@ function boot() {
     } else if (END.includes(s)) {
       ctx.input = NEUTRAL;                     // input ignored under the slow motion
       updateAll(dt, ctx);
+      juiceTick(dt, ctx);
       spawner.update(dt, ctx);
       massage.updateLeaving(dt, ctx);
       hud.updateFloaters(dt, camera);
@@ -274,6 +275,7 @@ function boot() {
     last = now;
     if (elapsed < 0) elapsed = 0;
     accum = Math.min(accum + elapsed, MAX_ACCUM);
+    preTick(ctx);                             // take the last shake offset out before anything moves
     while (accum >= STEP) {
       tick(STEP);
       accum -= STEP;
@@ -283,6 +285,8 @@ function boot() {
     fpsTime += elapsed;
     if (fpsTime >= 0.5) { fps = Math.round(fpsFrames / fpsTime); fpsFrames = 0; fpsTime = 0; }
     hud.setStatus(`${getState()}  ${fps} fps`);
+    juiceCamera(ctx, elapsed, getState() === STATES.RUN);
+    audioFrame(ctx, elapsed);
 
     renderer.render(scene, camera);
   }

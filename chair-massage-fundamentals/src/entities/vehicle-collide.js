@@ -4,6 +4,7 @@
 // mass-weighted separation and an impulse. Vehicle vs a body on foot: hitEntity (knockdown).
 import { supportHeight, pushCircle, circleVsCircle } from '../physics.js';
 import { throwChair } from './chair.js';
+import { crashFx, shake, sfx } from '../juice.js';
 
 const GRAVITY = 18;
 const DMG_FROM = 4;        // m/s impact before hp drops
@@ -48,8 +49,9 @@ export function settleHeight(v, dt, colliders) {
   }
 }
 
-function damage(v, impact, ctx) {
+function damage(v, impact, ctx, x = v.pos.x, z = v.pos.z) {
   if (impact > 1) v.lastImpact = impact;   // resting contact does not overwrite the last real hit
+  if (ctx) crashFx(ctx, v, impact, x, z);  // sparks, shake and a thud scaled by the impact
   if (impact > DMG_FROM) {
     v.hp = Math.max(0, v.hp - (impact - DMG_FROM) * DMG_K * v.spec.hpScale);
     v.wobbleT = Math.max(v.wobbleT, Math.min(0.6, impact * 0.04));
@@ -82,7 +84,7 @@ export function collideStatic(v, ctx) {
   if (vn < 0) {
     v.vel.x -= (1 + RESTITUTION) * vn * nx;
     v.vel.z -= (1 + RESTITUTION) * vn * nz;
-    damage(v, -vn, ctx);
+    damage(v, -vn, ctx, v.pos.x - nx * r, v.pos.z - nz * r);
   }
   return true;
 }
@@ -110,7 +112,8 @@ export function collideVehicles(a, b, ctx) {
     const j = -(1 + RESTITUTION) * vn / inv;
     a.vel.x += (j / ma) * nx; a.vel.z += (j / ma) * nz;
     b.vel.x -= (j / mb) * nx; b.vel.z -= (j / mb) * nz;
-    damage(a, -vn, ctx); damage(b, -vn, ctx);
+    const mx = (a.pos.x + b.pos.x) / 2, mz = (a.pos.z + b.pos.z) / 2;
+    damage(a, -vn, ctx, mx, mz); damage(b, -vn, ctx, mx, mz);
     a.asleep = b.asleep = false; // only a real impulse wakes them; resting contact stays asleep
   }
   return true;
@@ -157,6 +160,7 @@ export function collidePlayer(v, p, ctx) {
   const grace = p.exitGrace && p.exitGrace.v === v && p.exitGrace.t > 0;
   if (speed > HIT_SPEED && !(p.knockedT > 0) && !grace) {
     hitEntity(v, p);
+    shake(ctx, Math.min(0.8, speed / 15)); sfx(ctx, 'thud', p.pos.x, p.pos.z, Math.min(1, speed / 12));
   } else {
     const vn = p.vel.x * nx + p.vel.z * nz;
     if (vn < 0) { p.vel.x -= vn * nx; p.vel.z -= vn * nz; }
@@ -183,6 +187,7 @@ export function collideNpc(v, e, ctx) {
   const speed = Math.hypot(v.vel.x, v.vel.z);
   if (speed > HIT_SPEED && !(e.knockedT > 0)) {
     hitEntity(v, e, { knockT: 3, damage: false });
+    shake(ctx, Math.min(0.5, speed / 25), e.pos.x, e.pos.z); sfx(ctx, 'thud', e.pos.x, e.pos.z, Math.min(0.8, speed / 15));
     if (e.onVehicleHit) e.onVehicleHit(e, v, ctx);
   }
   return true;

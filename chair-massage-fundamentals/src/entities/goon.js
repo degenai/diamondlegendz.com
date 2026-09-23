@@ -8,6 +8,7 @@ import { loadMesh } from '../assets.js';
 import { createNpc, stepBody, poseRig, cull, say, seek } from './npc-common.js';
 import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer } from './palm.js';
+import { sfx, shake } from '../juice.js';
 
 const RUN = 5.5;
 const BAT_REACH = 1.6, SHOVE_REACH = 1.3;
@@ -15,6 +16,13 @@ const BAT_WIND = 0.4, SHOVE_WIND = 0.3;
 const COOLDOWN = 1.5;
 const FLANK_OFF = 6;
 const SIT_TIME = 8;
+// Opening beat (DESIGN.md PIVOT rulings): for the first 8 s of RUN (ctx.grabUntil) the goons only
+// shove and grab: 10 damage, no knockdown, a 1.5 m push, "Come with us." on each goon's first
+// contact. The first Healing Palm or gun hit ends the window early (palm.js, gun.js).
+const GRAB_CD = 6;
+const GRAB_PUSH = 9.5;       // m/s; the player's 30 m/s^2 ground decel turns it into about 1.5 m
+export const GRAB_WINDOW = 8;
+const grabbing = (ctx) => ctx.time < (ctx.grabUntil ?? -1);
 
 export function createGoon(scene, pos, role, bat) {
   const mesh = spawnPerson('goon');
@@ -66,7 +74,7 @@ export function updateGoon(e, dt, ctx) {
     chase(e, dt, ctx);
   }
   e.pose = e.knockedT > 0 ? 'down' : e.state === 'sit' ? 'sit' : e.state === 'loose' ? 'loose'
-    : e.state === 'windup' ? (e.bat ? 'windup' : 'shove') : e.state === 'recover' ? (e.bat ? 'swing' : 'shove') : 'walk';
+    : e.state === 'windup' ? (e.bat && !e.grab ? 'windup' : 'shove') : e.state === 'recover' ? (e.bat && !e.grab ? 'swing' : 'shove') : 'walk';
   stepBody(e, dt, ctx);
   poseRig(e, dt);
   cull(e, ctx);
@@ -78,10 +86,12 @@ function chase(e, dt, ctx) {
   const dx = tgt.x - e.pos.x, dz = tgt.z - e.pos.z, d2 = dx * dx + dz * dz;
   e.speed = RUN;
   if (!p.vehicle && p.knockedT <= 0) {
-    const reach = e.bat ? BAT_REACH : SHOVE_REACH;
+    const grab = grabbing(ctx);
+    const reach = e.bat && !grab ? BAT_REACH : SHOVE_REACH;
     if (d2 < reach * reach && e.cooldown <= 0 && Math.abs(p.pos.y - e.pos.y) < 1) {
       e.state = 'windup';
-      e.stateT = e.bat ? BAT_WIND : SHOVE_WIND;
+      e.grab = grab;
+      e.stateT = e.bat && !grab ? BAT_WIND : SHOVE_WIND;
       return;
     }
   }
@@ -106,17 +116,28 @@ function chase(e, dt, ctx) {
 
 function strike(e, ctx) {
   const p = ctx.player;
-  const reach = (e.bat ? BAT_REACH : SHOVE_REACH) + 0.4;
+  const bat = e.bat && !e.grab;
+  const reach = (bat ? BAT_REACH : SHOVE_REACH) + 0.4;
   const dx = p.pos.x - e.pos.x, dz = p.pos.z - e.pos.z, d2 = dx * dx + dz * dz;
   e.state = 'recover';
   e.stateT = 0.5;
-  e.cooldown = COOLDOWN;
-  if (e.bat) emitChaos(ctx, e.pos.x, e.pos.z, 'batSwing');
+  e.cooldown = e.grab ? GRAB_CD : COOLDOWN;
+  if (bat) emitChaos(ctx, e.pos.x, e.pos.z, 'batSwing');
   if (p.vehicle || d2 > reach * reach || p.knockedT > 0) return;
   const d = Math.sqrt(d2) || 1;
-  if (e.bat) {
+  if (e.grab) {
+    // One shove lands per half second across the whole pack, so three goons cannot stack 30 in a tick.
+    if (ctx.lastGrabHitT !== undefined && ctx.time - ctx.lastGrabHitT < 0.5) return;
+    ctx.lastGrabHitT = ctx.time;
+    hurtPlayer(ctx, 10, 0, dx / d, dz / d, GRAB_PUSH);
+    shake(ctx, 0.2);
+    sfx(ctx, 'thud', p.pos.x, p.pos.z, 0.35);
+    if (!e.grabbed) { e.grabbed = true; say(ctx, e, 'Come with us.'); }
+  } else if (bat) {
     hurtPlayer(ctx, 20, 1.2, dx / d, dz / d, 4);
     say(ctx, p, 'WHACK', 'thud');
+    shake(ctx, 0.65);
+    sfx(ctx, 'thud', p.pos.x, p.pos.z, 1);
   } else {
     hurtPlayer(ctx, 10, 0, dx / d, dz / d, 4);
     say(ctx, p, 'shove', 'speech dim');

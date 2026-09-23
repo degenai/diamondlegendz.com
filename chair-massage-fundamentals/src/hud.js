@@ -66,7 +66,7 @@ export function setCrosshair(visible) {
 
 export function setHint(text) {
   if (!hintEl) return;
-  hintEl.hidden = !text;
+  if (hintEl.hidden !== !text) hintEl.hidden = !text;
   if (text && hintEl.textContent !== text) hintEl.textContent = text;
 }
 
@@ -81,14 +81,16 @@ export function setRunTitle(visible, strike = false) {
 // RUN: speed/vehicle line under the status line (empty text hides it).
 export function setVehicleLine(text) {
   if (!vehicleEl) return;
-  vehicleEl.hidden = !text;
+  if (vehicleEl.hidden !== !text) vehicleEl.hidden = !text;
   if (text && vehicleEl.textContent !== text) vehicleEl.textContent = text;
 }
 
 // RUN: "Don't leave the chair." strip at the bottom (empty text hides it).
 export function setChairStrip(text) {
   if (!chairEl) return;
-  chairEl.hidden = !text;
-  if (text && chairEl.textContent !== text) chairEl.textContent = text;
-  chairEl.classList.toggle('hud-chair-warn', text === "Don't leave the chair.");
+  if (chairEl.hidden !== !text) chairEl.hidden = !text;
+  if (text && chairEl.textContent !== text) {
+    chairEl.textContent = text;
+    chairEl.classList.toggle('hud-chair-warn', text === "Don't leave the chair.");
+  }
 }

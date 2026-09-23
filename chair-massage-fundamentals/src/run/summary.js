@@ -56,6 +56,8 @@ export function showSummary(ctx, root, onReturn) {
   name.type = 'text'; name.maxLength = 40; name.value = licensee; name.setAttribute('aria-label', 'Licensee name');
   name.addEventListener('input', () => { licensee = name.value || 'Licensee'; });
   el('div', `cert-outcome cert-${reason}`, c, OUTCOME[reason] || OUTCOME.arrest);
+  // The course voice reads the outcome once, as the certificate appears.
+  if (ctx.voice) ctx.voice.speak(`This certifies that the licensee ${(OUTCOME[reason] || OUTCOME.arrest).toLowerCase()}.`, 'narrator', 'narrator');
   el('p', 'cert-line', c, 'Chair Massage Fundamentals, Module 1: Pressure');
   const stats = el('div', 'cert-stats', c);
   for (const [k, v] of [['Run time', clock(seconds)], ['Cash raised for the host cause', usd(host)], ['Tension released', String(R.tension)]]) {

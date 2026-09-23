@@ -10,6 +10,7 @@ import { knockdown } from './npc-common.js';
 import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { chairWorldPos } from './chair.js';
+import { sfx, knockFx, burst } from '../juice.js';
 
 const RANGE = [1.5, 4, 8, 14];
 const LOOK = [[1, 1], [1.5, 1.2], [2, 1.4], [2.6, 1.7]];   // [barrel length L, head size H] per level
@@ -103,20 +104,25 @@ function tap(p, ctx, level) {
   p.yaw = Math.atan2(-Math.sin(p.camYaw), -Math.cos(p.camYaw));  // fire where the camera looks
   const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw), range = RANGE[level];
   if (level >= 1) shockwave(p, ctx, range);
+  sfx(ctx, 'tap', p.pos.x, p.pos.z);
   const e = target(p, ctx, range, fx, fz);
   p.lastGun = { t: ctx.time, hit: e ? e.kind : null, battery: p.battery };
   if (!e) return null;
+  ctx.grabUntil = 0;                          // the first gun hit brings the bats out (goon.js)
   if (ctx.time - (e.gunTapT ?? -1e9) > TAP_FORGET) e.gunTaps = 0;
   e.gunTaps = (e.gunTaps || 0) + 1; e.gunTapT = ctx.time;
   const hud = ctx.hud;
   if (e.gunTaps < TAPS) {
     if (hud && hud.floater) hud.floater('tk', e.pos.x, e.pos.y + 1.5, e.pos.z, 'speech dim');
+    burst(ctx, 'impact', e.pos.x, e.pos.y + 1.2, e.pos.z, 3);
     return e;
   }
   // Third tap: the Healing Palm's knockdown, relaxed rise and all.
   e.gunTaps = 0;
   const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
   knockdown(e, KNOCK, 'palm', dx / d, dz / d, KNOCK_PUSH);
+  knockFx(ctx, e, p);
+  sfx(ctx, 'thud', e.pos.x, e.pos.z, 0.8);
   if (hud && hud.floater) hud.floater('THUD', e.pos.x, e.pos.y + 1.6, e.pos.z, 'thud');
   if (e.onPalm) e.onPalm(e, p, ctx);
   emitChaos(ctx, e.pos.x, e.pos.z, 'gun');

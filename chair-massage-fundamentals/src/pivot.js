@@ -31,6 +31,8 @@ const LINES = [
   '...',
 ];
 const RANGER_LINE = "Sir, they have a permit for the plaza. You don't.";
+const HANG_LINE = "I'm calling this in.";   // the ranger hangs back at the chair (police.js)
+const LINE_GAP = 0.2;                        // goon lines follow each other; one voice each
 
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
@@ -76,6 +78,20 @@ export function start(ctx) {
     P.dest.copy(world.spawns.vanEntry.pos);
   }
   P.dest.y = 0;
+}
+
+// The spa loop detunes and collapses the moment the van appears: on screen and close enough to
+// read as a van (CUE_DIST from the camera), or parked unseen.
+const CUE_DIST = 40;
+function musicCue(ctx) {
+  if (P.cue) return;
+  let seen = !P.van || P.phase === 'parked';
+  if (!seen && P.van.pos.distanceTo(ctx.camera.position) < CUE_DIST) {
+    _a.copy(P.van.pos).setY(P.van.pos.y + 1).project(ctx.camera);
+    seen = _a.z < 1 && Math.abs(_a.x) < 1 && Math.abs(_a.y) < 1;
+  }
+  if (!seen) return;
+  P.cue = true; P.cueT = P.t;
   if (ctx.audio && typeof ctx.audio.pivot === 'function') ctx.audio.pivot();
 }
 
@@ -136,13 +152,13 @@ function spawnRanger(ctx) {
   ctx.npcs.push(r);
   const dx = v.x - c.x, dz = v.z - c.z, d = Math.hypot(dx, dz) || 1;
   P.ranger = r;
-  P.rangerGoal = { x: c.x + (dx / d) * 4 + (-dz / d) * 2.5, z: c.z + (dz / d) * 4 + (dx / d) * 2.5 };
+  P.rangerGoal = { x: c.x + (dx / d) * 4 + (-dz / d) * 2.5, y: c.y, z: c.z + (dz / d) * 4 + (dx / d) * 2.5 }; // up on the chair's deck
 }
 
 function walkNpc(e, goal, speed, dt, ctx) {
   const c = ctx.world.chairSpot;
   e.wishX = e.wishZ = 0; e.speed = 0; e.faceX = undefined;
-  if (goal && !seek(e, goal.x, e.pos.y, goal.z, dt, ctx, 0.4)) e.speed = speed;
+  if (goal && !seek(e, goal.x, goal.y ?? e.pos.y, goal.z, dt, ctx, 0.4)) e.speed = speed;
   else { e.wishX = e.wishZ = 0; e.faceX = c.x; e.faceZ = c.z; }
   e.pose = 'walk';
   stepBody(e, dt, ctx);
@@ -172,9 +188,10 @@ function script(ctx) {
     if (g) g.spoke = true;
     const dur = line(ctx, g || P.van && P.van.mesh, LINES[k], 'goon');
     P.lineIdx++;
-    P.next = P.t + (k === LINES.length - 1 ? 1.0 : dur * 0.85);  // lines overlap a little; the ranger cuts in
+    P.next = P.t + (k === LINES.length - 1 ? 1.0 : dur + LINE_GAP);  // the silent '...' is short; the ranger cuts in
   } else if (k === LINES.length) {
     const dur = line(ctx, P.ranger, RANGER_LINE, 'ranger');
+    P.rangerEnd = P.t + dur;
     P.lineIdx++;
     P.runAt = P.t + dur * 0.45;          // controls unlock mid-sentence
     P.next = Infinity;
@@ -209,6 +226,7 @@ export function update(dt, ctx) {
   for (const g of goons(ctx)) walkNpc(g, g.goal, g.goal && Math.hypot(g.goal.x - g.pos.x, g.goal.z - g.pos.z) > 6 ? 3.5 : 1.6, dt, ctx);
   if (P.ranger) walkNpc(P.ranger, P.rangerGoal, 4.5, dt, ctx);
   camera(dt, ctx);
+  musicCue(ctx);
   if (P.runAt >= 0 && P.t >= P.runAt) setState(STATES.RUN);
 }
 
@@ -226,9 +244,13 @@ export function beginRun(ctx) {
   p.camInit = false;
   P.wide = { pos: ctx.camera.position.clone(), q: ctx.camera.quaternion.clone() };
   P.runT = 0;
+  musicCue(ctx);
   if (P.ranger) {
-    P.ranger.state = 'chase'; P.ranger.standDown = true;
-    if (ctx.police) ctx.police.units.push({ kind: 'foot', cops: [P.ranger], standDown: true });
+    // Hangs back at the chair: no pursuit at wanted 0, the 1-star unit once wanted reaches 1.
+    const r = P.ranger, at = P.rangerGoal || r.pos;
+    r.state = 'hang'; r.hang = true; r.standDown = false; r.post = { x: at.x, y: at.y ?? r.pos.y, z: at.z };
+    if (ctx.police) ctx.police.units.push({ kind: 'foot', cops: [r], hang: true, t: 0 });
+    P.hangAt = Math.max(0, (P.rangerEnd ?? P.t) - P.t) + 0.3;  // after his permit line finishes
   }
   for (const g of goons(ctx)) { g.goal = null; }
   hud.tearOffMassageHud();
@@ -251,7 +273,11 @@ export function runTick(dt, ctx) {
     cam.updateMatrixWorld();
     ctx.player.camInit = false;               // the player camera snaps; the blend smooths it
   } else if (P.wide) { P.wide = null; ctx.player.camInit = true; }
-  if (P.released && !P.wide) P.runT = -1;
+  if (P.hangAt >= 0 && P.runT >= P.hangAt) {
+    P.hangAt = -1;
+    if (P.ranger && P.ranger.hang && ctx.npcs.includes(P.ranger)) line(ctx, P.ranger, HANG_LINE, 'ranger');
+  }
+  if (P.released && !P.wide && !(P.hangAt >= 0)) P.runT = -1;
 }
 
 export function reset() {
