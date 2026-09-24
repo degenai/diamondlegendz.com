@@ -208,10 +208,10 @@ leaving the vehicle leaves the chair in it; a hard crash throws it out onto the 
 massage during a run** (decided 2026-09-23): set the chair down (E while carrying, on foot), the nearest
 willing ped walks over and sits, hold E for 5 s with a small pressure meter (W/S) on the HUD; on success
 they pay, wanted drops one star, the massage gun battery refills. Goons and cops within 6 m interrupt it.
-**Camping the chair has a risk** (ruled 2026-09-24): the first mini-massage of a run is free; each
-further success within 90 s of the previous one on the same spot (40 m) adds heat. At 2 the goon pack
-is radioed to the chair (every goon up and working who is not already on him runs to it and searches
-there); at 3 and on, a cop on foot (a ranger first, else one called in out of sight) walks to the chair
+**Camping the chair has a risk** (ruled 2026-09-24): every success within 90 s of the previous one on
+the same spot (40 m) counts toward heat, the first success being heat 1 and free. The second quick
+success (heat 2) radios the goon pack to the chair (every goon up and working who is not already on him
+runs to it and searches there); the third and on (heat 3) sends a cop on foot (a ranger first, else one called in out of sight) walks to the chair
 and says "We told you to stop that." on arrival, and wanted goes to at least one star (`report('vending')`,
 +1 once per run). Peds still queue.
 A ped who was hit by a car is worth double and says so. This is the hook: doing the actual work is how

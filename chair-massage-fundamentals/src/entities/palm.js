@@ -112,6 +112,9 @@ export function updatePalm(p, dt, ctx, hold = false) {
       p.lungeT = LUNGE_T;
       p.elbowT = LUNGE_T + 0.2;
       emit('palm', { phase: 'lunge' });
+    } else if (ctx.input && ctx.input.locked === false) {
+      // Pointer lock lost mid-charge (Esc, tab switch): that is not a release, cancel cleanly.
+      cancelCharge(p, 'unlocked');
     } else if (!hold) {
       // Let go early: the quick palm, its wind-up already partly done.
       const held = p.chargeT;
