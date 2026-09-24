@@ -14,7 +14,7 @@ import { createPed, disposePed } from '../entities/ped.js';
 import { disposeGoon } from '../entities/goon.js';
 import { disposeCop } from '../entities/cop.js';
 import { navInfo, nearestNav } from '../entities/npc-nav.js';
-import { blockAt } from '../world/layout.js';
+import { blockAt } from '../world/district-layout.js';
 import { emit } from '../events.js';
 
 const QUOTA = [9, 3, 1];     // by Chebyshev block distance from the player's block

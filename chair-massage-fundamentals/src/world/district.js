@@ -13,9 +13,8 @@ import { addSpur } from './nav.js';
 import { buildRoads } from './roads.js';
 import { sideSlab, BACKDROP } from './streets.js';
 import { CENTRES } from './centres.js';
-import {
-  GRID, PLAZA_IJ, SIZE, HALF, GAP_HALF, OUTER_WALK, blockCentre, neighbourEdges, toXZ, DMIN, DMAX,
-} from './layout.js';
+import { SIZE, HALF, GAP_HALF, OUTER_WALK, toXZ } from './layout.js';
+import { GRID, PLAZA_IJ, blockCentre, neighbourEdges, DMIN, DMAX, escapeCorner } from './district-layout.js';
 
 const DEG = Math.PI / 180;
 const ASPHALT = 0x3d3f43;
@@ -120,7 +119,7 @@ export function buildDistrict(seed, scene, single = typeof location !== 'undefin
   root.add(ground);
 
   // The escape block: the corner farthest from the plaza block; its outer sides are candidates.
-  const ei = PLAZA_IJ[0] < GRID / 2 ? GRID - 1 : 0, ej = PLAZA_IJ[1] < GRID / 2 ? GRID - 1 : 0;
+  const [ei, ej] = escapeCorner();
   // Links: the middle of every interior side, except round the plaza, whose one link street is its
   // old escape gap (the neighbour on that side meets it at the same offset).
   const pl = plazaLink(seed), OPP = { N: 'S', S: 'N', E: 'W', W: 'E' };

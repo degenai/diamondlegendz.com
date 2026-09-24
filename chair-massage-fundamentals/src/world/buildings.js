@@ -7,8 +7,9 @@ import { addBox, addCyl } from './batch.js';
 import { addSpur } from './nav.js';
 import { alleyLamps } from './alley-lamps.js';
 import {
-  HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, OUTER_WALK, DECK_Y, ALLEY_HALF, ALLEY_END, toXZ, sideBox, cutGaps,
+  HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, OUTER_WALK, DECK_Y, ALLEY_HALF, ALLEY_END, toXZ, sideBox,
 } from './layout.js';
+import { cutGaps } from './street-layout.js';
 
 const FLOOR_H = 3.2;
 const PALETTE = [0x9c4a3a, 0x7e3f32, 0xa8674c, 0x8a6a55, 0xd8c9a8, 0xc9a978, 0xb8b2a2, 0xd6a79a];

@@ -3,7 +3,8 @@
 // (RING_C out) gives four corners and four side midpoints; link streets join the midpoints of
 // neighbouring blocks; the escape block adds a node where the escape street leaves its ring and
 // one at the escape zone. Right-hand traffic: a route's polyline keeps to the right (laneOffset).
-import { RING_C, SIZE, toXZ } from './layout.js';
+import { SIZE, toXZ } from './layout.js';
+import { RING_C } from './street-layout.js';
 
 export function buildRoads(parts) {
   const nodes = [], edges = [], index = new Map(), set = new Set();

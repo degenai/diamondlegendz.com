@@ -4,9 +4,9 @@
 // The backdrop ring outside the district is district.js's.
 import { addBox, addSlab } from './batch.js';
 import {
-  HALF, PLAZA_HALF, DECK_HALF, ROAD_OUT, DECK_Y, GAP_HALF, ESC_WALL, EDGES,
-  toXZ, sideBox, aabb, SIDE, cutGaps, gapAt,
+  HALF, PLAZA_HALF, DECK_HALF, ROAD_OUT, DECK_Y, GAP_HALF, ESC_WALL, EDGES, toXZ, sideBox, aabb, SIDE,
 } from './layout.js';
+import { cutGaps, gapAt } from './street-layout.js';
 
 const PLAZA = 0xc9bca3;
 const WALK = 0xb3b0a8;

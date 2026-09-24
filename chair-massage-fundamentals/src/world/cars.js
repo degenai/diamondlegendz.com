@@ -4,7 +4,8 @@
 // and a cop car once world.ready resolves.
 import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
-import { ROAD_OUT, DECK_HALF, PLAZA_HALF, GAP_HALF, EDGES, SIDE, toXZ, laneForward, boxAt } from './layout.js';
+import { ROAD_OUT, DECK_HALF, PLAZA_HALF, GAP_HALF, EDGES, SIDE, toXZ, boxAt } from './layout.js';
+import { laneForward } from './street-layout.js';
 import { createVehicle, VEHICLE_TYPES } from '../entities/vehicle.js';
 import { addEntity } from '../entities/index.js';
 import { overlapsFootprint, floorHeightAt } from '../physics.js';
