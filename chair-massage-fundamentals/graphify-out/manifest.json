@@ -145,14 +145,14 @@
     "semantic_hash": "c46cedd4b5a9ea0f87d8cea966d4cd60"
   },
   "main.js": {
-    "mtime": 1790288892.3808076,
-    "ast_hash": "60109043e1bab81647db2e70a9c774db",
-    "semantic_hash": "60109043e1bab81647db2e70a9c774db"
+    "mtime": 1790291356.0459661,
+    "ast_hash": "1f48a0fef12494a96d2ebb08bf070056",
+    "semantic_hash": "1f48a0fef12494a96d2ebb08bf070056"
   },
   "massage/clients.js": {
-    "mtime": 1790288629.5431519,
-    "ast_hash": "23d4e656f66975a13294bc017dffa524",
-    "semantic_hash": "23d4e656f66975a13294bc017dffa524"
+    "mtime": 1790291192.3203225,
+    "ast_hash": "1c1513daeeb5d6ce5acd59a6f21db199",
+    "semantic_hash": "1c1513daeeb5d6ce5acd59a6f21db199"
   },
   "massage/guide.js": {
     "mtime": 1790282670.9969988,
@@ -160,9 +160,9 @@
     "semantic_hash": "13f6a45e0e935924b42eeca56a0d799c"
   },
   "massage/index.js": {
-    "mtime": 1790288737.9043834,
-    "ast_hash": "e0ba86f0401ac135eedbf5a18d27907d",
-    "semantic_hash": "e0ba86f0401ac135eedbf5a18d27907d"
+    "mtime": 1790291171.3578873,
+    "ast_hash": "4513a1f0d0873246dcfb787fc0d7c9df",
+    "semantic_hash": "4513a1f0d0873246dcfb787fc0d7c9df"
   },
   "massage/meter.js": {
     "mtime": 1790196915.0198135,
@@ -478,5 +478,15 @@
     "mtime": 1790289250.1998825,
     "ast_hash": "0cc7ec86cd9654aee59a7980b7d4d7b5",
     "semantic_hash": "0cc7ec86cd9654aee59a7980b7d4d7b5"
+  },
+  "massage/client-lines.js": {
+    "mtime": 1790291171.3389375,
+    "ast_hash": "bb9075fe08b2ac66a54cacdb2d881861",
+    "semantic_hash": "bb9075fe08b2ac66a54cacdb2d881861"
+  },
+  "wiring.js": {
+    "mtime": 1790291341.2366424,
+    "ast_hash": "9567c7eb91153d6e78d3c53a6afe7d47",
+    "semantic_hash": "9567c7eb91153d6e78d3c53a6afe7d47"
   }
 }
