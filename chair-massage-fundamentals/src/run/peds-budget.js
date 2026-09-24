@@ -9,8 +9,10 @@
 // far from the plaza, so those 16 never left it and the other 14 were spread over a dozen
 // blocks: one or two per block, none on many. Every centre type has nav points (146..183 per
 // block); the gaps were the budget, not the graph.
-import { addEntity } from '../entities/index.js';
-import { createPed } from '../entities/ped.js';
+import { addEntity, removeEntity } from '../entities/index.js';
+import { createPed, disposePed } from '../entities/ped.js';
+import { disposeGoon } from '../entities/goon.js';
+import { disposeCop } from '../entities/cop.js';
 import { navInfo, nearestNav } from '../entities/npc-nav.js';
 import { blockAt } from '../world/layout.js';
 import { emit } from '../events.js';
@@ -21,6 +23,15 @@ const EVERY = 0.5;
 const MOVES = 4;             // re-homed per tick
 const HIDE_R = 35;           // a re-homed ped lands at least this far from the player
 const BUSY = ['kneel', 'toChair', 'leave', 'flee'];
+
+// Any run NPC's teardown: the budget drops extras here, spawner.clear() drops them all.
+// (Was spawner.js's private dispose(), passed in to recyclePeds; moved so the two stop calling each other.)
+export function disposeNpc(ctx, e) {
+  removeEntity(ctx.entities, e);
+  if (e.kind === 'ped') disposePed(e, ctx.scene);
+  else if (e.kind === 'goon') disposeGoon(e, ctx.scene);
+  else disposeCop(e, ctx.scene);
+}
 
 const key = (b) => `${b[0]},${b[1]}`;
 
@@ -130,7 +141,7 @@ const movable = (e) => e.kind === 'ped' && !e.regular && !BUSY.includes(e.state)
 
 // Per RUN tick (throttled): rebalance the blocks round the player; extras (a carjacked driver)
 // beyond two blocks are dropped instead, back to the starting count.
-export function recyclePeds(ctx, dt, dispose) {
+export function recyclePeds(ctx, dt, dispose = disposeNpc) {
   ctx.pedT = (ctx.pedT || 0) - dt;
   if (ctx.pedT > 0 || !ctx.pedTarget) return;
   ctx.pedT = EVERY;

@@ -71,7 +71,7 @@ From here, Andy is a co-designer.
 | Police response per star, the ranger's 15 s hang-back | `src/run/police.js` (`CRUISE`, `BAIL`, `HANG`) |
 | Goons: speed, bat and shove reach, cooldowns, sit time, the 8 s opening grab window | `src/entities/goon.js` (`RUN`, `BAT_*`, `SHOVE_*`, `SIT_TIME`, `GRAB_*`) |
 | Cops on foot | `src/entities/cop.js` (`SPEED`, `WALK_OFF`) |
-| Goon waves and caps | `src/run/spawner.js` (`WAVE`, `GOON_CAP`) |
+| Goon waves and caps | `src/run/goon-waves.js` (`WAVE`, `GOON_CAP`) |
 | Massage clients: pay, sweet-spot band, ring size, fill rate, lines | `src/massage/clients.js` (`CLIENTS`); meter feel in `src/massage/meter.js` |
 | Mini-massage during a run | `src/run/minimassage.js` (`HOLD`, `HALF_BAND`, radii) |
 | Healing Palm and the massage gun | `src/entities/palm.js`, `src/entities/gun.js` |

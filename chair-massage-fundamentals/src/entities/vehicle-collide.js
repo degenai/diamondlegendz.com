@@ -106,7 +106,7 @@ export function collideVehicles(a, b, ctx) {
   const len = Math.hypot(px, pz);
   if (len < 1e-6) return false;
   const nx = px / len, nz = pz / len;               // points from b toward a
-  // The parked Serenity van rammed (spawner.js vanHit): the hitter's own speed, before the impulse,
+  // The parked Serenity van rammed (van-ai.js vanHit): the hitter's own speed, before the impulse,
   // and only when it is closing on the van.
   const A = ctx && ctx.vanAI;
   if (A && A.parked && ctx.vanHit) {
@@ -123,7 +123,7 @@ export function collideVehicles(a, b, ctx) {
     a.vel.x += (j / ma) * nx; a.vel.z += (j / ma) * nz;
     b.vel.x -= (j / mb) * nx; b.vel.z -= (j / mb) * nz;
     const mx = (a.pos.x + b.pos.x) / 2, mz = (a.pos.z + b.pos.z) / 2;
-    // The Serenity van's ram is its own shove (spawner.js: 10 hp, never a wreck): whatever it
+    // The Serenity van's ram is its own shove (van-ai.js: 10 hp, never a wreck): whatever it
     // touches while an AI drives it takes no crash damage from the contact itself.
     if (!rammer(b)) damage(a, -vn, ctx, mx, mz);
     if (!rammer(a)) damage(b, -vn, ctx, mx, mz);

@@ -60,7 +60,7 @@ const LINE_TIME = 5.0;
 // Between runs a regular comes back (owner ruling 2026-09-24: always Dana read as a rut). The three
 // regulars rotate by run number: run 2 Dana, run 3 Walt, run 4 Marcus, then Dana again. With the
 // "Regular client" unlock owned, every third returning visit is Priya, the barista from the corner
-// (she is also the regular who waits near the chair in the run, run/peds.js); the other three keep
+// (she is also the regular who waits near the chair in the run, run/peds-budget.js); the other three keep
 // their order around her. Each brings two new lines in their own voice: an opener for how the last
 // run ended, then the gift: an escape brings the next main unlock, an arrest or death the next
 // consolation, or, once those run out, a line saying so. Two segments between runs.
