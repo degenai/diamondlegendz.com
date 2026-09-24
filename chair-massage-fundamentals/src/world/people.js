@@ -201,7 +201,9 @@ export function disposePerson(g) {
   if (!g) return;
   const i = waiting.indexOf(g);
   if (i >= 0) waiting.splice(i, 1);
-  g.traverse((o) => { if (o.isMesh && o.name !== '_placeholder') o.geometry.dispose(); });
+  // Only the rig's own part meshes (skin() clones one geometry per part). A bat or a hat hung on a
+  // joint comes from loadMesh(), whose geometry every other clone of that asset shares.
+  g.traverse((o) => { if (o.isMesh && o.parent && o.name === o.parent.name + 'Mesh') o.geometry.dispose(); });
 }
 
 // ---- posing ----
