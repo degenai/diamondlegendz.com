@@ -381,22 +381,32 @@ Coordinate system: Three.js default, Y up, meters. Block is centered at origin. 
 Fixed timestep 60Hz simulation, render on rAF, interpolation not required.
 
 ```
-src/main.js        boot, state machine, game loop, owns the Scene and Renderer
-src/input.js       keyboard + mouse + pointer lock; exposes read-only snapshot per tick
-src/state.js       enum of states, transition function, listeners
-src/hud.js         DOM overlay: meter, circle, wanted stars, cash, dialogue, cards
-src/meta.js        localStorage meta, unlocks
-src/rng.js         seeded PRNG (mulberry32), run seed
-src/world/block.js park block generator from seed -> {meshes, nav, spawns, escapeEdge}
-src/world/props.js procedural mesh factories (building, tree, bench, chair, van, sedan, cart, person)
-src/entities/*.js  player, ped, goon, cop, vehicle; each exports create(...) and update(e, dt, ctx)
-src/physics.js     circle-vs-circle, circle-vs-AABB, vehicle vs static; no external physics
-src/massage/*.js   minigame: clients, pressure meter, stroke circle, modalities, dialogue
-src/run/*.js       wanted, spawner, end conditions, summary
-src/audio.js       WebAudio procedural: engine hum, hit thud, siren, chair fold; one music loop per state
-src/assets.js      loadMesh(url) -> Group of named children from the JSON format; cache; preload(list)
-assets/*.json      baked Blender meshes (chair, sedan, van, cart, person, ...) ; regenerate via tools/blender
-tools/blender/     bpy scripts + lowpoly.py helpers + export_json.py; run headless, see the blender-lowpoly skill
+Module map after the 2026-09-24 split (98 files, every one under 300 lines, no import cycles; the
+authoritative map is graphify-out/GRAPH_REPORT.md and README.md):
+src/main.js, wiring.js, state.js, input.js, rng.js, version.js     boot, state hooks, loop, input
+src/assets.js, physics.js, physics-grid.js                          loader-free meshes, colliders, camera march
+src/world/  layout.js, street-layout.js, district-layout.js         block, street and district vocabularies
+            district.js, block.js, centres.js, buildings.js,        the seeded sixteen-block city
+            streets.js, roads.js, plaza.js, furniture.js, props.js,
+            batch.js, nav.js, cars.js, parked.js, traffic.js,
+            alley-lamps.js, landmarks.js, people.js
+src/entities/ player.js, player-move.js, player-actions.js,        the player, split by concern
+            chase-cam.js, vehicle*.js, seated.js, chair.js,
+            interact.js, palm.js, gun.js, goon.js, goon-home.js,
+            cop.js, ped.js, npc-common.js, npc-nav.js, hostile.js
+src/run/    spawner.js, peds-budget.js, goon-waves.js, van-ai.js,  the run's population and pressure
+            wanted.js, police.js, police-units.js, police-lights.js,
+            driver.js, minimassage.js, mini-start.js, end.js,
+            slowmo.js, summary.js
+src/massage/ index.js, session.js, ledger.js, clients.js,           the course
+            client-lines.js, guide.js, meter.js, stage.js
+src/pivot.js, pivot-path.js, pivot-cast.js, pivot-lines.js, pivot-ring.js   the van scene
+src/bubbles.js, hud.js, hud-run.js, hud-massage.js, hud-compass.js, title.js, ui.css   presentation
+src/audio.js, audio-sfx.js, audio-wire.js, voice.js, voice-lex.js  score, effects, the robot voice
+src/juice.js, particles.js, meta.js, events.js, watch.js,          feel, saves, the watcher
+            run-report.js, run-diff.js, run-lines.js, run-stats.js
+assets/*.json      baked Blender meshes; regenerate via tools/blender (the blender-lowpoly skill)
+tools/blender/     bpy scripts + lowpoly.py + export_json.py + render_check.py
 ```
 
 People from Blender are one neutral jointed `person.json` (objects named head, torso, upperArmL/R,
