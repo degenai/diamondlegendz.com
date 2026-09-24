@@ -106,6 +106,13 @@ export function collideVehicles(a, b, ctx) {
   const len = Math.hypot(px, pz);
   if (len < 1e-6) return false;
   const nx = px / len, nz = pz / len;               // points from b toward a
+  // The parked Serenity van rammed (spawner.js vanHit): the hitter's own speed, before the impulse,
+  // and only when it is closing on the van.
+  const A = ctx && ctx.vanAI;
+  if (A && A.parked && ctx.vanHit) {
+    if (a === A.v && b.vel.x * nx + b.vel.z * nz > 0) ctx.vanHit(a, b, Math.hypot(b.vel.x, b.vel.z));
+    else if (b === A.v && a.vel.x * nx + a.vel.z * nz < 0) ctx.vanHit(b, a, Math.hypot(a.vel.x, a.vel.z));
+  }
   const depth = Math.min(len, a.spec.circleR);
   const ma = a.spec.mass, mb = b.spec.mass, inv = 1 / ma + 1 / mb;
   a.pos.x += nx * depth * (1 / ma) / inv; a.pos.z += nz * depth * (1 / ma) / inv;

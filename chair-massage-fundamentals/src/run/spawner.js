@@ -18,7 +18,8 @@ import { driveRoute, driveAt, brake } from './driver.js';
 import { nearestNode, nodeAhead, route, edgeSpot } from '../world/roads.js';
 import { toXZ, SIZE, RING_C } from '../world/layout.js';
 import { emit } from '../events.js';
-import { shake, sfx } from '../juice.js';
+import { shake, sfx, burst } from '../juice.js';
+import { collideStatic } from '../entities/vehicle-collide.js';
 import { spawnPeds, spawnRegular, recyclePeds } from './peds.js';
 import { lineOfSight } from '../entities/npc-nav.js';
 import { createTraffic, beginTraffic, clearTraffic, updateTraffic } from './traffic.js';
@@ -36,6 +37,7 @@ export function initSpawner(ctx) {
   ctx.police = createPolice();
   ctx.traffic = createTraffic(ctx.world.seed);
   ctx.runCash = 0;
+  ctx.vanHit = (van, hitter, speed) => vanHit(ctx, van, hitter, speed);   // vehicle-collide.js
   preload(['assets/bat.json', 'assets/ranger.json', 'assets/copcar.json', 'assets/swatvan.json', 'assets/cart.json'])
     .catch((err) => console.warn('[CMF] NPC asset preload failed', err));
 }
@@ -67,6 +69,7 @@ export function begin(ctx, fromPivot = false) {
   if (!fromPivot) clear(ctx);
   ctx.wanted.reset();
   ctx.runCash = 0;
+  ctx.runSpent = 0;                           // repairs at the food carts (interact.js)
   ctx.runEnd = null;
   ctx.lastChaos = null;
   ctx.goonPack = null;
@@ -153,9 +156,10 @@ function updateVan(ctx, dt) {
   }
   const v = A.v, p = ctx.player;
   if (v.driver === p || !v.driver) return;
+  shoveStep(A, v, dt, ctx);
   A.waveT += dt;
   A.ramCd = Math.max(0, (A.ramCd || 0) - dt);
-  if (A.waveT >= WAVE && A.mode !== 'drop') { A.mode = 'drop'; A.dropT = 0; }
+  if (A.waveT >= WAVE && A.mode !== 'drop') { A.mode = 'drop'; A.dropT = 0; A.parked = false; A.shoves = 0; }
   if (A.mode === 'drop') {
     A.dropT += dt;
     const e = ctx.world.spawns.vanEntry.pos;
@@ -169,6 +173,10 @@ function updateVan(ctx, dt) {
     }
     return;
   }
+  if (A.mode === 'entry') { toEntry(ctx, A, v, dt); return; }
+  // Parked, the driver dozes (ruled 2026-09-24, "ram the van"): the van keeps its post while he
+  // drives until three shoves wake the driver, or the next wave call.
+  if (A.parked && A.mode === 'park' && p.vehicle && p.vehicle !== v) { A.footT = 0; brake(v); return; }
   if (p.vehicle && p.vehicle !== v && v.hp > 0) {
     A.footT = 0; A.parked = false;
     if (A.mode !== 'pursue' && A.mode !== 'cut') { A.mode = 'pursue'; A.planT = 0; }
@@ -291,6 +299,71 @@ function park(ctx, A, v, dt) {
   if (A.settleT > 2.5 || (Math.abs(dy) < 0.03 && d < 0.3)) {
     A.parked = true;
     emit('van', { act: 'park', x: Math.round(v.pos.x * 10) / 10, z: Math.round(v.pos.z * 10) / 10, after: Math.round(A.parkT * 10) / 10 });
+  }
+}
+
+// Ramming the parked van (ruled 2026-09-24): the player's vehicle hitting it above SHOVE_MIN
+// shoves it SHOVE_DIST along the hit (a slide over SHOVE_T, walls still stop it), with a wobble,
+// a thud, sparks and SHOVE_HP off his vehicle. The third shove wakes the driver: he drives off to
+// vanEntry and parks there. Any vehicle can do it. vehicle-collide.js calls ctx.vanHit on contact.
+const SHOVE_MIN = 3, SHOVE_DIST = 2, SHOVE_T = 0.35, SHOVE_HP = 5, SHOVE_CD = 0.6, SHOVES = 3;
+function vanHit(ctx, van, hitter, speed) {
+  const A = ctx.vanAI, p = ctx.player;
+  if (!A || A.v !== van || !A.parked || (A.mode !== 'park' && A.mode !== 'entry')) return false;
+  if (!(hitter.driver === p || (!hitter.driver && hitter === p.lastVehicle)) || speed <= SHOVE_MIN) return false;
+  if (ctx.time - (A.shoveAt ?? -1e9) < SHOVE_CD) return false;
+  A.shoveAt = ctx.time;
+  const dx = hitter.vel.x / speed, dz = hitter.vel.z / speed;
+  A.shove = { dx, dz, left: SHOVE_DIST };
+  A.shoves = (A.shoves || 0) + 1;
+  van.wobbleT = Math.max(van.wobbleT || 0, 0.6);
+  hitter.hp = Math.max(0, hitter.hp - SHOVE_HP);
+  hitter._hpSeen = hitter.hp;                 // his shove is not property damage for the wanted level
+  hitter.wobbleT = Math.max(hitter.wobbleT || 0, 0.3);
+  const mx = (van.pos.x + hitter.pos.x) / 2, mz = (van.pos.z + hitter.pos.z) / 2;
+  burst(ctx, 'sparks', mx, van.pos.y + 0.6, mz, 16, dx, dz);
+  sfx(ctx, 'thud', mx, mz, 1);
+  shake(ctx, 0.4, mx, mz);
+  emit('van', { act: 'shoved', n: A.shoves, speed: Math.round(speed * 10) / 10, vehicle: hitter.type, hp: Math.round(hitter.hp) });
+  if (A.shoves >= SHOVES) {
+    A.mode = 'entry'; A.parked = false; A.shoves = 0; A.entryT = 0;
+    emit('van', { act: 'driven_off', to: 'vanEntry' });
+  }
+  return true;
+}
+
+// The shove's slide: the van is braked, so it moves only by the shove, not the impulse.
+function shoveStep(A, v, dt, ctx) {
+  const S = A.shove;
+  if (!S) return;
+  const step = Math.min(S.left, (SHOVE_DIST / SHOVE_T) * dt);
+  v.pos.x += S.dx * step; v.pos.z += S.dz * step;
+  S.left -= step;
+  v.vel.set(0, 0, 0); v.speed = 0;
+  v.asleep = false;
+  collideStatic(v, ctx);
+  if (S.left <= 1e-6) A.shove = null;
+}
+
+// Woken: to vanEntry by the street graph, then parked there (dozing again) until he is on foot
+// long enough to send it back to the exit, or the wave call.
+function toEntry(ctx, A, v, dt) {
+  if (A.parked) {
+    brake(v);
+    A.footT = ctx.player.vehicle ? 0 : (A.footT || 0) + dt;
+    if (A.footT >= FOOT_PARK) { A.mode = 'wait'; A.parked = false; }   // back to the exit next tick
+    return;
+  }
+  if (A.shove) { brake(v); return; }          // the third shove finishes its slide first
+  A.entryT = (A.entryT || 0) + dt;
+  const e = ctx.world.spawns.vanEntry.pos;
+  const d = Math.hypot(e.x - v.pos.x, e.z - v.pos.z);
+  if (d > 16) driveRoute(v, ctx.world.roads, nearestNode(ctx.world.roads, e.x, e.z), VAN_CRUISE, dt);
+  else if (d > 3.5) driveAt(v, e.x, e.z, 7, dt);
+  else brake(v);
+  if ((d <= 3.5 && Math.abs(v.speed) < 0.5) || A.entryT > 40) {
+    A.parked = true; A.footT = 0;
+    emit('van', { act: 'park', at: 'vanEntry', x: Math.round(v.pos.x * 10) / 10, z: Math.round(v.pos.z * 10) / 10, after: Math.round(A.entryT * 10) / 10 });
   }
 }
 

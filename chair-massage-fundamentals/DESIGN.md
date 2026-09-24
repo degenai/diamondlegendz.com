@@ -177,6 +177,13 @@ behind a vehicle, one backs up 3 m and turns round). The 8 s grab window starts 
 (a goon within 3 m), one shove per 2.2 s pack-wide. A compass strip under the RUN title shows the
 chair and the exit by bearing and distance. `?blocks=1` builds the single walled block instead; parked cars are
 instanced proxies that become drivable within 100 m. Every vehicle goes home, repaired, between runs.
+**Landmarks** (ruled 2026-09-24): every non-plaza block has one tall landmark, picked by its seed, so a
+block reads over the roofs: a water tower (tank on four legs, 22 m), a mural (a lot's side wall on a
+link street painted PE green and gold, a sign box on its roof), a big tree (16 m, through the tree
+instancing), a billboard (6 x 3 m on two posts, 12 m, SERENITY GROUP as alternating teal and white
+blocks, no text), or a church spire (a narrow pyramid to 24 m). The centre kinds stand on the free spot
+nearest the block centre, clear of the nav graph; all have colliders and go into the block's static
+batch (no new draw calls). The plaza's landmark is the fountain. `src/world/landmarks.js`.
 
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
 controls camera yaw/pitch (pointer lock). Shift sprint (a 3 s stamina pool, a thin bar under health in
@@ -216,6 +223,11 @@ and it recentres when you drive. **Drivers are visible**: the player and every A
 ranger's cart, SWAT, the Serenity goon at the van's wheel) sit posed at the type's `seat`, through tinted
 glass; AI drivers are cosmetic rigs, never NPCs (no palm, no gun, no collisions). Vehicles dent and
 smoke at 0 health, never explode. E enters and exits.
+**Repairs** (ruled 2026-09-24): driving, or standing beside the vehicle he last drove, within 4 m of any
+food cart with the vehicle under 100 hp, E pays $20 and puts it back to 100 hp (smoke gone, `pay`, a
+"REPAIRED -$20" floater, watcher event `repair`). The $20 is his half: it comes off the massage phase's
+`you` share, never the host's ledger. Under $20 the hint reads "Repair $20 (not enough cash)" and E
+does what it did before (gets him out, or in).
 **Peds hit by a car**: they tumble, lie for 3 s, get up holding their back (not relaxed, the opposite),
 big wanted bump, and a later mini-massage on that ped is worth double. **The chair travels by car**:
 E near a vehicle while carrying the chair loads it (visibly in the trunk, or on the cart's rear rack);
@@ -241,7 +253,12 @@ the moment the player drives off in any vehicle it chases his vehicle on the str
 (direct when close with a clear run, slowing for sharp turns), heads for the first node on his route to
 the escape it can reach before him and waits there (the cut), and rams when alongside: a shove, 10 hp
 off his vehicle and a wobble, never below 1 hp. Once he has been on foot 10 s it drives back and parks
-broadside across the plaza's single exit street, the outbound lane blocked and the other lane open. A relaxed goon
+broadside across the plaza's single exit street, the outbound lane blocked and the other lane open.
+**Ramming the parked van** (ruled 2026-09-24): parked, its driver dozes (it keeps its post while he
+drives, until woken or the next wave call). The player's vehicle (any type) hitting it above 3 m/s
+shoves it 2 m along the hit, with a wobble, a thud, sparks and 5 hp off his vehicle; the third shove
+wakes the driver, who drives off to `vanEntry` and parks there (`van` events `shoved`, `driven_off`).
+From there the old rule applies: 10 s on foot sends it back to the exit. A relaxed goon
 (Healing Palm or massage gun) sits down for 8 s, then rejoins. Bat swing at melee range (20 damage, knockdown).
 Later waves arrive in black vans. Black suits, white shirts, no ties, one bat per van. Franchise name is
 locked: SERENITY GROUP INCORPORATED ("Serenity Group" on vans, "Serenity Group Incorporated" when a goon introduces himself).

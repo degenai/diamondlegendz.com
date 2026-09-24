@@ -13,6 +13,7 @@ import { buildPlaza, createPlacer, CHAIR_SPOT } from './plaza.js';
 import { buildFurniture } from './furniture.js';
 import { buildBuildings } from './buildings.js';
 import { buildCentre, centreSpec } from './centres.js';
+import { planLandmark, muralLandmark } from './landmarks.js';
 import { planParking, CAR_COLOURS } from './cars.js';
 import { EDGES, GAP_HALF, ESC_WALL, ROAD_OUT, DECK_HALF, SIDE, toXZ, sideBox } from './layout.js';
 
@@ -97,8 +98,14 @@ export function buildBlockPart(opts) {
   let plazaInfo = null, centre = { spots: [], furn: undefined };
   if (plaza) plazaInfo = buildPlaza({ ...B, rng: sub(2), pavRng: sub(9) });
   else centre = buildCentre(opts.kind, { ...B, rng: sub(2) });
-  const furn = buildFurniture({ ...B, rng: sub(3), furn: centre.furn });
+  // One seeded landmark per non-plaza block (landmarks.js), on its own stream so nothing else
+  // rolls differently; the centre kinds claim their spot before the furniture is placed.
+  const lmRng = sub(13);
+  const landmark = planLandmark(B, lmRng);
+  const furn = buildFurniture({ ...B, rng: sub(3), furn: centre.furn, trees0: landmark.tree ? [landmark.tree] : undefined });
   const bld = buildBuildings({ ...B, rng: sub(4), alleyRng: sub(8) });
+  muralLandmark(B, landmark, bld.lots, lmRng);
+  landmark.colliders = colliders.filter((c) => c.tag === 'landmark');
 
   const group = new THREE.Group();
   group.name = 'block' + (opts.index ?? '');
@@ -122,6 +129,7 @@ export function buildBlockPart(opts) {
     index: opts.index, kind: opts.kind, centre: [cx, cz], seed, group, colliders, nav, parking, gaps, esc,
     lots: bld.lots, alleys: bld.alleys, carts: furn.carts.map((c) => ({ ...c, pos: W(c.pos) })),
     benches: furn.benches.map((b) => ({ ...b, pos: W(b.pos) })), trees: furn.trees.map((t) => ({ ...t, x: t.x + cx, z: t.z + cz })),
+    landmark: { kind: landmark.kind, x: landmark.x === undefined ? undefined : landmark.x + cx, z: landmark.z === undefined ? undefined : landmark.z + cz, colliders: landmark.colliders },
     layout: { variant, stepAxis, stepEdges: plazaInfo ? plazaInfo.stepEdges : [], gap: esc ? esc.g : null },
     pedIdx: shuffle(prng, nav.points.map((_, i) => i)).slice(0, 16),
   };

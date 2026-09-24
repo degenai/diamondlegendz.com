@@ -12,6 +12,7 @@ import { nearestNav } from './npc-nav.js';
 import { takeCivilian } from '../run/traffic.js';
 import { makeRng } from '../rng.js';
 import { emit } from '../events.js';
+import { sfx } from '../juice.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
 export const CHAIR_DIST = 2;
@@ -50,9 +51,53 @@ export function jackableVehicle(p, ctx, maxD = ENTER_DIST) {
   return best;
 }
 
-// What E would do right now: { act, v } with act in enter|exit|load|setdown|massage|pickup|take|null.
+// Repairs at a food cart (ruled 2026-09-24): $20 of the player's cash puts his vehicle back to
+// 100 hp, driving within REPAIR_DIST of any cart or standing beside the vehicle he last drove.
+// The cash is his half: it comes off the massage phase's `you` share, so the host's ledger
+// (half the run's cash plus the massage host share, summary.js) never pays for his bodywork.
+export const REPAIR_COST = 20;
+export const REPAIR_DIST = 4;
+export function playerCash(ctx) { return (ctx.massageTotals ? ctx.massageTotals.you : 0) + (ctx.runCash || 0); }
+function allCarts(world) {
+  if (!world._carts) world._carts = (world.blocks || []).flatMap((b) => b.carts || []);
+  return world._carts;
+}
+function nearCart(v, ctx) {
+  for (const c of allCarts(ctx.world)) {
+    if (Math.abs(c.pos.y - v.pos.y) < 1.5 && boxDistance(v, c.pos.x, c.pos.z) <= REPAIR_DIST) return c;
+  }
+  return null;
+}
+// null, or { v, cart, afford } for a damaged vehicle of his beside a cart.
+export function repairOffer(p, ctx, v) {
+  if (!v || !(v.hp < 100) || !ctx.world || !ctx.runStats) return null;
+  const cart = nearCart(v, ctx);
+  return cart ? { v, cart, afford: playerCash(ctx) >= REPAIR_COST } : null;
+}
+export function repairVehicle(p, ctx, v) {
+  const o = repairOffer(p, ctx, v);
+  if (!o || !o.afford) return false;
+  const before = v.hp;
+  if (!ctx.massageTotals) ctx.massageTotals = { you: 0, host: 0 };
+  ctx.massageTotals.you -= REPAIR_COST;
+  ctx.runSpent = (ctx.runSpent || 0) + REPAIR_COST;
+  v.hp = 100; v._hpSeen = 100; v.wreckSeen = false; v.wobbleT = 0;
+  if (v.smoke) v.smoke.group.visible = false;
+  sfx(ctx, 'pay', v.pos.x, v.pos.z);
+  if (ctx.hud && ctx.hud.floater) ctx.hud.floater(`REPAIRED -$${REPAIR_COST}`, v.pos.x, v.pos.y + v.spec.height + 0.6, v.pos.z, 'cash');
+  emit('repair', { vehicle: v.type, hpBefore: Math.round(before), cost: REPAIR_COST, cash: Math.round(playerCash(ctx)), driving: p.vehicle === v });
+  return true;
+}
+
+// What E would do right now: { act, v } with act in
+// enter|exit|repair|load|setdown|massage|pickup|take|carjack|null. In a vehicle beside a cart that
+// he cannot pay, E still gets him out; `broke` puts the price in the hint.
 export function interaction(p, ctx) {
-  if (p.vehicle) return { act: 'exit', v: p.vehicle };
+  if (p.vehicle) {
+    const o = repairOffer(p, ctx, p.vehicle);
+    if (o && o.afford) return { act: 'repair', v: p.vehicle };
+    return { act: 'exit', v: p.vehicle, broke: !!o };
+  }
   if (p.knockedT > 0 || p.massaging) return { act: null };
   const nv = nearestVehicle(p, ctx);
   const cs = chairState(ctx.world);
@@ -62,6 +107,10 @@ export function interaction(p, ctx) {
   if (cs.where === 'vehicle') {
     if (cd <= TAKE_DIST && (!nv || cd < nv.d)) return { act: 'take' };
   } else if (cd <= CHAIR_DIST && (!nv || cd < nv.d)) return { act: 'pickup' };
+  if (nv && nv.v === p.lastVehicle) {
+    const o = repairOffer(p, ctx, nv.v);
+    if (o) return o.afford ? { act: 'repair', v: nv.v } : { act: 'enter', v: nv.v, broke: true };
+  }
   if (nv) return { act: 'enter', v: nv.v };
   const jv = jackableVehicle(p, ctx);
   return jv ? { act: 'carjack', v: jv } : { act: null };
@@ -70,6 +119,7 @@ export function interaction(p, ctx) {
 export function handleInteract(p, ctx) {
   const it = interaction(p, ctx);
   if (it.act === 'exit') exitVehicle(p, ctx);
+  else if (it.act === 'repair') repairVehicle(p, ctx, it.v);
   else if (it.act === 'enter') enterVehicle(p, it.v, ctx);
   else if (it.act === 'carjack') carjack(p, it.v, ctx);
   else if (it.act === 'load') loadChair(ctx, it.v);
@@ -91,6 +141,7 @@ export function enterVehicle(p, v, ctx, how = 'enter') {
   v.driver = p;
   v.asleep = false;
   p.vehicle = v;
+  p.lastVehicle = v;                   // "your vehicle" for a repair on foot
   p.vel.set(0, 0, 0);
   // Sit at the wheel: the rig rides on the vehicle's body (leans with it), visible.
   p.seatHome = p.seatHome || p.mesh.parent || ctx.scene;
@@ -193,7 +244,8 @@ export function palmVehicles(p, ctx) {
   return null;
 }
 
-const HINTS = { enter: 'E enter vehicle', carjack: 'E pull the driver out', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
+const BROKE = `Repair $${REPAIR_COST} (not enough cash)`;
+const HINTS = { repair: `E: repair here ($${REPAIR_COST})`, enter: 'E enter vehicle', carjack: 'E pull the driver out', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
   setdown: 'E set chair down', massage: 'Hold E: start massage (W/S pressure)' };
 
 // RUN HUD strings for main.js: { hint, vehicle, chair }.
@@ -206,7 +258,7 @@ export function runHudText(p, ctx) {
   else if (cs.where === 'vehicle' && cs.vehicle) chair = `Chair: in the ${cs.vehicle.spec.label}`;
   else if (!findChair(ctx)) chair = "Don't leave the chair.";
   return {
-    hint: (it.act && it.act !== 'exit') ? HINTS[it.act] : '',
+    hint: it.broke ? (it.act === 'enter' ? `${HINTS.enter}  |  ${BROKE}` : BROKE) : (it.act && it.act !== 'exit') ? HINTS[it.act] : '',
     vehicle: v ? `${v.spec.label.toUpperCase()}  ${Math.round(Math.abs(v.speed) * 3.6)} km/h  hp ${Math.ceil(v.hp)}` : '',
     chair,
   };

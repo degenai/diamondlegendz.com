@@ -107,8 +107,10 @@ export function buildFurniture(B) {
     }
   }
   for (const t of trees) {
-    addSlab(b, t.x - 0.7, t.x + 0.7, t.z - 0.7, t.z + 0.7, DECK_Y - 0.01, DECK_Y + 0.012, GRATE);
-    colliders.push({ kind: 'cyl', x: t.x, z: t.z, r: 0.3, maxY: DECK_Y + 2.2, tag: 'tree', noCam: true });
+    const g = t.landmark ? 1.6 : 0.7;         // the block's landmark tree (landmarks.js): 16 m, a wide trunk
+    addSlab(b, t.x - g, t.x + g, t.z - g, t.z + g, DECK_Y - 0.01, DECK_Y + 0.012, GRATE);
+    if (t.landmark) colliders.push({ kind: 'cyl', x: t.x, z: t.z, r: t.r, maxY: DECK_Y + t.h, tag: 'landmark' });
+    else colliders.push({ kind: 'cyl', x: t.x, z: t.z, r: 0.3, maxY: DECK_Y + 2.2, tag: 'tree', noCam: true });
   }
   return { carts, benches, trees, meshes: treeMeshes(trees, rng) };
 }
@@ -124,7 +126,7 @@ export function treeMeshes(trees, rng) {
   trees.forEach((t, i) => {
     q.setFromAxisAngle(up, rng.range(0, Math.PI * 2));
     p.set(t.x, DECK_Y, t.z);
-    trunks.setMatrixAt(i, m.compose(p, q, s.set(1, t.s, 1)));
+    trunks.setMatrixAt(i, m.compose(p, q, s.set(t.w || 1, t.s, t.w || 1)));
     cones.setMatrixAt(i, m.compose(p, q, s.set(t.s, t.s, t.s)));
     cones.setColorAt(i, c.set(LEAF[Math.floor(rng.next() * LEAF.length)]));
   });
