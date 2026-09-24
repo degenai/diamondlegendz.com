@@ -4,7 +4,7 @@
 // and a cop car once world.ready resolves.
 import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
-import { ROAD_OUT, DECK_HALF, GAP_HALF, EDGES, toXZ, laneForward, boxAt } from './layout.js';
+import { ROAD_OUT, DECK_HALF, PLAZA_HALF, GAP_HALF, EDGES, SIDE, toXZ, laneForward, boxAt } from './layout.js';
 import { createVehicle, VEHICLE_TYPES } from '../entities/vehicle.js';
 import { addEntity } from '../entities/index.js';
 import { overlapsFootprint, floorHeightAt } from '../physics.js';
@@ -144,4 +144,54 @@ export function spawnVehicles(world, root, entities) {
     }),
   ];
   return Promise.all(jobs).catch((err) => console.warn('[CMF] vehicle spawn failed', err)).then(() => world.vehicles);
+}
+
+// The parking pass (consolation perk, perks.parkingPass): one sedan at the inner kerb of the ring
+// road, on the plaza edge nearest the chair, as close along that edge to the chair as a clear
+// spot allows. Keys in: it is not parked (entering it is no theft) and has no home, so the
+// MASSAGE reset (run/reset.js) removes it with the carjacked cars. spawner.begin() calls this on
+// RUN entry; clearPassCar() (spawner.clear) drops a load still in flight and forgets the car.
+const PASS_D = DECK_HALF + 1.3;
+function passSpot(world) {
+  const P = (world.blocks || []).find((b) => b.kind === 'plaza');
+  const [cx, cz] = P ? P.centre : [0, 0];
+  const lx = world.chairSpot.x - cx, lz = world.chairSpot.z - cz;
+  let edge = 'S', best = Infinity;
+  for (const e of EDGES) {
+    const [ox, oz] = SIDE[e].out, d = PLAZA_HALF - (lx * ox + lz * oz);
+    if (d < best) { best = d; edge = e; }
+  }
+  const [ox] = SIDE[edge].out, u0 = ox !== 0 ? lz : lx;
+  const [fx, fz] = laneForward(edge), yaw = Math.atan2(-fx, -fz);   // inner lane, like the cop car
+  const gaps = P ? P.gaps.filter((q) => q.edge === edge) : [];
+  for (let k = 0; k <= 16; k++) {
+    const u = u0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 3;
+    if (Math.abs(u) < 7 || Math.abs(u) > 40 || gaps.some((q) => Math.abs(u - q.g) < GAP_HALF + 3.5)) continue;
+    const [x0, z0] = toXZ(edge, u, PASS_D), x = x0 + cx, z = z0 + cz;
+    if (!footprintFree(world, 'sedan', x, 0, z, yaw)) continue;
+    if ((world.vehicles || []).some((v) => (v.pos.x - x) ** 2 + (v.pos.z - z) ** 2 < 36)) continue;
+    return { pos: new THREE.Vector3(x, floorHeightAt(x, z, world.colliders, 0.3), z), yaw, edge };
+  }
+  return null;
+}
+
+export function spawnPassCar(world, root, entities) {
+  clearPassCar(world);
+  const gen = world._passGen;
+  const spot = passSpot(world);
+  if (!spot || !world.vehicles) return Promise.resolve(null);
+  return loadMesh(VEHICLE_TYPES.sedan.asset).then((m) => {
+    if (gen !== world._passGen || !world.vehicles) return null;
+    recolourBody(m, 0xffcc00);          // PE gold: you can find it from the chair
+    m.name = 'passSedan';
+    const v = placeVehicle(world, root, entities, 'sedan', m, spot.pos, spot.yaw);
+    v.parked = false; v.pass = true;    // keys in
+    world.passCar = v;
+    return v;
+  }).catch((err) => { console.warn('[CMF] parking pass car failed', err); return null; });
+}
+
+export function clearPassCar(world) {
+  world._passGen = (world._passGen || 0) + 1;
+  world.passCar = null;
 }

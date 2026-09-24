@@ -23,6 +23,7 @@ import { spawnPeds, spawnRegular, recyclePeds } from './peds.js';
 import { lineOfSight } from '../entities/npc-nav.js';
 import { createTraffic, beginTraffic, clearTraffic, updateTraffic } from './traffic.js';
 import { resetVehicles } from './reset.js';
+import { spawnPassCar, clearPassCar } from '../world/cars.js';
 
 const WAVE = 90;
 const GOON_CAP = 9;
@@ -55,6 +56,7 @@ export function clear(ctx) {
   if (van && van.driver && van.driver !== ctx.player) { van.driver = null; van.ai = null; }
   if (van) clearDriverRig(van);               // no vehicle ticks in MASSAGE to drop the driver
   ctx.vanAI = null;
+  clearPassCar(ctx.world);                    // the reset (resetVan) removes the car itself: no home
 }
 
 // MASSAGE re-entry: every vehicle goes home, repaired, engine off (run/reset.js).
@@ -69,12 +71,13 @@ export function begin(ctx, fromPivot = false) {
   ctx.goonPack = null;
   ctx.grabUntil = Infinity; ctx.grabStart = null;   // the opening beat starts on first contact (goon.js)
   const p = ctx.player;
-  p.hp = 100; p.prevHp = 100; p.hurtAt = -1e9; p.knockedT = 0;
+  p.hp = 100; p.prevHp = 100; p.hurtAt = -1e9; p.knockedT = 0; p.icePackUsed = false;
   const rng = makeRng((ctx.world.seed ^ 0x9ed5) >>> 0);
   spawnPeds(ctx, rng);
   if (ctx.perks && ctx.perks.regular) spawnRegular(ctx, rng);
   ctx.vanAI = { v: null, mode: 'wait', waveT: 0, dropT: 0, spawnedAt: -1, footT: 0, ramCd: 0, parked: false };
   if (countKind(ctx, 'goon') === 0) spawnGoons(ctx, 3);
+  if (ctx.world.vehicles && ctx.perks && ctx.perks.parkingPass) spawnPassCar(ctx.world, ctx.world.root, ctx.entities);
   if (ctx.world.vehicles) beginTraffic(ctx);
 }
 

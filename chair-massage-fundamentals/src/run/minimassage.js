@@ -1,6 +1,6 @@
 // Mini-massage during the run: set the chair down (E while carrying, on foot), the nearest willing
 // ped within 12 m walks over and kneels, hold E for 5 s with W/S keeping a small pressure meter
-// in a drifting band. Success pays ($15, $30 for a sore back), drops wanted one star, and the
+// in a drifting band. Success pays ($15, $30 for a sore back, +$5 with the tip jar), drops wanted one star, and the
 // client walks off relaxed. A hostile goon/cop within 6 m, letting go of E, or chaos within 15 m
 // interrupts. Doing the actual work is how you cool heat.
 import * as THREE from '../../vendor/three.module.js';
@@ -172,10 +172,11 @@ function kneel(e, M) {
 
 function succeed(ctx) {
   const M = ctx.mini, e = M.client;
-  const pay = e.sore ? 30 : 15;
+  const tip = (ctx.perks && ctx.perks.tipJar) || 0;   // the tip jar (consolation perk): on top, every success
+  const pay = (e.sore ? 30 : 15) + tip;
   ctx.runCash = (ctx.runCash || 0) + pay;
   if (ctx.wanted) ctx.wanted.drop(1, 'massage');
-  emit('mini', { phase: 'success', pay, sore: !!e.sore });
+  emit('mini', { phase: 'success', pay, tip, sore: !!e.sore });
   M.done++;
   e.paid = true; e.loose = 25;
   ctx.hud.floater(`+$${pay}`, M.pos.x, M.pos.y + 1.9, M.pos.z, 'cash');

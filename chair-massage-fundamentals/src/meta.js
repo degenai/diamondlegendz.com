@@ -23,8 +23,8 @@ export const UNLOCKS = [
 ];
 
 // The consolation track: smaller things for a run that ended in the back of a car or face down.
-// sympathy: the jogger's line when handing it over between runs (clients.js). Effects marked
-// "flag" are only exposed in perks(); the files that must read them are listed in DESIGN.md.
+// sympathy: the jogger's line when handing it over between runs (clients.js). The files that
+// read each effect's perks() flag are listed in DESIGN.md.
 export const CONSOLATIONS = [
   { id: 'icepack', name: 'Ice pack', desc: 'Picking up the chair heals 20 hp, once per run.', gift: 'an ice pack',
     sympathy: 'I brought you an ice pack. You looked rough.' },
@@ -93,13 +93,13 @@ export function perks(meta) {
     disguise: has(meta, 'disguise'),      // TODO(v2)
     blockParty: has(meta, 'blockparty'),  // TODO(v2)
     skipPivot: has(meta, 'skipPivot'),
-    // Consolation track. Flags only unless noted; DESIGN.md "Roguelike meta" names the readers.
-    icePack: has(meta, 'icepack'),                    // flag: +20 hp on chair pickup, once per run
-    staminaRegenMul: has(meta, 'coffee') ? 1.25 : 1,  // flag: stamina refill rate
-    parkingPass: has(meta, 'parkingpass'),            // flag: a parked sedan at the plaza edge nearest the chair
-    tipJar: has(meta, 'tipjar') ? 5 : 0,              // flag: dollars added per mini-massage
-    getWellCard: has(meta, 'getwellcard'),            // live: certificate stamp + jogger line (summary.js, clients.js)
-    shirt: has(meta, 'loanerscrubs') ? 'gold' : null, // flag: second shirt colour
+    // Consolation track. DESIGN.md "Roguelike meta" names the readers.
+    icePack: has(meta, 'icepack'),                    // +20 hp on chair pickup, once per run (player.js)
+    staminaRegenMul: has(meta, 'coffee') ? 1.25 : 1,  // stamina refill rate (player.js)
+    parkingPass: has(meta, 'parkingpass'),            // a sedan at the plaza edge nearest the chair (cars.js, spawner.js)
+    tipJar: has(meta, 'tipjar') ? 5 : 0,              // dollars added per mini-massage (minimassage.js)
+    getWellCard: has(meta, 'getwellcard'),            // certificate stamp + jogger line (summary.js, clients.js)
+    shirt: has(meta, 'loanerscrubs') ? 'gold' : null, // shirt colour, player and therapist (people.js, player.js, stage.js)
   };
 }
 

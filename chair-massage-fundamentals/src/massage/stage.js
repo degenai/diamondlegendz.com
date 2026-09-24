@@ -3,7 +3,7 @@
 import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
 import { makeChair, mat } from '../world/props.js';
-import { spawnPerson, poseKneeling, poseReaching, resetPose, disposePerson, PALETTES, KNEEL } from '../world/people.js';
+import { spawnPerson, poseKneeling, poseReaching, resetPose, disposePerson, PALETTES, KNEEL, shirtFor } from '../world/people.js';
 
 export const STATION_YAW = 0.7;     // chair faces station -Z; the camera looks out across the park
 const THERAPIST_LEAN = 0.32;
@@ -40,8 +40,9 @@ export function createStage(ctx) {
   return { station, client: null, therapist: null, hands: [], flinchT: 0, leaveT: 0 };
 }
 
-export function addCast(st, scene) {
-  st.therapist = spawnPerson('therapist');
+// shirt: the perk shirt name (meta.perks().shirt, 'gold' for the loaner scrubs) or null.
+export function addCast(st, scene, shirt = null) {
+  st.therapist = spawnPerson('therapist', { shirt: shirtFor('therapist', shirt) });
   st.therapist.position.set(THERAPIST.x, 0, THERAPIST.z);
   st.therapist.rotation.y = THERAPIST.yaw;
   st.station.add(st.therapist);

@@ -1,9 +1,12 @@
 // Player: third-person on-foot controller, orbit camera, procedural walk, Healing Palm (palm.js).
 // Phase 4: E interactions (interact.js), driving (the vehicle reads input; the player sits
 // visibly at the wheel, seated.js), chase camera (chase-cam.js), knockdown when a vehicle hits them
-// on foot. Sprint stamina: a 3 s pool (4.5 s with the "sprint" unlock), shown under the health bar.
+// on foot. Sprint stamina: a 3 s pool (4.5 s with the "sprint" unlock), shown under the health bar;
+// refills in 6 s (4.8 s with the coffee). Consolation perks read here: icePack, staminaRegenMul, shirt.
 import * as THREE from '../../vendor/three.module.js';
-import { spawnPerson } from '../world/people.js';
+import { spawnPerson, setPersonColours, shirtFor } from '../world/people.js';
+import { chairState } from './chair.js';
+import { emit } from '../events.js';
 import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
 import { handleInteract, interaction } from './interact.js';
 import { updateChaseCamera, blendLook } from './chase-cam.js';
@@ -33,6 +36,7 @@ const FOLD_ACTS = new Set(['pickup', 'take', 'load']);
 const STAMINA = 3;         // s of sprint in a full pool
 const STAMINA_PERK = 1.5;  // the "sprint" unlock (perks.sprintMul > 1): a 50% bigger pool
 const REFILL = 6;          // s of not sprinting to refill an empty pool
+const ICE_PACK = 20;       // hp the ice pack (perks.icePack) gives back on a chair pickup, once per run
 const WINDED = 1;          // s of recharge before an emptied pool lets you sprint again
 
 const _fwd = new THREE.Vector3();
@@ -93,7 +97,10 @@ export function updatePlayer(p, dt, ctx) {
   if (p.foldT > 0) {
     p.foldT -= dt;
     if (p.knockedT > 0 || p.vehicle) p.foldT = 0;
-    else if (p.foldT <= 0) { p.foldT = 0; if (interaction(p, ctx).act === p.foldAct) handleInteract(p, ctx); }
+    else if (p.foldT <= 0) {
+      p.foldT = 0;
+      if (interaction(p, ctx).act === p.foldAct) { handleInteract(p, ctx); if (chairState(ctx.world).where === 'player') icePack(p, ctx); }
+    }
   }
   updateHealth(p, dt, ctx);
   updateGun(p, dt, ctx);
@@ -198,6 +205,23 @@ export function updatePlayer(p, dt, ctx) {
   syncMesh(p);
 }
 
+// The ice pack (consolation perk): the first chair pickup of a run that finds him hurt heals
+// 20 hp. A pickup at full health does not spend it. p.icePackUsed is cleared on RUN entry.
+function icePack(p, ctx) {
+  if (!(ctx.perks && ctx.perks.icePack) || p.icePackUsed || !(p.hp > 0 && p.hp < 100)) return;
+  const from = p.hp;
+  p.hp = Math.min(100, p.hp + ICE_PACK);
+  p.prevHp = p.hp;
+  p.icePackUsed = true;
+  if (ctx.hud && ctx.hud.floater) ctx.hud.floater(`+${Math.round(p.hp - from)}`, p.pos.x, p.pos.y + 2.1, p.pos.z, 'released');
+  emit('perk', { id: 'icepack', hp: Math.round(p.hp), from: Math.round(from) });
+}
+
+// The loaner scrubs (perks.shirt): the player's shirt follows the perk, re-skinned via people.js.
+export function wearPerks(p, perks) {
+  setPersonColours(p.mesh, { shirt: shirtFor('player', perks && perks.shirt) });
+}
+
 // Sprint stamina, seconds in the pool. Draws while sprinting; empty means walk until it has
 // recharged for WINDED s; refills at pool/REFILL per s whenever not sprinting (driving too).
 // Returns whether this tick may sprint. The bar (hud-run.js) reads p.stamina / p.staminaMax.
@@ -215,7 +239,7 @@ export function tickStamina(p, dt, ctx, wants) {
   } else {
     // Holding Shift while winded is panic, not rest: no refill and no recovery until you let go.
     if (!(p.winded && wants)) {
-      p.stamina = Math.min(max, p.stamina + (max / REFILL) * dt);
+      p.stamina = Math.min(max, p.stamina + (max / REFILL) * ((ctx.perks && ctx.perks.staminaRegenMul) || 1) * dt);
       if (p.winded && (p.windT += dt) >= WINDED) p.winded = false;
     }
   }

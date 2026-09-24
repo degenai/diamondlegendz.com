@@ -7,7 +7,7 @@ import { buildDistrict } from './world/district.js';
 import { initParked, updateParked } from './world/parked.js';
 import { preload } from './assets.js';
 import * as meta from './meta.js';
-import { createPlayer } from './entities/player.js';
+import { createPlayer, wearPerks } from './entities/player.js';
 import { addEntity, updateAll } from './entities/index.js';
 import * as hud from './hud.js';
 import * as massage from './massage/index.js';
@@ -101,6 +101,7 @@ function boot() {
     station: null, perks: null, runStats: null, lastSummary: null,
   };
   ctx.perks = meta.perks(ctx.meta);
+  wearPerks(player, ctx.perks);     // the loaner scrubs from the first spawn
   initEvents(ctx);                  // the run watcher's event bus (watch.html)
   initAudio(ctx, hudRoot);          // before the state wiring: its MASSAGE hook hushes the voice first
   initJuice(ctx);
@@ -136,6 +137,7 @@ function boot() {
   onEnter(STATES.TITLE, () => { hud.showTitle(); input.releaseLock(); });
   onExit(STATES.TITLE, () => hud.hideTitle());
   onEnter(STATES.MASSAGE, () => {
+    ctx.perks = meta.perks(ctx.meta); // a consolation won last run dresses the therapist now (stage.addCast)
     // Everything the last run created goes: NPCs (pivot goons included), police, the van's trip.
     if (player.vehicle) exitVehicle(player, ctx);
     player.knockedT = 0; player.massaging = false; player.palmT = 0; player.chargeT = -1; player.lungeT = 0; player.holdPalm = false; player.hp = 100; player.foldT = 0;
@@ -165,6 +167,7 @@ function boot() {
     ensureChair(ctx);
     ctx.mini = createMini();
     ctx.perks = meta.perks(ctx.meta);
+    wearPerks(player, ctx.perks);
     ctx.timeScale = 1;
     resetGun(player);
     if (prev === STATES.PIVOT) pivot.beginRun(ctx); else hud.setRunTitle(true);

@@ -42,6 +42,10 @@ export const PALETTES = {
   goon: { shirt: 0x111214, pants: 0x111214, shoes: 0x0a0a0a, hair: 0x1b1511 },
   cop: { shirt: 0x1c2a4a, pants: 0x141c30, shoes: 0x0a0a0a },
 };
+// Perk shirts (meta.perks().shirt): the loaner scrubs are the PE gold. Only the player and the
+// therapist (the same person, in and out of the course) wear them.
+export const PERK_SHIRTS = { gold: 0xffcc00 };
+export function shirtFor(kind, perk) { return PERK_SHIRTS[perk] ?? PALETTES[kind].shirt; }
 const RANDOM_SKIN = new Set(['client', 'ped', 'goon', 'cop']);
 
 let seed = 0x5eed;
@@ -174,6 +178,23 @@ function skin(g) {
     p.add(mesh); // the node's origin is its joint, so identity under the pivot
   }
   g.userData.skinned = true;
+}
+
+// Change a spawned person's colours (e.g. { shirt }). A skinned person re-skins from the template
+// (fresh colour buffers through the same region swap); one still waiting for the asset gets them
+// when it is skinned. No-op when nothing changes.
+export function setPersonColours(g, patch) {
+  const cols = g.userData.colours;
+  if (Object.keys(patch).every((k) => cols[k] === patch[k])) return false;
+  Object.assign(cols, patch);
+  if (!g.userData.skinned || !template) return true;
+  for (const name of PARTS) {
+    const p = g.userData.joints[name];
+    if (!p) continue;
+    for (const c of [...p.children]) if (c.isMesh && c.name === name + 'Mesh') { p.remove(c); c.geometry.dispose(); }
+  }
+  skin(g);
+  return true;
 }
 
 export function disposePerson(g) {

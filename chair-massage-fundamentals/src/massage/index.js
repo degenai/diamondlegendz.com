@@ -115,7 +115,7 @@ export function enter(ctx) {
   if (!st) { st = stage.createStage(ctx); ctx.station = st.station; }
   stage.removeLeaver(st, ctx.scene);
   if (st.therapist || st.client) stage.removeCast(st, ctx.scene); // a run that never reached RUN
-  stage.addCast(st, ctx.scene);
+  stage.addCast(st, ctx.scene, ctx.perks && ctx.perks.shirt);
   S.roster = roster(ctx.meta);
   S.idx = 0; S.client = null; S.totals = { you: 0, host: 0 }; S.paid = []; S.meter = null; S.time = 0;
   S.competency = 0; S.segs = []; S.seg = 0; S.live = false; S.pending = -1; S.requests = [];
