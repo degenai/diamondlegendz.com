@@ -12,7 +12,7 @@ export const MODALITIES = ['Swedish', 'Cross-fiber', 'Trigger point'];
 export const CLIENTS = [
   {
     id: 'jogger', name: 'Dana', role: 'jogger', kind: 'jogger',
-    pay: 40, bandWidth: 30, ringRadius: 0.09, travelSpeed: 0.8, fillRate: 5, spineV: -0.02,
+    pay: 40, bandWidth: 30, ringRadius: 0.13, travelSpeed: 0.8, fillRate: 5, spineV: -0.02,
     asks: ['Long strokes first. Slow. My calves are cooked.', 'Now the cross-fiber, right across the knot.', 'Now hold that spot. Right there.'],
     notIt: "That's not it.",
     lines: [
@@ -24,7 +24,7 @@ export const CLIENTS = [
   },
   {
     id: 'retiree', name: 'Walt', role: 'retiree, the bench by the pond', kind: 'retiree',
-    pay: 45, bandWidth: 18, ringRadius: 0.075, travelSpeed: 1, fillRate: 4, spineV: 0.14,
+    pay: 45, bandWidth: 18, ringRadius: 0.11, travelSpeed: 1, fillRate: 4, spineV: 0.14,
     asks: ['Long strokes first. These shoulders are old.', "Now the cross-fiber. Don't be shy about it.", 'Now hold that spot. Upper traps. Hold it.'],
     notIt: "That's not it, kid.",
     lines: [
@@ -36,7 +36,7 @@ export const CLIENTS = [
   },
   {
     id: 'dad', name: 'Marcus', role: 'dad from the playground', kind: 'dad',
-    pay: 60, bandWidth: 12, ringRadius: 0.06, travelSpeed: 1.2, fillRate: 3.5, spineV: 0.06,
+    pay: 60, bandWidth: 12, ringRadius: 0.09, travelSpeed: 1.2, fillRate: 3.5, spineV: 0.06,
     asks: ['Long strokes first. It all runs up from the forearms.', 'Now the cross-fiber, across the forearm.', 'Now hold that spot. That one. Yes.'],
     notIt: "Hm. That's not it.",
     lines: [

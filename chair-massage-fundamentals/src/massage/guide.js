@@ -89,7 +89,7 @@ function pattern(g, dt) {
     if (Math.abs(w.x) > b) { w.x = Math.sign(w.x) * (2 * b - Math.abs(w.x)); w.h = Math.PI - w.h; }
     if (Math.abs(w.y) > b) { w.y = Math.sign(w.y) * (2 * b - Math.abs(w.y)); w.h = -w.h; }
     g.u = w.x; g.v = w.y;
-    g.radius = g.baseRadius * (1 - 0.55 * ((g.t % TRIGGER.shrink) / TRIGGER.shrink));
+    g.radius = g.baseRadius * (1 - 0.45 * ((g.t % TRIGGER.shrink) / TRIGGER.shrink)); // shrinks to 55%, never a pinhole
   }
 }
 
