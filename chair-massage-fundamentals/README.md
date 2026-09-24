@@ -21,6 +21,8 @@ Phones get a polite card instead of the game.
   plaza layout, parked cars, the van's entry, the escape edge. Without it, every load rolls a new block.
 - Progress (runs, unlocks) lives in `localStorage` under `cmf.meta.v1`. Clear it to see the
   first-run version again. Volume lives under `cmf.volume`. **M** mutes.
+- Escapes unlock the main list (massage gun first); arrests and deaths unlock a smaller consolation
+  (ice pack first, six in all); leaving the chair unlocks nothing. The certificate says which track.
 - The build stamp (`src/version.js`, shown in the title footer and next to the fps) is
   `YYYY-MM-DD.N` plus the short hash of HEAD. The pilot runs `node tools/bump-version.mjs` before
   each merge; it rewrites the file from today's date and `git rev-parse --short HEAD`.
@@ -69,7 +71,7 @@ From here, Andy is a co-designer.
 | Massage clients: pay, sweet-spot band, ring size, fill rate, lines | `src/massage/clients.js` (`CLIENTS`); meter feel in `src/massage/meter.js` |
 | Mini-massage during a run | `src/run/minimassage.js` (`HOLD`, `HALF_BAND`, radii) |
 | Healing Palm and the massage gun | `src/entities/palm.js`, `src/entities/gun.js` |
-| Unlock order | `src/meta.js` (`UNLOCKS`) |
+| Unlock order: main track (escapes), consolation track (arrests, deaths) | `src/meta.js` (`UNLOCKS`, `CONSOLATIONS`) |
 | Audio balance: music, effects, voice bus levels | `src/audio.js` (`MUSIC_LEVEL`, `SFX_LEVEL`, `VOICE_LEVEL`) |
 | Voices: pitch and rate per preset, how many can talk at once | `src/voice.js` (`PRESETS`), `src/audio-wire.js` (`MAX_VOICES`) |
 | Juice: hit-stop, shake, FOV kick | `src/juice.js`; particle looks in `src/particles.js` |
@@ -108,8 +110,8 @@ and certificate share it). Types and their `data`:
 | `mini` | `phase`: `start` / `success` / `cancel`; `pay`, `sore`, or `during`, `reason` for a cancel |
 | `damage` | `source` (`bat`, `shove`, `grab`, or the vehicle label), `amount`, `hp` after |
 | `knockdown` | `who` (`player` or npc kind), `cause`, `by` (vehicle label), `mine` (you were driving) |
-| `run.end` | `reason` (`escape` / `arrest` / `death` / `left`), `time` (run seconds), `cash`, `runCash`, `host`, `tension`, `unlock` |
-| `certificate` | `outcome`, `unlock` (name), `runs`, `escapes` |
+| `run.end` | `reason` (`escape` / `arrest` / `death` / `left`), `time` (run seconds), `cash`, `runCash`, `host`, `tension`, `unlock`, `track` (`main` / `consolation` / null) |
+| `certificate` | `outcome`, `unlock` (name), `track`, `runs`, `escapes` |
 
 ## The debug handle
 

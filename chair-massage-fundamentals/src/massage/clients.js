@@ -1,5 +1,5 @@
 // Client roster (DESIGN.md "Clients") and the timed subtitle scheduler.
-import { unlockInfo } from '../meta.js';
+import { unlockInfo, has as hasPerk } from '../meta.js';
 
 // Difficulty follows the boredom curve: band width 30 -> 18 -> 12, ring 0.09 -> 0.075 -> 0.06 m,
 // ring travel speed 0.8x -> 1x -> 1.2x (third play, 2026-09-23: small rings that really move).
@@ -57,8 +57,10 @@ export const OUCH = ['Ouch.', 'Easy!', 'Ow. OW.', 'Too much, too much.', 'Hey!']
 
 const LINE_TIME = 5.0;
 
-// Between runs the jogger comes back with two new lines: one about how the last run ended,
-// one about the new unlock ({gift}). Three variants per outcome, rotated by the run count.
+// Between runs the jogger comes back with two new lines: one about how the last run ended, one
+// about what came of it. An escape brings the next main unlock ({gift}); an arrest or death brings
+// the next consolation, handed over with its own sympathy line (meta.js CONSOLATIONS), or, once
+// those run out, a line saying so. Three variants per outcome, rotated by the run count.
 const RETURN = {
   escape: [
     ['Word is you got out clean. Chair and all.', 'Somebody left {gift} by the fountain. Said it was for you.'],
@@ -66,14 +68,14 @@ const RETURN = {
     ["You made the news. Well, the neighborhood app. 'Chair guy escapes.'", 'Walt says you should have {gift}. He dropped it off.'],
   ],
   arrest: [
-    ['I saw them put you in the back of the car. Over a chair.', 'We passed the hat. Got you {gift}.'],
-    ['How was booking? Walt says the coffee is terrible.', "There's {gift} under the bench. From the regulars."],
-    ["They let you out already? The chair's still here, anyway.", 'Marcus found {gift} at a yard sale. Figured you could use it.'],
+    ['I saw them put you in the back of the car. Over a chair.'],
+    ['How was booking? Walt says the coffee is terrible.'],
+    ["They let you out already? The chair's still here, anyway."],
   ],
   death: [
-    ['You look wrecked. Somebody should work on you for once.', 'Take it easy. Here, {gift}. You earned it.'],
-    ['Heard you took a bat for this chair. Is that in the course?', 'The dads chipped in for {gift}.'],
-    ['You were face down by the fountain. I thought you were napping.', 'Dana, jogger, I know. I brought {gift}.'],
+    ['You look wrecked. Somebody should work on you for once.'],
+    ['Heard you took a bat for this chair. Is that in the course?'],
+    ['You were face down by the fountain. I thought you were napping.'],
   ],
   left: [
     ['You left the chair out here all night. Walt sat in it.', "Nobody brought you anything. You left the chair, man."],
@@ -81,22 +83,38 @@ const RETURN = {
     ['The van guys took pictures of your chair. Just sitting there.', "Don't leave it again, okay? It's the only one."],
   ],
 };
+// A failure after the consolations ran out: nothing in hand, and the jogger says why.
+const EMPTY_HANDED = "I didn't bring anything this time. Get out clean and there's something waiting.";
+// With the get-well card owned, a failure's opening line turns sympathetic.
+const GET_WELL = {
+  arrest: 'Get well soon, the card said. For a night in a holding cell. Walt insisted.',
+  death: 'Get well soon. I mean it this time. Sit, I have ice in the car.',
+};
 
 export function roster(meta) {
   if (!meta || !meta.firstPivotSeen) return CLIENTS.slice();
-  const out = meta.lastOutcome && RETURN[meta.lastOutcome];
+  const outcome = meta.lastOutcome;
+  const out = outcome && RETURN[outcome];
   if (!out) return [{ ...CLIENTS[0], segments: 2 }];
   const pair = out[(meta.runs || 0) % out.length];
   const info = unlockInfo(meta.lastUnlock);
-  const gift = info ? info.gift : 'a thank-you card';
+  const failed = outcome === 'arrest' || outcome === 'death';
+  let opener = pair[0], second;
+  if (failed) {
+    // A save from before the two tracks can hold a failure that earned a main unlock: say it plainly.
+    second = !info ? EMPTY_HANDED : info.sympathy || `The regulars chipped in for ${info.gift}.`;
+    if (hasPerk(meta, 'getwellcard') && meta.lastUnlock !== 'getwellcard') opener = GET_WELL[outcome];
+  } else {
+    second = pair[1].replace('{gift}', info ? info.gift : 'a thank-you card');
+  }
   const base = CLIENTS[0];
   return [{
     ...base,
     segments: 2, // between runs: Swedish, then cross-fiber
     asks: ['Back again. Long strokes first. Same calves, new problems.', base.asks[1]],
     lines: [
-      [7.0, pair[0]],
-      [14.0, pair[1].replace('{gift}', gift)],
+      [7.0, opener],
+      [14.0, second],
       [22.0, base.lines[2][1]],
     ],
   }];

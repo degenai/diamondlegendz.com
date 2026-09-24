@@ -291,7 +291,29 @@ Persisted in localStorage under `cmf.meta.v1`:
   (faster pickup), "regular client" (one guaranteed cooling client per run), gun range 2, cart keys (start
   with a cart), franchise disguise (goons ignore you for 20s once), gun range 3 "Pro", "block party"
   (peds cheer, cops slower), skippable module review (any key skips the van cutscene).
-Each SUMMARY unlocks the next item. Massage phase between runs mentions the unlock in client dialogue.
+Ending changes the reward (ruled 2026-09-24: "the rewards for failing and for succeeding seem to be
+the same; the roguelike gift is incremented regardless"). Escapes unlock the main list; failures unlock
+something smaller; leaving the chair unlocks nothing.
+- **Main track** (`unlocks`, `UNLOCKS` in `src/meta.js`, the order above): the next item on `escape` only.
+- **Consolation track** (`consolations`, `CONSOLATIONS`): the next item on `arrest` or `death`, each once,
+  in this order. Exhausted, a failure grants nothing and the certificate says "No unlock. Escape for the
+  next one."
+
+| Consolation | Effect | Perk flag (`ctx.perks`) | Status |
+|---|---|---|---|
+| `icepack` | picking up the chair heals 20 hp, once per run | `icePack` (bool) | pending: `src/entities/player.js` (chair pickup) must read it |
+| `coffee` | stamina refills 25% faster | `staminaRegenMul` (1.25) | pending: `src/entities/player.js` (stamina refill) |
+| `parkingpass` | one parked sedan at the plaza edge nearest the chair | `parkingPass` (bool) | pending: `src/world/*` / `src/run/spawner.js` (parked cars) |
+| `tipjar` | +$5 per mini-massage | `tipJar` (5, else 0) | pending: `src/run/minimassage.js` (pay) |
+| `getwellcard` | jogger's opening line after a failure turns sympathetic; "Get well soon" stamp on failure certificates | `getWellCard` (bool) | live: `src/massage/clients.js`, `src/run/summary.js` |
+| `loanerscrubs` | second shirt colour for the player | `shirt` (`'gold'`, else null) | pending: `src/entities/player.js` (shirt material) |
+
+The certificate names the track: red wax and "UNLOCKED" for a main item, a smaller grey seal and
+"CONSOLATION" for a consolation. Between runs the jogger mentions it: an escape's `{gift}` line ("I brought
+a massage gun"), or the consolation's own sympathy line ("I brought you an ice pack. You looked rough.").
+`lastUnlock` (id) and `lastTrack` (`main` / `consolation`) record the last reward; `run.end` and
+`certificate` events carry `track`. Old saves: their mixed `unlocks` array stays the main track as is,
+`consolations` loads as `[]`.
 
 ## Technical contracts
 

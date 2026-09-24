@@ -1,6 +1,8 @@
 // SUMMARY: the continuing-education certificate parody on the beige course skin. Run time, cash
 // raised for the host cause (half the run's cash plus the massage phase's host share), tension
-// released (palm and gun hits plus mini-massages), and the one unlock under a wax seal.
+// released (palm and gun hits plus mini-massages), and the one unlock under a wax seal: red wax and
+// UNLOCKED for an escape's main-track item, a smaller grey seal and CONSOLATION for an arrest's or
+// death's consolation item (meta.js). With the get-well card, failures carry a "Get well soon" stamp.
 import * as meta from '../meta.js';
 import { emit } from '../events.js';
 
@@ -45,8 +47,10 @@ export function showSummary(ctx, root, onReturn) {
   const seconds = Math.max(0, endT - R.start);
   const host = (ctx.runCash || 0) / 2 + (ctx.massageTotals ? ctx.massageTotals.host : 0);
   const unlock = meta.recordRun(ctx.meta, reason, seconds, (ctx.runCash || 0) + (ctx.massageTotals ? ctx.massageTotals.you : 0));
-  ctx.lastSummary = { reason, seconds, host, tension: R.tension, unlock: unlock ? unlock.id : null };
-  emit('run.end', { reason, time: Math.round(seconds * 10) / 10, cash: (ctx.runCash || 0) + (ctx.massageTotals ? ctx.massageTotals.you : 0), runCash: ctx.runCash || 0, host, tension: R.tension, unlock: unlock ? unlock.id : null });
+  const track = unlock ? unlock.track : null;
+  const failed = reason === 'arrest' || reason === 'death';
+  ctx.lastSummary = { reason, seconds, host, tension: R.tension, unlock: unlock ? unlock.id : null, track };
+  emit('run.end', { reason, time: Math.round(seconds * 10) / 10, cash: (ctx.runCash || 0) + (ctx.massageTotals ? ctx.massageTotals.you : 0), runCash: ctx.runCash || 0, host, tension: R.tension, unlock: unlock ? unlock.id : null, track });
 
   hideSummary();
   wrap = el('div', 'cert-wrap', root);
@@ -71,12 +75,23 @@ export function showSummary(ctx, root, onReturn) {
   seal.setAttribute('aria-hidden', 'true');
   const ut = el('div', 'cert-unlock-text', u);
   if (unlock) {
-    el('div', 'cert-unlock-kicker', ut, 'Unlocked');
+    if (track === 'consolation') {
+      // Smaller seal, grey wax (inline: ui.css belongs to the course skin and knows one seal).
+      u.classList.add('cert-consolation');
+      Object.assign(seal.style, { width: '44px', height: '44px', fontSize: '20px', color: '#4a4a4a',
+        background: 'radial-gradient(circle at 35% 30%, #c4c4c4, #8a8a8a 60%, #5c5c5c)', textShadow: '1px 1px 0 rgba(255,255,255,.45)' });
+    }
+    el('div', 'cert-unlock-kicker', ut, track === 'consolation' ? 'Consolation' : 'Unlocked');
     el('div', 'cert-unlock-name', ut, unlock.name);
     el('div', 'cert-unlock-desc', ut, unlock.desc);
   } else {
     u.classList.add('cert-none');
-    el('div', 'cert-unlock-name', ut, reason === 'left' ? 'No unlock. You left the chair.' : 'Nothing left to unlock.');
+    el('div', 'cert-unlock-name', ut, reason === 'left' ? 'No unlock. You left the chair.' : failed ? meta.NO_CONSOLATION : 'Nothing left to unlock.');
+  }
+  if (failed && meta.has(ctx.meta, 'getwellcard')) {
+    const gw = el('div', 'cert-getwell', c, 'Get well soon');
+    Object.assign(gw.style, { display: 'inline-block', margin: '2px 0 6px', padding: '2px 8px', border: '2px solid #3d5a73',
+      color: '#3d5a73', font: 'bold 12px var(--cm-serif)', letterSpacing: '.08em', textTransform: 'uppercase', transform: 'rotate(-4deg)', opacity: '.8' });
   }
   const btn = el('button', 'cert-btn', c, 'Return to the chair');
   btn.type = 'button';
@@ -86,7 +101,7 @@ export function showSummary(ctx, root, onReturn) {
   el('div', 'cert-foot', c, BYLINE);
   const a = el('a', 'cert-last', c, LAST_LINE);
   a.href = LINK; a.target = '_blank'; a.rel = 'noopener';
-  emit('certificate', { outcome: OUTCOME[reason] || OUTCOME.arrest, unlock: unlock ? unlock.name : null, runs: m.runs, escapes: m.escapes });
+  emit('certificate', { outcome: OUTCOME[reason] || OUTCOME.arrest, unlock: unlock ? unlock.name : null, track, runs: m.runs, escapes: m.escapes });
   return ctx.lastSummary;
 }
 

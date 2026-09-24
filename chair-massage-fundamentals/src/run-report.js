@@ -101,7 +101,7 @@ export function runStats(events) {
       else if (d.phase === 'cancel' && d.during === 'massage') st.miniCancels++;
     } else if (e.type === 'run.end') {
       st.ending = d.reason; st.finished = true; st.duration = d.time;
-      st.cash = d.cash; st.tension = d.tension; st.unlock = d.unlock;
+      st.cash = d.cash; st.tension = d.tension; st.unlock = d.unlock; st.track = d.track || (d.unlock ? 'main' : null);
     }
   }
   if (!st.ending) st.duration = st.lastT;
@@ -229,11 +229,17 @@ export function reportRun(events) {
   }
   const end = endingLine(st);
   if (end) out.push(end);
-  if (st.finished) out.push(`cash ${usd(st.cash)} · tension released ${st.tension} · peak stars ${st.maxStars}${st.unlock ? ` · unlocked ${st.unlock}` : ''}`);
+  if (st.finished) out.push(`cash ${usd(st.cash)} · tension released ${st.tension} · peak stars ${st.maxStars}${unlockNote(st)}`);
   out.push(`Verdict: ${verdict(st)}`);
   return out.join('\n');
 }
 
+// The unlock the run earned, by track: escapes take the main list, arrests and deaths a consolation.
+function unlockNote(st) {
+  if (st.unlock) return st.track === 'consolation' ? ` · consolation ${st.unlock}` : ` · unlocked ${st.unlock} (main)`;
+  if (st.ending === 'arrest' || st.ending === 'death') return ' · no consolation left';
+  return '';
+}
 const endWord = (e) => ENDING[e] || 'unfinished';
 function chairStory(st) {
   if (st.throws.length) return `thrown at ${clock(st.throws[0].t)}`;
