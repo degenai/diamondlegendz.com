@@ -29,11 +29,12 @@ const COOLDOWN = 1.5;
 const FLANK_OFF = 6;
 const SIT_TIME = 8;
 // Opening beat (DESIGN.md PIVOT rulings): for 8 s from the first contact (a goon within 3 m of the
-// player; ctx.grabUntil is Infinity until then) the goons only shove and grab: 10 damage, no
+// player; ctx.grabUntil is Infinity until then) the goons only shove and grab: 5 damage, no
 // knockdown, a 1.5 m push, "Come with us." on each goon's first contact. The first Healing Palm or
 // gun hit ends the window early (palm.js, gun.js).
 const GRAB_CD = 6;
-const GRAB_GAP = 2.2;         // s between shoves landing, pack-wide
+const GRAB_DMG = 5;           // hp per grab-window shove (was 10; ruled 2026-09-24 after run 7)
+const GRAB_GAP = 3;           // s between shoves landing, pack-wide (was 2.2; ruled 2026-09-24)
 const GRAB_PUSH = 9.5;       // m/s; the player's 30 m/s^2 ground decel turns it into about 1.5 m
 export const GRAB_WINDOW = 8;
 const grabbing = (ctx) => ctx.time < (ctx.grabUntil ?? -1);
@@ -281,10 +282,10 @@ function strike(e, ctx) {
   if (p.vehicle || d2 > reach * reach || p.knockedT > 0) return;
   const d = Math.sqrt(d2) || 1;
   if (e.grab) {
-    // One shove lands per GRAB_GAP across the whole pack: at most four in the 8 s window (40 hp).
+    // One shove lands per GRAB_GAP across the whole pack: at most three in the 8 s window (15 hp).
     if (ctx.lastGrabHitT !== undefined && ctx.time - ctx.lastGrabHitT < GRAB_GAP) return;
     ctx.lastGrabHitT = ctx.time;
-    hurtPlayer(ctx, 10, 0, dx / d, dz / d, GRAB_PUSH, 'grab');
+    hurtPlayer(ctx, GRAB_DMG, 0, dx / d, dz / d, GRAB_PUSH, 'grab');
     shake(ctx, 0.2);
     sfx(ctx, 'thud', p.pos.x, p.pos.z, 0.35);
     if (!e.grabbed) { e.grabbed = true; say(ctx, e, 'Come with us.'); }

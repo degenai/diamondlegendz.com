@@ -136,9 +136,29 @@ function buildAlley(b, colliders, nav, A) {
     addBox(b, 0.45, 0.4, 0.4, 0x222428, bx, DECK_Y + 0.2, bz, yaw + k * 0.6);
   }
   colliders.push(sideBox(edge, Math.min(u + s * 0.2, u + s * 1.2), Math.max(u + s * 0.2, u + s * 1.2), d0, d1, DECK_Y + DH, { tag: 'dumpster' }));
+  bollards(b, colliders, A);
   const P = (uu, d) => { const [x, z] = toXZ(edge, uu, d); return { x, z }; };
   A.nav = addSpur(nav, P(u, OUTER_WALK), [P(u, A.mouth + 2), P(u - s * 0.6, d0 - 0.5), P(u - s * 0.55, d1 + 0.4),
     P(u + s * 0.7, d1 + 0.8), P(u, d1 + 3), P(u, 77.3)]);
+}
+
+// Bollards (ruled 2026-09-24 after run 7 wedged a cart in an alley): two posts just inside the
+// mouth, 0.5 m tall, r 0.12, leaving a 1.0 m gap centred on the alley. A 0.4 m body walks through
+// (the nav spur runs down the centre line); every vehicle is wider (the cart's body circles are
+// r 0.6), and the 0.46 m either side between post and wall is narrower still. The mouth here is
+// always the full 2.4 m alley (both lot walls reach the bollard line), so no kerb-line post is
+// needed; a wider mouth would need one. Static cylinders, drawn into the block's static batch.
+const BOLLARD_R = 0.12, BOLLARD_H = 0.5, BOLLARD_GAP = 1.0;
+function bollards(b, colliders, A) {
+  const d = A.mouth + 0.25;
+  A.bollardD = d;
+  const off = BOLLARD_GAP / 2 + BOLLARD_R;
+  for (const s of [-1, 1]) {
+    const [x, z] = toXZ(A.edge, A.u + s * off, d);
+    addCyl(b, BOLLARD_R, BOLLARD_R, BOLLARD_H - 0.06, 8, 0x3c3f44, x, DECK_Y, z);
+    addCyl(b, BOLLARD_R + 0.005, BOLLARD_R + 0.005, 0.06, 8, 0xe0b42c, x, DECK_Y + BOLLARD_H - 0.06, z);  // yellow cap
+    colliders.push({ kind: 'cyl', x, z, r: BOLLARD_R, maxY: DECK_Y + BOLLARD_H, tag: 'bollard', noCam: true });
+  }
 }
 
 export function buildBuildings(B) {
