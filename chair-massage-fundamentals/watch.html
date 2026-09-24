@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;">
+<title>Run Watcher · Chair Massage Fundamentals</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="src/ui.css">
+<style>
+  :root { --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
+    --cm-paper: #f3ecd8; --cm-ink: #3b3326; --cm-rule: #cdbf9a; --cm-accent: #6b5a2e; --cm-ok: #4a7a52;
+    --cm-serif: Georgia, "Times New Roman", Times, serif; --bg: #f3f3ef; --bar: #3d5a73; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: #333; font: 13px var(--mono); }
+  [hidden] { display: none !important; }
+  .w-bar { background: var(--bar); color: #e9eef2; padding: 8px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .w-bar h1 { font: normal 16px var(--cm-serif); margin: 0 auto 0 0; }
+  .w-bar .w-live { font-size: 11px; color: #cfe0ee; }
+  .w-bar button, .w-bar select { font: 12px var(--mono); background: #fff; color: #23394d; border: 1px solid #9fb3c4; padding: 4px 8px; cursor: pointer; }
+  .w-bar button:hover { background: #e6eef5; }
+  .w-main { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 12px; padding: 12px 16px; height: calc(100vh - 58px); box-sizing: border-box; }
+  .w-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: auto; }
+  .w-card { background: #fff; border: 1px solid #d6d6cf; padding: 10px 14px; }
+  .w-card h2 { font: normal 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--bar); margin: 0 0 8px; }
+  .w-run { background: var(--cm-paper); border-color: var(--cm-rule); font-family: var(--cm-serif); }
+  .w-run h2 { color: var(--cm-accent); font-family: var(--cm-serif); }
+  .w-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 14px; font: 13px var(--mono); }
+  .w-grid span { color: #8a7b58; font-size: 11px; display: block; }
+  .w-grid b { font-weight: normal; color: #2d2616; font-size: 15px; }
+  .w-strip { display: flex; height: 16px; margin-top: 10px; border: 1px solid var(--cm-rule); background: #fffaf0; }
+  .w-strip i { display: block; min-width: 1px; }
+  .w-s0 { background: #e2dccb; } .w-s1 { background: #ffd23a; } .w-s2 { background: #f39b2f; } .w-s3 { background: #e0533d; } .w-s4 { background: #9b3fb5; }
+  .w-strip-legend { font-size: 11px; color: #8a7b58; margin-top: 3px; display: flex; justify-content: space-between; }
+  table.w-runs { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .w-runs th { text-align: left; font-weight: normal; color: #777; border-bottom: 1px solid #ddd; padding: 3px 6px; }
+  .w-runs td { padding: 3px 6px; border-bottom: 1px solid #eee; white-space: nowrap; }
+  .w-runs tr.sel td { background: #e6eef5; }
+  .w-runs tbody tr { cursor: pointer; }
+  .w-end-escape { color: #3a6242; } .w-end-arrest, .w-end-death { color: #8f1f16; } .w-end-left { color: #a0463a; }
+  pre.w-report { margin: 0; white-space: pre-wrap; font: 12px/1.5 var(--mono); color: #2d2616; }
+  .w-feed { flex: 1; min-height: 0; overflow: auto; background: #1e2227; color: #d6d6d6; font: 12px/1.45 var(--mono); padding: 6px 8px; border: 1px solid #111; }
+  .w-feed div { white-space: pre-wrap; }
+  .w-feed .k { display: inline-block; width: 80px; }
+  .w-feed .tm { color: #7d8590; }
+  .ev-state .k { color: #9fb3c4; } .ev-run-start .k, .ev-run-end .k, .ev-certificate .k { color: #fff; font-weight: bold; }
+  .ev-wanted .k { color: #ffd23a; } .ev-palm .k, .ev-gun .k { color: #7ff0c0; } .ev-vehicle .k { color: #7fb8ff; }
+  .ev-chair .k { color: #f2d27a; } .ev-mini .k { color: #9cf29a; } .ev-damage .k, .ev-knockdown .k { color: #ff6a5c; }
+  .ev-pivot .k { color: #c9a2ff; } .ev-massage .k { color: #e6cf8e; }
+  .w-empty { color: #999; font-style: italic; }
+  .w-note { font-size: 11px; color: #cfe0ee; }
+  @media (max-width: 800px) { .w-main { grid-template-columns: 1fr; height: auto; } .w-feed { height: 60vh; } }
+</style>
+</head>
+<body>
+<div class="w-bar">
+  <h1>Run Watcher</h1>
+  <span class="w-live" id="w-live">listening</span>
+  <select id="w-scope" aria-label="Download scope"><option value="all">All runs</option><option value="sel">Selected run</option></select>
+  <button id="w-download" type="button">Download run log (JSON)</button>
+  <button id="w-copy" type="button">Copy last run</button>
+  <button id="w-clear" type="button">Clear log</button>
+  <span class="w-note" id="w-note"></span>
+</div>
+<div class="w-main">
+  <div class="w-col">
+    <div class="w-card w-run" id="w-card">
+      <h2 id="w-card-title">Current run</h2>
+      <div class="w-grid">
+        <div><span>State</span><b id="c-state">-</b></div>
+        <div><span>Duration</span><b id="c-dur">-</b></div>
+        <div><span>Stars (peak)</span><b id="c-stars">-</b></div>
+        <div><span>Hits (palm / gun)</span><b id="c-hits">-</b></div>
+        <div><span>Chair</span><b id="c-chair">-</b></div>
+        <div><span>Cash</span><b id="c-cash">-</b></div>
+      </div>
+      <div class="w-strip" id="c-strip" title="Wanted stars over the run"></div>
+      <div class="w-strip-legend"><span>0:00</span><span id="c-strip-end"></span></div>
+    </div>
+    <div class="w-card">
+      <h2>Finished runs</h2>
+      <table class="w-runs">
+        <thead><tr><th>Run</th><th>Seed</th><th>Build</th><th>Ending</th><th>Time</th><th>Max stars</th><th>Tension</th><th>Cash</th></tr></thead>
+        <tbody id="w-rows"><tr><td colspan="8" class="w-empty">No finished runs yet. Open the game in another tab and play.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="w-card">
+      <h2 id="w-report-title">Run report</h2>
+      <pre class="w-report" id="w-report">Pick a finished run.</pre>
+    </div>
+  </div>
+  <div class="w-col">
+    <div class="w-feed" id="w-feed" aria-live="off"></div>
+  </div>
+</div>
+<script type="module" src="src/watch.js"></script>
+</body>
+</html>

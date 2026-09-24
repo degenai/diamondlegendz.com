@@ -5,6 +5,7 @@
 import { supportHeight, pushCircle, circleVsCircle } from '../physics.js';
 import { throwChair } from './chair.js';
 import { crashFx, shake, sfx } from '../juice.js';
+import { emit } from '../events.js';
 
 const GRAVITY = 18;
 const DMG_FROM = 4;        // m/s impact before hp drops
@@ -160,6 +161,7 @@ export function collidePlayer(v, p, ctx) {
   const grace = p.exitGrace && p.exitGrace.v === v && p.exitGrace.t > 0;
   if (speed > HIT_SPEED && !(p.knockedT > 0) && !grace) {
     hitEntity(v, p);
+    emit('knockdown', { who: 'player', cause: 'vehicle', by: v.spec.label });
     shake(ctx, Math.min(0.8, speed / 15)); sfx(ctx, 'thud', p.pos.x, p.pos.z, Math.min(1, speed / 12));
   } else {
     const vn = p.vel.x * nx + p.vel.z * nz;
@@ -187,6 +189,7 @@ export function collideNpc(v, e, ctx) {
   const speed = Math.hypot(v.vel.x, v.vel.z);
   if (speed > HIT_SPEED && !(e.knockedT > 0)) {
     hitEntity(v, e, { knockT: 3, damage: false });
+    emit('knockdown', { who: e.kind, cause: 'vehicle', by: v.spec.label, mine: !!ctx.player && v.driver === ctx.player });
     shake(ctx, Math.min(0.5, speed / 25), e.pos.x, e.pos.z); sfx(ctx, 'thud', e.pos.x, e.pos.z, Math.min(0.8, speed / 15));
     if (e.onVehicleHit) e.onVehicleHit(e, v, ctx);
   }

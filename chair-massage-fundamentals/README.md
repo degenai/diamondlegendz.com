@@ -74,6 +74,43 @@ From here, Andy is a co-designer.
 | Voices: pitch and rate per preset, how many can talk at once | `src/voice.js` (`PRESETS`), `src/audio-wire.js` (`MAX_VOICES`) |
 | Juice: hit-stop, shake, FOV kick | `src/juice.js`; particle looks in `src/particles.js` |
 
+## The run watcher
+
+Like the poker companion: the game emits events, a watcher alongside shows them, and a run report
+comes out. Click **Open watcher** in the title footer (or open `watch.html` next to `index.html`) to
+get a second tab on the same origin; it works on the live GitHub Pages site with no server. The game
+posts every event on a `BroadcastChannel('cmf')` and keeps the newest 2,000 in `localStorage` under
+`cmf.events.v1`, so a watch tab opened late (or reloaded) replays what it missed. The watch page
+shows a live feed, a card for the current run (duration, a strip of the wanted stars over time,
+palm and gun hits, where the chair is, cash, state), a table of finished runs, and under the
+selected run a plain-text report from `src/run-report.js`: an m:ss timeline ("0:14 wanted 1 (stole
+a sedan)", "1:02 chair loaded in the cart"), a one-line verdict computed from the numbers, a "vs run
+N" line against the run before it, and a line against the best escape so far. Rules only, no model:
+"Copy last run" copies the report and the run's events as JSON, ready to paste to a model for a
+richer read. "Download run log (JSON)" saves all runs or the selected one; "Clear log" empties the
+buffer. The hooks are one-liners at the call sites; the bus is `src/events.js`.
+
+Every event is `{ t, wall, run, type, data }`: `t` is game time in seconds (`ctx.time`), `wall` is
+`Date.now()`, `run` is `meta.runs + 1` taken on entering MASSAGE and RUN (the massage, pivot, run
+and certificate share it). Types and their `data`:
+
+| type | data |
+|---|---|
+| `state` | `from`, `to` (every `setState`) |
+| `massage` | `roster` (clients this session) |
+| `pivot` | `beat`: `vanStop` / `line` / `unlock` / `skip`; `at` (pivot seconds), or `speaker`, `text` for a line |
+| `run.start` | `seed`, `build` (`VERSION`), `unlocks`, `perks`, `cash` (from the massage), `fromPivot` |
+| `wanted` | `level`, `prev`, `heat`, `cause` (`stealVehicle`, `carjack`, `goonHit`, `pedHurt`, `vehicleWreck`, `propertyHit`, `chaos`, `decay`, `massage`, `drop`) |
+| `palm` | `target` (npc kind hit) |
+| `gun` | `target` (npc kind knocked down), `battery` |
+| `vehicle` | `act`: `enter` / `carjack` / `exit`; `type` (vehicle label), `stolen` |
+| `chair` | `act`: `pickup` / `take` / `load` / `throw` / `setdown`; `where`: `ground` / `player` / `vehicle`; `vehicle`; `throw` |
+| `mini` | `phase`: `start` / `success` / `cancel`; `pay`, `sore`, or `during`, `reason` for a cancel |
+| `damage` | `source` (`bat`, `shove`, `grab`, or the vehicle label), `amount`, `hp` after |
+| `knockdown` | `who` (`player` or npc kind), `cause`, `by` (vehicle label), `mine` (you were driving) |
+| `run.end` | `reason` (`escape` / `arrest` / `death` / `left`), `time` (run seconds), `cash`, `runCash`, `host`, `tension`, `unlock` |
+| `certificate` | `outcome`, `unlock` (name), `runs`, `escapes` |
+
 ## The debug handle
 
 Open the browser console. `window.CMF` exposes the running game:
@@ -83,5 +120,6 @@ Open the browser console. `window.CMF` exposes the running game:
 - `CMF.debug.finishClient()` completes the current massage client. `CMF.debug.palm()` throws a Healing Palm.
 - `CMF.meta` shows saved progress. `CMF.audio` exposes the AudioContext and the voices. `CMF.juice` exposes hit-stop, shake, and particles.
 - `CMF.renderer.info.render.calls` gives the draw calls last frame (the budget is 400).
+- In the watch tab, `window.__watch` holds the events, the run groups and the last copy/download.
 
 Made by The People's Elbow, a.k.a. Alex Adamczyk, LMT.

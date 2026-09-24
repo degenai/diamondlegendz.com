@@ -2,6 +2,7 @@
 // raised for the host cause (half the run's cash plus the massage phase's host share), tension
 // released (palm and gun hits plus mini-massages), and the one unlock under a wax seal.
 import * as meta from '../meta.js';
+import { emit } from '../events.js';
 
 const OUTCOME = { escape: 'ESCAPED', arrest: 'WAS ARRESTED', death: 'WAS OVERWORKED', left: 'LEFT THE CHAIR' };
 export const BYLINE = "Made by The People's Elbow, a.k.a. Alex Adamczyk, LMT.";
@@ -45,6 +46,7 @@ export function showSummary(ctx, root, onReturn) {
   const host = (ctx.runCash || 0) / 2 + (ctx.massageTotals ? ctx.massageTotals.host : 0);
   const unlock = meta.recordRun(ctx.meta, reason, seconds, (ctx.runCash || 0) + (ctx.massageTotals ? ctx.massageTotals.you : 0));
   ctx.lastSummary = { reason, seconds, host, tension: R.tension, unlock: unlock ? unlock.id : null };
+  emit('run.end', { reason, time: Math.round(seconds * 10) / 10, cash: (ctx.runCash || 0) + (ctx.massageTotals ? ctx.massageTotals.you : 0), runCash: ctx.runCash || 0, host, tension: R.tension, unlock: unlock ? unlock.id : null });
 
   hideSummary();
   wrap = el('div', 'cert-wrap', root);
@@ -84,6 +86,7 @@ export function showSummary(ctx, root, onReturn) {
   el('div', 'cert-foot', c, BYLINE);
   const a = el('a', 'cert-last', c, LAST_LINE);
   a.href = LINK; a.target = '_blank'; a.rel = 'noopener';
+  emit('certificate', { outcome: OUTCOME[reason] || OUTCOME.arrest, unlock: unlock ? unlock.name : null, runs: m.runs, escapes: m.escapes });
   return ctx.lastSummary;
 }
 

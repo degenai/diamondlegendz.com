@@ -11,6 +11,7 @@ import { addEntity } from './index.js';
 import { nearestNav } from './npc-nav.js';
 import { takeCivilian } from '../run/traffic.js';
 import { makeRng } from '../rng.js';
+import { emit } from '../events.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
 export const CHAIR_DIST = 2;
@@ -78,8 +79,9 @@ export function handleInteract(p, ctx) {
   return it.act;
 }
 
-export function enterVehicle(p, v, ctx) {
+export function enterVehicle(p, v, ctx, how = 'enter') {
   if (p.knockedT > 0 || v.driver) return false;
+  emit('vehicle', { act: how, type: v.spec.label, stolen: how === 'carjack' || !!v.parked || !!v.stolen });
   if (v.parked) {                      // stealing: wanted +1 the first time, +0.5 after
     v.stolen = true;
     if (ctx.wanted) ctx.wanted.report('stealVehicle');
@@ -120,7 +122,7 @@ export function carjack(p, v, ctx) {
   if (ctx.wanted) ctx.wanted.report('carjack');
   emitChaos(ctx, x, z, 'carjack');
   v.parked = false; v.stolen = true;
-  enterVehicle(p, v, ctx);
+  enterVehicle(p, v, ctx, 'carjack');
   ctx.lastCarjack = { t: ctx.time, v: v.id, ped: e.id };
   return true;
 }
@@ -171,6 +173,7 @@ export function exitVehicle(p, ctx) {
   p.camPitch = 0.25;
   p.camBlendT = 0;
   unseatRig(p.mesh, p.seatHome || ctx.scene, p.pos, p.yaw);
+  emit('vehicle', { act: 'exit', type: v.spec.label, stolen: !!v.stolen });
   v.driver = null;
   p.vehicle = null;
   return true;

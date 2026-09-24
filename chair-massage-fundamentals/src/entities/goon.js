@@ -246,17 +246,17 @@ function strike(e, ctx) {
     // One shove lands per GRAB_GAP across the whole pack: at most four in the 8 s window (40 hp).
     if (ctx.lastGrabHitT !== undefined && ctx.time - ctx.lastGrabHitT < GRAB_GAP) return;
     ctx.lastGrabHitT = ctx.time;
-    hurtPlayer(ctx, 10, 0, dx / d, dz / d, GRAB_PUSH);
+    hurtPlayer(ctx, 10, 0, dx / d, dz / d, GRAB_PUSH, 'grab');
     shake(ctx, 0.2);
     sfx(ctx, 'thud', p.pos.x, p.pos.z, 0.35);
     if (!e.grabbed) { e.grabbed = true; say(ctx, e, 'Come with us.'); }
   } else if (bat) {
-    hurtPlayer(ctx, 20, 1.2, dx / d, dz / d, 4);
+    hurtPlayer(ctx, 20, 1.2, dx / d, dz / d, 4, 'bat');
     say(ctx, p, 'WHACK', 'thud');
     shake(ctx, 0.65);
     sfx(ctx, 'thud', p.pos.x, p.pos.z, 1);
   } else {
-    hurtPlayer(ctx, 10, 0, dx / d, dz / d, 4);
+    hurtPlayer(ctx, 10, 0, dx / d, dz / d, 4, 'shove');
     say(ctx, p, 'shove', 'speech dim');
   }
 }

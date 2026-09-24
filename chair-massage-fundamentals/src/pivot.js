@@ -21,6 +21,7 @@ import { pivotLines } from './pivot-lines.js';
 import { spawnBoss, dropBoss, showSkip, hideSkip, spawnRanger, stopPoint, pivotCamera } from './pivot-cast.js';
 import { has } from './meta.js';
 import { floorHeightAt } from './physics.js';
+import { emit } from './events.js';
 
 const STOP_AT = 8;          // metres from the chair
 const CRUISE = 12;
@@ -112,6 +113,7 @@ function arrive(ctx) {
   P.phase = 'parked';
   P.arriveT = P.t;
   P.next = P.t + 0.3;
+  emit('pivot', { beat: 'vanStop', at: Math.round(P.t * 10) / 10 });
   if (P.van) { brake(P.van); P.van.vel.set(0, 0, 0); P.van.speed = 0; }
 }
 
@@ -141,6 +143,7 @@ function walkNpc(e, goal, speed, dt, ctx) {
 }
 
 function line(ctx, speaker, text, preset) {
+  emit('pivot', { beat: 'line', speaker: preset, text });
   const b = bubble(ctx, speaker, text, { skin: 'run', preset });
   return b ? b.life - 0.8 : 2;
 }
@@ -192,7 +195,7 @@ export function update(dt, ctx) {
   }
   pivotCamera(dt, ctx, P);
   musicCue(ctx);
-  if (P.runAt >= 0 && P.t >= P.runAt) setState(STATES.RUN);
+  if (P.runAt >= 0 && P.t >= P.runAt) { emit('pivot', { beat: 'unlock', at: Math.round(P.t * 10) / 10 }); setState(STATES.RUN); }
 }
 
 // The skipPivot unlock: jump to the moment controls unlock, as if the scene had played. The van
@@ -226,6 +229,7 @@ function skip(ctx) {
   r.vel.set(0, 0, 0); r.mesh.position.copy(r.pos);
   P.rangerEnd = P.t;                        // his permit line is behind us: the hang line comes at once
   P.lineIdx = P.lines.goons.length + 2; P.next = Infinity; P.runAt = P.t;
+  emit('pivot', { beat: 'skip', at: Math.round(P.t * 10) / 10 });
   setState(STATES.RUN);
 }
 

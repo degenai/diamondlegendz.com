@@ -7,6 +7,7 @@ import { loadMesh } from '../assets.js';
 import { floorHeightAt, overlapsFootprint } from '../physics.js';
 import { STATION_YAW } from '../massage/stage.js';
 import { sfx } from '../juice.js';
+import { emit } from '../events.js';
 
 const FOLD = 0.22;                  // folded depth factor (the chair collapses to a slab)
 const BACK_MOUNT = { pos: [0, -0.5, 0.12], rot: [0, 0, 0], scale: 0.85 };
@@ -61,6 +62,7 @@ export function pickUpChair(ctx, p) {
   const back = p.mesh.userData.back;
   if (!c || !back) return false;
   const cs = chairState(ctx.world);
+  emit('chair', { act: cs.vehicle ? 'take' : 'pickup', where: 'player', vehicle: cs.vehicle ? cs.vehicle.spec.label : null });
   if (cs.vehicle) cs.vehicle.chairLoaded = false;
   mount(c, back, BACK_MOUNT);
   Object.assign(chairState(ctx.world), { setDown: false, where: 'player', vehicle: null });
@@ -73,6 +75,7 @@ export function loadChair(ctx, v) {
   if (!c) return false;
   mount(c, v.body, v.spec.chair);
   v.chairLoaded = true;
+  emit('chair', { act: 'load', where: 'vehicle', vehicle: v.spec.label });
   Object.assign(chairState(ctx.world), { setDown: false, where: 'vehicle', vehicle: v });
   sfx(ctx, 'chairFold', v.pos.x, v.pos.z);
   return true;
@@ -98,6 +101,7 @@ export function throwChair(ctx, v) {
   const home = ctx.world._chairHome;
   if (home) c.scale.copy(home.scale); else c.scale.set(1, 1, 1);
   Object.assign(chairState(ctx.world), { setDown: false, where: 'ground', vehicle: null, thrownAt: ctx.time });
+  emit('chair', { act: 'throw', where: 'ground', vehicle: v.spec.label, throw: true });
   return true;
 }
 

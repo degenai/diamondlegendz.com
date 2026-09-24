@@ -12,6 +12,7 @@ import { hostile } from '../entities/goon.js';
 import { copHostile } from '../entities/cop.js';
 import { THERAPIST } from '../massage/stage.js';
 import { sfx } from '../juice.js';
+import { emit } from '../events.js';
 
 const CALL_R2 = 12 * 12;
 const THREAT_R2 = 6 * 6;
@@ -38,6 +39,7 @@ export function setChairDown(p, ctx) {
   const home = ctx.world._chairHome;
   if (home) c.scale.copy(home.scale); else c.scale.set(1, 1, 1);
   Object.assign(chairState(ctx.world), { where: 'ground', vehicle: null, setDown: true });
+  emit('chair', { act: 'setdown', where: 'ground' });
   const M = ctx.mini;
   M.phase = 'waiting'; M.cool = 0.5; M.chairYaw = p.yaw + Math.PI; M.pos.set(x, y, z);
   sfx(ctx, 'chairFold', x, z);
@@ -56,6 +58,7 @@ export function startMassage(p, ctx) {
   if (!canStart(p, ctx)) return false;
   M.phase = 'massage'; M.progress = 0; M.t = 0; M.pressure = 0.5; M.startT = ctx.time;
   p.massaging = true;
+  emit('mini', { phase: 'start', sore: !!(M.client && M.client.sore) });
   p.vel.set(0, 0, 0);
   // Stand at the therapist's spot beside the chair, facing the client's back.
   const s = Math.sin(M.chairYaw), c = Math.cos(M.chairYaw);
@@ -80,7 +83,8 @@ function release(ctx, line, relaxed) {
   if (ctx.player.massaging) { ctx.player.massaging = false; resetPose(ctx.player.mesh); }
 }
 
-function cancel(ctx, line, nextPhase = 'waiting') {
+function cancel(ctx, line, nextPhase = 'waiting', reason = 'client left') {
+  emit('mini', { phase: 'cancel', during: ctx.mini.phase, reason });
   release(ctx, line, false);
   ctx.mini.phase = nextPhase;
   ctx.mini.cool = 4;
@@ -113,9 +117,9 @@ function callClient(ctx) {
 export function updateMini(dt, ctx) {
   const M = ctx.mini, p = ctx.player, cs = chairState(ctx.world);
   if (!M || M.phase === 'idle') { if (ctx.hud.setMini) ctx.hud.setMini(null); return; }
-  if (cs.where !== 'ground' || !cs.setDown) { cancel(ctx, null, 'idle'); ctx.hud.setMini(null); return; }
+  if (cs.where !== 'ground' || !cs.setDown) { cancel(ctx, null, 'idle', 'chair moved'); ctx.hud.setMini(null); return; }
   const e = M.client;
-  if (e && (e.knockedT > 0 || e.state === 'flee' || !ctx.npcs.includes(e))) { cancel(ctx, null); }
+  if (e && (e.knockedT > 0 || e.state === 'flee' || !ctx.npcs.includes(e))) { cancel(ctx, null, 'waiting', 'client knocked or fled'); }
   M.t += dt;
   if (M.phase === 'waiting') {
     M.cool -= dt;
@@ -125,21 +129,21 @@ export function updateMini(dt, ctx) {
     e.cwX = e.wishX; e.cwZ = e.wishZ; e.cSpeed = 1.4;
     const danger = threatNear(ctx, M.pos.x, M.pos.z) ||
       (ctx.lastChaos && ctx.lastChaos.t > M.startT - 0.001 && (ctx.lastChaos.x - M.pos.x) ** 2 + (ctx.lastChaos.z - M.pos.z) ** 2 < CHAOS_R2 && ctx.lastChaos.t > ctx.time - 3);
-    if (danger) cancel(ctx, 'Actually... no thanks.');
+    if (danger) cancel(ctx, 'Actually... no thanks.', 'waiting', 'danger');
     else if (arrived) kneel(e, M);
-    else if (M.t > 20) cancel(ctx, 'Eh, never mind.');
+    else if (M.t > 20) cancel(ctx, 'Eh, never mind.', 'waiting', 'client gave up');
   } else if (M.phase === 'ready') {
     // A kneeling client will not wait forever: the player wandering off, danger nearby,
     // or 25 s of nothing sends them on their way (and frees the chair for pickup).
     const far2 = (p.pos.x - M.pos.x) ** 2 + (p.pos.z - M.pos.z) ** 2;
     if (far2 > 8 * 8 || p.vehicle) M.awayT = (M.awayT || 0) + dt; else M.awayT = 0;
-    if (M.awayT > 3 || M.t > 25 || threatNear(ctx, M.pos.x, M.pos.z)) cancel(ctx, 'Guess not.');
+    if (M.awayT > 3 || M.t > 25 || threatNear(ctx, M.pos.x, M.pos.z)) cancel(ctx, 'Guess not.', 'waiting', 'client stopped waiting');
   } else if (M.phase === 'massage') {
     const input = ctx.input;
     const chaos = ctx.lastChaos && ctx.lastChaos.t > M.startT &&
       (ctx.lastChaos.x - M.pos.x) ** 2 + (ctx.lastChaos.z - M.pos.z) ** 2 < CHAOS_R2;
     if (!input || !input.e || p.knockedT > 0 || chaos || threatNear(ctx, M.pos.x, M.pos.z)) {
-      cancel(ctx, chaos ? 'Whoa, whoa. Maybe later.' : 'Oh. Okay then.');
+      cancel(ctx, chaos ? 'Whoa, whoa. Maybe later.' : 'Oh. Okay then.', 'waiting', chaos ? 'chaos' : p.knockedT > 0 ? 'knocked down' : !input || !input.e ? 'let go of E' : 'threat');
     } else {
       M.pressure = Math.min(1, Math.max(0, M.pressure + ((input.forward ? 1 : 0) - (input.back ? 1 : 0)) * 0.55 * dt));
       const mid = 0.5 + 0.2 * Math.sin((ctx.time - M.startT) * 1.1);
@@ -169,7 +173,8 @@ function succeed(ctx) {
   const M = ctx.mini, e = M.client;
   const pay = e.sore ? 30 : 15;
   ctx.runCash = (ctx.runCash || 0) + pay;
-  if (ctx.wanted) ctx.wanted.drop(1);
+  if (ctx.wanted) ctx.wanted.drop(1, 'massage');
+  emit('mini', { phase: 'success', pay, sore: !!e.sore });
   M.done++;
   e.paid = true; e.loose = 25;
   ctx.hud.floater(`+$${pay}`, M.pos.x, M.pos.y + 1.9, M.pos.z, 'cash');

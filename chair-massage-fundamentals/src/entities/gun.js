@@ -11,6 +11,7 @@ import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { chairWorldPos } from './chair.js';
 import { sfx, knockFx, burst } from '../juice.js';
+import { emit } from '../events.js';
 
 const RANGE = [1.5, 4, 8, 14];
 const LOOK = [[1, 1], [1.5, 1.2], [2, 1.4], [2.6, 1.7]];   // [barrel length L, head size H] per level
@@ -121,6 +122,7 @@ function tap(p, ctx, level) {
   e.gunTaps = 0;
   const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
   knockdown(e, KNOCK, 'palm', dx / d, dz / d, KNOCK_PUSH);
+  emit('gun', { target: e.kind, battery: p.battery });
   knockFx(ctx, e, p);
   sfx(ctx, 'thud', e.pos.x, e.pos.z, 0.8);
   if (hud && hud.floater) hud.floater('THUD', e.pos.x, e.pos.y + 1.6, e.pos.z, 'thud');

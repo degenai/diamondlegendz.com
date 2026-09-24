@@ -26,6 +26,8 @@ import { startSlowmo, tickSlowmo, clearSlowmo, slowmoLog, NEUTRAL } from './run/
 import { startStats, trackStats, showSummary, hideSummary } from './run/summary.js';
 import { initAudio, audioFrame, audioInternals } from './audio-wire.js';
 import { initTitle } from './title.js';
+import { initEvents, emit } from './events.js';
+import { VERSION } from './version.js';
 import { initJuice, juiceTick, juiceCamera, preTick, frozen, tickFrozen, resetJuice, clearHitStop } from './juice.js';
 
 const STEP = 1 / 60;
@@ -99,6 +101,7 @@ function boot() {
     station: null, perks: null, runStats: null, lastSummary: null,
   };
   ctx.perks = meta.perks(ctx.meta);
+  initEvents(ctx);                  // the run watcher's event bus (watch.html)
   initAudio(ctx, hudRoot);          // before the state wiring: its MASSAGE hook hushes the voice first
   initJuice(ctx);
   ctx.hud = speechHud(ctx, hud);    // goons, cops and mini-massage clients talk in bubbles
@@ -147,6 +150,7 @@ function boot() {
   });
   onEnter(STATES.MASSAGE, () => massage.enter(ctx));
   onEnter(STATES.MASSAGE, () => resetChair(ctx)); // after enter: the station exists by now
+  onEnter(STATES.MASSAGE, () => emit('massage', { roster: massage.debugState().clientCount }));
   onExit(STATES.MASSAGE, (next) => massage.exit(ctx, next));
   onEnter(STATES.PIVOT, () => pivot.start(ctx));
   // Any way out of the cutscene other than the run restores the van's steering and clears the cast.
@@ -166,6 +170,7 @@ function boot() {
     if (prev === STATES.PIVOT) pivot.beginRun(ctx); else hud.setRunTitle(true);
     spawner.begin(ctx, prev === STATES.PIVOT);
     startStats(ctx);
+    emit('run.start', { seed: ctx.seed, build: VERSION, unlocks: [...ctx.meta.unlocks], perks: { ...ctx.perks }, cash: ctx.massageTotals ? ctx.massageTotals.you : 0, fromPivot: prev === STATES.PIVOT });
     hud.showRunHud(true); updateHint();
   });
   onExit(STATES.RUN, () => {

@@ -3,6 +3,7 @@
 // Decays one level per 25 s while no cop has line of sight to the player. Also the chaos-event
 // bus: emitChaos() makes nearby peds flee and interrupts a mini-massage.
 import { lineOfSight } from '../entities/npc-nav.js';
+import { emit } from '../events.js';
 
 // v1 cap (DESIGN.md, Version one decisions): levels 4 and 5 stay implemented; raise this later.
 export const WANTED_CAP = 3;
@@ -18,7 +19,7 @@ export function createWanted() {
     goonHitDone: false, stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0,
     counts: {},
     report: (kind) => report(w, kind),
-    drop: (n = 1) => setLevel(w, Math.max(0, w.level - n)),
+    drop: (n = 1, cause = 'drop') => setLevel(w, Math.max(0, w.level - n), cause),
     reset: () => resetWanted(w),
   };
   return w;
@@ -29,11 +30,16 @@ function resetWanted(w) {
     stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0, counts: {} });
 }
 
-function setLevel(w, lvl) {
+// The watcher hears every heat change, with the event kind that caused it.
+function note(w, before, heat0, cause) { if (w.level !== before || w.heat !== heat0) emit('wanted', { level: w.level, prev: before, heat: Math.round(w.heat * 100) / 100, cause }); }
+
+function setLevel(w, lvl, cause) {
+  const before = w.level, heat0 = w.heat;
   lvl = Math.min(WANTED_CAP, lvl);
   w.heat = lvl;
   w.level = lvl;
   w.decayT = 0;
+  note(w, before, heat0, cause);
 }
 
 function add(w, amt) {
@@ -45,6 +51,7 @@ function add(w, amt) {
 }
 
 export function report(w, kind) {
+  const before = w.level, heat0 = w.heat;
   w.counts[kind] = (w.counts[kind] || 0) + 1;
   w.lastEventT = w.time;
   w.decayT = 0;
@@ -54,6 +61,7 @@ export function report(w, kind) {
   else if (kind === 'pedHurt') { w.carnage += 1; add(w, 2); }
   else if (kind === 'vehicleWreck') { w.carnage += 1; add(w, 1); }
   else if (kind === 'propertyHit') add(w, 0.25);
+  note(w, before, heat0, kind);
   return w.level;
 }
 
@@ -64,7 +72,7 @@ export function updateWanted(w, dt, ctx, cops) {
   // Continuous chaos: wanted > 0 with an event in the last 10 s, for 60 s straight.
   if (w.level > 0 && w.time - w.lastEventT < CHAOS_WINDOW) {
     w.chaosT += dt;
-    if (w.chaosT >= CHAOS_RUN) { w.chaosT = 0; add(w, 1); }
+    if (w.chaosT >= CHAOS_RUN) { const b = w.level, h = w.heat; w.chaosT = 0; add(w, 1); note(w, b, h, 'chaos'); }
   } else w.chaosT = 0;
 
   w.losT -= dt;
@@ -82,7 +90,7 @@ export function updateWanted(w, dt, ctx, cops) {
   }
   if (w.level > 0 && !w.seen) {
     w.decayT += dt;
-    if (w.decayT >= DECAY) setLevel(w, w.level - 1);
+    if (w.decayT >= DECAY) setLevel(w, w.level - 1, 'decay');
   } else w.decayT = 0;
 }
 

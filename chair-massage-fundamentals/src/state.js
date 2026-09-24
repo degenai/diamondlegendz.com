@@ -1,4 +1,5 @@
 // State machine: enum of states, transition function, enter/exit listeners.
+import { emit } from './events.js';
 
 export const STATES = Object.freeze({
   TITLE: 'TITLE',
@@ -43,6 +44,7 @@ export function setState(next) {
         const prev = current;
         if (prev) for (const fn of listFor(exitFns, prev)) fn(target);
         current = target;
+        emit('state', { from: prev, to: target });
         for (const fn of listFor(enterFns, target)) fn(prev);
       }
       if (!queue.length) break;

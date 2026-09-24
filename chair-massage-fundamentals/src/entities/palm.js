@@ -7,6 +7,7 @@ import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { endRun } from '../run/end.js';
 import { sfx, knockFx, shake } from '../juice.js';
+import { emit } from '../events.js';
 
 const WIND = 0.25;
 const REACH = 1.6;
@@ -43,6 +44,7 @@ export function updatePalm(p, dt, ctx) {
     const dx = hit.pos.x - p.pos.x, dz = hit.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
     hit.knockedT = KNOCK;
     hit.knockCause = 'palm';
+    emit('palm', { target: hit.kind });
     hit.vel.x = (dx / d) * KNOCK_PUSH; hit.vel.z = (dz / d) * KNOCK_PUSH; hit.vel.y = 1.5;
     hit.grounded = false;
     p.shakeT = SHAKE;
@@ -83,9 +85,11 @@ function palmTarget(p, ctx, fx, fz) {
 }
 
 // Damage the player (goon bat / shove). knockT > 0 knocks them down.
-export function hurtPlayer(ctx, dmg, knockT, dirX, dirZ, push) {
+export function hurtPlayer(ctx, dmg, knockT, dirX, dirZ, push, src = 'hit') {
   const p = ctx.player;
   if (p.vehicle) return;
+  p.hurtSrc = src;                            // the watcher's damage event names it (updateHealth)
+  if (knockT > 0 && !(p.knockedT > 0)) emit('knockdown', { who: 'player', cause: src });
   p.hp = Math.max(0, p.hp - dmg);
   p.hurtAt = ctx.time;
   if (knockT > 0) { p.knockedT = Math.max(p.knockedT, knockT); p.palmT = 0; }
@@ -96,7 +100,7 @@ export function hurtPlayer(ctx, dmg, knockT, dirX, dirZ, push) {
 // Per tick (on foot and driving): regen, any damage taken elsewhere (vehicles), death.
 export function updateHealth(p, dt, ctx) {
   if (p.prevHp === undefined) p.prevHp = p.hp;
-  if (p.hp < p.prevHp - 1e-6) p.hurtAt = ctx.time;
+  if (p.hp < p.prevHp - 1e-6) { p.hurtAt = ctx.time; emit('damage', { source: p.hurtSrc || (p.hitBy ? p.hitBy.spec.label : 'crash'), amount: Math.round(p.prevHp - p.hp), hp: Math.round(p.hp) }); p.hurtSrc = null; }
   if (p.hp > 0 && p.hp < 100 && ctx.time - (p.hurtAt ?? -1e9) >= REGEN_DELAY) p.hp = Math.min(100, p.hp + REGEN * dt);
   p.prevHp = p.hp;
   if (p.hp <= 0 && !ctx.runEnd) endRun(ctx, 'death');
