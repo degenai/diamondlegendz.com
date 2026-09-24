@@ -108,10 +108,10 @@ export function updateGoon(e, dt, ctx) {
     if (e.stateT <= 0) {
       e.state = 'out'; e.idle = false; e.seek.nav = -1; e.seek.t = 0;
       say(ctx, e, '...I\'m taking the rest of the day.');
-      emit('treat', { target: 'goon', phase: 'walk' });
+      emit('treat', { target: 'goon', kind: 'goon', wave: !!e.wave, phase: 'walk' });
     }
   } else if (e.state === 'out') {
-    if (ctx.time >= e.outUntil) { e.state = 'return'; e.idle = false; e.loose = 0; emit('treat', { target: 'goon', phase: 'back' }); }
+    if (ctx.time >= e.outUntil) { e.state = 'return'; e.idle = false; e.loose = 0; emit('treat', { target: 'goon', kind: 'goon', wave: !!e.wave, phase: 'back' }); }
     else goHome(e, dt, ctx);
   } else if (e.state === 'windup') {
     e.stateT -= dt;

@@ -89,7 +89,8 @@ export function updatePlayer(p, dt, ctx) {
   const input = ctx.input;
 
   // Chair folding takes a moment (standing still); every other E acts at once.
-  if (input && input.ePressed && !(p.foldT > 0)) {
+  // At the exit without the chair (end.js ctx.leave) E in a vehicle is the leave hold, not "get out".
+  if (input && input.ePressed && !(p.foldT > 0) && !(p.vehicle && ctx.leave)) {
     const act = p.vehicle ? null : interaction(p, ctx).act;
     // Folding the chair or starting a mini-massage plants both hands: a charge or a quick palm's
     // wind-up in progress is dropped, or it would freeze under the massage and fire at its end.

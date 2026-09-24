@@ -163,7 +163,11 @@ function line(e, evs, i, t0) {
       if (d.act === 'setdown') return `${at} chair set down`;
       return null;
     case 'palm': return d.target ? `${at} ${d.charged ? 'HEALING PALM on' : 'palmed'} a ${d.target}` : d.phase === 'cancel' ? `${at} palm charge broken (${d.cause})` : null;
-    case 'treat': return !d.phase || d.phase === 'sit' ? `${at} treated a ${d.target}` : null;
+    case 'treat': return !d.phase || d.phase === 'sit' ? `${at} treated a ${d.kind || d.target}${d.wave ? ' from a van wave' : ''}` : null;
+    case 'leave':
+      if (d.phase === 'prompt') return `${at} at the exit without the chair`;
+      if (d.phase === 'done') return `${at} held E: left without the chair`;
+      return null;
     case 'gun': return d.stun ? null : `${at} massage gun put a ${d.target} down`;
     case 'van': return d.act === 'ram' ? `${at} the van rammed you (hp ${d.hp})` : d.act === 'park' ? `${at} the van parked across the exit` : d.act === 'pursue' ? `${at} the van gave chase` : null;
     case 'vending':

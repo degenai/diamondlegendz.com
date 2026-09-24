@@ -90,7 +90,8 @@ export function treat(e, ctx, dirX = 0, dirZ = 0) {
   if (e.seek) { e.seek.nav = -1; e.seek.t = 0; }
   if (ctx.hud && ctx.hud.floater) ctx.hud.floater('TENSION RELEASED', e.pos.x, e.pos.y + 2.3, e.pos.z, 'released');
   if (ctx.runStats) ctx.runStats.tension++;
-  emit('treat', { target: e.kind, rank: e.rank || null });
+  // kind: goon | cop | ped (the watcher log keys on it); wave: a goon the van dropped (spawner.js).
+  emit('treat', { target: e.kind, kind: e.kind, wave: e.kind === 'goon' && !!e.wave, rank: e.rank || null });
 }
 
 // Per tick from updatePlayer (on foot). `hold`: the left button is down (or a test's p.holdPalm).

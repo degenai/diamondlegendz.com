@@ -62,9 +62,9 @@ export function updateCop(e, dt, ctx) {
     // A charged Healing Palm (palm.js treat): sits 20 s, then walks back to his unit's car (or
     // just away) loose, out of the chase and of the line of sight until outUntil.
     e.stateT -= dt;
-    if (e.stateT <= 0) { e.state = 'out'; e.seek.nav = -1; e.seek.t = 0; say(ctx, e, LINES[e.id % LINES.length]); emit('treat', { target: 'cop', phase: 'walk' }); }
+    if (e.stateT <= 0) { e.state = 'out'; e.seek.nav = -1; e.seek.t = 0; say(ctx, e, LINES[e.id % LINES.length]); emit('treat', { target: 'cop', kind: 'cop', phase: 'walk' }); }
   } else if (e.state === 'out') {
-    if (ctx.time >= e.outUntil) { e.state = 'chase'; e.loose = 0; emit('treat', { target: 'cop', phase: 'back' }); }
+    if (ctx.time >= e.outUntil) { e.state = 'chase'; e.loose = 0; emit('treat', { target: 'cop', kind: 'cop', phase: 'back' }); }
     else if (e.home && !e.home.removed) { e.speed = 1.6; if (seek(e, e.home.pos.x, e.home.pos.y, e.home.pos.z, dt, ctx, 3.2)) e.speed = 0; }
     else walkAway(e, tgt, 1.3);
   } else if (e.state === 'walkoff') {

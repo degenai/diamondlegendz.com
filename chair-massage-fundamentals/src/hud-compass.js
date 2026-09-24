@@ -2,6 +2,7 @@
 // relative to the camera's heading: the chair (on you, in a vehicle, or on the ground) and the
 // gold exit for the escape gap, each with its distance in metres underneath. Lives inside the
 // RUN HUD wrap, so it is hidden in MASSAGE and PIVOT with the rest. Plain DOM, styles inline.
+// While he is at the exit without the chair (end.js ctx.leave) the chair marker is the one to follow.
 import * as THREE from '../vendor/three.module.js';
 import { chairWorldPos } from './entities/chair.js';
 
@@ -67,4 +68,13 @@ export function updateCompass(ctx) {
   place('chair', chairWorldPos(ctx, _c), from, head);
   const esc = ctx.world.spawns && ctx.world.spawns.escape;
   place('exit', esc ? esc.centre : null, from, head);
+  // Leaving without the chair (end.js): the exit steps back and the chair marker grows and pulses.
+  const focus = !!ctx.leave;
+  if (strip.dataset.focus !== (focus ? 'chair' : '')) {
+    strip.dataset.focus = focus ? 'chair' : '';
+    marks.exit.m.style.filter = focus ? 'grayscale(1) brightness(.6)' : '';
+    marks.chair.m.style.zIndex = focus ? '2' : '';
+  }
+  if (focus) marks.chair.m.style.transform = `translateX(-50%) scale(${(1.45 + 0.2 * Math.sin(ctx.time * 8)).toFixed(2)})`;
+  else if (marks.chair.m.style.transform !== 'translateX(-50%)') marks.chair.m.style.transform = 'translateX(-50%)';
 }

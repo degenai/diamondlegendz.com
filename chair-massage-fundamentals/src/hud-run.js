@@ -139,12 +139,21 @@ export function setBattery(v) {
   if (v !== null) { batFill.style.width = `${Math.max(0, Math.min(100, v)).toFixed(0)}%`; batFill.classList.toggle('low', v < 20); }
 }
 
-// "Lose the heat first." inside the escape zone with stars; '' hides it.
-export function setHeatLine(text) {
-  if (!heatEl || last.heat === text) return;
-  last.heat = text;
+// "Lose the heat first." inside the escape zone with stars; '' hides it. `hold` (0..1, end.js
+// leaveHold) marks the leave-without-the-chair confirm: amber, steady, filling as E is held.
+export function setHeatLine(text, hold = null) {
+  if (!heatEl) return;
+  const key = `${text}|${hold === null ? '-' : Math.round(hold * 50)}`;
+  if (last.heat === key) return;
+  last.heat = key;
   heatEl.hidden = !text;
   heatEl.textContent = text || '';
+  heatEl.dataset.leave = hold === null ? '' : hold.toFixed(2);
+  if (hold === null) { heatEl.style.animation = ''; heatEl.style.background = ''; heatEl.style.color = ''; return; }
+  const pct = (hold * 100).toFixed(0);
+  heatEl.style.animation = 'none';
+  heatEl.style.color = '#fff3c4';
+  heatEl.style.background = `linear-gradient(90deg, rgba(200,140,20,.85) ${pct}%, rgba(70,45,6,.8) ${pct}%)`;
 }
 
 // Run-end stamp (ARRESTED / OVERWORKED / ESCAPED): red, rotated, slams in with a bounce.

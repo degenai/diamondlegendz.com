@@ -28,6 +28,7 @@ import { spawnPassCar, clearPassCar } from '../world/cars.js';
 const WAVE = 90;
 const GOON_CAP = 9;
 const VAN_CRUISE = 14;
+const CUT_LOG = 15;          // s between `van cut` events at most
 const _cops = [];
 
 export function initSpawner(ctx) {
@@ -88,7 +89,8 @@ export function countKind(ctx, kind) {
 }
 
 // Out of the van's side door (the side facing the plaza), or at vanEntry without a van.
-export function spawnGoons(ctx, n) {
+// wave: the van's drop (updateVan); the opening three (pivot.js) are not a wave.
+export function spawnGoons(ctx, n, wave = false) {
   const alive = countKind(ctx, 'goon');
   n = Math.min(n, GOON_CAP - alive);
   const van = ctx.world.vehicles && ctx.world.vehicles.find((v) => v.franchise);
@@ -104,6 +106,7 @@ export function spawnGoons(ctx, n) {
     const idx = alive + k;
     const g = createGoon(ctx.scene, pos, idx % 3 === 2 ? 'flank' : 'direct', idx % 3 === 0);
     g.yaw = yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2);
+    g.wave = wave;
     addEntity(ctx.entities, g);
     ctx.npcs.push(g);
   }
@@ -161,18 +164,21 @@ function updateVan(ctx, dt) {
     else if (d > 3.5) driveAt(v, e.x, e.z, 7, dt);
     else brake(v);
     if ((d <= 3.5 && Math.abs(v.speed) < 0.5) || A.dropT > 30) {
-      spawnGoons(ctx, 3);
+      spawnGoons(ctx, 3, true);
       A.mode = 'wait'; A.waveT = 0; A.spawnedAt = ctx.time; A.parked = false;
     }
     return;
   }
   if (p.vehicle && p.vehicle !== v && v.hp > 0) {
     A.footT = 0; A.parked = false;
-    if (A.mode !== 'pursue' && A.mode !== 'cut') { A.mode = 'pursue'; A.planT = 0; emit('van', { act: 'pursue', vehicle: p.vehicle.type }); }
+    if (A.mode !== 'pursue' && A.mode !== 'cut') { A.mode = 'pursue'; A.planT = 0; }
+    // One `pursue` per pursuit: a wave drop mid-chase does not start a new one; getting out does.
+    if (!A.pursuing) { A.pursuing = true; emit('van', { act: 'pursue', vehicle: p.vehicle.type }); }
     pursue(ctx, A, v, p.vehicle, dt);
     return;
   }
   A.footT = (A.footT || 0) + dt;
+  A.pursuing = false;
   if (A.mode === 'pursue' || A.mode === 'cut') A.mode = 'wait';
   if (A.footT < FOOT_PARK || !exitPark(ctx)) { brake(v); return; }
   if (A.mode !== 'park') { A.mode = 'park'; A.settleT = 0; A.parkT = 0; A.lane = false; emit('van', { act: 'return' }); }
@@ -201,7 +207,11 @@ function pursue(ctx, A, v, pv, dt) {
     A.planT = PLAN_EVERY;
     A.goal = cutNode(G, v, pv);
     A.mode = A.goal.cut ? 'cut' : 'pursue';
-    if (A.goal.cut && A.cutAt !== A.goal.node) { A.cutAt = A.goal.node; emit('van', { act: 'cut', node: A.goal.node }); }
+    // Log a cut only when the node changes and at most every CUT_LOG s: re-planning every
+    // PLAN_EVERY s flips between neighbouring nodes (fifteen `cut` a minute in run 7).
+    if (A.goal.cut && A.cutAt !== A.goal.node && ctx.time - (A.cutLogT ?? -1e9) >= CUT_LOG) {
+      A.cutAt = A.goal.node; A.cutLogT = ctx.time; emit('van', { act: 'cut', node: A.goal.node });
+    }
   }
   const n = G.nodes[A.goal.node];
   if (A.goal.cut && Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 6) brake(v);

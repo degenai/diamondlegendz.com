@@ -21,7 +21,7 @@ import { startPalm, startCharge, cancelCharge } from './entities/palm.js';
 import { resetGun } from './entities/gun.js';
 import * as pivot from './pivot.js';
 import { speechHud, updateBubbles, clearBubbles, activeBubbles } from './bubbles.js';
-import { checkEscape, resetEscapeMarker } from './run/end.js';
+import { checkEscape, leaveHold, resetEscapeMarker } from './run/end.js';
 import { startSlowmo, tickSlowmo, clearSlowmo, slowmoLog, NEUTRAL } from './run/slowmo.js';
 import { startStats, trackStats, showSummary, hideSummary } from './run/summary.js';
 import { initAudio, audioFrame, audioInternals } from './audio-wire.js';
@@ -128,7 +128,8 @@ function boot() {
     const t = runHudText(player, ctx);
     hud.setVehicleLine(t.vehicle);
     hud.setChairStrip(t.chair);
-    hud.setHeatLine(checkEscape(ctx));
+    const escLine = checkEscape(ctx);
+    hud.setHeatLine(escLine, leaveHold(ctx));
     interactHint = t.hint;
     updateHint();
   }
