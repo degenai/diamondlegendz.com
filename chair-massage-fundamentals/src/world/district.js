@@ -80,9 +80,9 @@ function mergeNav(parts) {
 }
 
 // Plain massing with ribbon windows outside the district walls (no colliders).
-function buildBackdrop(rng, escape) {
+function buildBackdrop(rng, escape, lo = DMIN, hi = DMAX) {
   const b = createBatch();
-  const c = (DMIN + DMAX) / 2, H = (DMAX - DMIN) / 2;
+  const c = (lo + hi) / 2, H = (hi - lo) / 2;
   for (const e of ['N', 'E', 'S', 'W']) {
     let u = -H - 50;
     while (u < H + 50) {
@@ -106,7 +106,9 @@ function buildBackdrop(rng, escape) {
   return m;
 }
 
-export function buildDistrict(seed, scene) {
+// single (or ?blocks=1 in the page URL): just the plaza block, walled all round with its own
+// escape street, as the game was before the district (for comparison).
+export function buildDistrict(seed, scene, single = typeof location !== 'undefined' && new URLSearchParams(location.search).get('blocks') === '1') {
   seed = seed >>> 0;
   const sub = (k) => makeRng((seed ^ Math.imul(k, 0x9e3779b1)) >>> 0 || k);
   const root = new THREE.Group();
@@ -133,12 +135,13 @@ export function buildDistrict(seed, scene) {
     for (let i = 0; i < GRID; i++) {
       const index = j * GRID + i;
       const plaza = i === PLAZA_IJ[0] && j === PLAZA_IJ[1];
+      if (single && !plaza) continue;
       const bseed = plaza ? seed : blockSeed(seed, index);
-      const links = linksOf(i, j);
-      const wallEdges = ['N', 'E', 'S', 'W'].filter((e) => !neighbourEdges(i, j).includes(e));
+      const links = single ? [] : linksOf(i, j);
+      const wallEdges = single ? ['N', 'E', 'S', 'W'] : ['N', 'E', 'S', 'W'].filter((e) => !neighbourEdges(i, j).includes(e));
       const kind = plaza ? 'plaza' : CENTRES[makeRng(bseed ^ 0x51ed27).int(0, CENTRES.length - 1)];
-      const escEdges = i === ei && j === ej ? wallEdges : [];
-      const part = buildBlockPart({ seed: bseed, kind, centre: blockCentre(i, j), links, wallEdges, escEdges, index });
+      const escEdges = single || (i === ei && j === ej) ? wallEdges : [];
+      const part = buildBlockPart({ seed: bseed, kind, centre: blockCentre(i, j), links, wallEdges, escEdges, index, single });
       part.ij = [i, j];
       linkSpurs(part);
       root.add(part.group);
@@ -147,7 +150,7 @@ export function buildDistrict(seed, scene) {
   }
   const plazaPart = parts.find((p) => p.kind === 'plaza');
   const escPart = parts.find((p) => p.escape);
-  root.add(buildBackdrop(sub(12), escPart.escape));
+  root.add(single ? buildBackdrop(sub(12), escPart.escape, -HALF, HALF) : buildBackdrop(sub(12), escPart.escape));
 
   const colliders = [];
   for (const P of parts) for (const c of P.colliders) colliders.push(c);
@@ -160,7 +163,7 @@ export function buildDistrict(seed, scene) {
   }
 
   const world = {
-    seed, size: SIZE, root, ground, colliders, nav, roads, blocks: parts,
+    seed, size: SIZE, root, ground, colliders, nav, roads, blocks: parts, single,
     chairSpot: plazaPart.chairSpot.clone(),
     spawns: {
       parking: parts.flatMap((P) => P.parking.map((p) => ({ pos: p.pos.clone(), yaw: p.yaw, edge: p.edge, colour: p.colour, block: P.index, lot: !!p.lot }))),

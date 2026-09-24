@@ -80,7 +80,7 @@ export function buildBlockPart(opts) {
   }
   // Links: { edge, g }. The plaza block's only link is its old escape gap (plazaLink), so its lots,
   // alleys and parked cars roll exactly as the single block's did.
-  const links = plaza ? [plazaLink(seed)] : (opts.links || []);
+  const links = plaza ? (opts.single ? [] : [plazaLink(seed)]) : (opts.links || []);
   const gaps = links.map((q) => ({ edge: q.edge, g: q.g, kind: 'link' }));
   if (esc) gaps.push({ edge: esc.edge, g: esc.g, kind: 'escape' });
   const lotEsc = plaza ? { edge: escPick } : esc;   // the side kept free of alleys and the Serenity lot
@@ -104,7 +104,7 @@ export function buildBlockPart(opts) {
   group.name = 'block' + (opts.index ?? '');
   group.position.set(cx, 0, cz);
   const mesh = buildBatch(batch, 'blockStatic');
-  group.add(mesh, bld.windows, bld.sign, ...furn.meshes);
+  group.add(mesh, bld.windows, bld.sign, ...furn.meshes, ...bld.lamps);
   group.updateMatrixWorld(true);
   mesh.matrixAutoUpdate = false;
 

@@ -3,6 +3,7 @@
 // Styles in index.html (.rh-*). Hidden outside RUN so the MASSAGE course skin is untouched.
 import * as THREE from '../vendor/three.module.js';
 import { WANTED_CAP } from './run/wanted.js';
+import { initCompass } from './hud-compass.js';
 
 const POOL = 28;
 const LIFE = 1.2;
@@ -28,6 +29,7 @@ export function initRunHud(root) {
   flashEl = el('div', 'rh-flash', root);
   wrap = el('div', 'rh', root);
   wrap.hidden = true;
+  initCompass(wrap);                 // chair and exit bearings under the title strip
   const box = el('div', 'rh-box', wrap);
   const row = el('div', 'rh-stars', box);
   for (let i = 0; i < WANTED_CAP; i++) stars.push(el('span', 'rh-star', row, '★'));

@@ -253,7 +253,7 @@ function boot() {
       updateMini(dt, ctx);
       trackStats(ctx);
       pivot.runTick(dt, ctx);
-      hud.updateFloaters(dt, camera);
+      hud.updateFloaters(dt, camera); hud.updateCompass(ctx);
       updateRunHud();
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);

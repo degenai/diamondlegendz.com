@@ -5,6 +5,7 @@
 import * as THREE from '../../vendor/three.module.js';
 import { addBox, addCyl } from './batch.js';
 import { addSpur } from './nav.js';
+import { alleyLamps } from './alley-lamps.js';
 import {
   HALF, LOT_FRONT, GAP_HALF, EDGES, SIDE, OUTER_WALK, DECK_Y, ALLEY_HALF, ALLEY_END, toXZ, sideBox, cutGaps,
 } from './layout.js';
@@ -104,15 +105,16 @@ function planAlleys(rng, lots, esc) {
     const [a, c] = cands[Math.floor(rng.next() * cands.length)];
     const u = a.u1;
     a.u1 = u - ALLEY_HALF; c.u0 = u + ALLEY_HALF;
-    alleys.push({ edge, u, dumpSide: rng.next() < 0.5 ? -1 : 1 });
+    alleys.push({ edge, u, dumpSide: rng.next() < 0.5 ? -1 : 1, mouth: Math.max(a.front, c.front) });
   }
   return alleys;
 }
 
 const ALLEY_WALL = 0x5b3b31;
 const DUMPSTER = 0x2f5a3c;
-// The dead-end wall (full alley width, ALLEY_END..HALF), a dumpster against one side near the
-// end (walkable round: 1.4 m beside it, 1.4 m behind it), and the nav spur down the middle.
+// The dead-end wall (full alley width, ALLEY_END..HALF), a dumpster against one side 6 m in from
+// the mouth (seen from the street; walkable round: 1.4 m beside it), the hiding pocket just behind
+// it, and the nav spur: in on the free side, round into the pocket, on to the end.
 function buildAlley(b, colliders, nav, A) {
   const { edge, u, dumpSide: s } = A;
   const yaw = SIDE[edge].yaw;
@@ -122,9 +124,10 @@ function buildAlley(b, colliders, nav, A) {
   const [cx, cz] = toXZ(edge, u, ALLEY_END + 0.1);
   addBox(b, ALLEY_HALF * 2 + 0.1, 0.18, 0.45, 0x8a7a6a, cx, DECK_Y + wallH + 0.09, cz, yaw);
   colliders.push(sideBox(edge, u - ALLEY_HALF, u + ALLEY_HALF, ALLEY_END, HALF, DECK_Y + wallH, { tag: 'alleyWall' }));
-  // Dumpster: u + s * (0.2..1.2), d 74.6..76.6, a big commercial bin 1.9 m tall (taller than a
-  // head, so the 1.4 m pocket behind it is out of sight from the mouth), a lid, two bags.
-  const du = u + s * 0.7, d0 = 74.6, d1 = 76.6, DH = 1.9;
+  // Dumpster: u + s * (0.2..1.2), 2 m deep from 6 m inside the mouth, a big commercial bin 1.9 m
+  // tall (taller than a head, so the pocket behind it is out of sight from the mouth), a lid, bags.
+  const du = u + s * 0.7, d0 = A.mouth + 6, d1 = d0 + 2, DH = 1.9;
+  A.pocket = toXZ(edge, u + s * 0.7, d1 + 0.7);
   const [dx, dz] = toXZ(edge, du, (d0 + d1) / 2);
   addBox(b, 1.0, DH - 0.08, d1 - d0, DUMPSTER, dx, DECK_Y + (DH - 0.08) / 2, dz, yaw);
   addBox(b, 1.08, 0.08, d1 - d0 + 0.08, 0x223f2b, dx, DECK_Y + DH - 0.04, dz, yaw);
@@ -134,7 +137,8 @@ function buildAlley(b, colliders, nav, A) {
   }
   colliders.push(sideBox(edge, Math.min(u + s * 0.2, u + s * 1.2), Math.max(u + s * 0.2, u + s * 1.2), d0, d1, DECK_Y + DH, { tag: 'dumpster' }));
   const P = (uu, d) => { const [x, z] = toXZ(edge, uu, d); return { x, z }; };
-  A.nav = addSpur(nav, P(u, OUTER_WALK), [P(u, 64), P(u, 71), P(u - s * 0.5, 77.3), P(u + s * 0.7, 77.3)]);
+  A.nav = addSpur(nav, P(u, OUTER_WALK), [P(u, A.mouth + 2), P(u - s * 0.6, d0 - 0.5), P(u - s * 0.55, d1 + 0.4),
+    P(u + s * 0.7, d1 + 0.8), P(u, d1 + 3), P(u, 77.3)]);
 }
 
 export function buildBuildings(B) {
@@ -142,6 +146,7 @@ export function buildBuildings(B) {
   const lots = planLots(rng, B.lotEsc, gaps);
   const alleys = B.alleyRng ? planAlleys(B.alleyRng, lots, B.lotEsc) : [];
   for (const A of alleys) buildAlley(b, colliders, B.nav, A);
+  const lamps = alleyLamps(b, alleys);
 
   // A flat pane 7 cm proud of the wall, facing local +Z (2 triangles, not a 12-triangle box: the
   // district has 16 blocks of windows).
@@ -215,7 +220,7 @@ export function buildBuildings(B) {
   windows.instanceMatrix.needsUpdate = true;
   if (windows.instanceColor) windows.instanceColor.needsUpdate = true;
   windows.computeBoundingSphere();
-  return { lots, windows, sign, serenity, alleys };
+  return { lots, windows, sign, serenity, alleys, lamps };
 }
 
 function shade(hex, k) {

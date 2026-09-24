@@ -4,6 +4,7 @@
 // and is re-exported here so callers only ever import hud.js.
 import { initMassageHud } from './hud-massage.js';
 import { initRunHud } from './hud-run.js';
+export { updateCompass } from './hud-compass.js';
 import { initBubbles } from './bubbles.js';
 import { VERSION } from './version.js';
 

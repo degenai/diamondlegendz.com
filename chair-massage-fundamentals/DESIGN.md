@@ -129,8 +129,9 @@ placement, vehicle spawns, escape edge, goon van entry. **Lighting:** late after
 maps; each seed nudges sun azimuth, elevation, and fog distance so runs look a little different.
 **Places to hide** (ruled 2026-09-23 with the sight lines): two dead-end **alleys** per block on two
 seeded sides (never the escape edge), a 2.4 m gap between two lots from the outer sidewalk to a wall
-2 m short of the perimeter, a 1.9 m dumpster near the end (the pocket behind it is out of sight from
-the mouth), nav nodes down the middle. The plaza **pavilion** beside the terrace, abreast of the
+2 m short of the perimeter, a 1.9 m dumpster 6 m in from the mouth (seen from the street; the pocket
+behind it is out of sight from the mouth), a warm lamp over the mouth (ruled 2026-09-23), nav nodes
+round the dumpster into the pocket. The plaza **pavilion** beside the terrace, abreast of the
 chair: four posts, a roof at 3 m, and on two adjacent sides a 1 m wall topped by a slatted screen to
 the roof (a 1 m wall alone cannot hide a standing head); nav nodes inside.
 Colliders: buildings are AABBs; plaza walls and planters are low AABBs the player can stand on (the
@@ -152,7 +153,8 @@ midpoints as nodes, link streets as edges, lane 1 m right of the centreline); th
 enters from the plaza's own ring. 30 peds live within two blocks of the player and jump 1..2 blocks
 ahead of him past 2.5; six civilian cars drive the grid (carjack with E under 3 m/s; stuck 5 s
 behind a vehicle, one backs up 3 m and turns round). The 8 s grab window starts at first contact
-(a goon within 3 m), one shove per 2.2 s pack-wide; parked cars are
+(a goon within 3 m), one shove per 2.2 s pack-wide. A compass strip under the RUN title shows the
+chair and the exit by bearing and distance. `?blocks=1` builds the single walled block instead; parked cars are
 instanced proxies that become drivable within 100 m. Every vehicle goes home, repaired, between runs.
 
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
