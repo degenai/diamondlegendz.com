@@ -36,7 +36,7 @@ you through it, one prompt at a time.
 - **The design doc:** [`DESIGN.md`](DESIGN.md). Pillars, the state machine, every ruling Alex made,
   and the phase plan. If code and doc disagree, the doc wins and the code gets fixed.
 - **Code:** `src/`, plain ES modules, Three.js vendored in `vendor/` (no CDN).
-  `src/main.js` boots and runs the fixed 60 Hz loop. Each state has its own module: `massage/`,
+  `src/main.js` boots and runs the fixed 60 Hz loop; `src/wiring.js` holds each state's enter and exit hooks. Each state has its own module: `massage/`,
   `pivot.js`, `run/`, and entities in `entities/`.
 - **3D assets:** anything with a shape (chair, cars, people, the bat, the massage gun) is a Blender
   5.2 Python script in `tools/blender/make_*.py`. It gets baked headless to a small JSON mesh in
@@ -72,7 +72,7 @@ From here, Andy is a co-designer.
 | Goons: speed, bat and shove reach, cooldowns, sit time, the 8 s opening grab window | `src/entities/goon.js` (`RUN`, `BAT_*`, `SHOVE_*`, `SIT_TIME`, `GRAB_*`) |
 | Cops on foot | `src/entities/cop.js` (`SPEED`, `WALK_OFF`) |
 | Goon waves and caps | `src/run/goon-waves.js` (`WAVE`, `GOON_CAP`) |
-| Massage clients: pay, sweet-spot band, ring size, fill rate, lines | `src/massage/clients.js` (`CLIENTS`); meter feel in `src/massage/meter.js` |
+| Massage clients: pay, sweet-spot band, ring size, fill rate, lines | `src/massage/clients.js` (`CLIENTS`); between-run regulars in `src/massage/client-lines.js`; meter feel in `src/massage/meter.js` |
 | Mini-massage during a run | `src/run/minimassage.js` (`HOLD`, `HALF_BAND`, radii) |
 | Healing Palm and the massage gun | `src/entities/palm.js`, `src/entities/gun.js` |
 | Unlock order: main track (escapes), consolation track (arrests, deaths) | `src/meta.js` (`UNLOCKS`, `CONSOLATIONS`) |
