@@ -17,7 +17,7 @@ import { runHudText, exitVehicle } from './entities/interact.js';
 import { createWanted } from './run/wanted.js';
 import * as spawner from './run/spawner.js';
 import { createMini, updateMini } from './run/minimassage.js';
-import { startPalm, startCharge } from './entities/palm.js';
+import { startPalm, startCharge, cancelCharge } from './entities/palm.js';
 import { resetGun } from './entities/gun.js';
 import * as pivot from './pivot.js';
 import { speechHud, updateBubbles, clearBubbles, activeBubbles } from './bubbles.js';
@@ -186,6 +186,9 @@ function boot() {
       // Debug entry without a runEnd: an ESCAPE that nobody verified cannot know the chair came along.
       if (!ctx.runEnd) ctx.runEnd = { reason: s === STATES.ARREST ? 'arrest' : s === STATES.DEATH ? 'death' : 'left', time: ctx.time };
       player.massaging = false; player.foldT = 0; // a fold in progress must not finish under the slow motion
+      // Nor a palm: the end states still tick the player with neutral input (button up), which would
+      // turn a charge into a quick palm, or finish a wind-up or a lunge, under the stamp.
+      cancelCharge(player, 'runend'); player.palmT = 0; player.lungeT = 0; player.holdPalm = false;
       resetEscapeMarker(ctx);
       startSlowmo(ctx, ctx.runEnd.reason);
     });
