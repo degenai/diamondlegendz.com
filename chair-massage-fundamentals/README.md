@@ -68,7 +68,7 @@ From here, Andy is a co-designer.
 |---|---|
 | Car handling (speed, grip, steering, mass, damage) | `src/entities/vehicle-types.js` |
 | Wanted level: v1 cap, decay time, chaos rules | `src/run/wanted.js` (`WANTED_CAP`, `DECAY`, `CHAOS_*`) |
-| Police response per star, the ranger's 15 s hang-back | `src/run/police.js` (`CRUISE`, `BAIL`, `HANG`) |
+| Police response per star, the ranger's 15 s hang-back | `src/run/police.js` (tiers); `src/run/police-units.js` (`CRUISE`, `BAIL`, `HANG`) |
 | Goons: speed, bat and shove reach, cooldowns, sit time, the 8 s opening grab window | `src/entities/goon.js` (`RUN`, `BAT_*`, `SHOVE_*`, `SIT_TIME`, `GRAB_*`) |
 | Cops on foot | `src/entities/cop.js` (`SPEED`, `WALK_OFF`) |
 | Goon waves and caps | `src/run/goon-waves.js` (`WAVE`, `GOON_CAP`) |

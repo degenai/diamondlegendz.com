@@ -1,4 +1,5 @@
-// Police light bars: unlit red and blue halves that swap bright/dim at 4 Hz (police.js).
+// Police light bars: unlit red and blue halves that swap bright/dim at 4 Hz. setupLights also sets
+// v.lights, the hook audio-wire.js reads to run the vehicle's siren. Was run/lights.js.
 import * as THREE from '../../vendor/three.module.js';
 
 // Unlit per-vehicle light bar: red and blue halves swap bright/dim at 4 Hz.
@@ -31,3 +32,12 @@ export function updateLights(v, time) {
   col.needsUpdate = true;
 }
 
+// Every car of a police unit flashes (updatePolice, once per tick).
+export function flashUnit(u, time) {
+  for (const v of [u.v, ...(u.cars || [])]) if (v) updateLights(v, time);
+}
+
+// A police vehicle leaving the scene gives its light bar's geometry and material back.
+export function disposeLights(v) {
+  if (v.lightbar) { v.lightbar.geo.dispose(); v.lightbar.mat.dispose(); }
+}
