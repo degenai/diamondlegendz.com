@@ -1,55 +1,69 @@
-# Graph Report - src  (2026-09-23)
+# Graph Report - src  (2026-09-24)
 
 ## Corpus Check
-- 78 files · ~78,252 words
+- 81 files · ~89,428 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 935 nodes · 2496 edges · 28 communities (23 shown, 5 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 8 edges (avg confidence: 0.8)
+- 1018 nodes · 2835 edges · 42 communities (38 shown, 4 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 9 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_District and block generation|District and block generation]]
-- [[_COMMUNITY_Spawning, traffic, police units|Spawning, traffic, police units]]
-- [[_COMMUNITY_Vehicles, chair, interaction|Vehicles, chair, interaction]]
-- [[_COMMUNITY_NPC behaviour and wanted|NPC behaviour and wanted]]
-- [[_COMMUNITY_Pivot cutscene and lines|Pivot cutscene and lines]]
-- [[_COMMUNITY_HUD and compass|HUD and compass]]
-- [[_COMMUNITY_Massage minigame|Massage minigame]]
-- [[_COMMUNITY_Assets, physics, parked cars|Assets, physics, parked cars]]
-- [[_COMMUNITY_Player, chase camera, gun|Player, chase camera, gun]]
-- [[_COMMUNITY_Voice synthesizer|Voice synthesizer]]
-- [[_COMMUNITY_People rig|People rig]]
-- [[_COMMUNITY_Boot and state wiring|Boot and state wiring]]
-- [[_COMMUNITY_Input|Input]]
-- [[_COMMUNITY_Audio wiring|Audio wiring]]
-- [[_COMMUNITY_Props and furniture|Props and furniture]]
-- [[_COMMUNITY_Massage stage|Massage stage]]
-- [[_COMMUNITY_Bubble queue|Bubble queue]]
-- [[_COMMUNITY_Juice and particles|Juice and particles]]
-- [[_COMMUNITY_Procedural score|Procedural score]]
-- [[_COMMUNITY_Run end and escape|Run end and escape]]
-- [[_COMMUNITY_Stage cast|Stage cast]]
-- [[_COMMUNITY_Kneel and reach poses|Kneel and reach poses]]
-- [[_COMMUNITY_Certificate|Certificate]]
-- [[_COMMUNITY_Title and version|Title and version]]
-- [[_COMMUNITY_player create|player create]]
-- [[_COMMUNITY_player update|player update]]
-- [[_COMMUNITY_vehicle create|vehicle create]]
-- [[_COMMUNITY_vehicle update|vehicle update]]
+- [[_COMMUNITY_Community 0|Community 0]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 15|Community 15]]
+- [[_COMMUNITY_Community 16|Community 16]]
+- [[_COMMUNITY_Community 17|Community 17]]
+- [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
+- [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
+- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `boot()` - 48 edges
-2. `floorHeightAt()` - 24 edges
-3. `loadMesh()` - 23 edges
-4. `toXZ()` - 23 edges
-5. `sfx()` - 21 edges
-6. `buildBlockPart()` - 21 edges
-7. `addBox()` - 20 edges
-8. `spawnPerson()` - 20 edges
-9. `seek()` - 18 edges
-10. `addEntity()` - 17 edges
+1. `emit()` - 57 edges
+2. `boot()` - 52 edges
+3. `toXZ()` - 26 edges
+4. `floorHeightAt()` - 25 edges
+5. `loadMesh()` - 24 edges
+6. `sfx()` - 24 edges
+7. `buildBlockPart()` - 22 edges
+8. `addBox()` - 20 edges
+9. `spawnPerson()` - 20 edges
+10. `updatePlayer()` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `createStage()` --calls--> `loadMesh()`  [EXTRACTED]
@@ -58,127 +72,187 @@
   pivot-lines.js → entities/goon.js
 - `segmentHit()` --calls--> `skip()`  [INFERRED]
   physics.js → pivot.js
-- `followPoly()` --calls--> `driveAt()`  [INFERRED]
-  pivot-path.js → run/driver.js
+- `buildBlockPart()` --calls--> `W`  [INFERRED]
+  world/block.js → watch.js
 - `ensureChair()` --calls--> `loadMesh()`  [EXTRACTED]
   entities/chair.js → assets.js
 
 ## Import Cycles
 - 4-file cycle: `entities/goon.js -> entities/palm.js -> entities/interact.js -> run/minimassage.js -> entities/goon.js`
 
-## Communities (28 total, 5 thin omitted)
+## Communities (42 total, 4 thin omitted)
 
-### Community 0 - "District and block generation"
-Cohesion: 0.06
-Nodes (91): hashSeed(), makeRng(), addGlow(), alleyLamps(), _e, _g, _m, mesh() (+83 more)
-
-### Community 1 - "Spawning, traffic, police units"
-Cohesion: 0.06
-Nodes (79): copHostile(), disposeCop(), createGoon(), disposeGoon(), addEntity(), removeEntity(), createPed(), disposePed() (+71 more)
-
-### Community 2 - "Vehicles, chair, interaction"
-Cohesion: 0.07
-Nodes (68): BACK_MOUNT, chairState(), chairWorldPos(), findChair(), loadChair(), mount(), pickUpChair(), throwChair() (+60 more)
-
-### Community 3 - "NPC behaviour and wanted"
-Cohesion: 0.07
-Nodes (66): getUp(), LINES, onPalm(), onVehicleHit(), SPEED, updateCop(), walkAway(), chase() (+58 more)
-
-### Community 4 - "Pivot cutscene and lines"
-Cohesion: 0.06
-Nodes (65): clearBubbles(), createCop(), createNpc(), DEFAULTS, gunLevel(), has(), perks(), recordRun() (+57 more)
-
-### Community 5 - "HUD and compass"
+### Community 0 - "Community 0"
 Cohesion: 0.05
-Nodes (55): initBubbles(), _c, _d, el(), initCompass(), marks, place(), updateCompass() (+47 more)
+Nodes (97): build(), buildNode(), cache, loadMesh(), material(), preload(), template(), copHostile() (+89 more)
 
-### Community 6 - "Massage minigame"
-Cohesion: 0.07
-Nodes (54): gaugeState(), setRing(), CLIENTS, createDialogue(), MODALITIES, OUCH, RETURN, roster() (+46 more)
-
-### Community 7 - "Assets, physics, parked cars"
-Cohesion: 0.07
-Nodes (49): build(), buildNode(), cache, loadMesh(), material(), template(), _cand, circleVsAabb() (+41 more)
-
-### Community 8 - "Player, chase camera, gun"
+### Community 1 - "Community 1"
 Cohesion: 0.06
-Nodes (49): _blend, blendLook(), clampHit(), _desired, _look, _one, _pivot, updateChaseCamera() (+41 more)
+Nodes (78): getUp(), LINES, onPalm(), onVehicleHit(), SPEED, updateCop(), walkAway(), alertPack() (+70 more)
 
-### Community 9 - "Voice synthesizer"
-Cohesion: 0.09
-Nodes (28): makeVoice(), BANK, hashRng(), addS(), ANTI, DICT, DIGITS, DIGRAPHS (+20 more)
+### Community 2 - "Community 2"
+Cohesion: 0.05
+Nodes (65): gaugeState(), setRing(), CLIENTS, createDialogue(), GET_WELL, MODALITIES, OUCH, RETURN (+57 more)
 
-### Community 10 - "People rig"
+### Community 3 - "Community 3"
+Cohesion: 0.05
+Nodes (56): initBubbles(), chairWorldPos(), _c, _d, el(), initCompass(), marks, place() (+48 more)
+
+### Community 4 - "Community 4"
 Cohesion: 0.07
-Nodes (31): ARM_REST, coloursFor(), DOWN, _e, ELBOW, HAIRS, HIP_JOINT, KNEE (+23 more)
+Nodes (54): clearBubbles(), createCop(), createNpc(), _a, beginRun(), _a, _b, BOSS_SUIT (+46 more)
 
-### Community 11 - "Boot and state wiring"
-Cohesion: 0.13
-Nodes (26): preload(), audioInternals(), speechHud(), ensureChair(), resetChair(), resetGun(), updateAll(), startPalm() (+18 more)
+### Community 5 - "Community 5"
+Cohesion: 0.07
+Nodes (46): _blend, blendLook(), clampHit(), _desired, _look, _one, _pivot, updateChaseCamera() (+38 more)
 
-### Community 12 - "Input"
+### Community 6 - "Community 6"
+Cohesion: 0.15
+Nodes (36): $(), bestEscapeNote(), CAUSE, chairStory(), clock(), diffRuns(), END_STATE, ENDING (+28 more)
+
+### Community 7 - "Community 7"
+Cohesion: 0.09
+Nodes (27): BANK, hashRng(), addS(), ANTI, DICT, DIGITS, DIGRAPHS, DUR (+19 more)
+
+### Community 8 - "Community 8"
+Cohesion: 0.06
+Nodes (32): ARM_REST, coloursFor(), DOWN, _e, ELBOW, HAIRS, HIP_JOINT, KNEE (+24 more)
+
+### Community 9 - "Community 9"
+Cohesion: 0.17
+Nodes (30): BACK_MOUNT, chairState(), ensureChair(), findChair(), loadChair(), mount(), pickUpChair(), resetChair() (+22 more)
+
+### Community 10 - "Community 10"
+Cohesion: 0.12
+Nodes (28): poseGun(), palmVehicles(), applyShake(), cancelCharge(), CONE_COS, startCharge(), updateHealth(), updatePalm() (+20 more)
+
+### Community 11 - "Community 11"
 Cohesion: 0.08
 Nodes (16): buttons, buttonsBuf, clickedEdge, GAME_KEYS, held, isEditable(), keysBuf, lockListeners (+8 more)
 
-### Community 13 - "Audio wiring"
-Cohesion: 0.12
-Nodes (20): applyVolume(), audioFrame(), engines, ensureAudio(), initAudio(), _on, readVolume(), setVolume() (+12 more)
+### Community 12 - "Community 12"
+Cohesion: 0.09
+Nodes (21): CAM_LOOK, CAM_POS, createStage(), _l, pivotPose(), _q, _r, releaseCast() (+13 more)
 
-### Community 14 - "Props and furniture"
+### Community 13 - "Community 13"
 Cohesion: 0.17
-Nodes (22): addCast(), AWNINGS, buildFurniture(), footprint(), LEAF, shuffle(), treeMeshes(), benchParts() (+14 more)
+Nodes (19): audioInternals(), updateAll(), startPalm(), juiceCamera(), preTick(), resetJuice(), boot(), END (+11 more)
 
-### Community 15 - "Massage stage"
-Cohesion: 0.10
-Nodes (17): CAM_LOOK, CAM_POS, createStage(), _l, pivotPose(), _q, _r, releaseCast() (+9 more)
+### Community 14 - "Community 14"
+Cohesion: 0.17
+Nodes (19): addCollider(), bounds(), build(), gridOf(), insert(), query(), removeCollider(), span() (+11 more)
 
-### Community 16 - "Bubble queue"
-Cohesion: 0.20
-Nodes (17): activeBubbles(), anchorOf(), bubbles, busy(), drop(), enqueue(), eta(), inScene() (+9 more)
+### Community 15 - "Community 15"
+Cohesion: 0.16
+Nodes (19): burst(), clearHitStop(), crashFx(), _from, frozen(), hitStop(), initJuice(), juiceTick() (+11 more)
 
-### Community 17 - "Juice and particles"
-Cohesion: 0.21
-Nodes (14): _from, initJuice(), juiceCamera(), juiceTick(), preTick(), resetJuice(), _to, burst() (+6 more)
+### Community 16 - "Community 16"
+Cohesion: 0.26
+Nodes (19): addBox(), addCyl(), addGeo(), addRing(), addSlab(), flat(), UNIT_BOX(), buildCentre() (+11 more)
 
-### Community 18 - "Procedural score"
-Cohesion: 0.20
-Nodes (7): BASS, createAudio(), instances, PENTA, createSfx(), TYPE_PITCH, SLOW
+### Community 17 - "Community 17"
+Cohesion: 0.16
+Nodes (15): createAudio(), applyVolume(), audioFrame(), engines, ensureAudio(), initAudio(), makeVoice(), _on (+7 more)
 
-### Community 19 - "Run end and escape"
-Cohesion: 0.36
-Nodes (8): checkEscape(), endRun(), hasChair(), inZone(), pulse(), RED, resetEscapeMarker(), STATE_FOR
+### Community 18 - "Community 18"
+Cohesion: 0.19
+Nodes (18): activeBubbles(), anchorOf(), bubbles, busy(), drop(), enqueue(), eta(), inScene() (+10 more)
 
-### Community 20 - "Stage cast"
+### Community 19 - "Community 19"
+Cohesion: 0.18
+Nodes (18): AWNINGS, buildAlley(), buildBuildings(), _c, GLASS, _m, _p, PALETTE (+10 more)
+
+### Community 20 - "Community 20"
+Cohesion: 0.18
+Nodes (16): CONE_COS, ensureMesh(), LOOK, RANGE, resetGun(), setLook(), shockwave(), tap() (+8 more)
+
+### Community 21 - "Community 21"
+Cohesion: 0.19
+Nodes (15): createBatch(), CENTRES, blockSeed(), buildBackdrop(), buildDistrict(), linkSpurs(), mergeNav(), planSun() (+7 more)
+
+### Community 22 - "Community 22"
 Cohesion: 0.25
-Nodes (8): removeCast(), removeClient(), seatClient(), walkOff(), pivot(), placeholder(), skin(), spawnPerson()
+Nodes (13): hashSeed(), makeRng(), W, buildBlockPart(), escapeMarker(), offsetCollider(), plazaLink(), shuffle() (+5 more)
 
-### Community 21 - "Kneel and reach poses"
+### Community 23 - "Community 23"
+Cohesion: 0.28
+Nodes (12): hostile(), callClient(), cancel(), heatOnSpot(), kneel(), _l, _r, release() (+4 more)
+
+### Community 24 - "Community 24"
+Cohesion: 0.28
+Nodes (12): bodyCache, CAR_COLOURS, carCollider(), cartSpot(), clearPassCar(), copSpot(), footprintFree(), passSpot() (+4 more)
+
+### Community 25 - "Community 25"
+Cohesion: 0.32
+Nodes (12): box(), cyl(), geo(), geoCache, groupFromParts(), makeBench(), makeChair(), makeFoodCart() (+4 more)
+
+### Community 26 - "Community 26"
+Cohesion: 0.20
+Nodes (6): BASS, instances, PENTA, createSfx(), TYPE_PITCH, SLOW
+
+### Community 27 - "Community 27"
+Cohesion: 0.22
+Nodes (10): addGlow(), alleyLamps(), _e, _g, _m, mesh(), _p, _q (+2 more)
+
+### Community 28 - "Community 28"
+Cohesion: 0.20
+Nodes (10): batchMaterial(), buildBatch(), _c, _e, flatCache, _m, _p, _q (+2 more)
+
+### Community 29 - "Community 29"
+Cohesion: 0.31
+Nodes (7): landHit(), treat(), emit(), initEvents(), load(), runsSoFar(), ram()
+
+### Community 30 - "Community 30"
 Cohesion: 0.33
-Nodes (7): placeHands(), kneel(), poseTherapist(), aimAt(), poseKneeling(), poseReaching(), reach()
+Nodes (9): AWNINGS, buildFurniture(), footprint(), LEAF, shuffle(), treeMeshes(), benchParts(), cartParts() (+1 more)
 
-### Community 22 - "Certificate"
-Cohesion: 0.48
-Nodes (6): clock(), el(), hideSummary(), OUTCOME, showSummary(), usd()
+### Community 31 - "Community 31"
+Cohesion: 0.25
+Nodes (9): createPlayer(), wearPerks(), addCast(), pivot(), placeholder(), setPersonColours(), shirtFor(), skin() (+1 more)
+
+### Community 32 - "Community 32"
+Cohesion: 0.33
+Nodes (8): clock(), el(), hideSummary(), OUTCOME, showSummary(), startStats(), trackStats(), usd()
+
+### Community 33 - "Community 33"
+Cohesion: 0.50
+Nodes (7): cutGaps(), EDGES, gapAt(), SIDE, sideBox(), buildStreets(), sideSlab()
+
+### Community 34 - "Community 34"
+Cohesion: 0.39
+Nodes (7): checkEscape(), hasChair(), inZone(), pulse(), RED, resetEscapeMarker(), STATE_FOR
+
+### Community 35 - "Community 35"
+Cohesion: 0.46
+Nodes (6): add(), createWanted(), note(), report(), setLevel(), updateWanted()
+
+### Community 36 - "Community 36"
+Cohesion: 0.32
+Nodes (7): enterFns, exitFns, listFor(), onEnter(), onExit(), queue, STATES
+
+### Community 37 - "Community 37"
+Cohesion: 0.40
+Nodes (6): placeHands(), poseTherapist(), aimAt(), poseKneeling(), poseReaching(), reach()
 
 ## Knowledge Gaps
-- **219 isolated node(s):** `cache`, `TYPE_PITCH`, `engines`, `sirens`, `_on` (+214 more)
+- **228 isolated node(s):** `cache`, `TYPE_PITCH`, `engines`, `sirens`, `_on` (+223 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `toXZ()` connect `District and block generation` to `Spawning, traffic, police units`, `Props and furniture`, `Assets, physics, parked cars`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `floorHeightAt()` connect `Vehicles, chair, interaction` to `Player, chase camera, gun`, `Spawning, traffic, police units`, `Pivot cutscene and lines`, `Assets, physics, parked cars`?**
-  _High betweenness centrality (0.020) - this node is a cross-community bridge._
-- **Why does `loadMesh()` connect `Assets, physics, parked cars` to `Spawning, traffic, police units`, `Vehicles, chair, interaction`, `NPC behaviour and wanted`, `Pivot cutscene and lines`, `Player, chase camera, gun`, `Boot and state wiring`, `Massage stage`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Why does `emit()` connect `Community 29` to `Community 0`, `Community 1`, `Community 32`, `Community 35`, `Community 4`, `Community 5`, `Community 36`, `Community 2`, `Community 9`, `Community 10`, `Community 13`, `Community 20`, `Community 23`?**
+  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `toXZ()` connect `Community 19` to `Community 0`, `Community 33`, `Community 16`, `Community 21`, `Community 22`, `Community 24`, `Community 27`, `Community 30`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+- **Why does `floorHeightAt()` connect `Community 9` to `Community 0`, `Community 4`, `Community 5`, `Community 10`, `Community 14`, `Community 23`, `Community 24`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
 - **What connects `cache`, `TYPE_PITCH`, `engines` to the rest of the system?**
-  _219 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `District and block generation` be split into smaller, more focused modules?**
-  _Cohesion score 0.05691985532076908 - nodes in this community are weakly interconnected._
-- **Should `Spawning, traffic, police units` be split into smaller, more focused modules?**
-  _Cohesion score 0.06426332288401254 - nodes in this community are weakly interconnected._
-- **Should `Vehicles, chair, interaction` be split into smaller, more focused modules?**
-  _Cohesion score 0.07017543859649122 - nodes in this community are weakly interconnected._
+  _228 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Community 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.05413507317933345 - nodes in this community are weakly interconnected._
+- **Should `Community 1` be split into smaller, more focused modules?**
+  _Cohesion score 0.060678962844159315 - nodes in this community are weakly interconnected._
+- **Should `Community 2` be split into smaller, more focused modules?**
+  _Cohesion score 0.05333333333333334 - nodes in this community are weakly interconnected._

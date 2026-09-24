@@ -91,6 +91,9 @@ export function updatePlayer(p, dt, ctx) {
   // Chair folding takes a moment (standing still); every other E acts at once.
   if (input && input.ePressed && !(p.foldT > 0)) {
     const act = p.vehicle ? null : interaction(p, ctx).act;
+    // Folding the chair or starting a mini-massage plants both hands: a charge or a quick palm's
+    // wind-up in progress is dropped, or it would freeze under the massage and fire at its end.
+    if (FOLD_ACTS.has(act) || act === 'massage') { cancelCharge(p, 'interact'); p.palmT = 0; }
     if (FOLD_ACTS.has(act)) { p.foldT = FOLD * ((ctx.perks && ctx.perks.foldMul) || 1); p.foldAct = act; }
     else handleInteract(p, ctx);
   }
