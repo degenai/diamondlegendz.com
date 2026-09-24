@@ -1,12 +1,20 @@
 // Speech bubbles (DESIGN.md "Dialogue"): a comic DOM bubble over the speaker's head pivot,
 // projected each frame like the floaters, clamped to the viewport with the tail pointing at the
-// speaker when they are off screen. One bubble per speaker; a new line replaces the old in place.
-// Lifetime = speech duration + 0.8 s. The duration comes from ctx.voice.speak() (Phase 7: the
-// synth's own duration, spoken or not), else 0.06 s per character + 1.2 (min 2 s). Skins: 'course' (beige) and 'run'.
+// speaker when they are off screen. One bubble per speaker, and a per-speaker queue (third play,
+// 2026-09-23: people interrupted themselves): a new line waits until the current one has been
+// spoken (its duration + 0.2 s), then replaces it in place. At most 3 lines wait; past that the
+// oldest aside, then the oldest banter is dropped, never a request. Requests (opts.kind 'request')
+// go ahead of queued banter. The voice is called, and opts.onStart(secs) fires, when a line
+// actually starts. Lifetime of the last line = speech duration + 0.8 s. The duration comes from
+// ctx.voice.speak() (Phase 7: the synth's own duration, spoken or not), else opts.seconds, else
+// 0.06 s per character + 1.2 (min 2 s). Skins: 'course' (beige) and 'run'.
 import * as THREE from '../vendor/three.module.js';
 
 const TAIL_GAP = 0.32;   // metres above the head pivot
 const MARGIN = 10;       // px from the viewport edge
+const GAP = 0.2;         // s between one spoken line and the next from the same speaker
+const QUEUE_CAP = 3;     // lines waiting per speaker
+const LINGER = 0.8;      // s the last line stays up after it has been spoken
 const bubbles = new Map(); // anchor Object3D -> bubble
 let root = null;
 const _v = new THREE.Vector3();
@@ -22,40 +30,103 @@ function anchorOf(speaker) {
   return (obj.userData && obj.userData.head) || obj;
 }
 
-export function say(ctx, speaker, text, opts = {}) {
-  const anchor = anchorOf(speaker);
-  if (!anchor || !root || !text) return null;
+const busy = (b) => !!b && (b.t < b.speak + GAP || b.q.length > 0);
+
+// Queue a line behind the current one. Requests go after the last queued request, ahead of banter.
+function enqueue(b, line) {
+  if (line.kind === 'aside' && b.q.some((l) => l.kind === 'aside')) return false; // one pending ouch is plenty
+  if (line.kind === 'request') {
+    let i = 0;
+    while (i < b.q.length && b.q[i].kind === 'request') i++;
+    b.q.splice(i, 0, line);
+  } else b.q.push(line);
+  while (b.q.length > QUEUE_CAP) {
+    let k = b.q.findIndex((l) => l.kind === 'aside');
+    if (k < 0) k = b.q.findIndex((l) => l.kind !== 'request');
+    if (k < 0) break;                     // only requests left: they all wait
+    const [gone] = b.q.splice(k, 1);
+    if (gone === line) return false;
+  }
+  return b.q.includes(line);
+}
+
+// Estimated seconds until a queued line has been spoken (for callers that pace a script).
+function eta(b, line) {
+  let t = Math.max(0, b.speak + GAP - b.t);
+  for (const l of b.q) {
+    const d = l.opts.seconds > 0 ? l.opts.seconds : lineSeconds(l.text);
+    if (l === line) return t + d;
+    t += d + GAP;
+  }
+  return t;
+}
+
+function makeBubble(anchor) {
+  const n = document.createElement('div');
+  const body = document.createElement('div');
+  body.className = 'bb-text';
+  const tail = document.createElement('i');
+  tail.className = 'bb-tail';
+  n.append(body, tail);
+  root.appendChild(n);
+  const b = { n, body, tail, anchor, t: 0, life: 0, speak: 0, side: '', q: [] };
+  bubbles.set(anchor, b);
+  return b;
+}
+
+// The line starts now: voice first (its duration wins), then the bubble text and lifetime.
+function start(b, line) {
+  const { ctx, text, opts } = line;
   let secs = opts.seconds;
   const voice = ctx && ctx.voice;
   if (voice && typeof voice.speak === 'function') {
     // voice.speak returns { duration } in seconds; never let a synth error break a line.
     try {
-      const r = voice.speak(text, opts.preset || 'client', anchor); // one voice per speaker
+      const r = voice.speak(text, opts.preset || 'client', b.anchor); // one voice per speaker
       const d = r && typeof r === 'object' ? r.duration : r;
       if (Number.isFinite(d) && d > 0) secs = d;
     } catch (err) { console.warn('[bubbles] voice failed', err); }
   }
   if (!(secs > 0)) secs = lineSeconds(text);
-  let b = bubbles.get(anchor);
-  if (!b) {
-    const n = document.createElement('div');
-    const body = document.createElement('div');
-    body.className = 'bb-text';
-    const tail = document.createElement('i');
-    tail.className = 'bb-tail';
-    n.append(body, tail);
-    root.appendChild(n);
-    b = { n, body, tail, anchor, t: 0, life: 0, side: '' };
-    bubbles.set(anchor, b);
-  }
   b.n.className = `bb bb-${opts.skin === 'course' ? 'course' : 'run'}`;
   b.body.textContent = text;
   b.text = text;
+  b.kind = line.kind;
   b.bw = 0; b.bh = 0; b.tf = ''; b.op = ''; // re-measure once for the new text
   b.t = 0;
-  b.life = secs + 0.8;
+  b.speak = secs;
+  b.life = secs + LINGER;
   b.n.hidden = true;
+  if (typeof opts.onStart === 'function') {
+    try { opts.onStart(secs); } catch (err) { console.error('[bubbles] onStart failed', err); }
+  }
   return b;
+}
+
+// Returns the bubble when the line starts at once; a queued line returns a stand-in whose `life`
+// is the estimated wait plus speech plus linger (so a script pacing on b.life - 0.8 still works),
+// and null when the line was dropped.
+export function say(ctx, speaker, text, opts = {}) {
+  const anchor = anchorOf(speaker);
+  if (!anchor || !root || !text) return null;
+  const line = { ctx, text, opts, kind: opts.kind || 'banter' };
+  let b = bubbles.get(anchor);
+  if (busy(b)) {
+    if (!enqueue(b, line)) return null;
+    return { queued: true, text, life: eta(b, line) + LINGER };
+  }
+  if (!b) b = makeBubble(anchor);
+  return start(b, line);
+}
+
+// The line this speaker is saying right now ('' between lines), and what is waiting.
+export function speaking(speaker) {
+  const b = bubbles.get(anchorOf(speaker));
+  return b && b.t < b.speak ? b.text : '';
+}
+export function queued(speaker) {
+  const b = bubbles.get(anchorOf(speaker));
+  return b ? b.q.map((l) => l.text) : [];
 }
 
 function inScene(o) {
@@ -74,6 +145,7 @@ export function clearBubbles() { for (const b of [...bubbles.values()]) drop(b);
 export function activeBubbles() {
   return [...bubbles.values()].filter((b) => !b.n.hidden).map((b) => ({
     text: b.text, x: b.x, y: b.y, tipX: b.tipX, tipY: b.tipY, headX: b.hx, headY: b.hy, side: b.side,
+    t: b.t, speak: b.speak, kind: b.kind, queue: b.q.map((l) => l.text),
   }));
 }
 
@@ -89,7 +161,9 @@ export function updateBubbles(dt, camera) {
   const W = window.innerWidth, H = window.innerHeight;
   for (const b of bubbles.values()) {   // deleting the current entry mid-iteration is safe for a Map
     b.t += dt;
-    if (b.t >= b.life || !inScene(b.anchor)) { drop(b); continue; }
+    if (!inScene(b.anchor)) { drop(b); continue; }   // the speaker left: their queue goes too
+    if (b.q.length && b.t >= b.speak + GAP) start(b, b.q.shift());
+    if (b.t >= b.life) { drop(b); continue; }
     b.anchor.updateWorldMatrix(true, false);
     b.anchor.getWorldPosition(_v);
     _v.y += TAIL_GAP;

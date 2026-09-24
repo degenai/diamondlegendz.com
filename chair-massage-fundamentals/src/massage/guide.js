@@ -6,8 +6,13 @@ import { MODALITIES } from './clients.js';
 const WHITE = new THREE.Color(0xfdf8ea);
 const GREEN = new THREE.Color(0x9be08a);
 const RED = new THREE.Color(0xe0322c);
-const SWEDISH_PERIOD = 4;    // s: the warm-up is the slow one
-const SWEDISH_SCALE = 1.3;   // and the big one
+// Motion per modality (owner ruling 2026-09-23, third play: the rings were wide and barely moved).
+// Distances are back-frame metres, times seconds at 1x travel speed; clients scale the speed.
+const SWEDISH = { a: 0.22, b: 0.10, period: 3, top: 0.06 }; // long ellipse across the whole back
+// 12 cm peak to peak across the fibres, worked slowly up and down the band (8 cm, 3 s): the jitter
+// alone is narrower than the ring, so a parked cursor at its middle would never fall out.
+const CROSS = { amp: 0.06, period: 0.5, sweep: 0.08, sweepPeriod: 3, top: 0.08 };
+const TRIGGER = { speed: 0.02, box: 0.03, shrink: 4, turn: 5 }; // 2 cm/s walk in a 6 cm box
 const _c = new THREE.Vector3();
 const _p = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -24,8 +29,9 @@ export function createGuide(scene) {
   mesh.add(dot);
   scene.add(mesh);
   return {
-    mesh, modalityIdx: 0, t: 0, baseRadius: 0.18, radius: 0.18, u: 0, v: 0, spineV: 0,
-    inside: false, screen: { x: 0, y: 0, r: 0, ax: 0, ay: 0, bx: 0, by: 0 }, world: new THREE.Vector3(),
+    mesh, modalityIdx: 0, t: 0, clock: 0, speed: 1, baseRadius: 0.09, radius: 0.09, u: 0, v: 0, spineV: 0,
+    walk: { x: 0, y: 0, h: 0.7, seed: 12345 },
+    inside: false, screen: { x: 0, y: 0, r: 0, ax: 0, ay: 0, bx: 0, by: 0, inside: false }, world: new THREE.Vector3(),
   };
 }
 
@@ -35,14 +41,20 @@ export function modality(g) { return MODALITIES[g.modalityIdx]; }
 export function cycleModality(g, dir = 1) {
   const n = MODALITIES.length;
   g.modalityIdx = (g.modalityIdx + (dir < 0 ? n - 1 : 1)) % n;
-  g.t = 0;
+  resetPattern(g);
+}
+
+// Fresh pattern: clocks at zero, the trigger point walk back at the centre of its box.
+export function resetPattern(g) {
+  g.t = 0; g.clock = 0;
+  g.walk.x = 0; g.walk.y = 0;
 }
 
 // The ring is the pressure gauge's colour too: red over the band, green in it, white under.
 // Off the ring (cursor outside) it dims instead of turning red, so red only ever means "too hard".
 export function toneGuide(g, zone) {
   g.mesh.material.color.copy(zone === 'over' ? RED : zone === 'in' ? GREEN : WHITE);
-  g.mesh.material.opacity = g.inside ? 0.9 : 0.4;
+  g.mesh.material.opacity = g.inside ? 0.95 : 0.35;
 }
 
 export function disposeGuide(g, scene) {
@@ -52,17 +64,32 @@ export function disposeGuide(g, scene) {
   g.mesh.material.dispose();
 }
 
-function pattern(g) {
-  const t = g.t;
+// Deterministic per-guide noise for the trigger point walk (no Math.random: tests stay repeatable).
+function rnd(w) {
+  w.seed = (Math.imul(w.seed, 1664525) + 1013904223) >>> 0;
+  return w.seed / 4294967296;
+}
+
+// g.clock runs at the client's travel speed (0.8x / 1x / 1.2x); g.t is real time for the shrink.
+function pattern(g, dt) {
   const m = modality(g);
-  if (m === 'Swedish') { // long slow ellipse, long axis up the spine; the easy warm-up
-    const w = (t / SWEDISH_PERIOD) * Math.PI * 2;
-    g.u = 0.09 * Math.sin(w); g.v = 0.16 * Math.cos(w); g.radius = g.baseRadius * SWEDISH_SCALE;
-  } else if (m === 'Cross-fiber') { // short fast back-and-forth, 8 cm travel, 0.6 s period
-    g.u = 0.04 * Math.sin((t / 0.6) * Math.PI * 2); g.v = 0; g.radius = g.baseRadius;
-  } else { // trigger point: stationary, shrinks over 4 s then releases
-    g.u = 0; g.v = 0;
-    g.radius = g.baseRadius * (1 - 0.55 * ((t % 4) / 4));
+  if (m === 'Swedish') { // long ellipse across the back, centred low enough to stay off the neck
+    const w = (g.clock / SWEDISH.period) * Math.PI * 2;
+    g.u = SWEDISH.a * Math.sin(w);
+    g.v = Math.min(g.spineV, SWEDISH.top) - g.spineV + SWEDISH.b * Math.cos(w);
+    g.radius = g.baseRadius;
+  } else if (m === 'Cross-fiber') { // fast back-and-forth across the fibres, slowly along them
+    g.u = CROSS.amp * Math.sin((g.clock / CROSS.period) * Math.PI * 2);
+    g.v = Math.min(g.spineV, CROSS.top) - g.spineV + CROSS.sweep * Math.sin((g.clock / CROSS.sweepPeriod) * Math.PI * 2);
+    g.radius = g.baseRadius;
+  } else { // trigger point: a slow random walk in a small box while it shrinks over 4 s, then resets
+    const w = g.walk, step = TRIGGER.speed * g.speed * dt, b = TRIGGER.box;
+    w.h += (rnd(w) - 0.5) * 2 * TRIGGER.turn * dt;
+    w.x += Math.cos(w.h) * step; w.y += Math.sin(w.h) * step;
+    if (Math.abs(w.x) > b) { w.x = Math.sign(w.x) * (2 * b - Math.abs(w.x)); w.h = Math.PI - w.h; }
+    if (Math.abs(w.y) > b) { w.y = Math.sign(w.y) * (2 * b - Math.abs(w.y)); w.h = -w.h; }
+    g.u = w.x; g.v = w.y;
+    g.radius = g.baseRadius * (1 - 0.55 * ((g.t % TRIGGER.shrink) / TRIGGER.shrink));
   }
 }
 
@@ -77,7 +104,8 @@ function toScreen(v, camera, w, h, out) {
 // and so must the camera's). w/h: viewport size in CSS pixels; mouse is absolute client coords.
 export function updateGuide(g, dt, back, camera, mouseX, mouseY, w, h) {
   g.t += dt;
-  pattern(g);
+  g.clock += dt * g.speed;
+  pattern(g, dt);
   _c.set(g.u, g.spineV + g.v, 0.04);
   back.localToWorld(_c);
   g.world.copy(_c);
@@ -100,6 +128,7 @@ export function updateGuide(g, dt, back, camera, mouseX, mouseY, w, h) {
     inside = s * s + t * t <= 1;
   }
   g.inside = inside;
+  g.screen.inside = inside;
   g.screen.x = _sc.x; g.screen.y = _sc.y;
   g.screen.r = (Math.hypot(ax, ay) + Math.hypot(bx, by)) / 2;
   g.screen.ax = ax; g.screen.ay = ay; g.screen.bx = bx; g.screen.by = by; // for the HUD gauge

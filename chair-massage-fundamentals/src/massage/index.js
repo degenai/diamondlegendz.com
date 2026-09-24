@@ -6,9 +6,9 @@
 // mouse on the guide (look), E next client (interact). Space is the run's jump; it does nothing here. The last client never gets up: the moment
 // they are done, PIVOT fires with them still in the chair (the cast stays for the cutscene).
 import { STATES, setState } from '../state.js';
-import { roster, createDialogue, updateDialogue, say, OUCH, segmentsOf } from './clients.js';
+import { roster, createDialogue, updateDialogue, say, started, OUCH, segmentsOf } from './clients.js';
 import { createMeter, updateMeter, hintRange } from './meter.js';
-import { createGuide, updateGuide, cycleModality, modality, disposeGuide, toneGuide } from './guide.js';
+import { createGuide, updateGuide, cycleModality, modality, disposeGuide, toneGuide, resetPattern } from './guide.js';
 import * as stage from './stage.js';
 import { say as bubble } from '../bubbles.js';
 import { sfx } from '../juice.js';
@@ -18,45 +18,62 @@ const INTRO_TITLE = 'Module 1: Pressure and Stroke.';
 const INTRO_BODY = 'W / S pressure, A / D modality, mouse on the guide, E next client. '
   + 'The ring is your pressure gauge; the client tells you which modality they want.';
 const NOT_IT_AFTER = 3; // s on the wrong modality before the client says so (once per segment)
+const HAND_SPOT = 0.86; // hands follow the ring across the back but stop short of the torso's edge
 
 let st = null; // stage (persists: the chair stays at the spot for the run)
 const S = {
   phase: 'idle', roster: [], idx: 0, client: null, meter: null, guide: null, dlg: null,
   competency: 0, ouchCd: 0, time: 0, totals: { you: 0, host: 0 }, paid: [],
-  segs: [], seg: 0, wrongT: 0, notIt: 0, requests: [], forceDone: false,
+  segs: [], seg: 0, live: false, pending: -1, wrongT: 0, notIt: 0, requests: [], forceDone: false,
 };
 
-const wanted = () => S.segs[S.seg] || null;
+// What the client wants: only once the segment's request line has started speaking (S.live).
+// Until then the previous segment's rule stands (its competency is already capped, so nothing fills).
+const wanted = () => (S.live ? S.segs[S.seg] || null : S.seg > 0 ? S.segs[S.seg - 1] : null);
 const segFloor = () => (S.seg * 100) / S.segs.length;
 
-// A segment starts: the client asks for it in their bubble (a held line: chatter waits).
+// A segment is asked for: the request line jumps the client's bubble queue (ahead of chatter), and
+// the segment goes live, CLIENT WANTS and the zero-progress rule with it, when the line starts.
 function startSegment(ctx, k) {
-  S.seg = k; S.wrongT = 0; S.notIt = 0;
   const c = S.client;
   const text = (c.asks && c.asks[k]) || `Now ${S.segs[k].toLowerCase()}, please.`;
-  S.requests.push({ client: c.id, segment: k, modality: S.segs[k], text });
-  say(S.dlg, c.name, text, 3.2, true);
+  const req = { client: c.id, segment: k, modality: S.segs[k], text, queuedAt: S.time, startedAt: null };
+  S.requests.push(req);
+  S.pending = k;
+  const client = c;
+  say(S.dlg, c.name, text, 3.2, 'request', () => {
+    if (S.client !== client || S.pending !== k) return;
+    S.seg = k; S.live = true; S.pending = -1; S.wrongT = 0; S.notIt = 0;
+    req.startedAt = S.time;
+    if (S.guide) ctx.hud.setModality(modality(S.guide), wanted()); // the HUD switches with the voice, same frame
+  });
 }
 
 const usd = (n) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
-// Client lines go in a bubble over the client's head (the narrator keeps the strip).
+// Client lines go in a bubble over the client's head (the narrator keeps the strip). The bubble
+// queue decides when each one starts; with no bubble to speak in, a line counts as started at once.
 function showDialogue(ctx) {
   const d = S.dlg;
-  if (!d.changed) return;
-  d.changed = false;
-  if (d.text && st.client) bubble(ctx, st.client, d.text, { skin: 'course', preset: 'client', seconds: Math.max(1, d.showUntil - d.t) });
+  while (d.out.length) {
+    const line = d.out.shift();
+    const onStart = (secs) => started(d, line, secs);
+    const r = st.client ? bubble(ctx, st.client, line.text,
+      { skin: 'course', preset: 'client', seconds: line.dur, kind: line.kind, onStart }) : null;
+    if (!r && line.kind === 'request') onStart(line.dur); // never strand a segment
+  }
 }
 
 function startClient(ctx, i) {
   const c = S.roster[i];
   S.idx = i; S.client = c; S.competency = 0; S.ouchCd = 0;
-  S.segs = segmentsOf(c); S.forceDone = false;
+  S.segs = segmentsOf(c); S.forceDone = false; S.seg = 0; S.live = false; S.pending = -1;
   stage.seatClient(st, c.kind);
   S.meter = createMeter(c.bandWidth, ctx.rng, S.meter ? S.meter.pressure : 0); // pressure holds where left
   S.guide.baseRadius = c.ringRadius;
+  S.guide.speed = c.travelSpeed || 1;
   S.guide.spineV = c.spineV;
-  S.guide.t = 0; // fresh pattern per client (trigger point starts at full radius)
+  resetPattern(S.guide); // fresh pattern per client (trigger point starts at full radius)
   S.guide.mesh.visible = true;
   S.dlg = createDialogue(c);
   startSegment(ctx, 0);
@@ -74,7 +91,8 @@ function finishClient(ctx) {
   setRing(null);
   ctx.massageTotals = { ...S.totals }; // becomes the run's starting cash later
   sfx(ctx, 'pay');
-  say(S.dlg, c.name, c.done, 4);
+  S.pending = -1;
+  say(S.dlg, c.name, c.done, 4, 'request'); // the thank-you is never dropped
   showDialogue(ctx);
   ctx.hud.setLedger([
     `${c.name} paid ${usd(c.pay)}`,
@@ -100,7 +118,7 @@ export function enter(ctx) {
   stage.addCast(st, ctx.scene);
   S.roster = roster(ctx.meta);
   S.idx = 0; S.client = null; S.totals = { you: 0, host: 0 }; S.paid = []; S.meter = null; S.time = 0;
-  S.competency = 0; S.segs = []; S.seg = 0; S.requests = [];
+  S.competency = 0; S.segs = []; S.seg = 0; S.live = false; S.pending = -1; S.requests = [];
   S.guide = createGuide(ctx.scene);
   S.guide.mesh.visible = false;
   if (ctx.player && ctx.player.mesh) ctx.player.mesh.visible = false;
@@ -158,11 +176,11 @@ function updateSession(dt, ctx) {
   const inside = updateGuide(g, dt, st.client.userData.back, ctx.camera,
     input ? input.mouseX : -1, input ? input.mouseY : -1, window.innerWidth, window.innerHeight);
   toneGuide(g, zone);
-  stage.placeHands(st, g.u / 0.14, S.meter.pressure, g.spineV + g.v); // hands ride the ring
+  stage.placeHands(st, handSpot(g), S.meter.pressure, g.spineV + g.v); // hands ride the ring
 
   const want = wanted();
   const right = modality(g) === want;
-  S.wrongT = right ? 0 : S.wrongT + dt;
+  S.wrongT = right || !S.live ? 0 : S.wrongT + dt; // no "not it" while the ask is still waiting
   if (!right && S.wrongT >= NOT_IT_AFTER && !S.notIt) {
     S.notIt = 1;
     say(S.dlg, c.name, c.notIt || "That's not it.", 2);
@@ -173,10 +191,10 @@ function updateSession(dt, ctx) {
     S.competency -= 2 * c.fillRate * dt;
     if (S.ouchCd <= 0) {
       stage.flinch(st);
-      say(S.dlg, c.name, OUCH[Math.floor(ctx.rng.next() * OUCH.length)], 1.6);
+      say(S.dlg, c.name, OUCH[Math.floor(ctx.rng.next() * OUCH.length)], 1.6, 'aside');
       S.ouchCd = 1.8;
     }
-  } else if (zone === 'in' && inside) {
+  } else if (zone === 'in' && inside && S.live) { // off the ring: the fill stops at once, no grace
     S.competency += fill * dt;
   }
   let top = ((S.seg + 1) * 100) / S.segs.length; // a finished segment stays finished
@@ -189,8 +207,8 @@ function updateSession(dt, ctx) {
   ctx.hud.setCompetency(S.competency);
   ctx.hud.setModality(modality(g), want);
   setRing(g.mesh.visible ? g.screen : null);
-  if (S.forceDone) { S.forceDone = false; S.seg = S.segs.length - 1; S.competency = top = 100; } // debug / tests
-  if (S.competency >= top - 1e-9) {
+  if (S.forceDone) { S.forceDone = false; S.seg = S.segs.length - 1; S.live = true; S.pending = -1; S.competency = top = 100; } // debug / tests
+  if (S.pending < 0 && S.live && S.competency >= top - 1e-9) {
     if (S.seg + 1 < S.segs.length) startSegment(ctx, S.seg + 1);
     else { S.competency = 100; finishClient(ctx); return; }
   }
@@ -221,6 +239,9 @@ export function update(dt, ctx) {
     }
   }
 }
+
+// The hands' working spot for stage.placeHands (spot * 0.14 m = hand centre across the back).
+function handSpot(g) { return Math.max(-HAND_SPOT, Math.min(HAND_SPOT, g.u / 0.14)); }
 
 // ---- PIVOT / RUN hand-off (pivot.js) ----
 export function castHeads() { return stage.castHeads(st); }
@@ -253,25 +274,33 @@ export function debugState() {
     clientCount: S.roster.length,
     requested: S.client ? wanted() : null,
     segment: S.seg,
+    segmentLive: S.live,
+    pendingSegment: S.pending,
     segments: S.segs.slice(),
     wrongT: S.wrongT,
     notItSaid: !!S.notIt,
     requests: S.requests.slice(),
     modality: g ? modality(g) : null,
     pressure: m ? m.pressure : 0,
-    spot: g ? g.u / 0.14 : 0,
+    spot: g ? handSpot(g) : 0,
     band: m ? { centre: m.bandCentre, width: m.bandWidth, lo: m.bandCentre - m.bandWidth / 2, hi: m.bandCentre + m.bandWidth / 2 } : null,
     zone: m ? m.zone : null,
     inside: g ? g.inside : false,
-    ring: g ? { x: g.screen.x, y: g.screen.y, r: g.screen.r, worldRadius: g.radius } : null,
+    ring: g ? { x: g.screen.x, y: g.screen.y, r: g.screen.r, worldRadius: g.radius, u: g.u, v: g.v, speed: g.speed } : null,
     gauge: gaugeState(),
     competency: S.competency,
     totals: { ...S.totals },
     paid: S.paid.slice(),
     subtitle: S.dlg && S.dlg.text ? `${S.dlg.speaker}: ${S.dlg.text}` : '',
+    time: S.time,
   };
 }
 
 // Debug / headless tests: the current client reaches 100% on the next tick.
 // Skips any remaining segments: the client is paid on the next tick.
 export function debugComplete() { if (S.phase === 'session') S.forceDone = true; }
+
+// Debug / headless tests: the current segment reaches its top on the next tick (the next request fires).
+export function debugSegment() {
+  if (S.phase === 'session' && S.live && S.pending < 0) S.competency = ((S.seg + 1) * 100) / S.segs.length;
+}

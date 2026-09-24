@@ -11,8 +11,12 @@ let cardEl = null;
 let last = {};
 let tearTimer = 0;
 const SVGNS = 'http://www.w3.org/2000/svg';
-const GAUGE_SCALE = 1.16; // the gauge ellipse sits just outside the ring mesh's outer edge
-const G = { value: 0, lo: 0, hi: 0, zone: 'under', ring: null };
+// The gauge ellipse sits a fixed gap outside the ring mesh's outer edge. A fixed pixel gap (not a
+// fixed ratio) keeps it clear of the ring now that rings are 27 to 40 px (third play, 2026-09-23).
+const GAUGE_GAP = 9;      // px
+const STROKE = { track: 8, band: 12, fill: 6 }; // px; a little heavier than the CSS for the small rings
+const OFF_RING = 0.5;     // gauge opacity while the cursor is off the ring (the mesh dims too)
+const G = { value: 0, lo: 0, hi: 0, zone: 'under', ring: null, scale: 1 };
 
 function svg(tag, cls, parent) {
   const n = document.createElementNS(SVGNS, tag);
@@ -51,6 +55,9 @@ export function initMassageHud(root) {
   els.ringTrack = svg('path', 'cm-ring-track', els.ringSvg);
   els.ringBand = svg('path', 'cm-ring-band', els.ringSvg);
   els.ringFill = svg('path', 'cm-ring-fill', els.ringSvg);
+  els.ringTrack.style.strokeWidth = `${STROKE.track}px`;
+  els.ringBand.style.strokeWidth = `${STROKE.band}px`;
+  els.ringFill.style.strokeWidth = `${STROKE.fill}px`;
   els.ringSvg.style.display = 'none';
   els.pVal = el('div', 'cm-ring-val', wrap, '0');
   els.pVal.hidden = true;
@@ -112,7 +119,7 @@ export function setMeterState(zone) {
 // r: { x, y, ax, ay, bx, by } where a/b are the ring's in-plane axes in px (b points up the spine).
 function arc(r, f0, f1) {
   if (f1 - f0 <= 1e-4) return '';
-  const k = GAUGE_SCALE, dir = r.ax * r.by - r.ay * r.bx > 0 ? 1 : -1; // screen y is down
+  const k = G.scale, dir = r.ax * r.by - r.ay * r.bx > 0 ? 1 : -1; // screen y is down
   const n = Math.max(2, Math.ceil((f1 - f0) * 72));
   let d = '';
   for (let i = 0; i <= n; i++) {
@@ -126,16 +133,23 @@ function arc(r, f0, f1) {
 
 // Called every session tick with the guide's projected ring (null hides the gauge).
 export function setRing(r) {
-  G.ring = r ? { x: r.x, y: r.y, ax: r.ax, ay: r.ay, bx: r.bx, by: r.by } : null;
+  G.ring = r ? { x: r.x, y: r.y, ax: r.ax, ay: r.ay, bx: r.bx, by: r.by, inside: r.inside !== false } : null;
   if (!wrap) return;
   const on = !!r && Number.isFinite(r.x) && Math.hypot(r.ax, r.ay) > 1;
   els.ringSvg.style.display = on ? '' : 'none';
   els.pVal.hidden = !on;
   if (!on) { els.wants.hidden = true; return; }
+  const rpx = (Math.hypot(r.ax, r.ay) + Math.hypot(r.bx, r.by)) / 2;
+  G.scale = 1 + GAUGE_GAP / Math.max(1, rpx);
+  const op = G.ring.inside ? '1' : String(OFF_RING);
+  if (last.ringOp !== op) { // on the paths, not the svg: the tear-off's opacity rule stays in charge
+    for (const n of [els.ringTrack, els.ringBand, els.ringFill]) n.style.opacity = op;
+    last.ringOp = op;
+  }
   els.ringTrack.setAttribute('d', arc(r, 0, 0.9999));
   els.ringBand.setAttribute('d', arc(r, G.lo / 100, G.hi / 100));
   els.ringFill.setAttribute('d', arc(r, 0, G.value / 100));
-  const rx = Math.hypot(r.ax, r.bx) * GAUGE_SCALE, ry = Math.hypot(r.ay, r.by) * GAUGE_SCALE;
+  const rx = Math.hypot(r.ax, r.bx) * G.scale, ry = Math.hypot(r.ay, r.by) * G.scale;
   els.pVal.style.transform = `translate(${Math.round(r.x + rx + 10)}px, ${Math.round(r.y - 9)}px)`;
   els.wants.style.transform = `translate(${Math.round(r.x)}px, ${Math.round(r.y - ry - 14)}px) translate(-50%, -100%)`;
   els.wants.hidden = !last.wantsText;
@@ -144,7 +158,7 @@ export function setRing(r) {
 // Debug / tests: what the gauge is drawing right now.
 export function gaugeState() {
   return {
-    value: G.value, lo: G.lo, hi: G.hi, zone: G.zone, ring: G.ring, visible: !!els.ringSvg && els.ringSvg.style.display !== 'none',
+    value: G.value, lo: G.lo, hi: G.hi, zone: G.zone, ring: G.ring, scale: G.scale, opacity: els.ringFill ? els.ringFill.style.opacity || '1' : '', visible: !!els.ringSvg && els.ringSvg.style.display !== 'none',
     fillPath: els.ringFill ? els.ringFill.getAttribute('d') || '' : '',
     wants: els.wants && !els.wants.hidden ? els.wants.textContent : '', wantsPulse: !!els.wants && els.wants.classList.contains('cm-pulse'),
   };
