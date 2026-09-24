@@ -198,10 +198,8 @@ export function planEntry(world, van, chair, stopAt, ring) {
   return { entryS: best.entryS, dir: best.dir, points: descend(g, dist, best.A), cost: bestCost };
 }
 
-// ---- following the route: pure pursuit on a polyline (carrot LOOK m ahead of the van's
-// projected progress, which only moves forward), speed from run/driver.js driveAt. ----
-const LOOK = 6;
-const BEND_AT = [8, 14, 6];
+// ---- the route as a polyline for run/driver.js followPoly (pure pursuit on it; it lived here
+// until refactor/split and is re-exported below for one release). ----
 
 // route from planEntry (ring leg + plaza leg) or planVanPath (plaza leg only).
 export function buildPoly(van, route, ring) {
@@ -222,44 +220,5 @@ export function buildPoly(van, route, ring) {
   return { pts, cum, total: cum[cum.length - 1], ringEnd, prog: 0, seg: 0 };
 }
 
-function pointAt(P, d, out) {
-  const { pts, cum } = P;
-  let i = 1;
-  while (i < pts.length - 1 && cum[i] < d) i++;
-  const a = pts[i - 1], b = pts[i], L = cum[i] - cum[i - 1] || 1;
-  const t = Math.max(0, Math.min(1, (d - cum[i - 1]) / L));
-  return out.set(a.x + (b.x - a.x) * t, 0, a.z + (b.z - a.z) * t);
-}
-
-const _c = new THREE.Vector3();
-const _p0 = new THREE.Vector3();
-const _p1 = new THREE.Vector3();
-// Returns the metres left; the caller brakes when it is small.
-// bendAt: [from, to] m ahead where the bend brake looks, the speed for a sharp bend, and
-// (optional) [min, max] of a speed-scaled carrot distance.
-export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise, bendAt = BEND_AT) {
-  const { pts, cum } = P;
-  // Progress: best projection on the current segment or the next two.
-  let bestD = Infinity;
-  for (let i = P.seg; i < Math.min(pts.length - 1, P.seg + 3); i++) {
-    const a = pts[i], b = pts[i + 1], L = cum[i + 1] - cum[i] || 1;
-    const t = Math.max(0, Math.min(1, ((v.pos.x - a.x) * (b.x - a.x) + (v.pos.z - a.z) * (b.z - a.z)) / (L * L)));
-    const x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t, d = Math.hypot(v.pos.x - x, v.pos.z - z);
-    if (d < bestD) { bestD = d; const pr = cum[i] + t * L; if (pr >= P.prog) { P.prog = pr; P.seg = i; } }
-  }
-  const left = P.total - P.prog;
-  // Street driving (bendAt[3]): the carrot runs further ahead with speed, so it is on the next
-  // street before the corner and the car turns in early and wide instead of late and tight.
-  const look = bendAt[3] ? Math.max(bendAt[3][0], Math.min(bendAt[3][1], 3 + Math.abs(v.speed) * 0.6)) : LOOK;
-  pointAt(P, Math.min(P.total, P.prog + look), _c);
-  let cruise = P.seg < P.ringEnd ? ringCruise : plazaCruise;
-  // Brake for the bend ahead: heading change between the next 4 m and 8..14 m on.
-  pointAt(P, P.prog, _p0); pointAt(P, Math.min(P.total, P.prog + 4), _p1);
-  const h0 = Math.atan2(_p1.x - _p0.x, _p1.z - _p0.z);
-  pointAt(P, Math.min(P.total, P.prog + bendAt[0]), _p0); pointAt(P, Math.min(P.total, P.prog + bendAt[1]), _p1);
-  let bend = Math.abs(Math.atan2(_p1.x - _p0.x, _p1.z - _p0.z) - h0);
-  if (bend > Math.PI) bend = Math.PI * 2 - bend;
-  if (bend > 1.0) cruise = Math.min(cruise, bendAt[2] ?? 6); else if (bend > 0.5) cruise = Math.min(cruise, 9);
-  driveAt(v, _c.x, _c.z, cruise, dt, left);
-  return left;
-}
+// followPoly moved to run/driver.js (refactor/split); re-exported here for one release.
+export { followPoly } from './run/driver.js';

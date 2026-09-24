@@ -1,9 +1,9 @@
 // AI drivers on the street graph (world/roads.js): a route of intersections, pure pursuit on a
-// lookahead point along its lane (pivot-path.js followPoly, which also brakes for bends), a
+// lookahead point along its lane (followPoly below, which also brakes for bends), a
 // direct chase when close, and a back-up-and-turn when stuck. Writes v.ai = { throttle, steer,
 // handbrake }; vehicle.js reads it.
+import * as THREE from '../../vendor/three.module.js';
 import { nodeAhead, nearestEdge, route, lanePoints } from '../world/roads.js';
-import { followPoly } from '../pivot-path.js';
 const REPLAN = 1.0;
 // Street corners are 90 degrees with parked cars 2 m outside the lane: brake early, turn slowly.
 const STREET_BEND = [18, 26, 6, [6, 11]];   // fast cars (cops, the van)
@@ -75,4 +75,55 @@ export function driveRoute(v, G, goal, cruise, dt, lane) {
     v.route = { goal, lane, t: REPLAN, poly: planRoute(v, G, goal, lane) };
   } else R.t -= dt;
   return followPoly(v, v.route.poly, dt, driveAt, cruise, cruise, cruise > 11 ? STREET_BEND : TOWN_BEND);
+}
+
+// ---- following a route: pure pursuit on a polyline (carrot LOOK m ahead of the vehicle's
+// projected progress, which only moves forward), speed from driveAt. Polylines come from
+// makePoly here or pivot-path.js buildPoly (the pivot van). Moved from pivot-path.js in
+// refactor/split, so driver.js and pivot-path.js no longer call into each other. The driveAt
+// parameter stays for the callers (pivot.js, traffic.js, driveRoute), which all pass this
+// module's driveAt.
+const LOOK = 6;
+const BEND_AT = [8, 14, 6];
+
+function pointAt(P, d, out) {
+  const { pts, cum } = P;
+  let i = 1;
+  while (i < pts.length - 1 && cum[i] < d) i++;
+  const a = pts[i - 1], b = pts[i], L = cum[i] - cum[i - 1] || 1;
+  const t = Math.max(0, Math.min(1, (d - cum[i - 1]) / L));
+  return out.set(a.x + (b.x - a.x) * t, 0, a.z + (b.z - a.z) * t);
+}
+
+const _c = new THREE.Vector3();
+const _p0 = new THREE.Vector3();
+const _p1 = new THREE.Vector3();
+// Returns the metres left; the caller brakes when it is small.
+// bendAt: [from, to] m ahead where the bend brake looks, the speed for a sharp bend, and
+// (optional) [min, max] of a speed-scaled carrot distance.
+export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise, bendAt = BEND_AT) {
+  const { pts, cum } = P;
+  // Progress: best projection on the current segment or the next two.
+  let bestD = Infinity;
+  for (let i = P.seg; i < Math.min(pts.length - 1, P.seg + 3); i++) {
+    const a = pts[i], b = pts[i + 1], L = cum[i + 1] - cum[i] || 1;
+    const t = Math.max(0, Math.min(1, ((v.pos.x - a.x) * (b.x - a.x) + (v.pos.z - a.z) * (b.z - a.z)) / (L * L)));
+    const x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t, d = Math.hypot(v.pos.x - x, v.pos.z - z);
+    if (d < bestD) { bestD = d; const pr = cum[i] + t * L; if (pr >= P.prog) { P.prog = pr; P.seg = i; } }
+  }
+  const left = P.total - P.prog;
+  // Street driving (bendAt[3]): the carrot runs further ahead with speed, so it is on the next
+  // street before the corner and the car turns in early and wide instead of late and tight.
+  const look = bendAt[3] ? Math.max(bendAt[3][0], Math.min(bendAt[3][1], 3 + Math.abs(v.speed) * 0.6)) : LOOK;
+  pointAt(P, Math.min(P.total, P.prog + look), _c);
+  let cruise = P.seg < P.ringEnd ? ringCruise : plazaCruise;
+  // Brake for the bend ahead: heading change between the next 4 m and 8..14 m on.
+  pointAt(P, P.prog, _p0); pointAt(P, Math.min(P.total, P.prog + 4), _p1);
+  const h0 = Math.atan2(_p1.x - _p0.x, _p1.z - _p0.z);
+  pointAt(P, Math.min(P.total, P.prog + bendAt[0]), _p0); pointAt(P, Math.min(P.total, P.prog + bendAt[1]), _p1);
+  let bend = Math.abs(Math.atan2(_p1.x - _p0.x, _p1.z - _p0.z) - h0);
+  if (bend > Math.PI) bend = Math.PI * 2 - bend;
+  if (bend > 1.0) cruise = Math.min(cruise, bendAt[2] ?? 6); else if (bend > 0.5) cruise = Math.min(cruise, 9);
+  driveAt(v, _c.x, _c.z, cruise, dt, left);
+  return left;
 }

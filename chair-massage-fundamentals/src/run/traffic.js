@@ -11,8 +11,7 @@ import { clearDriverRig } from '../entities/seated.js';
 import { placeVehicle, recolourBody, CAR_COLOURS } from '../world/cars.js';
 import { lanePoints, edgeSpot } from '../world/roads.js';
 import { SIZE } from '../world/layout.js';
-import { followPoly } from '../pivot-path.js';
-import { driveAt, brake } from './driver.js';
+import { driveAt, brake, followPoly } from './driver.js';
 
 const COUNT = 6;
 const NEAR = 2 * SIZE, FAR = 2.5 * SIZE, AHEAD0 = SIZE, AHEAD1 = 2 * SIZE;
