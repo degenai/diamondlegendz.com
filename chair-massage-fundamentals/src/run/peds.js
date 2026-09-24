@@ -20,7 +20,7 @@ const PEDS = 40;
 const EVERY = 0.5;
 const MOVES = 4;             // re-homed per tick
 const HIDE_R = 35;           // a re-homed ped lands at least this far from the player
-const BUSY = ['kneel', 'toChair', 'leave'];
+const BUSY = ['kneel', 'toChair', 'leave', 'flee'];
 
 const key = (b) => `${b[0]},${b[1]}`;
 
@@ -123,7 +123,9 @@ export function spawnRegular(ctx, rng) {
   ctx.npcs.push(e);
 }
 
-const movable = (e) => e.kind === 'ped' && !e.regular && !BUSY.includes(e.state) && !(e.knockedT > 0) && e.state !== 'treated';
+// Idle means idle: not the client, not running from chaos, not limping from a car (soreT), not
+// treated. A re-home resets those, so moving one would cancel his flight or heal his back.
+const movable = (e) => e.kind === 'ped' && !e.regular && !BUSY.includes(e.state) && !(e.knockedT > 0) && !(e.soreT > 0) && e.state !== 'treated';
 
 // Per RUN tick (throttled): rebalance the blocks round the player; extras (a carjacked driver)
 // beyond two blocks are dropped instead, back to the starting count.
