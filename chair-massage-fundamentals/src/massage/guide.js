@@ -44,6 +44,15 @@ export function cycleModality(g, dir = 1) {
   resetPattern(g);
 }
 
+// Space: straight to the named modality (the one the client asked for). No-op when already there.
+export function setModality(g, name) {
+  const i = MODALITIES.indexOf(name);
+  if (i < 0 || i === g.modalityIdx) return false;
+  g.modalityIdx = i;
+  resetPattern(g);
+  return true;
+}
+
 // Fresh pattern: clocks at zero, the trigger point walk back at the centre of its box.
 export function resetPattern(g) {
   g.t = 0; g.clock = 0;

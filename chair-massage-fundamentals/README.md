@@ -17,6 +17,10 @@ python -m http.server 8000
 Then open <http://localhost:8000/chair-massage-fundamentals/>. You need a keyboard and a mouse.
 Phones get a polite card instead of the game.
 
+The course: W / S pressure, A / D modality, **Space matches the client** (snaps to the modality
+they asked for), mouse on the guide, E next client. On a first playthrough the first client walks
+you through it, one prompt at a time.
+
 - `?seed=12345` (or any text, like `?seed=andy`) pins the run's city block: building heights,
   plaza layout, parked cars, the van's entry, the escape edge. Without it, every load rolls a new block.
 - Progress (runs, unlocks) lives in `localStorage` under `cmf.meta.v1`. Clear it to see the
@@ -91,6 +95,10 @@ N" line against the run before it, and a line against the best escape so far. Ru
 "Copy last run" copies the report and the run's events as JSON, ready to paste to a model for a
 richer read. "Download run log (JSON)" saves all runs or the selected one; "Clear log" empties the
 buffer. The hooks are one-liners at the call sites; the bus is `src/events.js`.
+Every voice line is logged as it starts speaking (`line`, from `src/bubbles.js`): the feed's
+**Lines** filter shows only those, each report ends with "Lines heard" (one row per distinct line
+and how often it played that run), and the **Repeats** card under the finished runs lists the lines
+heard in three or more runs, most repeated first.
 
 Every event is `{ t, wall, run, type, data }`: `t` is game time in seconds (`ctx.time`), `wall` is
 `Date.now()`, `run` is `meta.runs + 1` taken on entering MASSAGE and RUN (the massage, pivot, run
@@ -112,6 +120,8 @@ and certificate share it). Types and their `data`:
 | `knockdown` | `who` (`player` or npc kind), `cause`, `by` (vehicle label), `mine` (you were driving) |
 | `run.end` | `reason` (`escape` / `arrest` / `death` / `left`), `time` (run seconds), `cash`, `runCash`, `host`, `tension`, `unlock`, `track` (`main` / `consolation` / null) |
 | `certificate` | `outcome`, `unlock` (name), `track`, `runs`, `escapes` |
+| `line` | `speaker` (`narrator` / `client` / `goon` / `cop` / `ranger` / `player` / `boss`), `name` (client name, goon id, or null), `text`, `preset` (voice), `state` (game state) |
+| `tutorial` | `step` (`a` to `d`), `act` (`shown` / `done` / `skipped`), `text`, `client` (the guided first client) |
 
 ## The debug handle
 

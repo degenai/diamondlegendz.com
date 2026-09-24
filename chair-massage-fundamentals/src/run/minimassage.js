@@ -112,7 +112,8 @@ function callClient(ctx) {
   if (!best) return;
   M.client = best; M.phase = 'coming'; M.t = 0;
   best.state = 'toChair'; best.idleT = 0;
-  say(ctx, best, best.sore ? 'Is that a massage chair? My back is killing me.' : 'Oh, is this the free chair massage?');
+  say(ctx, best, best.regular ? "Hey, it's me. Priya. Forearms again?"
+    : best.sore ? 'Is that a massage chair? My back is killing me.' : 'Oh, is this the free chair massage?');
 }
 
 export function updateMini(dt, ctx) {
@@ -182,7 +183,7 @@ function succeed(ctx) {
   ctx.hud.floater(`+$${pay}`, M.pos.x, M.pos.y + 1.9, M.pos.z, 'cash');
   sfx(ctx, 'pay', M.pos.x, M.pos.z);
   ctx.hud.floater('TENSION RELEASED', M.pos.x, M.pos.y + 2.3, M.pos.z, 'released');
-  release(ctx, e.sore ? 'My back... it\'s fixed? Here, take double.' : 'Oh, that\'s so much better. Here.', true);
+  release(ctx, e.regular ? 'Okay. I can pull shots again. Here.' : e.sore ? 'My back... it\'s fixed? Here, take double.' : 'Oh, that\'s so much better. Here.', true);
   e.soreT = 0; e.sore = false;
   M.phase = 'waiting'; M.cool = 3;
   heatOnSpot(ctx, M);

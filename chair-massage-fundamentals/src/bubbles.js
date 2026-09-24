@@ -8,7 +8,11 @@
 // actually starts. Lifetime of the last line = speech duration + 0.8 s. The duration comes from
 // ctx.voice.speak() (Phase 7: the synth's own duration, spoken or not), else opts.seconds, else
 // 0.06 s per character + 1.2 (min 2 s). Skins: 'course' (beige) and 'run'.
+// Every line that starts speaking is logged for the watcher as a `line` event (owner ruling
+// 2026-09-24: line diversity). Lines spoken without a bubble (the narrator) log through heard().
 import * as THREE from '../vendor/three.module.js';
+import { emit } from './events.js';
+import { getState } from './state.js';
 
 const TAIL_GAP = 0.32;   // metres above the head pivot
 const MARGIN = 10;       // px from the viewport edge
@@ -22,6 +26,32 @@ const _v = new THREE.Vector3();
 export function initBubbles(hudRoot) { root = hudRoot; }
 
 export function lineSeconds(text) { return Math.max(2, 0.06 * String(text).length + 1.2); }
+
+// Who is talking, for the line log: opts.speaker / opts.name win; else the entity says (the boss,
+// a goon, a cop or the ranger, a ped is a mini-massage client, ctx.player is the player); else the
+// voice preset (a pivot line spoken from the van is 'goon').
+function whoIs(ctx, speaker, opts) {
+  const e = speaker && !speaker.isObject3D ? speaker : null;
+  let kind = opts.speaker || null;
+  if (!kind && e) {
+    if (ctx && e === ctx.player) kind = 'player';
+    else if (e.boss) kind = 'boss';
+    else if (e.kind === 'goon') kind = 'goon';
+    else if (e.kind === 'cop') kind = e.rank === 'ranger' ? 'ranger' : 'cop';
+    else if (e.kind === 'ped') kind = 'client';
+  }
+  if (!kind) kind = opts.preset || 'narrator';
+  let name = opts.name ?? null;
+  if (name === null && e) name = e.name || (e.kind === 'goon' && !e.boss && e.id != null ? e.id : null);
+  return { kind, name };
+}
+
+// A line was heard: one `line` event. Called when a bubble line starts, and by lines with no bubble.
+export function heard(text, speaker = 'narrator', name = null, preset = 'narrator') {
+  let state = null;
+  try { state = getState(); } catch (_) { /* before boot */ }
+  emit('line', { speaker, name, text, preset, state });
+}
 
 // speaker: an entity ({ mesh }), a person Group (userData.head) or any Object3D.
 function anchorOf(speaker) {
@@ -88,6 +118,7 @@ function start(b, line) {
     } catch (err) { console.warn('[bubbles] voice failed', err); }
   }
   if (!(secs > 0)) secs = lineSeconds(text);
+  heard(text, line.who.kind, line.who.name, opts.preset || 'client');
   b.n.className = `bb bb-${opts.skin === 'course' ? 'course' : 'run'}`;
   b.body.textContent = text;
   b.text = text;
@@ -109,7 +140,7 @@ function start(b, line) {
 export function say(ctx, speaker, text, opts = {}) {
   const anchor = anchorOf(speaker);
   if (!anchor || !root || !text) return null;
-  const line = { ctx, text, opts, kind: opts.kind || 'banter' };
+  const line = { ctx, text, opts, kind: opts.kind || 'banter', who: whoIs(ctx, speaker, opts) };
   let b = bubbles.get(anchor);
   if (busy(b)) {
     if (!enqueue(b, line)) return null;

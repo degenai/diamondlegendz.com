@@ -109,6 +109,7 @@ export function spawnPeds(ctx, rng) {
 }
 
 // "Regular client" unlock: one guaranteed willing ped idling a few metres from the chair spot.
+// She is Priya, the barista from the corner, who also comes back between runs (massage/clients.js).
 export function spawnRegular(ctx, rng) {
   const { points } = navInfo(ctx.world);
   const c = ctx.world.chairSpot;
@@ -118,7 +119,7 @@ export function spawnRegular(ctx, rng) {
     if (d < bd) { bd = d; best = i; }
   }
   const e = createPed(ctx.scene, points[best].clone(), best, rng);
-  e.regular = true; e.idleT = 6;
+  e.regular = true; e.idleT = 6; e.name = 'Priya';
   addEntity(ctx.entities, e);
   ctx.npcs.push(e);
 }

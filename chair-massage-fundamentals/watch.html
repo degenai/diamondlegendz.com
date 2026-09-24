@@ -45,7 +45,10 @@
   .ev-state .k { color: #9fb3c4; } .ev-run-start .k, .ev-run-end .k, .ev-certificate .k { color: #fff; font-weight: bold; }
   .ev-wanted .k { color: #ffd23a; } .ev-palm .k, .ev-gun .k { color: #7ff0c0; } .ev-vehicle .k { color: #7fb8ff; }
   .ev-chair .k { color: #f2d27a; } .ev-mini .k { color: #9cf29a; } .ev-damage .k, .ev-knockdown .k { color: #ff6a5c; }
-  .ev-pivot .k { color: #c9a2ff; } .ev-massage .k { color: #e6cf8e; }
+  .ev-pivot .k { color: #c9a2ff; } .ev-massage .k { color: #e6cf8e; } .ev-line .k { color: #f5f5f5; } .ev-tutorial .k { color: #9cf29a; }
+  .w-feed.w-only-lines div:not(.ev-line) { display: none; }
+  .w-feed-bar { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #555; }
+  .w-feed-bar select { font: 12px var(--mono); }
   .w-empty { color: #999; font-style: italic; }
   .w-note { font-size: 11px; color: #cfe0ee; }
   @media (max-width: 800px) { .w-main { grid-template-columns: 1fr; height: auto; } .w-feed { height: 60vh; } }
@@ -84,11 +87,17 @@
       </table>
     </div>
     <div class="w-card">
+      <h2>Repeats · lines heard in 3+ runs</h2>
+      <pre class="w-report" id="w-repeats">No line heard in 3 or more runs yet.</pre>
+    </div>
+    <div class="w-card">
       <h2 id="w-report-title">Run report</h2>
       <pre class="w-report" id="w-report">Pick a finished run.</pre>
     </div>
   </div>
   <div class="w-col">
+    <div class="w-feed-bar"><label for="w-filter">Feed</label>
+      <select id="w-filter"><option value="all">All events</option><option value="lines">Lines</option></select></div>
     <div class="w-feed" id="w-feed" aria-live="off"></div>
   </div>
 </div>

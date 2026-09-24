@@ -3,29 +3,86 @@
 // cross-fiber, then trigger point; two between runs): the client asks for each one out loud, the
 // HUD says CLIENT WANTS over the ring, and only the requested modality fills competency.
 // Keys match the run (DESIGN.md pillar 1): W/S pressure (forward/back), A/D modality (strafe),
-// mouse on the guide (look), E next client (interact). Space is the run's jump; it does nothing here. The last client never gets up: the moment
-// they are done, PIVOT fires with them still in the chair (the cast stays for the cutscene).
+// mouse on the guide (look), E next client (interact), Space (the run's jump and handbrake) snaps
+// the modality to the one the client wants (owner ruling 2026-09-24, Andy's first play: cycling
+// under a fresh request was a micro panic). Space does nothing else here. The last client never
+// gets up: the moment they are done, PIVOT fires with them still in the chair (the cast stays).
+// First playthrough only, client 1 is guided: four course prompts by the ring (COACH below).
 import { STATES, setState } from '../state.js';
 import { roster, createDialogue, updateDialogue, say, started, OUCH, segmentsOf } from './clients.js';
 import { createMeter, updateMeter, hintRange } from './meter.js';
-import { createGuide, updateGuide, cycleModality, modality, disposeGuide, toneGuide, resetPattern } from './guide.js';
+import { createGuide, updateGuide, cycleModality, setModality, modality, disposeGuide, toneGuide, resetPattern } from './guide.js';
 import * as stage from './stage.js';
-import { say as bubble } from '../bubbles.js';
+import { say as bubble, heard } from '../bubbles.js';
+import { emit } from '../events.js';
 import { sfx } from '../juice.js';
-import { setRing, gaugeState } from '../hud-massage.js';
+import { setRing, gaugeState, setCoach } from '../hud-massage.js';
 
 const INTRO_TITLE = 'Module 1: Pressure and Stroke.';
-const INTRO_BODY = 'W / S pressure, A / D modality, mouse on the guide, E next client. '
+const INTRO_BODY = 'W / S pressure, A / D modality, Space to match the client, mouse on the guide, E next client. '
   + 'The ring is your pressure gauge; the client tells you which modality they want.';
 const NOT_IT_AFTER = 3; // s on the wrong modality before the client says so (once per segment)
 const HAND_SPOT = 0.86; // hands follow the ring across the back but stop short of the torso's edge
+
+// The guided first client (owner ruling 2026-09-24, Andy: "took a min to figure out how to play").
+// Layered on the real session: one prompt at a time, each waits for the action, and nothing here
+// gates the fill, so the client still finishes in about the usual time. Steps a and b come at once,
+// c waits for the first segment change, d for the client being done. A step the session outruns
+// (a debug finish, a segment filled before the prompt was obeyed) is closed as skipped.
+const COACH = [
+  { step: 'a', text: 'Hold W until the ring turns green.', hold: 1 },   // zone 'in' for 1 s straight
+  { step: 'b', text: 'Keep the cursor on the guide.', hold: 2 },        // 2 s inside the ring in all
+  { step: 'c', text: 'Press Space to give them what they asked for.' }, // until the modality matches
+  { step: 'd', text: "Press E when they're done." },                    // until E
+];
 
 let st = null; // stage (persists: the chair stays at the spot for the run)
 const S = {
   phase: 'idle', roster: [], idx: 0, client: null, meter: null, guide: null, dlg: null,
   competency: 0, ouchCd: 0, time: 0, totals: { you: 0, host: 0 }, paid: [],
   segs: [], seg: 0, live: false, pending: -1, wrongT: 0, notIt: 0, requests: [], forceDone: false,
+  coach: { on: false, step: -1, next: 0, held: 0, log: [] },
 };
+
+function coachShow(ctx, k) {
+  const C = S.coach, p = COACH[k];
+  C.step = k; C.next = k + 1; C.held = 0;
+  setCoach(p.text);
+  C.log.push({ step: p.step, act: 'shown', at: S.time });
+  emit('tutorial', { step: p.step, act: 'shown', text: p.text, client: S.client ? S.client.id : null });
+}
+function coachDone(ctx, skipped = false) {
+  const C = S.coach, p = COACH[C.step];
+  if (!p) return;
+  setCoach('');
+  C.log.push({ step: p.step, act: skipped ? 'skipped' : 'done', at: S.time });
+  emit('tutorial', { step: p.step, act: skipped ? 'skipped' : 'done', text: p.text, client: S.client ? S.client.id : null });
+  C.step = -1;
+}
+// Close the open step and show every step before k as skipped, then show k.
+function coachTo(ctx, k) {
+  const C = S.coach;
+  if (C.step >= k) return;
+  if (C.step >= 0) coachDone(ctx, true);
+  while (C.next < k) { coachShow(ctx, C.next); coachDone(ctx, true); }
+  coachShow(ctx, k);
+}
+
+// Per session tick while the guided client is on.
+function coachTick(ctx, dt, zone, inside) {
+  const C = S.coach;
+  if (!C.on) return;
+  if (C.next <= 2 && S.seg >= 1 && S.live) coachTo(ctx, 2);  // the first segment change came
+  if (C.step === 0) {
+    C.held = zone === 'in' ? C.held + dt : 0;
+    if (C.held >= COACH[0].hold) { coachDone(ctx); coachShow(ctx, 1); }
+  } else if (C.step === 1) {
+    if (inside) C.held += dt;
+    if (C.held >= COACH[1].hold) coachDone(ctx);
+  } else if (C.step === 2) {
+    if (modality(S.guide) === wanted()) coachDone(ctx);
+  }
+}
 
 // What the client wants: only once the segment's request line has started speaking (S.live).
 // Until then the previous segment's rule stands (its competency is already capped, so nothing fills).
@@ -59,7 +116,7 @@ function showDialogue(ctx) {
     const line = d.out.shift();
     const onStart = (secs) => started(d, line, secs);
     const r = st.client ? bubble(ctx, st.client, line.text,
-      { skin: 'course', preset: 'client', seconds: line.dur, kind: line.kind, onStart }) : null;
+      { skin: 'course', preset: 'client', seconds: line.dur, kind: line.kind, onStart, speaker: 'client', name: line.speaker }) : null;
     if (!r && line.kind === 'request') onStart(line.dur); // never strand a segment
   }
 }
@@ -76,6 +133,11 @@ function startClient(ctx, i) {
   resetPattern(S.guide); // fresh pattern per client (trigger point starts at full radius)
   S.guide.mesh.visible = true;
   S.dlg = createDialogue(c);
+  const C = S.coach;
+  C.on = i === 0 && !!ctx.meta && ctx.meta.firstPivotSeen === false; // first playthrough, client 1 only
+  C.step = -1; C.next = 0; C.held = 0; C.log = [];
+  setCoach('');
+  if (C.on) coachShow(ctx, 0);
   startSegment(ctx, 0);
   ctx.hud.setClientInfo(`Client ${i + 1} of ${S.roster.length}: ${c.name}, ${c.role}`);
   ctx.hud.setCompetency(0);
@@ -105,6 +167,7 @@ function finishClient(ctx) {
     setState(STATES.PIVOT);
     return;
   }
+  if (S.coach.on) coachTo(ctx, 3);
   ctx.hud.setPrompt('Client complete. Press E for the next client.');
   stage.standClient(st);
   S.guide.mesh.visible = false;
@@ -134,6 +197,9 @@ export function enter(ctx) {
   hud.setPrompt('');
   hud.showCard(INTRO_TITLE, [INTRO_BODY, 'Press any key to begin.'], 'course');
   if (ctx.voice) ctx.voice.speak(`${INTRO_TITLE} ${INTRO_BODY}`, 'narrator', 'narrator'); // the course voice
+  heard(`${INTRO_TITLE} ${INTRO_BODY}`);                     // the watcher's line log
+  S.coach.on = false; S.coach.step = -1;
+  setCoach('');
   S.phase = 'intro';
 }
 
@@ -143,6 +209,8 @@ export function exit(ctx, target) {
   ctx.hud.hideCard();
   ctx.hud.hideDialogue();
   setRing(null);
+  S.coach.on = false; S.coach.step = -1;
+  setCoach('');
   if (target === STATES.PIVOT) {        // the cast and the course HUD stay for the cutscene
     ctx.hud.setPrompt('');
     stage.pivotPose(st);
@@ -171,6 +239,8 @@ function updateSession(dt, ctx) {
     if (p.has('KeyA') || p.has('ArrowLeft')) cycleModality(S.guide, -1);
     if (p.has('KeyD') || p.has('ArrowRight')) cycleModality(S.guide, 1);
   }
+  // Space: straight to what CLIENT WANTS says, any time in the session. No bonus, no window.
+  if (input && input.spacePressed && wanted()) setModality(S.guide, wanted());
   stage.poseClient(st, dt, S.time);
   const g = S.guide;
   const inside = updateGuide(g, dt, st.client.userData.back, ctx.camera,
@@ -207,6 +277,7 @@ function updateSession(dt, ctx) {
   ctx.hud.setCompetency(S.competency);
   ctx.hud.setModality(modality(g), want);
   setRing(g.mesh.visible ? g.screen : null);
+  coachTick(ctx, dt, zone, inside);
   if (S.forceDone) { S.forceDone = false; S.seg = S.segs.length - 1; S.live = true; S.pending = -1; S.competency = top = 100; } // debug / tests
   if (S.pending < 0 && S.live && S.competency >= top - 1e-9) {
     if (S.seg + 1 < S.segs.length) startSegment(ctx, S.seg + 1);
@@ -234,6 +305,7 @@ export function update(dt, ctx) {
     showDialogue(ctx);
     stage.walkOff(st, dt);
     if (input && input.ePressed) {
+      if (S.coach.on && S.coach.step === 3) { coachDone(ctx); S.coach.on = false; }
       if (S.idx + 1 < S.roster.length) startClient(ctx, S.idx + 1);
       else setState(STATES.PIVOT);
     }
@@ -288,6 +360,7 @@ export function debugState() {
     inside: g ? g.inside : false,
     ring: g ? { x: g.screen.x, y: g.screen.y, r: g.screen.r, worldRadius: g.radius, u: g.u, v: g.v, speed: g.speed } : null,
     gauge: gaugeState(),
+    coach: { on: S.coach.on, step: S.coach.step >= 0 ? COACH[S.coach.step].step : null, text: S.coach.step >= 0 ? COACH[S.coach.step].text : '', log: S.coach.log.slice() },
     competency: S.competency,
     totals: { ...S.totals },
     paid: S.paid.slice(),

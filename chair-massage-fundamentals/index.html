@@ -80,7 +80,13 @@
     color: #fdf8ea; background: rgba(35,30,20,.72); border: 1px solid var(--cm-rule); padding: 4px 14px; }
   .cm-wants.cm-pulse { color: #ffd27a; animation: cm-pulse .7s ease-in-out infinite alternate; }
   @keyframes cm-pulse { from { background: rgba(35,30,20,.72); } to { background: rgba(160,50,38,.88); } }
-  .cm-tear .cm-ring, .cm-tear .cm-ring-val, .cm-tear .cm-wants { opacity: 0; }
+  .cm-wants-key { margin-left: 14px; font: normal 15px var(--cm-serif); letter-spacing: .02em; color: #fdf8ea; vertical-align: 3px; }
+  .cm-wants-key kbd { font: bold 13px var(--mono); color: #2d2616; background: var(--cm-paper); border: 1px solid var(--cm-rule);
+    border-bottom-width: 3px; border-radius: 4px; padding: 1px 12px; margin-right: 5px; }
+  .cm-coach { position: absolute; left: 0; top: 0; white-space: nowrap; background: var(--cm-paper); color: var(--cm-ink);
+    border: 1px solid var(--cm-rule); border-left: 4px solid var(--cm-ok); padding: 6px 14px; font: 18px var(--cm-serif);
+    box-shadow: 0 3px 12px rgba(0,0,0,.35); }
+  .cm-tear .cm-ring, .cm-tear .cm-ring-val, .cm-tear .cm-wants, .cm-tear .cm-coach { opacity: 0; }
   .cm-mod { right: 16px; top: 132px; width: 210px; padding: 10px 12px; font-size: 14px; }
   .cm-mod-cur { font-size: 18px; color: var(--cm-ok); }
   .cm-mod-cur.cm-wrong { color: #a0463a; }
@@ -159,11 +165,11 @@
       <h3>Learning objectives</h3>
       <ul>
         <li>Apply appropriate pressure on the stroke ring (W / S).</li>
-        <li>Select the modality the client requests (A / D).</li>
+        <li>Select the modality the client requests (A / D, or Space to match the client).</li>
         <li>Track stroke patterns with the mouse on the guide.</li>
         <li>Transition efficiently between clients (E).</li>
       </ul>
-      <p style="margin: 10px 0 0">Controls: W / S pressure, A / D modality, mouse on the guide, E next client.</p>
+      <p style="margin: 10px 0 0">Controls: W / S pressure, A / D modality, Space to match the client, mouse on the guide, E next client.</p>
     </div>
     <div class="card">
       <div class="meta">

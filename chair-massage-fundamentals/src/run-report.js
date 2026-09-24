@@ -2,6 +2,8 @@
 // reportRun(events) -> a plain-text timeline (m:ss lines) and a one-line verdict computed from the
 // numbers; diffRuns(prev, cur) -> one "vs run N" line; bestEscapeNote(best, cur) -> one line against
 // the best escape so far. Rules only, no model: paste the JSON to one for a richer read.
+// linesHeard(events) -> every voice line of a run (`line` events) with its count; repeatLines(groups)
+// -> the lines heard in REPEAT_RUNS or more runs across the log (owner ruling 2026-09-24: line diversity).
 
 export const clock = (s) => { s = Math.max(0, s || 0); return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`; };
 const usd = (n) => `$${Math.round((n || 0) * 100) / 100}`;
@@ -217,8 +219,62 @@ export function verdict(st) {
   return `arrested at ${at} with ${plural(st.level, 'star')} still on`;
 }
 
-// The plain-text report for one run's events.
-export function reportRun(events) {
+// ---- voice lines (bubbles.js logs one `line` event per line as it starts speaking) ----
+export const REPEAT_RUNS = 3;
+const lineKey = (d) => `${d.speaker || '?'}|${d.text}`;
+const who = (r) => (r.names.length && (r.speaker === 'client' || r.speaker === 'boss') ? `${r.speaker} (${r.names.join(', ')})` : r.speaker);
+const quote = (t) => `"${String(t).length > 90 ? `${String(t).slice(0, 87)}...` : t}"`;
+
+// One row per distinct line (speaker + text) in the order first heard: { speaker, names, text, count }.
+export function linesHeard(events) {
+  const rows = new Map();
+  for (const e of events || []) {
+    if (!e || e.type !== 'line' || !e.data || !e.data.text) continue;
+    const d = e.data, k = lineKey(d);
+    let r = rows.get(k);
+    if (!r) { r = { speaker: d.speaker || '?', names: [], text: d.text, count: 0 }; rows.set(k, r); }
+    r.count++;
+    if (d.name !== null && d.name !== undefined && !r.names.includes(d.name)) r.names.push(d.name);
+  }
+  return [...rows.values()];
+}
+
+export function linesSection(events) {
+  const rows = linesHeard(events);
+  if (!rows.length) return 'Lines heard: none logged';
+  const plays = rows.reduce((n, r) => n + r.count, 0);
+  const out = [`Lines heard (${plural(rows.length, 'line')}, ${plural(plays, 'play')}):`];
+  for (const r of rows) out.push(`  ${r.count}x ${who(r)}: ${quote(r.text)}`);
+  return out.join('\n');
+}
+
+// Across the log: lines heard in minRuns or more runs, most repeated first.
+// groups: from groupRuns. Rows { speaker, text, runs: [run numbers], plays }.
+export function repeatLines(groups, minRuns = REPEAT_RUNS) {
+  const all = new Map();
+  for (const g of groups || []) {
+    for (const r of linesHeard(g.events)) {
+      const k = lineKey(r);
+      let a = all.get(k);
+      if (!a) { a = { speaker: r.speaker, names: [], text: r.text, runs: [], plays: 0 }; all.set(k, a); }
+      a.runs.push(g.run); a.plays += r.count;
+      for (const n of r.names) if (!a.names.includes(n)) a.names.push(n);
+    }
+  }
+  return [...all.values()].filter((a) => a.runs.length >= minRuns)
+    .sort((a, b) => b.runs.length - a.runs.length || b.plays - a.plays);
+}
+
+export function repeatsText(groups, minRuns = REPEAT_RUNS) {
+  const rows = repeatLines(groups, minRuns);
+  if (!rows.length) return `Repeats: no line heard in ${minRuns} or more runs yet`;
+  return [`Repeats (lines heard in ${minRuns}+ runs):`,
+    ...rows.map((r) => `  ${r.runs.length} runs, ${plural(r.plays, 'play')}: ${who(r)}: ${quote(r.text)}`)].join('\n');
+}
+
+// The plain-text report for one run's events. opts.lines: false leaves the lines heard off
+// (fullReport puts them after the diffs).
+export function reportRun(events, opts = {}) {
   const evs = events || [];
   const st = runStats(evs);
   let i0 = -1;
@@ -244,6 +300,7 @@ export function reportRun(events) {
   if (end) out.push(end);
   if (st.finished) out.push(`cash ${usd(st.cash)} · tension released ${st.tension} · peak stars ${st.maxStars}${unlockNote(st)}`);
   out.push(`Verdict: ${verdict(st)}`);
+  if (opts.lines !== false) out.push('', linesSection(evs));
   return out.join('\n');
 }
 
@@ -306,7 +363,7 @@ export function bestEscapeNote(bestEvents, curEvents) {
 export function fullReport(groups, i) {
   const g = groups[i];
   if (!g) return '';
-  const lines = [reportRun(g.events)];
+  const lines = [reportRun(g.events, { lines: false })];
   if (i > 0) lines.push(diffRuns(groups[i - 1].events, g.events));
   let best = null;
   for (let j = 0; j < i; j++) {
@@ -314,5 +371,6 @@ export function fullReport(groups, i) {
     if (s.ending === 'escape' && (!best || s.duration < best.s.duration)) best = { g: groups[j], s };
   }
   if (best) lines.push(bestEscapeNote(best.g.events, g.events));
+  lines.push('', linesSection(g.events));
   return lines.join('\n');
 }

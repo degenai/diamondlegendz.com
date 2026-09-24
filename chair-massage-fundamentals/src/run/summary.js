@@ -5,6 +5,7 @@
 // death's consolation item (meta.js). With the get-well card, failures carry a "Get well soon" stamp.
 import * as meta from '../meta.js';
 import { emit } from '../events.js';
+import { heard } from '../bubbles.js';
 
 const OUTCOME = { escape: 'ESCAPED', arrest: 'WAS ARRESTED', death: 'WAS OVERWORKED', left: 'LEFT THE CHAIR' };
 export const BYLINE = "Made by The People's Elbow, a.k.a. Alex Adamczyk, LMT.";
@@ -63,7 +64,9 @@ export function showSummary(ctx, root, onReturn) {
   name.addEventListener('input', () => { licensee = name.value || 'Licensee'; });
   el('div', `cert-outcome cert-${reason}`, c, OUTCOME[reason] || OUTCOME.arrest);
   // The course voice reads the outcome once, as the certificate appears.
-  if (ctx.voice) ctx.voice.speak(`This certifies that the licensee ${(OUTCOME[reason] || OUTCOME.arrest).toLowerCase()}.`, 'narrator', 'narrator');
+  const certLine = `This certifies that the licensee ${(OUTCOME[reason] || OUTCOME.arrest).toLowerCase()}.`;
+  if (ctx.voice) ctx.voice.speak(certLine, 'narrator', 'narrator');
+  heard(certLine);                                     // the watcher's line log
   el('p', 'cert-line', c, 'Chair Massage Fundamentals, Module 1: Pressure');
   const stats = el('div', 'cert-stats', c);
   for (const [k, v] of [['Run time', clock(seconds)], ['Cash raised for the host cause', usd(host)], ['Tension released', String(R.tension)]]) {

@@ -2,7 +2,9 @@
 // competency bar, modality panel, ledger, subtitle strip. Pressure has no panel: the stroke ring
 // is the gauge (owner ruling 2026-09-23). An SVG arc on the projected ring fills clockwise from the
 // bottom with pressure 0..100, the hinted sweet band is a lighter arc on the same ellipse, red over
-// the band, green in it; the number sits small beside it and CLIENT WANTS sits over it.
+// the band, green in it; the number sits small beside it and CLIENT WANTS sits over it (with a
+// Space keycap, "SPACE to match", whenever the modality is wrong). The guided first client's
+// prompts (setCoach) sit under the ring in the course skin.
 // Also owns the generic centred card (course intro, pivot stub). Styles live in index.html.
 
 let wrap = null;
@@ -62,13 +64,20 @@ export function initMassageHud(root) {
   els.pVal = el('div', 'cm-ring-val', wrap, '0');
   els.pVal.hidden = true;
   els.wants = el('div', 'cm-wants', wrap);
+  els.wantsText = el('span', '', els.wants);
+  els.wantsKey = el('span', 'cm-wants-key', els.wants);
+  el('kbd', '', els.wantsKey, 'SPACE');
+  els.wantsKey.appendChild(document.createTextNode(' to match'));
+  els.wantsKey.hidden = true;
   els.wants.hidden = true;
+  els.coach = el('div', 'cm-coach', wrap);
+  els.coach.hidden = true;
 
   const mod = el('div', 'cm-panel cm-mod', wrap);
   el('h2', '', mod, 'Modality');
   els.modCur = el('div', 'cm-mod-cur', mod);
   els.modReq = el('div', 'cm-mod-req', mod);
-  els.modNote = el('div', 'cm-mod-note', mod, 'A / D: change modality');
+  els.modNote = el('div', 'cm-mod-note', mod, 'A / D: change modality · Space: match the client');
 
   const ledger = el('div', 'cm-panel cm-ledger', wrap);
   el('h2', '', ledger, 'Ledger');
@@ -153,6 +162,15 @@ export function setRing(r) {
   els.pVal.style.transform = `translate(${Math.round(r.x + rx + 10)}px, ${Math.round(r.y - 9)}px)`;
   els.wants.style.transform = `translate(${Math.round(r.x)}px, ${Math.round(r.y - ry - 14)}px) translate(-50%, -100%)`;
   els.wants.hidden = !last.wantsText;
+  // The coach prompt hangs under the ring (and stays where the ring was once the ring is gone).
+  els.coach.style.transform = `translate(${Math.round(r.x)}px, ${Math.round(r.y + ry + 18)}px) translate(-50%, 0)`;
+}
+
+// The guided first client's prompt ('' hides it).
+export function setCoach(text) {
+  if (!wrap) return;
+  els.coach.hidden = !text;
+  setText('coach', els.coach, text || '');
 }
 
 // Debug / tests: what the gauge is drawing right now.
@@ -160,7 +178,9 @@ export function gaugeState() {
   return {
     value: G.value, lo: G.lo, hi: G.hi, zone: G.zone, ring: G.ring, scale: G.scale, opacity: els.ringFill ? els.ringFill.style.opacity || '1' : '', visible: !!els.ringSvg && els.ringSvg.style.display !== 'none',
     fillPath: els.ringFill ? els.ringFill.getAttribute('d') || '' : '',
-    wants: els.wants && !els.wants.hidden ? els.wants.textContent : '', wantsPulse: !!els.wants && els.wants.classList.contains('cm-pulse'),
+    wants: els.wants && !els.wants.hidden ? last.wantsText || '' : '', wantsPulse: !!els.wants && els.wants.classList.contains('cm-pulse'),
+    wantsSpace: !!els.wantsKey && !els.wants.hidden && !els.wantsKey.hidden,
+    coach: els.coach && !els.coach.hidden ? els.coach.textContent : '',
   };
 }
 
@@ -179,8 +199,9 @@ export function setModality(current, requested) {
   const ok = !requested || current === requested;
   els.modCur.classList.toggle('cm-wrong', !ok);
   last.wantsText = requested ? `CLIENT WANTS: ${requested.toUpperCase()}` : '';
-  setText('wants', els.wants, last.wantsText);
+  setText('wants', els.wantsText, last.wantsText);
   els.wants.classList.toggle('cm-pulse', !ok);
+  els.wantsKey.hidden = ok;                 // "SPACE to match" only while they do not match
   if (!requested) els.wants.hidden = true;
 }
 

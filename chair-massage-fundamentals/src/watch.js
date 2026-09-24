@@ -1,9 +1,11 @@
 // The run watcher (watch.html): a second tab on the same origin. Replays the ring buffer the game
 // keeps in localStorage (src/events.js), then listens on BroadcastChannel('cmf') for new events.
 // Shows a live feed, a card for the current run, a table of finished runs, and the rules-based
-// report (src/run-report.js) with its diffs under the selected run. No server, nothing external.
+// report (src/run-report.js) with its diffs under the selected run, and under the finished runs the
+// Repeats list (voice lines heard in three or more runs). The feed filters to All or Lines.
+// No server, nothing external.
 import { CHANNEL, KEY } from './events.js';
-import { groupRuns, runStats, fullReport, clock } from './run-report.js';
+import { groupRuns, runStats, fullReport, clock, repeatLines, repeatsText, REPEAT_RUNS } from './run-report.js';
 
 const $ = (id) => document.getElementById(id);
 const W = { events: [], seen: new Set(), groups: [], selected: null, doneCount: 0, lastCopy: '', lastDownload: '' };
@@ -31,6 +33,8 @@ function short(e) {
     case 'treat': return `${d.kind || d.target}${d.wave ? ' (wave)' : ''}${d.rank ? ` (${d.rank})` : ''} ${d.phase || 'sit'}`;
     case 'leave': return `${d.phase}${d.vehicle ? ` (${d.vehicle})` : ''}${d.why ? ` (${d.why})` : ''}${d.held !== undefined ? ` after ${d.held} s` : ''}`;
     case 'palm': return d.target ? `${d.charged ? 'charged' : 'quick'} on ${d.target}` : `${d.phase}${d.cause ? ` (${d.cause})` : ''}`;
+    case 'line': return `${d.speaker}${d.name !== null && d.name !== undefined ? ` ${d.name}` : ''}: "${d.text}" [${d.state || '-'}]`;
+    case 'tutorial': return `step ${d.step} ${d.act}: ${d.text}`;
     default: return Object.entries(d).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ');
   }
 }
@@ -140,10 +144,19 @@ function renderTable() {
   $('w-report').textContent = fullReport(W.groups, W.selected);
 }
 
+function renderRepeats() {
+  const rows = repeatLines(W.groups);
+  W.repeats = rows;
+  const box = $('w-repeats');
+  box.textContent = rows.length ? repeatsText(W.groups).split('\n').slice(1).map((s) => s.trim()).join('\n')
+    : `No line heard in ${REPEAT_RUNS} or more runs yet.`;
+}
+
 function refresh() {
   W.groups = groupRuns(W.events);
   renderCard();
   renderTable();
+  renderRepeats();
 }
 
 function note(text) {
@@ -164,6 +177,7 @@ function download() {
   const doc = {
     kind: 'cmf-run-log', version: 1, exported: new Date().toISOString(), count: events.length,
     reports: groups.map((i) => ({ run: W.groups[i].run, report: fullReport(W.groups, i) })),
+    repeats: repeatLines(W.groups),
     events,
   };
   const text = JSON.stringify(doc, null, 1);
@@ -217,6 +231,8 @@ function boot() {
   $('w-download').addEventListener('click', download);
   $('w-copy').addEventListener('click', copyLast);
   $('w-clear').addEventListener('click', clearLog);
+  const filt = $('w-filter');
+  filt.addEventListener('change', () => { $('w-feed').classList.toggle('w-only-lines', filt.value === 'lines'); $('w-feed').scrollTop = $('w-feed').scrollHeight; });
   setInterval(renderCard, 500);                       // the live duration ticks between events
   if (!saved.length) refresh();
 }

@@ -14,7 +14,8 @@ show up at the park and the game becomes something else.
 
 1. **The tutorial is a lie that is also true.** Everything in the massage minigame trains a skill the
    run phase needs. WASD = pressure now, movement later. Mouse-in-circle = stroke tracking now, aim/look later.
-   Space = "switch modality" now, jump/handbrake later. E = "next client" now, enter vehicle later.
+   Space = "give the client what they asked for" now (it snaps the modality to the request; ruled
+   2026-09-24), jump/handbrake later. E = "next client" now, enter vehicle later.
 2. **Short-term by design.** A run is 3 to 8 minutes. Runs end in arrest, death, or escape. Nothing is saved
    except meta unlocks. The game admits it is a roguelike the moment the first run ends.
 3. **Primitive stack, two sources.** Flat-shaded low poly, no textures, no post-processing stack, one
@@ -83,8 +84,13 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
 - **SUMMARY**: a continuing-education **certificate parody** on the beige course skin: "This certifies
   that the licensee ESCAPED / WAS ARRESTED / WAS OVERWORKED", run time, cash raised for the host cause,
   tension released count, one unlock revealed under a wax seal. "Return to the chair" button.
-- **Between runs**: one client (the jogger returns) with two new lines that reference the last run and
-  the new unlock, then the van arrives faster. About 40 s of massage between runs.
+- **Between runs**: one returning regular with two new lines in their own voice that reference the
+  last run and the new unlock, then the van arrives faster. About 40 s of massage between runs.
+  Ruled 2026-09-24 (always Dana read as a rut): the regulars rotate by run number, run 2 Dana, run 3
+  Walt, run 4 Marcus, then Dana again; each has an opener per last outcome (escaped, arrested,
+  overworked, left the chair) and a gift line per unlock and per consolation. With "Regular client"
+  owned, every third returning visit is Priya, the barista from the corner (forearms, wants
+  cross-fiber), who is also the regular waiting near the chair in the run. Two segments each.
 
 ## The massage minigame (MASSAGE)
 
@@ -100,7 +106,18 @@ stay inside it. Patterns per modality:
 - Swedish: long slow ellipses.
 - Cross-fiber friction: short fast back-and-forth.
 - Trigger point: stationary, but the circle shrinks over 4 seconds then releases.
-Space cycles modality. Each client asks for a modality by name; wrong modality gives half progress.
+A / D cycle modality. Each client asks for a modality by name; the wrong modality fills nothing.
+Ruling (2026-09-24, Andy's first play: "the client could want a different one instantly and you get a
+micro panic"): **Space always snaps to the requested modality**, any time in a session, no bonus and
+no window. CLIENT WANTS shows a Space keycap ("SPACE to match") whenever the modality is wrong. Space
+does nothing else in the course (it is the run's jump and handbrake).
+**Guided first client** (ruled 2026-09-24, Andy: "took a min to figure out how to play"): on a
+first-time playthrough only (`meta.firstPivotSeen` false), client 1 is a tutorial layered on the real
+session, one course-skin prompt under the ring at a time, each waiting for the action: "Hold W until
+the ring turns green" (zone in for 1 s), "Keep the cursor on the guide" (2 s inside), at the first
+segment change "Press Space to give them what they asked for" (until the modality matches), and at
+completion "Press E when they're done". Competency fills as usual underneath. A `tutorial` watcher
+event marks each prompt shown and done. Between-run and later clients never show them.
 Ruling (2026-09-23): the ring only gates *fill*. Over-band pressure drains and flinches even when the
 cursor is off the ring; you hurt them whether or not you are watching your hands.
 
@@ -334,8 +351,9 @@ something smaller; leaving the chair unlocks nothing.
 | `loanerscrubs` | gold shirt (#ffcc00) for the player and the massage-phase therapist | `shirt` (`'gold'`, else null) | live: `src/world/people.js` (`setPersonColours`), `src/entities/player.js`, `src/massage/stage.js` |
 
 The certificate names the track: red wax and "UNLOCKED" for a main item, a smaller grey seal and
-"CONSOLATION" for a consolation. Between runs the jogger mentions it: an escape's `{gift}` line ("I brought
-a massage gun"), or the consolation's own sympathy line ("I brought you an ice pack. You looked rough.").
+"CONSOLATION" for a consolation. Between runs the returning regular mentions it: Dana with an escape's
+`{gift}` line ("I brought a massage gun") or the consolation's own sympathy line ("I brought you an ice
+pack. You looked rough."); Walt, Marcus and Priya with their own line per unlock (`massage/clients.js`).
 `lastUnlock` (id) and `lastTrack` (`main` / `consolation`) record the last reward; `run.end` and
 `certificate` events carry `track`. Old saves: their mixed `unlocks` array stays the main track as is,
 `consolations` loads as `[]`.
