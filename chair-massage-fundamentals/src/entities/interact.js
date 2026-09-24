@@ -1,9 +1,9 @@
 // E interactions on foot and in a vehicle: enter/exit (steal), pick up / load the chair.
 // Also the RUN HUD strings (hint, vehicle line, chair strip) and the Healing Palm on bodywork.
-import { boxDistance, dentVehicle, vehicleCircles } from './vehicle-collide.js';
+import { boxDistance, vehicleCircles } from './vehicle-collide.js';
 import { overlapsFootprint, floorHeightAt } from '../physics.js';
 import { chairState, chairWorldPos, pickUpChair, loadChair, findChair } from './chair.js';
-import { setChairDown, canStart, startMassage } from '../run/minimassage.js';
+import { setChairDown, canStart, startMassage } from '../run/mini-start.js';
 import { emitChaos } from '../run/wanted.js';
 import { seatRig, unseatRig, clearDriverRig } from './seated.js';
 import { createPed } from './ped.js';
@@ -18,7 +18,6 @@ export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
 export const CHAIR_DIST = 2;
 export const TAKE_DIST = 1.5;
 export const JACK_SPEED = 3;     // a civilian car moving faster than this ignores E   // standing at a loaded chair (trunk, rack, passenger door) takes it back out
-const PALM_REACH = 1.3;
 
 export function nearestVehicle(p, ctx, maxD = ENTER_DIST) {
   const list = ctx.world && ctx.world.vehicles;
@@ -228,20 +227,6 @@ export function exitVehicle(p, ctx) {
   v.driver = null;
   p.vehicle = null;
   return true;
-}
-
-// Healing Palm: a vehicle just in front of the strike gets dented.
-export function palmVehicles(p, ctx) {
-  const list = ctx.world && ctx.world.vehicles;
-  if (!list) return null;
-  const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
-  const hx = p.pos.x + fx * 0.6, hz = p.pos.z + fz * 0.6;
-  for (const v of list) {
-    if (v.driver === p || boxDistance(v, hx, hz) > PALM_REACH) continue;
-    dentVehicle(v, 3);
-    return v;
-  }
-  return null;
 }
 
 const BROKE = `Repair $${REPAIR_COST} (not enough cash)`;

@@ -4,7 +4,7 @@
 // is cleared once out of the way. Also the arrest rule. The units' lifecycle (drive, bail, hang,
 // clear) is police-units.js; the light bars police-lights.js.
 import * as THREE from '../../vendor/three.module.js';
-import { copHostile } from '../entities/cop.js';
+import { copHostile } from '../entities/hostile.js';
 import { lineOfSight } from '../entities/npc-nav.js';
 import { nearestNode, route, edgeSpot } from '../world/roads.js';
 import { floorHeightAt } from '../physics.js';

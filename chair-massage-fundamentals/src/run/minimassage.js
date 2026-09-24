@@ -4,16 +4,15 @@
 // client walks off relaxed. A hostile goon/cop within 6 m, letting go of E, or chaos within 15 m
 // interrupts. Doing the actual work is how you cool heat.
 import * as THREE from '../../vendor/three.module.js';
-import { findChair, chairState } from '../entities/chair.js';
-import { floorHeightAt } from '../physics.js';
+import { chairState } from '../entities/chair.js';
 import { poseKneeling, poseReaching, resetPose } from '../world/people.js';
 import { seek, say } from '../entities/npc-common.js';
-import { hostile, alertPack } from '../entities/goon.js';
+import { hostile, copHostile, alertPack } from '../entities/hostile.js';
 import { dispatchTo } from './police.js';
-import { copHostile } from '../entities/cop.js';
-import { THERAPIST } from '../massage/stage.js';
 import { sfx } from '../juice.js';
 import { emit } from '../events.js';
+// E's two mini-massage actions moved to mini-start.js (refactor/split); re-exported for one release.
+export { setChairDown, canStart, startMassage } from './mini-start.js';
 
 const CALL_R2 = 12 * 12;
 const THREAT_R2 = 6 * 6;
@@ -26,47 +25,6 @@ const _r = new THREE.Vector3();
 export function createMini() {
   return { phase: 'idle', client: null, t: 0, cool: 0, progress: 0, pressure: 0.5, lo: 0.37, hi: 0.63,
     chairYaw: 0, pos: new THREE.Vector3(), startT: 0, done: 0, zone: 'in' };
-}
-
-export function setChairDown(p, ctx) {
-  const c = findChair(ctx);
-  if (!c) return false;
-  const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
-  const x = p.pos.x + fx * 1.1, z = p.pos.z + fz * 1.1;
-  const y = floorHeightAt(x, z, ctx.world.colliders, p.pos.y + 0.3);
-  ctx.scene.add(c);
-  c.position.set(x, y, z);
-  c.rotation.set(0, p.yaw + Math.PI, 0);          // face cradle (chair -Z) away from the player
-  const home = ctx.world._chairHome;
-  if (home) c.scale.copy(home.scale); else c.scale.set(1, 1, 1);
-  Object.assign(chairState(ctx.world), { where: 'ground', vehicle: null, setDown: true });
-  emit('chair', { act: 'setdown', where: 'ground' });
-  const M = ctx.mini;
-  M.phase = 'waiting'; M.cool = 0.5; M.chairYaw = p.yaw + Math.PI; M.pos.set(x, y, z);
-  sfx(ctx, 'chairFold', x, z);
-  return true;
-}
-
-// E at the chair with a client kneeling: start the hold.
-export function canStart(p, ctx) {
-  const M = ctx.mini;
-  if (!M || M.phase !== 'ready' || p.vehicle) return false;
-  return (p.pos.x - M.pos.x) ** 2 + (p.pos.z - M.pos.z) ** 2 < 2.6 * 2.6;
-}
-
-export function startMassage(p, ctx) {
-  const M = ctx.mini;
-  if (!canStart(p, ctx)) return false;
-  M.phase = 'massage'; M.progress = 0; M.t = 0; M.pressure = 0.5; M.startT = ctx.time;
-  p.massaging = true;
-  emit('mini', { phase: 'start', sore: !!(M.client && M.client.sore) });
-  p.vel.set(0, 0, 0);
-  // Stand at the therapist's spot beside the chair, facing the client's back.
-  const s = Math.sin(M.chairYaw), c = Math.cos(M.chairYaw);
-  p.pos.x = M.pos.x + THERAPIST.x * c + THERAPIST.z * s;
-  p.pos.z = M.pos.z - THERAPIST.x * s + THERAPIST.z * c;
-  p.yaw = M.chairYaw + THERAPIST.yaw;
-  return true;
 }
 
 function release(ctx, line, relaxed) {

@@ -15,11 +15,12 @@ import { loadMesh } from '../assets.js';
 import { createNpc, stepBody, poseRig, cull, say, seek } from './npc-common.js';
 import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
-import { hurtPlayer } from './palm.js';
+import { hurtPlayer, pack, PERCEIVE } from './hostile.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
 import { emit } from '../events.js';
-
+// hostile and alertPack moved to hostile.js (refactor/split); re-exported for one release.
+export { hostile, alertPack } from './hostile.js';
 export { vanHome };
 
 const RUN = 5.5;
@@ -44,9 +45,7 @@ const SIGHT_EVERY = 0.2;     // line-of-sight test cadence per goon
 const LOSE_AFTER = 4;        // s without sight before the search starts
 const LOOK_TIME = 8;         // s turning in place at lastSeen
 const GO_MAX = 25;           // give up walking to lastSeen after this long (unreachable perch)
-const ALERT_GO = 75;         // radioed to a spot (alertPack): they keep going the long way round
 const WALK = 2.2;            // search pace
-const PERCEIVE = new Set(['chase', 'windup', 'recover', 'search', 'return']);
 
 export function createGoon(scene, pos, role, bat) {
   const mesh = spawnPerson('goon');
@@ -70,10 +69,6 @@ export function createGoon(scene, pos, role, bat) {
 }
 
 export function disposeGoon(e, scene) { scene.remove(e.mesh); disposePerson(e.mesh); }
-
-export function hostile(e) {
-  return e.knockedT <= 0 && (e.state === 'chase' || e.state === 'windup' || e.state === 'recover');
-}
 
 export function updateGoon(e, dt, ctx) {
   const p = ctx.player;
@@ -136,12 +131,7 @@ export function updateGoon(e, dt, ctx) {
   cull(e, ctx);
 }
 
-// ---- perception ----
-// The pack's shared memory lives on ctx (spawner.js clears it with each run).
-function pack(ctx) {
-  return ctx.goonPack || (ctx.goonPack = { seen: null, saidFor: -1 });
-}
-
+// ---- perception ---- (the pack's shared memory, pack(ctx), is hostile.js)
 function target(ctx) { const p = ctx.player; return p.vehicle ? p.vehicle.pos : p.pos; }
 
 export function seesPlayer(e, ctx) {
@@ -173,23 +163,6 @@ function perceive(e, dt, ctx) {
     o.lastSeen = { ...pk.seen };
     if (o.state === 'search' || o.state === 'return') { o.state = 'chase'; o.idle = false; o.seek.nav = -1; o.seek.t = 0; }
   }
-}
-
-// Word comes in over the radio (minimassage.js, the chair drawing attention): every goon up and
-// working who is not on him already runs to (x, z) and searches there. Returns how many.
-export function alertPack(ctx, x, y, z) {
-  const L = { x, y, z, t: ctx.time };
-  pack(ctx).seen = { ...L };
-  let n = 0;
-  for (const o of ctx.npcs) {
-    if (o.kind !== 'goon' || o.knockedT > 0 || !PERCEIVE.has(o.state) || o.state === 'windup' || o.state === 'recover') continue;
-    if (o.state === 'chase' && o.sees) continue;
-    o.lastSeen = { ...L };
-    o.state = 'search'; o.phase = 'go'; o.stateT = ALERT_GO; o.alerted = true; o.idle = false;
-    o.seek.nav = -1; o.seek.t = 0;
-    n++;
-  }
-  return n;
 }
 
 // Tracking: the pack had him within the last two sight ticks (or no memory yet: a fresh goon

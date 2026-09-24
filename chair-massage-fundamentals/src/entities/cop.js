@@ -8,6 +8,9 @@ import { emitChaos } from '../run/wanted.js';
 import { say as bubble } from '../bubbles.js';
 import { emit } from '../events.js';
 
+// Moved to hostile.js (refactor/split); re-exported here for one release.
+export { copHostile } from './hostile.js';
+
 const SPEED = { ranger: 5, cop: 5.5, swat: 5.5 };
 export const OUTFIT = {
   ranger: { shirt: 0xc2a878, pants: 0x3f5a36, shoes: 0x3a2a1e },
@@ -36,10 +39,6 @@ export function createCop(scene, pos, rank = 'cop', guard = false) {
 }
 
 export function disposeCop(e, scene) { scene.remove(e.mesh); disposePerson(e.mesh); }
-
-export function copHostile(e) {
-  return e.knockedT <= 0 && !e.standDown && e.state === 'chase';
-}
 
 export function updateCop(e, dt, ctx) {
   const p = ctx.player;

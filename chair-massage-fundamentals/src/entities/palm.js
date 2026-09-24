@@ -7,7 +7,7 @@
 // shove during the charge cancels it: the wind-up is the risk. Letting go early (or a plain tap)
 // is the quick palm: 0.25 s wind-up, a 1.6 m / 60 degree cone, knockdown 3 s, relaxed rise, no
 // treatment. Health: 100, regenerates 2/s after 8 s without damage, death at 0.
-import { palmVehicles } from './interact.js';
+import { boxDistance, dentVehicle } from './vehicle-collide.js';
 import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { endRun } from '../run/end.js';
@@ -21,7 +21,7 @@ const REACH = 1.6;
 const CONE_COS = Math.cos(Math.PI / 6);   // 60 degree cone = +-30
 const KNOCK = 3;
 const KNOCK_PUSH = 5.7;                   // with 8 m/s^2 slide decel: ~2 m of knockback
-const SHAKE = 0.15;
+export const SHAKE = 0.15;
 const REGEN_DELAY = 8;
 const REGEN = 2;
 const LUNGE = 3.5;
@@ -31,6 +31,7 @@ const LUNGE_D = 3, LUNGE_T = 0.22;        // the charged lunge: 3 m in 0.22 s
 export const TREAT_SIT = 20;              // s sitting where he was treated
 export const TREAT_OUT = 90;              // s out of the chase after that
 export const SHOUT = 'HEALING PALM';
+const PALM_REACH = 1.3;                   // m: a vehicle this close in front of the strike is dented
 
 export function startPalm(p) {
   if (p.palmT > 0 || p.knockedT > 0 || p.vehicle || p.massaging) return false;
@@ -180,18 +181,19 @@ function palmTarget(p, ctx, fx, fz) {
   return best;
 }
 
-// Damage the player (goon bat / shove). knockT > 0 knocks them down.
-export function hurtPlayer(ctx, dmg, knockT, dirX, dirZ, push, src = 'hit') {
-  const p = ctx.player;
-  if (p.vehicle) return;
-  p.hurtSrc = src;                            // the watcher's damage event names it (updateHealth)
-  if (knockT > 0 && !(p.knockedT > 0)) emit('knockdown', { who: 'player', cause: src });
-  p.hp = Math.max(0, p.hp - dmg);
-  p.hurtAt = ctx.time;
-  if (knockT > 0) { p.knockedT = Math.max(p.knockedT, knockT); p.palmT = 0; }
-  if (dmg > 0) cancelCharge(p, src);            // the wind-up is the risk
-  p.vel.x += dirX * push; p.vel.z += dirZ * push;
-  p.shakeT = SHAKE;
+// Healing Palm: a vehicle just in front of the strike gets dented. (Was interact.js; moved in
+// refactor/split so palm.js no longer imports interact.js. hurtPlayer went to hostile.js.)
+export function palmVehicles(p, ctx) {
+  const list = ctx.world && ctx.world.vehicles;
+  if (!list) return null;
+  const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
+  const hx = p.pos.x + fx * 0.6, hz = p.pos.z + fz * 0.6;
+  for (const v of list) {
+    if (v.driver === p || boxDistance(v, hx, hz) > PALM_REACH) continue;
+    dentVehicle(v, 3);
+    return v;
+  }
+  return null;
 }
 
 // Per tick (on foot and driving): regen, any damage taken elsewhere (vehicles), death.
