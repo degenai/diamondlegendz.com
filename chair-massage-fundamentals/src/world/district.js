@@ -34,7 +34,7 @@ function planSun(rng) {
     color: light.getHex(), intensity: 1.7,
     sky: sky.getHex(),
     hemiSky: sky.clone().lerp(new THREE.Color(0xe6efff), 0.45).getHex(), ground: 0x8a7a68, hemi: 1.25,
-    fogNear: 50 * rng.range(0.8, 1.2), fogFar: 210 * rng.range(0.8, 1.2),
+    fogNear: 75 * rng.range(0.8, 1.2), fogFar: 315 * rng.range(0.8, 1.2), // 1.5x (2026-09-24): landmarks read across the district
   };
 }
 
