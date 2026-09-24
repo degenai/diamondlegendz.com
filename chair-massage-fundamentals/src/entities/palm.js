@@ -164,7 +164,7 @@ function palmTarget(p, ctx, fx, fz) {
   let best = null, bd = Infinity;
   for (let i = 0; i < list.length; i++) {
     const e = list[i];
-    if (e.knockedT > 0 || e.state === 'kneel' || e.state === 'treated' || Math.abs(e.pos.y - p.pos.y) > 1.2) continue; // never palm your own client
+    if (e.knockedT > 0 || e.state === 'kneel' || e.state === 'treated' || e.state === 'out' || Math.abs(e.pos.y - p.pos.y) > 1.2) continue; // never palm your own client, nor a treated man walking off
     const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, d2 = dx * dx + dz * dz;
     const r = REACH + e.radius;
     if (d2 > r * r || d2 >= bd) continue;

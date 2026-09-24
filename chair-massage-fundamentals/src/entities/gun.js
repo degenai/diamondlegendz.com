@@ -62,7 +62,7 @@ function setLook(G, level) {
 function target(p, ctx, range, fx, fz) {
   let best = null, bd = Infinity;
   for (const e of ctx.npcs || []) {
-    if (e.knockedT > 0 || e.state === 'kneel' || e.state === 'treated' || Math.abs(e.pos.y - p.pos.y) > 1.2) continue;
+    if (e.knockedT > 0 || e.state === 'kneel' || e.state === 'treated' || e.state === 'out' || Math.abs(e.pos.y - p.pos.y) > 1.2) continue;
     const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, d2 = dx * dx + dz * dz;
     const r = range + e.radius;
     if (d2 > r * r || d2 >= bd) continue;
