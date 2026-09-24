@@ -30,11 +30,11 @@ export function startStats(ctx) {
   ctx.runStats = { start: ctx.time, tension: 0, palmSeen: ctx.player.lastPalm || null, miniSeen: 0 };
 }
 
-// Per RUN tick: count landed palms (palm.js leaves p.lastPalm) and mini-massages.
+// Per RUN tick: count mini-massages. Treatments (a charged Healing Palm landing, palm.js treat)
+// and gun knockdowns count themselves; a quick palm releases no tension (ruled 2026-09-24).
 export function trackStats(ctx) {
   const R = ctx.runStats, p = ctx.player;
   if (!R) return;
-  if (p.lastPalm && p.lastPalm !== R.palmSeen) { R.palmSeen = p.lastPalm; if (p.lastPalm.hit) R.tension++; }
   const done = ctx.mini ? ctx.mini.done : 0;
   if (done > R.miniSeen) { R.tension += done - R.miniSeen; R.miniSeen = done; }
 }

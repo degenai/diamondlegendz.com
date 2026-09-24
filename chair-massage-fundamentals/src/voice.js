@@ -12,6 +12,9 @@ export const PRESETS = {
   goon: { f0: 72, rate: 0.85, q: 13 },   // low and slow, same formant sharpness as the narrator
   ranger: { f0: 150, rate: 1.1, q: 13 },
   client: { f0: 150, rate: 1.1, q: 13 },
+  // The player's one line, "HEALING PALM" (palm.js): the narrator pitched down, a touch slower,
+  // and louder than any bubble (gain scales the voice's output stage).
+  player: { f0: 84, rate: 0.92, q: 13, gain: 1.7 },
 };
 // q sharpens F1/F2 only; F3 keeps its old Q 11 (scaled), F4 is fixed at 8.
 const Q3 = 11 / 13;
@@ -168,7 +171,8 @@ export function createVoice(ctx, { destination = ctx.destination } = {}) {
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 7000; lp.Q.value = 0.5;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -18; comp.ratio.value = 4; comp.attack.value = 0.002; comp.release.value = 0.08;
-    const out = ctx.createGain(); out.gain.value = 0.75;
+    const pr = typeof preset === 'string' ? PRESETS[preset] || PRESETS.narrator : { ...PRESETS.narrator, ...preset };
+    const out = ctx.createGain(); out.gain.value = 0.75 * (pr.gain || 1);
     mix.connect(lp); lp.connect(comp); comp.connect(out); out.connect(output);
 
     const G = 0.02; // formant glide

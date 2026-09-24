@@ -12,6 +12,7 @@ const RISE = 60;           // px over the floater's life
 
 let wrap = null, stars = [], hpFill = null, cashEl = null, flashEl = null, miniEl = null, mini = {};
 let batWrap = null, batFill = null, heatEl = null, stampEl = null, stamBar = null, stamFill = null;
+let chargeEl = null, chargeRing = null;
 const STAM_HIDE = 2;       // s the stamina bar lingers once full
 const floaters = [];
 const last = {};
@@ -46,6 +47,14 @@ export function initRunHud(root) {
   batFill = el('i', '', el('div', 'rh-bat-bar', batWrap));
   batWrap.hidden = true;
   cashEl = el('div', 'rh-cash', box, '$0');
+  // The Healing Palm charge: a ring under the crosshair that fills over the 0.7 s hold.
+  chargeEl = el('div', 'rh-charge', wrap);
+  chargeEl.style.cssText = 'position:fixed;left:50%;top:58%;width:58px;height:58px;margin:-29px 0 0 -29px;pointer-events:none;text-align:center';
+  chargeRing = el('div', '', chargeEl);
+  chargeRing.style.cssText = 'width:100%;height:100%;border-radius:50%;-webkit-mask:radial-gradient(circle,transparent 58%,#000 60%);mask:radial-gradient(circle,transparent 58%,#000 60%)';
+  const cl = el('div', '', chargeEl, 'PALM');
+  cl.style.cssText = 'margin-top:-38px;font:700 10px/1 system-ui,sans-serif;letter-spacing:.08em;color:#fff3c4;text-shadow:0 1px 2px #000';
+  chargeEl.hidden = true;
   heatEl = el('div', 'rh-heat', wrap);
   heatEl.hidden = true;
   stampEl = el('div', 'rh-stamp', root);
@@ -72,6 +81,8 @@ export function showRunHud(visible) {
     for (const f of floaters) { f.on = false; f.n.hidden = true; }
     if (miniEl) miniEl.hidden = true;
     last.mini = 'off';
+    if (chargeEl) chargeEl.hidden = true;
+    last.charge = 'off';
   }
 }
 
@@ -104,6 +115,18 @@ export function setStamina(frac, time) {
   const w = (f * 100).toFixed(0);
   if (last.stamW !== w) { last.stamW = w; stamFill.style.width = `${w}%`; stamFill.style.background = f < 0.2 ? '#e0533d' : '#8fd3ff'; }
   if (stamBar.hidden !== hide) stamBar.hidden = hide;
+}
+
+// Healing Palm charge 0..1 (palm.js); null hides the ring. Full: the ring turns white.
+export function setCharge(frac) {
+  if (!chargeEl) return;
+  const key = frac === null ? 'off' : String(Math.round(frac * 40));
+  if (last.charge === key) return;
+  last.charge = key;
+  chargeEl.hidden = frac === null;
+  if (frac === null) return;
+  const c = frac >= 1 ? '#ffffff' : '#f2d27a';
+  chargeRing.style.background = `conic-gradient(${c} ${(frac * 360).toFixed(0)}deg, rgba(0,0,0,.45) 0)`;
 }
 
 // Massage gun battery (0..100) next to health; null hides it (gun still locked).

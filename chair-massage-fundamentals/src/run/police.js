@@ -12,10 +12,11 @@ import { lineOfSight } from '../entities/npc-nav.js';
 import { driveRoute, driveAt, brake } from './driver.js';
 import { nearestNode, route, edgeSpot } from '../world/roads.js';
 import { floorHeightAt } from '../physics.js';
-import { SIZE } from '../world/layout.js';
+import { SIZE, blockAt } from '../world/layout.js';
 import { endRun } from './end.js';
 import { setupLights, updateLights } from './lights.js';
 import { blocked } from './traffic.js';
+import { emit } from '../events.js';
 
 export { updateLights };
 
@@ -63,20 +64,43 @@ function footSpawn(ctx) {
   return (best || fallback || pts[0]).clone();
 }
 
-// A lane spot on the street grid 2..3 blocks from the player (nearest 2.5 blocks first), just out
-// of an intersection on the street that leads toward him.
+// Route metres from every street node to node `goal` (Dijkstra; the graph is ~130 nodes).
+export function routeDist(G, goal) {
+  const N = G.nodes.length, d = new Float64Array(N).fill(Infinity), done = new Uint8Array(N);
+  d[goal] = 0;
+  for (;;) {
+    let u = -1, bu = Infinity;
+    for (let i = 0; i < N; i++) if (!done[i] && d[i] < bu) { bu = d[i]; u = i; }
+    if (u < 0) break;
+    done[u] = 1;
+    for (const w of G.adj[u]) {
+      const nd = bu + Math.hypot(G.nodes[u].x - G.nodes[w].x, G.nodes[u].z - G.nodes[w].z);
+      if (nd < d[w]) d[w] = nd;
+    }
+  }
+  return d;
+}
+
+// A lane spot one block out by road (SPAWN_ROUTE metres of street to the node nearest the
+// player, about 40 s for a cart to reach the plaza; ruled 2026-09-24 after run 5, when level 2
+// units spawned 2..3 blocks out took ~98 s and never arrived). Never on a ring inside the plaza
+// block or the player's own block; just out of the intersection, on the street toward him.
+const SPAWN_ROUTE = SIZE;
 function roadSpawn(ctx) {
   const G = ctx.world.roads;
   const p = ctx.player.vehicle ? ctx.player.vehicle.pos : ctx.player.pos;
   const vs = ctx.world.vehicles || [];
   const taken = ctx.police.pending;         // spawns still loading their mesh
-  const cands = G.nodes.map((n, i) => ({ i, d: Math.hypot(n.x - p.x, n.z - p.z) }))
-    .filter((c) => G.nodes[c.i].deg >= 2 && c.i !== G.exitNode)
-    .sort((a, b) => Math.abs(a.d - 2.5 * SIZE) - Math.abs(b.d - 2.5 * SIZE));
+  const goal = nearestNode(G, p.x, p.z), dist = routeDist(G, goal);
+  const home = blockAt(p.x, p.z), plaza = blockAt(0, 0);
+  const inside = (n) => { const b = blockAt(n.x, n.z); return (b[0] === home[0] && b[1] === home[1]) || (b[0] === plaza[0] && b[1] === plaza[1]); };
+  const cands = G.nodes.map((n, i) => ({ i, d: dist[i] }))
+    .filter((c) => Number.isFinite(c.d) && G.nodes[c.i].deg >= 2 && c.i !== G.exitNode && c.i !== G.escapeNode && !inside(G.nodes[c.i]))
+    .sort((a, b) => Math.abs(a.d - SPAWN_ROUTE) - Math.abs(b.d - SPAWN_ROUTE));
   for (const c of cands) {
-    // The street out of this node that heads most directly at the player.
+    // The street out of this node one step along the route to the player.
     let best = -1, bd = Infinity;
-    for (const m of G.adj[c.i]) { const n = G.nodes[m], d = Math.hypot(n.x - p.x, n.z - p.z); if (d < bd) { bd = d; best = m; } }
+    for (const m of G.adj[c.i]) if (dist[m] < bd) { bd = dist[m]; best = m; }
     if (best < 0) continue;
     const s = edgeSpot(G, c.i, best, 9);
     if (vs.some((v) => (v.pos.x - s.x) ** 2 + (v.pos.z - s.z) ** 2 < 49)) continue;
@@ -85,7 +109,8 @@ function roadSpawn(ctx) {
     taken.push(spot);
     return spot;
   }
-  const s = edgeSpot(G, cands[0].i, G.adj[cands[0].i][0], 9);
+  const c0 = cands[0] ? cands[0].i : goal;
+  const s = edgeSpot(G, c0, G.adj[c0][0], 9);
   return { x: s.x, z: s.z, yaw: s.yaw };
 }
 
@@ -143,6 +168,32 @@ function roadblocks(ctx, P) {
     const gx = c.x + rx * 5.2 + Math.sin(c.yaw) * 3, gz = c.z + rz * 5.2 + Math.cos(c.yaw) * 3;
     unit.cops.push(addCop(ctx, new THREE.Vector3(gx, floorHeightAt(gx, gz, ctx.world.colliders, 0.5), gz), 'cop', true));
   }
+}
+
+// Unlicensed vending (minimassage.js, a third quick mini-massage on one spot): a cop on foot who
+// is up and working (a ranger first; the pivot ranger still hanging back counts) is sent to the
+// spot, else a ranger is called in on foot out of sight. He walks to it and says his line on
+// arrival (cop.js), then works as the 1-star unit. Returns the cop.
+export const VENDING_LINE = 'We told you to stop that.';
+export function dispatchTo(ctx, x, y, z) {
+  const P = ctx.police;
+  let c = null, cu = null, called = false;
+  for (const u of P.units) for (const o of u.cops) {
+    if (o.standDown || o.knockedT > 0 || o.outUntil > ctx.time || !ctx.npcs.includes(o)) continue;
+    if (!c || (o.rank === 'ranger' && c.rank !== 'ranger')) { c = o; cu = u; }
+  }
+  if (!c) {
+    c = addCop(ctx, footSpawn(ctx), 'ranger');
+    cu = { kind: 'foot', cops: [c] };
+    P.units.push(cu);
+    called = true;
+  }
+  if (cu.hang) { cu.hang = false; c.hang = false; }
+  P.tiers[1] = true; P.episode = true;
+  c.state = 'chase'; c.loose = 0;
+  c.dispatch = { x, y, z, t: ctx.time, line: VENDING_LINE };
+  emit('vending', { act: 'dispatch', rank: c.rank, called });
+  return c;
 }
 
 // ---- per tick ----
@@ -217,7 +268,9 @@ function bail(ctx, u) {
     const side = k % 2 ? -1 : 1, along = (Math.floor(k / 2) - 0.5) * 1.2;
     const off = v.spec.halfW + 0.7;
     const pos = new THREE.Vector3(v.pos.x + c * off * side + s * along, v.pos.y, v.pos.z - s * off * side + c * along);
-    u.cops.push(addCop(ctx, pos, u.rank));
+    const cop = addCop(ctx, pos, u.rank);
+    cop.home = v;                             // a treated cop walks back to his car (cop.js)
+    u.cops.push(cop);
   }
   v.driver = null; v.ai = null; v.parked = true;
   clearDriverRig(v);                          // the driver is one of the crew now, on foot

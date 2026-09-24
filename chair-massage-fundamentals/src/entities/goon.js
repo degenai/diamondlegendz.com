@@ -18,6 +18,7 @@ import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer } from './palm.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
+import { emit } from '../events.js';
 
 export { vanHome };
 
@@ -42,6 +43,7 @@ const SIGHT_EVERY = 0.2;     // line-of-sight test cadence per goon
 const LOSE_AFTER = 4;        // s without sight before the search starts
 const LOOK_TIME = 8;         // s turning in place at lastSeen
 const GO_MAX = 25;           // give up walking to lastSeen after this long (unreachable perch)
+const ALERT_GO = 75;         // radioed to a spot (alertPack): they keep going the long way round
 const WALK = 2.2;            // search pace
 const PERCEIVE = new Set(['chase', 'windup', 'recover', 'search', 'return']);
 
@@ -78,6 +80,13 @@ export function updateGoon(e, dt, ctx) {
   if (e.cooldown > 0) e.cooldown -= dt;
   e.noRoad = !!p.vehicle;
   if (ctx.grabUntil === Infinity && e.knockedT <= 0 && (e.pos.x - p.pos.x) ** 2 + (e.pos.z - p.pos.z) ** 2 < 9) { ctx.grabUntil = ctx.time + GRAB_WINDOW; ctx.grabStart = ctx.time; }
+  if (e.stunT > 0 && e.knockedT <= 0) {           // Gun stun (gun.js): a 1.5 s stagger, no movement, no attack.
+    e.stunT -= dt;
+    if (e.state === 'windup') e.state = 'chase';
+    e.pose = 'stagger';
+    stepBody(e, dt, ctx); poseRig(e, dt); cull(e, ctx);
+    return;
+  }
   if (e.knockedT <= 0 && PERCEIVE.has(e.state)) perceive(e, dt, ctx);
   if (e.knockedT > 0) {
     e.knockedT -= dt;
@@ -92,6 +101,18 @@ export function updateGoon(e, dt, ctx) {
       const pk = pack(ctx);
       if (pk.seen) e.lastSeen = { ...pk.seen };            // the radio tells him where the pack last had him
     }
+  } else if (e.state === 'treated') {
+    // A charged Healing Palm (palm.js treat): sits where he was treated, then walks back to the
+    // van loose and stays out of the chase until outUntil (no sight, no radio).
+    e.stateT -= dt;
+    if (e.stateT <= 0) {
+      e.state = 'out'; e.idle = false; e.seek.nav = -1; e.seek.t = 0;
+      say(ctx, e, '...I\'m taking the rest of the day.');
+      emit('treat', { target: 'goon', phase: 'walk' });
+    }
+  } else if (e.state === 'out') {
+    if (ctx.time >= e.outUntil) { e.state = 'return'; e.idle = false; e.loose = 0; emit('treat', { target: 'goon', phase: 'back' }); }
+    else goHome(e, dt, ctx);
   } else if (e.state === 'windup') {
     e.stateT -= dt;
     e.faceX = p.pos.x; e.faceZ = p.pos.z;
@@ -107,7 +128,7 @@ export function updateGoon(e, dt, ctx) {
   } else if (e.state === 'return') {
     goHome(e, dt, ctx);
   }
-  e.pose = e.knockedT > 0 ? 'down' : e.state === 'sit' ? 'sit' : (e.state === 'loose' || e.idle) ? 'loose'
+  e.pose = e.knockedT > 0 ? 'down' : e.state === 'sit' || e.state === 'treated' ? 'sit' : e.state === 'out' ? 'loose' : (e.state === 'loose' || e.idle) ? 'loose'
     : e.state === 'windup' ? (e.bat && !e.grab ? 'windup' : 'shove') : e.state === 'recover' ? (e.bat && !e.grab ? 'swing' : 'shove') : 'walk';
   stepBody(e, dt, ctx);
   poseRig(e, dt);
@@ -153,6 +174,23 @@ function perceive(e, dt, ctx) {
   }
 }
 
+// Word comes in over the radio (minimassage.js, the chair drawing attention): every goon up and
+// working who is not on him already runs to (x, z) and searches there. Returns how many.
+export function alertPack(ctx, x, y, z) {
+  const L = { x, y, z, t: ctx.time };
+  pack(ctx).seen = { ...L };
+  let n = 0;
+  for (const o of ctx.npcs) {
+    if (o.kind !== 'goon' || o.knockedT > 0 || !PERCEIVE.has(o.state) || o.state === 'windup' || o.state === 'recover') continue;
+    if (o.state === 'chase' && o.sees) continue;
+    o.lastSeen = { ...L };
+    o.state = 'search'; o.phase = 'go'; o.stateT = ALERT_GO; o.alerted = true; o.idle = false;
+    o.seek.nav = -1; o.seek.t = 0;
+    n++;
+  }
+  return n;
+}
+
 // Tracking: the pack had him within the last two sight ticks (or no memory yet: a fresh goon
 // before his first look chases like before).
 function tracking(e, ctx) {
@@ -176,13 +214,13 @@ function search(e, dt, ctx) {
   const L = e.lastSeen;
   e.stateT -= dt;
   if (e.phase === 'go') {
-    e.speed = WALK;
+    e.speed = e.alerted ? RUN : WALK;         // radioed to a spot: they run
     const near = (L.x - e.pos.x) ** 2 + (L.z - e.pos.z) ** 2 < 1.3 * 1.3;
     const there = seek(e, L.x, L.y, L.z, dt, ctx, 1.0) || near;
     if (there || e.stateT <= 0) {
       e.phase = 'look'; e.stateT = LOOK_TIME; e.lookA = e.yaw; e.lookDir = e.id % 2 ? 1 : -1;
       e.wishX = e.wishZ = 0; e.speed = 0;
-      e.reachedLastSeen = there;
+      e.reachedLastSeen = there; e.alerted = false;
       const pk = pack(ctx);
       if (pk.saidFor !== L.t) { pk.saidFor = L.t; say(ctx, e, "Where'd he go?"); }
     }
@@ -263,6 +301,7 @@ function strike(e, ctx) {
 
 function getUp(e, ctx) {
   e.knockedT = 0;
+  if (e.state === 'treated' || e.state === 'out') return;   // run over while treated: still treated
   if (e.knockCause === 'palm') {
     e.state = 'loose'; e.stateT = 1.0; e.loose = 1;
   } else {

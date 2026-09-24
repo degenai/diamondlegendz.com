@@ -47,7 +47,7 @@ export function runStats(events) {
     ending: null, finished: false, duration: 0, cash: 0, tension: 0, unlock: null,
     level: 0, maxStars: 0, firstStar: null, decays: 0, stars: [{ t: 0, level: 0 }],
     chair: 'ground', chairMoved: false, chairLog: [], throws: [], setdowns: [], loads: [],
-    vehicles: [], carjacks: 0, steals: 0, palms: 0, guns: 0, runDowns: 0,
+    vehicles: [], carjacks: 0, steals: 0, palms: 0, treats: 0, guns: 0, runDowns: 0,
     minis: 0, miniStarts: 0, miniCancels: 0, miniCash: 0,
     damage: 0, damageBy: {}, knocked: 0, state: null, roster: null, pivot: null, lastT: 0,
   };
@@ -87,8 +87,9 @@ export function runStats(events) {
       if (d.act === 'throw') st.throws.push({ t, vehicle: d.vehicle });
       if (d.act === 'setdown') st.setdowns.push(t);
       if (d.act === 'load') st.loads.push(d.vehicle);
-    } else if (e.type === 'palm') st.palms++;
-    else if (e.type === 'gun') st.guns++;
+    } else if (e.type === 'palm') { if (d.target) st.palms++; }
+    else if (e.type === 'treat') { if (!d.phase || d.phase === 'sit') st.treats++; }
+    else if (e.type === 'gun') { if (!d.stun) st.guns++; }
     else if (e.type === 'knockdown') {
       if (d.who === 'player') st.knocked++;
       else if (d.mine) st.runDowns++;
@@ -105,7 +106,7 @@ export function runStats(events) {
     }
   }
   if (!st.ending) st.duration = st.lastT;
-  if (!st.finished) { st.cash = (i0 >= 0 ? S0.data.cash || 0 : 0) + st.miniCash; st.tension = st.palms + st.guns + st.minis; }
+  if (!st.finished) { st.cash = (i0 >= 0 ? S0.data.cash || 0 : 0) + st.miniCash; st.tension = st.treats + st.guns + st.minis; }
   st.lastVehicle = lastVehicle;
   // Where the chair went to the ground for the last time (and stayed).
   const lastGround = [...st.chairLog].reverse().find((c) => c.act === 'throw' || c.act === 'setdown');
@@ -141,6 +142,7 @@ function wantedWhy(evs, i, d) {
     case 'decay': return 'a star decayed';
     case 'massage': return 'finished a mini-massage';
     case 'drop': return 'dropped by hand (debug)';
+    case 'vending': return 'camped the chair (unlicensed vending)';
     default: return d.cause || 'unknown';
   }
 }
@@ -160,8 +162,15 @@ function line(e, evs, i, t0) {
       if (d.act === 'throw') return `${at} chair thrown from the ${d.vehicle}`;
       if (d.act === 'setdown') return `${at} chair set down`;
       return null;
-    case 'palm': return `${at} palmed a ${d.target}`;
-    case 'gun': return `${at} massage gun put a ${d.target} down`;
+    case 'palm': return d.target ? `${at} ${d.charged ? 'HEALING PALM on' : 'palmed'} a ${d.target}` : d.phase === 'cancel' ? `${at} palm charge broken (${d.cause})` : null;
+    case 'treat': return !d.phase || d.phase === 'sit' ? `${at} treated a ${d.target}` : null;
+    case 'gun': return d.stun ? null : `${at} massage gun put a ${d.target} down`;
+    case 'van': return d.act === 'ram' ? `${at} the van rammed you (hp ${d.hp})` : d.act === 'park' ? `${at} the van parked across the exit` : d.act === 'pursue' ? `${at} the van gave chase` : null;
+    case 'vending':
+      if (d.act === 'alert') return `${at} word got out: goons radioed to the chair`;
+      if (d.act === 'dispatch') return `${at} a ${d.rank} sent to the chair`;
+      if (d.act === 'arrive') return `${at} "We told you to stop that."`;
+      return null;
     case 'knockdown':
       if (d.who === 'player') return `${at} knocked down (${d.by ? `${d.by}` : d.cause})`;
       return d.mine ? `${at} ran down a ${d.who} (${d.by})` : null;

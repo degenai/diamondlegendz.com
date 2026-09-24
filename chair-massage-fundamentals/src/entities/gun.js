@@ -1,7 +1,9 @@
 // The massage gun (DESIGN.md "Massage gun"): the only ranged weapon, a meta unlock. Q switches
 // palm / gun; right click (pointer locked, on foot) fires percussive taps at 4/s while held.
 // Level 0: contact range 1.5 m. Level 1+: range 4 / 8 / 14 m with a visible shockwave ring.
-// Three taps knock the target down exactly like the Healing Palm (relaxed rise, Chex Quest).
+// Every tap stuns the target 1.5 s (a stagger: no movement, no attack; ruled 2026-09-24, the stun
+// buys the 0.7 s a charged Healing Palm needs); three taps within 3 s knock him down like the
+// quick palm (relaxed rise, Chex Quest).
 // Battery 100, 2 per tap; +20 per mini-massage, +5/s standing still within 3 m of the chair.
 // TODO(v2): level 2 cone, level 3 "Pro" knockback that flips peds and dents cars.
 import * as THREE from '../../vendor/three.module.js';
@@ -23,6 +25,7 @@ const CONE_COS = Math.cos(Math.PI / 6);
 const KNOCK = 3;
 const KNOCK_PUSH = 5.7;
 const CHAIR_R = 3;
+export const STUN = 1.5;
 const _v = new THREE.Vector3();
 
 function ensureMesh(p) {
@@ -59,7 +62,7 @@ function setLook(G, level) {
 function target(p, ctx, range, fx, fz) {
   let best = null, bd = Infinity;
   for (const e of ctx.npcs || []) {
-    if (e.knockedT > 0 || e.state === 'kneel' || Math.abs(e.pos.y - p.pos.y) > 1.2) continue;
+    if (e.knockedT > 0 || e.state === 'kneel' || e.state === 'treated' || Math.abs(e.pos.y - p.pos.y) > 1.2) continue;
     const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, d2 = dx * dx + dz * dz;
     const r = range + e.radius;
     if (d2 > r * r || d2 >= bd) continue;
@@ -114,12 +117,15 @@ function tap(p, ctx, level) {
   e.gunTaps = (e.gunTaps || 0) + 1; e.gunTapT = ctx.time;
   const hud = ctx.hud;
   if (e.gunTaps < TAPS) {
+    e.stunT = STUN;
+    if (e.state === 'windup') e.state = 'chase';
+    if (e.gunTaps === 1) emit('gun', { target: e.kind, stun: true });   // once per volley: the feed stays readable
     if (hud && hud.floater) hud.floater('tk', e.pos.x, e.pos.y + 1.5, e.pos.z, 'speech dim');
     burst(ctx, 'impact', e.pos.x, e.pos.y + 1.2, e.pos.z, 3);
     return e;
   }
   // Third tap: the Healing Palm's knockdown, relaxed rise and all.
-  e.gunTaps = 0;
+  e.gunTaps = 0; e.stunT = 0;
   const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
   knockdown(e, KNOCK, 'palm', dx / d, dz / d, KNOCK_PUSH);
   emit('gun', { target: e.kind, battery: p.battery });
@@ -155,7 +161,7 @@ export function updateGun(p, dt, ctx) {
   }
   updateRings(p, dt);
   if (!p.gunEquipped || !onFoot || !input || !input.mouseRight || !input.locked) return;
-  if (p.knockedT > 0 || p.massaging || p.palmT > 0 || p.gunCd > 0 || p.battery < DRAIN) return;
+  if (p.knockedT > 0 || p.massaging || p.palmT > 0 || p.chargeT >= 0 || p.lungeT > 0 || p.gunCd > 0 || p.battery < DRAIN) return;
   tap(p, ctx, level);
 }
 

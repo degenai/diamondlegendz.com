@@ -8,7 +8,8 @@ import { findChair, chairState } from '../entities/chair.js';
 import { floorHeightAt } from '../physics.js';
 import { poseKneeling, poseReaching, resetPose } from '../world/people.js';
 import { seek, say } from '../entities/npc-common.js';
-import { hostile } from '../entities/goon.js';
+import { hostile, alertPack } from '../entities/goon.js';
+import { dispatchTo } from './police.js';
 import { copHostile } from '../entities/cop.js';
 import { THERAPIST } from '../massage/stage.js';
 import { sfx } from '../juice.js';
@@ -183,6 +184,30 @@ function succeed(ctx) {
   release(ctx, e.sore ? 'My back... it\'s fixed? Here, take double.' : 'Oh, that\'s so much better. Here.', true);
   e.soreT = 0; e.sore = false;
   M.phase = 'waiting'; M.cool = 3;
+  heatOnSpot(ctx, M);
+}
+
+// Camping the chair draws attention (ruled 2026-09-24 after run 5). The first mini-massage of a
+// run is free; each further success within 90 s of the previous one on the same spot (40 m) adds
+// heat: at 2 the goon pack is radioed to the chair, at 3 (and on) a cop is sent to it ("We told
+// you to stop that.") and wanted goes to at least one star (report 'vending', +1 once per run).
+// Peds still queue.
+const HEAT_WINDOW = 90;
+const HEAT_R2 = 40 * 40;
+function heatOnSpot(ctx, M) {
+  const H = M.heat || (M.heat = { n: 0, t: -1e9, x: 0, z: 0 });
+  const same = ctx.time - H.t <= HEAT_WINDOW && (M.pos.x - H.x) ** 2 + (M.pos.z - H.z) ** 2 < HEAT_R2;
+  H.n = same ? H.n + 1 : 1;
+  H.t = ctx.time; H.x = M.pos.x; H.z = M.pos.z;
+  if (H.n < 2) return;
+  if (H.n === 2) {
+    const n = alertPack(ctx, M.pos.x, M.pos.y, M.pos.z);
+    emit('vending', { act: 'alert', heat: H.n, goons: n });
+    return;
+  }
+  emit('vending', { act: 'report', heat: H.n });
+  if (ctx.police) dispatchTo(ctx, M.pos.x, M.pos.y, M.pos.z);
+  if (ctx.wanted) ctx.wanted.report('vending');
 }
 
 // Called from updatePlayer while massaging: lean in, both palms on the client's back.

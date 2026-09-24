@@ -29,7 +29,7 @@ export function createPed(scene, pos, navIdx, rng) {
 export function disposePed(e, scene) { scene.remove(e.mesh); disposePerson(e.mesh); }
 
 function startFlee(e, x, z) {
-  if (e.state === 'kneel' || e.state === 'toChair' || e.knockedT > 0) return;
+  if (e.state === 'kneel' || e.state === 'toChair' || e.state === 'treated' || e.knockedT > 0) return;
   e.state = 'flee';
   e.fleeT = FLEE_TIME;
   e.fx = x; e.fz = z;
@@ -77,9 +77,19 @@ export function updatePed(e, dt, ctx) {
   if (e.state === 'kneel') { e.vel.set(0, 0, 0); cull(e, ctx); return; } // posed by the mini-massage
   if (e.soreT > 0) e.soreT -= dt;
   if (e.loose > 0) e.loose -= dt;
+  if (e.stunT > 0 && e.knockedT <= 0) {           // Gun stun (gun.js): a 1.5 s stagger, no movement, no attack.
+    e.stunT -= dt;
+    e.pose = 'stagger';
+    stepBody(e, dt, ctx); poseRig(e, dt); cull(e, ctx);
+    return;
+  }
   if (e.knockedT > 0) {
     e.knockedT -= dt;
     if (e.knockedT <= 0) getUp(e, ctx);
+  } else if (e.state === 'treated') {
+    // A charged Healing Palm (palm.js treat): sits a while, then wanders loose.
+    e.stateT -= dt;
+    if (e.stateT <= 0) { e.state = 'wander'; e.loose = LOOSE_TIME; e.navTo = nearestNav(world, e.pos.x, e.pos.z); say(ctx, e, '...oh. Oh, that\'s better.'); }
   } else if (e.state === 'flee') {
     e.fleeT -= dt;
     if (e.fleeT <= 0) { e.state = 'wander'; e.navTo = nearestNav(world, e.pos.x, e.pos.z); }
@@ -105,7 +115,7 @@ export function updatePed(e, dt, ctx) {
       walkNav(e, world, speed);
     }
   }
-  e.pose = e.soreT > 0 ? 'sore' : e.loose > 0 ? 'loose' : 'walk';
+  e.pose = e.state === 'treated' ? 'sit' : e.soreT > 0 ? 'sore' : e.loose > 0 ? 'loose' : 'walk';
   stepBody(e, dt, ctx);
   poseRig(e, dt);
   cull(e, ctx);
@@ -113,6 +123,7 @@ export function updatePed(e, dt, ctx) {
 
 function getUp(e, ctx) {
   e.knockedT = 0;
+  if (e.state === 'treated') return;
   e.state = 'wander';
   e.navTo = nearestNav(ctx.world, e.pos.x, e.pos.z);
   if (e.knockCause === 'palm') {

@@ -17,7 +17,7 @@ import { runHudText, exitVehicle } from './entities/interact.js';
 import { createWanted } from './run/wanted.js';
 import * as spawner from './run/spawner.js';
 import { createMini, updateMini } from './run/minimassage.js';
-import { startPalm } from './entities/palm.js';
+import { startPalm, startCharge } from './entities/palm.js';
 import { resetGun } from './entities/gun.js';
 import * as pivot from './pivot.js';
 import { speechHud, updateBubbles, clearBubbles, activeBubbles } from './bubbles.js';
@@ -113,7 +113,7 @@ function boot() {
       const gun = ctx.perks.gun >= 0 ? (player.gunEquipped ? ' Right click massage gun, Q palm.' : ' Q massage gun.') : '';
       const base = player.vehicle
         ? 'Click to look around. W/S drive, A/D steer, Space handbrake, E exit. Esc releases mouse.'
-        : `Click to look around. WASD move, Shift sprint, Space jump, Left click Healing Palm.${gun} Esc releases mouse.`;
+        : `Click to look around. WASD move, Shift sprint, Space jump, Tap left click: quick palm. Hold left click: HEALING PALM (treats).${gun} Esc releases mouse.`;
       hud.setHint(interactHint ? `${interactHint}  |  ${base}` : base);
     } else {
       hud.setHint(getState() === STATES.RUN ? interactHint : '');
@@ -138,7 +138,7 @@ function boot() {
   onEnter(STATES.MASSAGE, () => {
     // Everything the last run created goes: NPCs (pivot goons included), police, the van's trip.
     if (player.vehicle) exitVehicle(player, ctx);
-    player.knockedT = 0; player.massaging = false; player.palmT = 0; player.hp = 100; player.foldT = 0;
+    player.knockedT = 0; player.massaging = false; player.palmT = 0; player.chargeT = -1; player.lungeT = 0; player.holdPalm = false; player.hp = 100; player.foldT = 0;
     spawner.clear(ctx);
     spawner.resetVan(ctx);
     pivot.reset();
@@ -229,7 +229,7 @@ function boot() {
     pivot: { get state() { return pivot.pivotState(); } },
     bubbles: activeBubbles,
     slowmoLog,
-    debug: { palm: () => startPalm(player), finishClient: massage.debugComplete },
+    debug: { palm: () => startPalm(player), charge: () => startCharge(player), finishClient: massage.debugComplete },
   };
 
   setState(STATES.TITLE);

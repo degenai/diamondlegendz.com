@@ -38,7 +38,9 @@ export function driveAt(v, tx, tz, cruise, dt, left) {
   }
   if (a.throttle > 0.3 && Math.abs(v.speed) < 0.6) v.aiStuckT = (v.aiStuckT || 0) + dt;
   else v.aiStuckT = Math.max(0, (v.aiStuckT || 0) - dt);
-  if (v.aiStuckT > 1.4) { v.aiStuckT = 0; v.aiBackT = 1.2; }
+  // Stuck again soon after the last back-up (a lot corner on a tight turn): back up longer each time.
+  v.aiStuckN = Math.max(0, (v.aiStuckN || 0) - dt * 0.05);
+  if (v.aiStuckT > 1.4) { v.aiStuckT = 0; v.aiBackT = 1.2 + 0.8 * Math.min(3, Math.floor(v.aiStuckN)); v.aiStuckN += 1; }
   a.steer = Math.max(-1, Math.min(1, err * 2.2));
   const turnK = Math.abs(err) > 0.5 ? 0.45 : Math.abs(err) > 0.2 ? 0.75 : 1;
   const want = Math.min(cruise * turnK, 4 + (left ?? d) * 0.9);

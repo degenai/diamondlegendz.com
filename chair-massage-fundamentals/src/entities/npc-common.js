@@ -240,6 +240,12 @@ export function poseRig(e, dt) {
   } else if (pose === 'shove') {
     j.upperArmL.rotation.set(-1.5, 0, 0); j.upperArmR.rotation.set(-1.5, 0, 0);
     j.lowerArmL.rotation.set(0, 0, 0); j.lowerArmR.rotation.set(0, 0, 0); u.torso.rotation.x = 0.2;
+  } else if (pose === 'stagger') {
+    // Gun stun: rocked back on the heels, arms out for balance, a quick wobble.
+    const w = Math.sin(t * 9) * 0.08;
+    u.torso.rotation.x = -0.28; u.torso.rotation.z = w; u.head.rotation.x = -0.25;
+    j.upperArmL.rotation.set(-0.3, 0, 0.9 + w); j.upperArmR.rotation.set(-0.3, 0, -0.9 + w);
+    j.lowerArmL.rotation.set(-0.4, 0, 0); j.lowerArmR.rotation.set(-0.4, 0, 0);
   } else if (pose === 'reach') {
     j.upperArmR.rotation.set(-1.4, 0, 0); j.lowerArmR.rotation.set(0, 0, 0);
   }

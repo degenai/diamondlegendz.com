@@ -5,6 +5,8 @@ import { spawnPerson, disposePerson } from '../world/people.js';
 import { loadMesh } from '../assets.js';
 import { createNpc, stepBody, poseRig, cull, say, seek } from './npc-common.js';
 import { emitChaos } from '../run/wanted.js';
+import { say as bubble } from '../bubbles.js';
+import { emit } from '../events.js';
 
 const SPEED = { ranger: 5, cop: 5.5, swat: 5.5 };
 export const OUTFIT = {
@@ -44,12 +46,27 @@ export function updateCop(e, dt, ctx) {
   e.wishX = e.wishZ = 0; e.speed = 0; e.faceX = undefined;
   e.noRoad = !!p.vehicle;
   const tgt = p.vehicle ? p.vehicle.pos : p.pos;
+  if (e.stunT > 0 && e.knockedT <= 0) {           // Gun stun (gun.js): a 1.5 s stagger, no movement, no attack.
+    e.stunT -= dt;
+    e.pose = 'stagger';
+    stepBody(e, dt, ctx); poseRig(e, dt); cull(e, ctx);
+    return;
+  }
   if (e.knockedT > 0) {
     e.knockedT -= dt;
     if (e.knockedT <= 0) getUp(e, ctx);
   } else if (e.standDown) {
     e.standT += dt;
     walkAway(e, tgt, 1.3);
+  } else if (e.state === 'treated') {
+    // A charged Healing Palm (palm.js treat): sits 20 s, then walks back to his unit's car (or
+    // just away) loose, out of the chase and of the line of sight until outUntil.
+    e.stateT -= dt;
+    if (e.stateT <= 0) { e.state = 'out'; e.seek.nav = -1; e.seek.t = 0; say(ctx, e, LINES[e.id % LINES.length]); emit('treat', { target: 'cop', phase: 'walk' }); }
+  } else if (e.state === 'out') {
+    if (ctx.time >= e.outUntil) { e.state = 'chase'; e.loose = 0; emit('treat', { target: 'cop', phase: 'back' }); }
+    else if (e.home && !e.home.removed) { e.speed = 1.6; if (seek(e, e.home.pos.x, e.home.pos.y, e.home.pos.z, dt, ctx, 3.2)) e.speed = 0; }
+    else walkAway(e, tgt, 1.3);
   } else if (e.state === 'walkoff') {
     e.stateT -= dt;
     walkAway(e, tgt, 1.3);
@@ -61,13 +78,23 @@ export function updateCop(e, dt, ctx) {
   } else if (e.state === 'guard') {
     e.faceX = tgt.x; e.faceZ = tgt.z;
     if (!p.vehicle && (tgt.x - e.pos.x) ** 2 + (tgt.z - e.pos.z) ** 2 < GUARD_R * GUARD_R) e.state = 'chase';
+  } else if (e.state === 'chase' && e.dispatch) {
+    // Sent to the chair (police.js dispatchTo): walk there briskly, say the line on arrival.
+    const D = e.dispatch;
+    e.speed = (SPEED[e.rank] || 5.5) * 0.8;
+    const there = seek(e, D.x, D.y ?? e.pos.y, D.z, dt, ctx, 2.5) || (D.x - e.pos.x) ** 2 + (D.z - e.pos.z) ** 2 < 3 * 3
+      || (tgt.x - e.pos.x) ** 2 + (tgt.z - e.pos.z) ** 2 < 3 * 3;
+    if (there || ctx.time - D.t > 45) {
+      e.dispatch = null;
+      if (there) { bubble(ctx, e, D.line, { skin: 'run', preset: 'ranger' }); emit('vending', { act: 'arrive', rank: e.rank, after: Math.round((ctx.time - D.t) * 10) / 10 }); }
+    }
   } else if (e.state === 'chase') {
     e.speed = SPEED[e.rank] || 5.5;
     if (p.vehicle && (tgt.x - e.pos.x) ** 2 + (tgt.z - e.pos.z) ** 2 < 4 * 4) { e.speed = 0; e.faceX = tgt.x; e.faceZ = tgt.z; }
     else seek(e, tgt.x, tgt.y, tgt.z, dt, ctx, 0.7);
     if (!e.wishX && !e.wishZ) { e.faceX = tgt.x; e.faceZ = tgt.z; }
   }
-  e.pose = e.knockedT > 0 ? 'down' : e.loose > 0 ? 'loose' : (e.state === 'chase' && !p.vehicle &&
+  e.pose = e.knockedT > 0 ? 'down' : e.state === 'treated' ? 'sit' : e.state === 'out' || e.loose > 0 ? 'loose' : (e.state === 'chase' && !p.vehicle &&
     (tgt.x - e.pos.x) ** 2 + (tgt.z - e.pos.z) ** 2 < 2.5 * 2.5) ? 'reach' : 'walk';
   stepBody(e, dt, ctx);
   poseRig(e, dt);
@@ -81,6 +108,7 @@ function walkAway(e, tgt, speed) {
 
 function getUp(e, ctx) {
   e.knockedT = 0;
+  if (e.state === 'treated' || e.state === 'out') return;
   if (e.knockCause === 'palm') {
     e.state = 'walkoff'; e.stateT = WALK_OFF; e.loose = 1;
     say(ctx, e, LINES[e.id % LINES.length]);

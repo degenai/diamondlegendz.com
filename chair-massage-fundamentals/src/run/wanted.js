@@ -16,7 +16,7 @@ const FLEE_R2 = 15 * 15;
 export function createWanted() {
   const w = {
     heat: 0, level: 0, decayT: 0, chaosT: 0, lastEventT: -1e9, time: 0,
-    goonHitDone: false, stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0,
+    goonHitDone: false, vendingDone: false, stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0,
     counts: {},
     report: (kind) => report(w, kind),
     drop: (n = 1, cause = 'drop') => setLevel(w, Math.max(0, w.level - n), cause),
@@ -26,7 +26,7 @@ export function createWanted() {
 }
 
 function resetWanted(w) {
-  Object.assign(w, { heat: 0, level: 0, decayT: 0, chaosT: 0, lastEventT: -1e9, goonHitDone: false,
+  Object.assign(w, { heat: 0, level: 0, decayT: 0, chaosT: 0, lastEventT: -1e9, goonHitDone: false, vendingDone: false,
     stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0, counts: {} });
 }
 
@@ -61,6 +61,9 @@ export function report(w, kind) {
   else if (kind === 'pedHurt') { w.carnage += 1; add(w, 2); }
   else if (kind === 'vehicleWreck') { w.carnage += 1; add(w, 1); }
   else if (kind === 'propertyHit') add(w, 0.25);
+  // Unlicensed vending (minimassage.js, a third quick mini-massage on one spot): +1 once per run,
+  // and never leaves him below one star.
+  else if (kind === 'vending') { if (!w.vendingDone) { w.vendingDone = true; add(w, 1); } if (w.level < 1) add(w, 1 - w.heat); }
   note(w, before, heat0, kind);
   return w.level;
 }
@@ -82,7 +85,7 @@ export function updateWanted(w, dt, ctx, cops) {
     const p = ctx.player;
     for (let i = 0; i < cops.length && !w.seen; i++) {
       const c = cops[i];
-      if (c.knockedT > 0 || c.standDown || c.state === 'walkoff' || c.state === 'hang' || c.loose > 0) continue;   // relaxed cops relieve the pressure
+      if (c.knockedT > 0 || c.standDown || c.state === 'walkoff' || c.state === 'hang' || c.state === 'treated' || c.state === 'out' || c.loose > 0) continue;   // relaxed (or treated) cops relieve the pressure
       const dx = c.pos.x - p.pos.x, dz = c.pos.z - p.pos.z;
       if (dx * dx + dz * dz > 90 * 90) continue;
       if (lineOfSight(ctx.world, c.pos, p.pos)) w.seen = true;

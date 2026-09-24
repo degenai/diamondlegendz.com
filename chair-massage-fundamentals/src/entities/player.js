@@ -7,7 +7,7 @@ import { spawnPerson } from '../world/people.js';
 import { resolveStatic, supportHeight, floorHeightAt, segmentHit, LAND_BAND } from '../physics.js';
 import { handleInteract, interaction } from './interact.js';
 import { updateChaseCamera, blendLook } from './chase-cam.js';
-import { startPalm, updatePalm, updateHealth, applyShake } from './palm.js';
+import { startCharge, cancelCharge, updatePalm, updateHealth, applyShake, CHARGE } from './palm.js';
 import { poseTherapist } from '../run/minimassage.js';
 import { updateGun, poseGun } from './gun.js';
 import { setStamina } from '../hud-run.js';
@@ -102,6 +102,8 @@ export function updatePlayer(p, dt, ctx) {
     tickStamina(p, dt, ctx, false);
     p.pos.copy(p.vehicle.pos);
     p.vel.set(0, 0, 0);
+    if (p.chargeT >= 0) cancelCharge(p, 'vehicle');
+    p.lungeT = 0;
     p.knockedT = 0; p.knockTilt = 0;
     return;
   }
@@ -126,7 +128,7 @@ export function updatePlayer(p, dt, ctx) {
   _fwd.set(-Math.sin(p.camYaw), 0, -Math.cos(p.camYaw));
   _right.set(Math.cos(p.camYaw), 0, -Math.sin(p.camYaw));
   _wish.set(0, 0, 0);
-  if (input && !knocked && !(p.foldT > 0)) {
+  if (input && !knocked && !(p.foldT > 0) && !(p.chargeT >= 0) && !(p.lungeT > 0)) {   // planted while charging the palm
     if (input.forward) _wish.add(_fwd);
     if (input.back) _wish.sub(_fwd);
     if (input.right) _wish.add(_right);
@@ -138,8 +140,10 @@ export function updatePlayer(p, dt, ctx) {
   const speed = sprinting ? SPRINT : WALK;
   const tx = _wish.x * speed, tz = _wish.z * speed;
   const a = (knocked ? KNOCK_DECEL : p.grounded ? ACCEL : AIR_ACCEL) * dt;
-  p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
-  p.vel.z += THREE.MathUtils.clamp(tz - p.vel.z, -a, a);
+  if (!(p.lungeT > 0)) {                    // the charged lunge carries itself (palm.js)
+    p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
+    p.vel.z += THREE.MathUtils.clamp(tz - p.vel.z, -a, a);
+  }
 
   const colliders = ctx.world ? ctx.world.colliders : null;
   // First tick after spawn: stand on whatever walk surface is under the spawn point.
@@ -179,9 +183,10 @@ export function updatePlayer(p, dt, ctx) {
     p.yaw = wrapAngle(p.yaw);
   }
 
-  // --- Healing Palm: wind-up, then the strike (palm.js) ---
-  if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) startPalm(p);
-  updatePalm(p, dt, ctx);
+  // --- Healing Palm: press to charge, hold 0.7 s for the treating lunge, a tap for the quick
+  // palm (palm.js). p.holdPalm stands in for the button in headless checks.
+  if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) startCharge(p);
+  updatePalm(p, dt, ctx, !!((input && input.mouseLeft && input.locked) || p.holdPalm));
   if (p.elbowT > 0) p.elbowT = Math.max(0, p.elbowT - dt);
 
   // Knockdown: tip over fast, get back up once knockedT runs out.
@@ -262,7 +267,14 @@ function animate(p, dt, hSpeed) {
   limbs.legL.rotation.x = swing;
   limbs.legR.rotation.x = -swing;
   limbs.armL.rotation.x = -swing * 0.8;
-  if (p.palmT > 0) {
+  if (p.chargeT >= 0) {
+    // Charging: the right arm winds back and up over the 0.7 s, the left hand points the way.
+    const k = Math.min(1, p.chargeT / CHARGE);
+    limbs.armR.rotation.x = 0.4 + 1.9 * k;
+    limbs.armR.rotation.z = -0.25 - 0.35 * k;
+    limbs.armL.rotation.x = -1.2 * k;
+    limbs.legL.rotation.x = -0.35 * k; limbs.legR.rotation.x = 0.3 * k;   // planted stance
+  } else if (p.palmT > 0) {
     // Wind-up: the palm draws back past the hip.
     limbs.armR.rotation.x = 1.3;
     limbs.armR.rotation.z = -0.25;

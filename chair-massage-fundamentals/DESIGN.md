@@ -150,8 +150,12 @@ side joins the two ring roads. The plaza block keeps the single block's lots, al
 exactly: its one link street is the old escape gap (ruled 2026-09-23), so it has a single way out. Walls on the district edge only; one escape street, on an outer side of
 the corner block farthest from the plaza. AI drivers route on a street graph (ring corners and side
 midpoints as nodes, link streets as edges, lane 1 m right of the centreline); the pivot van still
-enters from the plaza's own ring. 30 peds live within two blocks of the player and jump 1..2 blocks
-ahead of him past 2.5; six civilian cars drive the grid (carjack with E under 3 m/s; stuck 5 s
+enters from the plaza's own ring. Peds keep a per-block quota round the player (ruled 2026-09-24
+after run 5, "blocks with no pedestrians"): 9 on his block, 3 on each block one away, 1 on each block
+two away, 40 at most; every half second the blocks most over quota give their farthest idle ped to the
+block most under it (4 moves a tick, landing 35 m or more from him, behind the camera when it can).
+The old rule (30 peds, 16 pinned to the plaza's seeded spots, recycled only past 2.5 blocks) left
+the plaza's 16 there for the whole run in a 4x4 district and one or two on every other block; six civilian cars drive the grid (carjack with E under 3 m/s; stuck 5 s
 behind a vehicle, one backs up 3 m and turns round). The 8 s grab window starts at first contact
 (a goon within 3 m), one shove per 2.2 s pack-wide. A compass strip under the RUN title shows the
 chair and the exit by bearing and distance. `?blocks=1` builds the single walled block instead; parked cars are
@@ -160,15 +164,22 @@ instanced proxies that become drivable within 100 m. Every vehicle goes home, re
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
 controls camera yaw/pitch (pointer lock). Shift sprint (a 3 s stamina pool, a thin bar under health in
 RUN; empty means walk until it has recharged 1 s; full again after 6 s off Shift). Space jump. E interact (enter/exit vehicle,
-pick up chair). Left click: the **Healing Palm**. A big wind-up wrestling strike (lunge, THUD, screen
-shake). It is the only player weapon. A hit knocks the target down for about 3 seconds; when they get up
-they are visibly relaxed (slower posture, arms loose), say a relieved line ("...oh. Oh, that's better."),
-and a "TENSION RELEASED" floater pops. Goons who get up relaxed stop chasing for 8 seconds before
-their boss's radio puts them back on. Nobody dies from the Healing Palm.
+pick up chair). Left click: the **Healing Palm**. It is the only player weapon. Nobody dies from it.
+Ruled 2026-09-24 ("fighting is fruitless ... a telegraphed charge attack, and he says HEALING PALM
+like Falcon Punch"): **hold** left click to charge for 0.7 s. The player plants, the right arm winds
+back, a ring fills under the crosshair, and once the hold is past a tap he shouts "HEALING PALM"
+(the voice's `player` preset: the narrator pitched down, louder than any bubble). The charge
+completing launches a 3 m lunge; the first body in the cone is **TREATED**: "TENSION RELEASED", sits
+20 s on the spot, then walks loose to the van (goons) or his unit's car (cops) and stays out of the
+chase for 90 s after that (`outUntil`): he does not look, is not radioed, and does not count for the
+wanted level's line of sight. Treated peds sit, then wander loose (wanted +2 still). A bat hit or a
+shove during the charge cancels it: the wind-up is the risk, and the gun's stun is what buys the time.
+A **tap** (or letting go early) is the quick palm: 0.25 s wind-up, knockdown 3 s, relaxed rise, no
+treatment. A treatment counts as tension released on the certificate; a quick palm does not.
 
 **Massage gun** (added 2026-09-23): the only ranged weapon, and it starts as a literal massage gun. Right
-click fires it. Level 0: contact range (1.5 m), percussive taps, same relaxation effect as the Healing Palm
-but faster and weaker (three taps to knock down). Range upgrades extend the percussion into a visible
+click fires it. Level 0: contact range (1.5 m), percussive taps; every tap stuns the target 1.5 s (a
+stagger: no movement, no attack), three taps within 3 s knock him down like the quick palm. Range upgrades extend the percussion into a visible
 shockwave: level 1 = 4 m, level 2 = 8 m with a cone, level 3 = 14 m "Pro" with knockback that flips
 peds and dents cars. Range levels are **meta unlocks only** (earned at run summaries, persist across runs; the gun itself is
 the first unlock after run 1, so run 1 is palm-only). Battery, not ammo: 100 charge, drains per shot,
@@ -197,12 +208,23 @@ leaving the vehicle leaves the chair in it; a hard crash throws it out onto the 
 massage during a run** (decided 2026-09-23): set the chair down (E while carrying, on foot), the nearest
 willing ped walks over and sits, hold E for 5 s with a small pressure meter (W/S) on the HUD; on success
 they pay, wanted drops one star, the massage gun battery refills. Goons and cops within 6 m interrupt it.
+**Camping the chair has a risk** (ruled 2026-09-24): the first mini-massage of a run is free; each
+further success within 90 s of the previous one on the same spot (40 m) adds heat. At 2 the goon pack
+is radioed to the chair (every goon up and working who is not already on him runs to it and searches
+there); at 3 and on, a cop on foot (a ranger first, else one called in out of sight) walks to the chair
+and says "We told you to stop that." on arrival, and wanted goes to at least one star (`report('vending')`,
++1 once per run). Peds still queue.
 A ped who was hit by a car is worth double and says so. This is the hook: doing the actual work is how
 you cool heat.
 
 **Goons** (AI decided 2026-09-23: pack pursuit with a van driver): 3 to start, spawn from the van. Two
-chase directly, one flanks to cut the player's line; the van driver stays in the van, tries to cut the
-player off on the road, and returns to the block edge to drop 3 fresh goons every 90 s. A relaxed goon
+chase directly, one flanks to cut the player's line; the van driver stays in the van and returns to the
+block edge to drop 3 fresh goons every 90 s. **The van pursues** (ruled 2026-09-24 after run 5): from
+the moment the player drives off in any vehicle it chases his vehicle on the street graph at van speed
+(direct when close with a clear run, slowing for sharp turns), heads for the first node on his route to
+the escape it can reach before him and waits there (the cut), and rams when alongside: a shove, 10 hp
+off his vehicle and a wobble, never below 1 hp. Once he has been on foot 10 s it drives back and parks
+broadside across the plaza's single exit street, the outbound lane blocked and the other lane open. A relaxed goon
 (Healing Palm or massage gun) sits down for 8 s, then rejoins. Bat swing at melee range (20 damage, knockdown).
 Later waves arrive in black vans. Black suits, white shirts, no ties, one bat per van. Franchise name is
 locked: SERENITY GROUP INCORPORATED ("Serenity Group" on vans, "Serenity Group Incorporated" when a goon introduces himself).
@@ -216,7 +238,10 @@ goon is out of the chase for 12 s (down 3, up loose 1, sit 8); a car hitting him
 sitting starts that over instead of putting him straight back on.
 
 **Cops** (curve decided 2026-09-23, classic GTA3): wanted 1 to 5 stars. 1: the ranger on foot, campaign
-hat asset on the person mesh, the same character as in the pivot. 2: parks police cart. 3: city cop cars
+hat asset on the person mesh, the same character as in the pivot. Driving units spawn one block out by
+road (ruled 2026-09-24 after run 5, where level 2 units spawned 2..3 blocks out took ~98 s and never
+arrived): the street node about 160 m of road from the node nearest the player, never on a ring inside
+the plaza block or his own block; measured 14..23 s to within 30 m of a player on the plaza. 2: parks police cart. 3: city cop cars
 (light bars flashing). 4: roadblocks at two road corners. 5: everything plus the SWAT van. Rises: +1 for
 the first hit goon or a stolen vehicle, +2 for hurting a ped (car or palm), +1 after 60 s of continuous
 chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated vehicle carnage (3+ ped

@@ -25,6 +25,11 @@ function short(e) {
     case 'damage': return `-${d.amount} from ${d.source}, hp ${d.hp}`;
     case 'knockdown': return `${d.who} (${d.by || d.cause})${d.mine ? ' by you' : ''}`;
     case 'mini': return `${d.phase}${d.reason ? ` (${d.reason})` : ''}${d.pay ? ` +$${d.pay}` : ''}`;
+    case 'van': return `${d.act}${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.x !== undefined ? ` at ${d.x}, ${d.z}` : ''}`;
+    case 'vending': return `${d.act}${d.heat ? ` (heat ${d.heat})` : ''}${d.goons !== undefined ? `, ${d.goons} goons` : ''}${d.rank ? `, ${d.rank}` : ''}${d.after !== undefined ? ` after ${d.after} s` : ''}`;
+    case 'peds': return `left block ${d.block}: ${d.arrived} peds on arrival, ${d.moved} moved in, ${d.have} at the end`;
+    case 'treat': return `${d.target}${d.rank ? ` (${d.rank})` : ''} ${d.phase || 'sit'}`;
+    case 'palm': return d.target ? `${d.charged ? 'charged' : 'quick'} on ${d.target}` : `${d.phase}${d.cause ? ` (${d.cause})` : ''}`;
     default: return Object.entries(d).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ');
   }
 }

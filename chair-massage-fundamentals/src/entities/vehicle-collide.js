@@ -90,6 +90,8 @@ export function collideStatic(v, ctx) {
   return true;
 }
 
+const rammer = (v) => !!(v.franchise && v.driver && v.driver.kind === 'aiDriver');
+
 export function collideVehicles(a, b, ctx) {
   const reach = a.spec.halfL + b.spec.halfL;
   if (Math.abs(a.pos.x - b.pos.x) > reach || Math.abs(a.pos.z - b.pos.z) > reach) return false;
@@ -114,7 +116,10 @@ export function collideVehicles(a, b, ctx) {
     a.vel.x += (j / ma) * nx; a.vel.z += (j / ma) * nz;
     b.vel.x -= (j / mb) * nx; b.vel.z -= (j / mb) * nz;
     const mx = (a.pos.x + b.pos.x) / 2, mz = (a.pos.z + b.pos.z) / 2;
-    damage(a, -vn, ctx, mx, mz); damage(b, -vn, ctx, mx, mz);
+    // The Serenity van's ram is its own shove (spawner.js: 10 hp, never a wreck): whatever it
+    // touches while an AI drives it takes no crash damage from the contact itself.
+    if (!rammer(b)) damage(a, -vn, ctx, mx, mz);
+    if (!rammer(a)) damage(b, -vn, ctx, mx, mz);
     a.asleep = b.asleep = false; // only a real impulse wakes them; resting contact stays asleep
   }
   return true;

@@ -13,10 +13,14 @@ import { createGoon, disposeGoon } from '../entities/goon.js';
 import { disposeCop } from '../entities/cop.js';
 import { clearDriverRig } from '../entities/seated.js';
 import { updateWanted, emitChaos } from './wanted.js';
-import { createPolice, updatePolice, clearPolice } from './police.js';
+import { createPolice, updatePolice, clearPolice, routeDist } from './police.js';
 import { driveRoute, driveAt, brake } from './driver.js';
-import { nearestNode, nodeAhead } from '../world/roads.js';
+import { nearestNode, nodeAhead, route, edgeSpot } from '../world/roads.js';
+import { toXZ, SIZE, RING_C } from '../world/layout.js';
+import { emit } from '../events.js';
+import { shake, sfx } from '../juice.js';
 import { spawnPeds, spawnRegular, recyclePeds } from './peds.js';
+import { lineOfSight } from '../entities/npc-nav.js';
 import { createTraffic, beginTraffic, clearTraffic, updateTraffic } from './traffic.js';
 import { resetVehicles } from './reset.js';
 
@@ -69,7 +73,7 @@ export function begin(ctx, fromPivot = false) {
   const rng = makeRng((ctx.world.seed ^ 0x9ed5) >>> 0);
   spawnPeds(ctx, rng);
   if (ctx.perks && ctx.perks.regular) spawnRegular(ctx, rng);
-  ctx.vanAI = { v: null, mode: 'park', waveT: 0, dropT: 0, spawnedAt: -1 };
+  ctx.vanAI = { v: null, mode: 'wait', waveT: 0, dropT: 0, spawnedAt: -1, footT: 0, ramCd: 0, parked: false };
   if (countKind(ctx, 'goon') === 0) spawnGoons(ctx, 3);
   if (ctx.world.vehicles) beginTraffic(ctx);
 }
@@ -103,8 +107,36 @@ export function spawnGoons(ctx, n) {
   return n;
 }
 
-// The van driver: parks while the player is on foot, cuts ahead on the loop while they drive,
-// and every 90 s returns to vanEntry to drop fresh goons.
+// The van driver (ruled 2026-09-24 after run 5, "the van pursues"): from the moment the player
+// drives off in any vehicle it pursues his vehicle on the street graph at van speed, heads for a
+// node on his route to the escape it can reach first (the cut: it waits there), and rams when
+// alongside (a shove: 10 hp and a wobble, never a wreck). Once he has been on foot for 10 s it
+// drives back and parks across the plaza's single exit street, one lane blocked. Every 90 s it
+// still returns to vanEntry to drop fresh goons.
+const VAN_TOP = 16;          // the van's top speed (vehicle-types.js)
+const FOOT_PARK = 10;        // s on foot before it goes to block the exit
+const RAM_CD = 2.5;
+const RAM_HP = 10;
+const RAM_PUSH = 5;
+const PLAN_EVERY = 0.5;
+const PARK_ALONG = 20;       // m out along the link street from the plaza ring
+const PARK_LANE = 2.4;       // m right of the centreline for outbound travel: one lane of two
+
+// The plaza's exit street: its ring node, the neighbour's, and the parking pose across one lane.
+function exitPark(ctx) {
+  const W = ctx.world;
+  if (W._vanPark !== undefined) return W._vanPark;
+  const G = W.roads, P = (W.blocks || []).find((b) => b.kind === 'plaza');
+  const q = P && P.gaps.find((g) => g.kind === 'link');
+  if (!q) return (W._vanPark = null);
+  const [cx, cz] = P.centre;
+  const at = (d) => { const [x, z] = toXZ(q.edge, q.g, d); return nearestNode(G, x + cx, z + cz); };
+  const a = at(RING_C), b = at(SIZE - RING_C);
+  const s = edgeSpot(G, a, b, PARK_ALONG, PARK_LANE);
+  // Broadside across the outbound lane, nose toward the centreline.
+  return (W._vanPark = { inner: a, outer: b, x: s.x, z: s.z, yaw: s.yaw - Math.PI / 2, street: s.yaw });
+}
+
 function updateVan(ctx, dt) {
   const A = ctx.vanAI;
   if (!A) return;
@@ -116,6 +148,7 @@ function updateVan(ctx, dt) {
   const v = A.v, p = ctx.player;
   if (v.driver === p || !v.driver) return;
   A.waveT += dt;
+  A.ramCd = Math.max(0, (A.ramCd || 0) - dt);
   if (A.waveT >= WAVE && A.mode !== 'drop') { A.mode = 'drop'; A.dropT = 0; }
   if (A.mode === 'drop') {
     A.dropT += dt;
@@ -126,21 +159,125 @@ function updateVan(ctx, dt) {
     else brake(v);
     if ((d <= 3.5 && Math.abs(v.speed) < 0.5) || A.dropT > 30) {
       spawnGoons(ctx, 3);
-      A.mode = 'park'; A.waveT = 0; A.spawnedAt = ctx.time;
+      A.mode = 'wait'; A.waveT = 0; A.spawnedAt = ctx.time; A.parked = false;
     }
     return;
   }
-  if (p.vehicle && v.hp > 0) {
-    // Cut him off: wait at the next intersection he is driving toward.
-    A.mode = 'cut';
-    const G = ctx.world.roads, pv = p.vehicle;
-    const goal = nodeAhead(G, pv.pos.x, pv.pos.z, pv.vel.x, pv.vel.z);
-    const n = G.nodes[goal];
-    if (goal >= 0 && Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 6) brake(v);
-    else if (goal >= 0) driveRoute(v, G, goal, VAN_CRUISE, dt);
-  } else {
-    A.mode = 'park';
-    brake(v);
+  if (p.vehicle && p.vehicle !== v && v.hp > 0) {
+    A.footT = 0; A.parked = false;
+    if (A.mode !== 'pursue' && A.mode !== 'cut') { A.mode = 'pursue'; A.planT = 0; emit('van', { act: 'pursue', vehicle: p.vehicle.type }); }
+    pursue(ctx, A, v, p.vehicle, dt);
+    return;
+  }
+  A.footT = (A.footT || 0) + dt;
+  if (A.mode === 'pursue' || A.mode === 'cut') A.mode = 'wait';
+  if (A.footT < FOOT_PARK || !exitPark(ctx)) { brake(v); return; }
+  if (A.mode !== 'park') { A.mode = 'park'; A.settleT = 0; A.parkT = 0; A.lane = false; emit('van', { act: 'return' }); }
+  park(ctx, A, v, dt);
+}
+
+// Pursuit: straight at his vehicle when close, else the cut (the first node on his route to the
+// escape the van reaches before him; it waits there), else his street node.
+function pursue(ctx, A, v, pv, dt) {
+  const G = ctx.world.roads;
+  const d = Math.hypot(pv.pos.x - v.pos.x, pv.pos.z - v.pos.z);
+  if (d < v.spec.halfL + pv.spec.halfL + 0.8 && A.ramCd <= 0) ram(ctx, A, v, pv, d);
+  const lead = Math.min(0.8, d / 20), tx = pv.pos.x + pv.vel.x * lead, tz = pv.pos.z + pv.vel.z * lead;
+  if (d < 30 && clearRun(ctx.world, v, tx, tz)) {
+    // Direct, slowing hard for a sharp turn: a 5.5 m van taking a corner at speed ploughs into the lots.
+    let err = Math.atan2(tx - v.pos.x, tz - v.pos.z) - v.yaw;
+    while (err > Math.PI) err -= Math.PI * 2;
+    while (err < -Math.PI) err += Math.PI * 2;
+    const cruise = Math.abs(err) > 0.5 ? 9 : Math.abs(err) > 0.2 ? 12 : VAN_TOP;
+    A.mode = 'pursue';
+    driveAt(v, tx, tz, cruise, dt, 30);
+    return;
+  }
+  A.planT = (A.planT || 0) - dt;
+  if (A.planT <= 0 || !A.goal) {
+    A.planT = PLAN_EVERY;
+    A.goal = cutNode(G, v, pv);
+    A.mode = A.goal.cut ? 'cut' : 'pursue';
+    if (A.goal.cut && A.cutAt !== A.goal.node) { A.cutAt = A.goal.node; emit('van', { act: 'cut', node: A.goal.node }); }
+  }
+  const n = G.nodes[A.goal.node];
+  if (A.goal.cut && Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 6) brake(v);
+  else driveRoute(v, G, A.goal.node, VAN_TOP, dt);
+}
+
+// A straight run at (tx, tz) the van's width clears (both flanks at bonnet height): a direct chase
+// that would clip a lot corner or a tree goes by the street graph instead.
+const _fa = new THREE.Vector3(), _fb = new THREE.Vector3();
+function clearRun(world, v, tx, tz) {
+  const dx = tx - v.pos.x, dz = tz - v.pos.z, l = Math.hypot(dx, dz) || 1, rx = -dz / l, rz = dx / l;
+  for (const o of [-1.1, 1.1]) {
+    _fa.set(v.pos.x + rx * o, v.pos.y, v.pos.z + rz * o);
+    _fb.set(tx + rx * o, v.pos.y, tz + rz * o);
+    if (!lineOfSight(world, _fa, _fb, 0.8)) return false;
+  }
+  return true;
+}
+
+// The first node on his route to the escape (after the one he is driving at) that the van can
+// reach before him; none: the node he is driving at.
+function cutNode(G, v, pv) {
+  const from = nodeAhead(G, pv.pos.x, pv.pos.z, pv.vel.x, pv.vel.z);
+  const path = route(G, from, G.exitNode);
+  const vd = routeDist(G, nearestNode(G, v.pos.x, v.pos.z));
+  const ps = Math.max(8, Math.hypot(pv.vel.x, pv.vel.z));
+  let acc = Math.hypot(G.nodes[from].x - pv.pos.x, G.nodes[from].z - pv.pos.z);
+  for (let k = 1; k < path.length; k++) {
+    acc += Math.hypot(G.nodes[path[k]].x - G.nodes[path[k - 1]].x, G.nodes[path[k]].z - G.nodes[path[k - 1]].z);
+    if (path[k] === G.exitNode) break;
+    if (vd[path[k]] / (VAN_TOP * 0.7) < acc / ps) return { node: path[k], cut: true };
+  }
+  return { node: from, cut: false };
+}
+
+// Alongside: a shove away from the van, 10 hp and a wobble; never below 1 hp (no wreck).
+function ram(ctx, A, v, pv, d) {
+  A.ramCd = RAM_CD;
+  const nx = (pv.pos.x - v.pos.x) / (d || 1), nz = (pv.pos.z - v.pos.z) / (d || 1);
+  pv.vel.x += nx * RAM_PUSH; pv.vel.z += nz * RAM_PUSH;
+  pv.hp = Math.max(Math.min(pv.hp, 1), pv.hp - RAM_HP);
+  pv._hpSeen = pv.hp;                          // his own crash bookkeeping ignores the van's shove
+  pv.wobbleT = Math.max(pv.wobbleT || 0, 0.6);
+  pv.asleep = false;
+  shake(ctx, 0.45, pv.pos.x, pv.pos.z);
+  sfx(ctx, 'thud', pv.pos.x, pv.pos.z, 0.9);
+  emitChaos(ctx, pv.pos.x, pv.pos.z, 'vanRam');
+  A.rams = (A.rams || 0) + 1;
+  emit('van', { act: 'ram', hp: Math.round(pv.hp), vehicle: pv.type, n: A.rams });
+}
+
+// Back to the plaza's exit street by the plaza ring (the route to the street's inner end, then out
+// along the lane), then broadside across the outbound lane: the last metres are a slow shuffle
+// into the pose, a driver backing and filling. Passing within 4 m of the spot from either side
+// settles it at once; if it has not got there in 60 s it settles from within 20 m.
+function park(ctx, A, v, dt) {
+  const G = ctx.world.roads, K = exitPark(ctx);
+  if (A.parked) { brake(v); return; }
+  A.parkT = (A.parkT || 0) + dt;
+  const d = Math.hypot(K.x - v.pos.x, K.z - v.pos.z);
+  if (A.settleT === 0 && d > 4 && !(A.parkT > 60 && d < 20)) {
+    const a = G.nodes[K.inner];
+    if (!A.lane && Math.hypot(a.x - v.pos.x, a.z - v.pos.z) < 10) A.lane = true;
+    if (A.lane) driveAt(v, K.x, K.z, 6, dt);
+    else driveRoute(v, G, K.inner, VAN_CRUISE, dt);
+    return;
+  }
+  brake(v);
+  A.settleT += dt;
+  const k = Math.min(1, dt * 1.5);
+  v.pos.x += (K.x - v.pos.x) * k; v.pos.z += (K.z - v.pos.z) * k;
+  let dy = K.yaw - v.yaw;
+  while (dy > Math.PI) dy -= Math.PI * 2;
+  while (dy < -Math.PI) dy += Math.PI * 2;
+  v.yaw += dy * k;
+  v.vel.set(0, 0, 0); v.speed = 0;
+  if (A.settleT > 2.5 || (Math.abs(dy) < 0.03 && d < 0.3)) {
+    A.parked = true;
+    emit('van', { act: 'park', x: Math.round(v.pos.x * 10) / 10, z: Math.round(v.pos.z * 10) / 10, after: Math.round(A.parkT * 10) / 10 });
   }
 }
 
