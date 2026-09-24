@@ -179,7 +179,8 @@ export function dispatchTo(ctx, x, y, z) {
   const P = ctx.police;
   let c = null, cu = null, called = false;
   for (const u of P.units) for (const o of u.cops) {
-    if (o.standDown || o.knockedT > 0 || o.outUntil > ctx.time || !ctx.npcs.includes(o)) continue;
+    // Not a cop walking off a palm (loose, cop.js walkoff): his 10 s is his, like a treated man's 90.
+    if (o.standDown || o.knockedT > 0 || o.outUntil > ctx.time || o.loose > 0 || o.state === 'walkoff' || !ctx.npcs.includes(o)) continue;
     if (!c || (o.rank === 'ranger' && c.rank !== 'ranger')) { c = o; cu = u; }
   }
   if (!c) {
