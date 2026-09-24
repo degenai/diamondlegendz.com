@@ -235,7 +235,8 @@ const _c = new THREE.Vector3();
 const _p0 = new THREE.Vector3();
 const _p1 = new THREE.Vector3();
 // Returns the metres left; the caller brakes when it is small.
-// bendAt: [from, to] m ahead where the bend brake looks, and the speed for a sharp bend.
+// bendAt: [from, to] m ahead where the bend brake looks, the speed for a sharp bend, and
+// (optional) [min, max] of a speed-scaled carrot distance.
 export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise, bendAt = BEND_AT) {
   const { pts, cum } = P;
   // Progress: best projection on the current segment or the next two.
@@ -247,7 +248,10 @@ export function followPoly(v, P, dt, driveAt, ringCruise, plazaCruise, bendAt = 
     if (d < bestD) { bestD = d; const pr = cum[i] + t * L; if (pr >= P.prog) { P.prog = pr; P.seg = i; } }
   }
   const left = P.total - P.prog;
-  pointAt(P, Math.min(P.total, P.prog + LOOK), _c);
+  // Street driving (bendAt[3]): the carrot runs further ahead with speed, so it is on the next
+  // street before the corner and the car turns in early and wide instead of late and tight.
+  const look = bendAt[3] ? Math.max(bendAt[3][0], Math.min(bendAt[3][1], 3 + Math.abs(v.speed) * 0.6)) : LOOK;
+  pointAt(P, Math.min(P.total, P.prog + look), _c);
   let cruise = P.seg < P.ringEnd ? ringCruise : plazaCruise;
   // Brake for the bend ahead: heading change between the next 4 m and 8..14 m on.
   pointAt(P, P.prog, _p0); pointAt(P, Math.min(P.total, P.prog + 4), _p1);

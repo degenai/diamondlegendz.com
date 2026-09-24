@@ -101,7 +101,7 @@ export function buildFurniture(B) {
   }
   for (const e of EDGES) {
     for (let u = -40; u <= 40; u += 10) {
-      if (Math.abs(u) < 15) continue;                 // clear of the link street's turns at u = 0
+      if (Math.abs(u) < (B.plaza ? 5 : 15)) continue;   // clear of the link street's turns at u = 0
       const [x, z] = toXZ(e, u + rng.range(-1, 1), DECK_HALF - 0.9);
       trees.push({ x, z, s: rng.range(0.85, 1.15) });
     }

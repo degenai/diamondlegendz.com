@@ -13,12 +13,14 @@ export const CAR_COLOURS = [0xb8322c, 0x2c5aa0, 0xe8e4da, 0x2b2d30, 0x8a9096, 0x
 const CAR_W = 1.9, CAR_L = 4.4, CAR_H = 1.5;
 
 // Kerbside spots on the outer lane, clear of the crosswalks and every gap mouth (link and escape).
-export function planParking(rng, gaps) {
+// uMax: how far toward the ring corners spots go (the plaza keeps the single block's 43; other
+// blocks stop at 31 so AI cars have room to swing round the corners).
+export function planParking(rng, gaps, uMax = 31) {
   const spots = [];
   const d = ROAD_OUT - 0.95;
   for (const e of EDGES) {
     for (let u = -43; u <= 43; u += 6.5) {
-      if (Math.abs(u) < 7 || Math.abs(u) > 31) continue;                  // crosswalk; corners (cars swing wide)
+      if (Math.abs(u) < 7 || Math.abs(u) > uMax) continue;                // crosswalk; corners
       if (gaps.some((q) => q.edge === e && Math.abs(u - q.g) < GAP_HALF + 3.5)) continue; // street mouths
       const [x, z] = toXZ(e, u, d);
       const [fx, fz] = laneForward(e);

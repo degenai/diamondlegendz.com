@@ -17,6 +17,9 @@ import { lineOfSight } from './npc-nav.js';
 import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer } from './palm.js';
 import { sfx, shake } from '../juice.js';
+import { vanHome, goHome } from './goon-home.js';
+
+export { vanHome };
 
 const RUN = 5.5;
 const BAT_REACH = 1.6, SHOVE_REACH = 1.3;
@@ -24,10 +27,12 @@ const BAT_WIND = 0.4, SHOVE_WIND = 0.3;
 const COOLDOWN = 1.5;
 const FLANK_OFF = 6;
 const SIT_TIME = 8;
-// Opening beat (DESIGN.md PIVOT rulings): for the first 8 s of RUN (ctx.grabUntil) the goons only
-// shove and grab: 10 damage, no knockdown, a 1.5 m push, "Come with us." on each goon's first
-// contact. The first Healing Palm or gun hit ends the window early (palm.js, gun.js).
+// Opening beat (DESIGN.md PIVOT rulings): for 8 s from the first contact (a goon within 3 m of the
+// player; ctx.grabUntil is Infinity until then) the goons only shove and grab: 10 damage, no
+// knockdown, a 1.5 m push, "Come with us." on each goon's first contact. The first Healing Palm or
+// gun hit ends the window early (palm.js, gun.js).
 const GRAB_CD = 6;
+const GRAB_GAP = 2.2;         // s between shoves landing, pack-wide
 const GRAB_PUSH = 9.5;       // m/s; the player's 30 m/s^2 ground decel turns it into about 1.5 m
 export const GRAB_WINDOW = 8;
 const grabbing = (ctx) => ctx.time < (ctx.grabUntil ?? -1);
@@ -37,8 +42,7 @@ const SIGHT_EVERY = 0.2;     // line-of-sight test cadence per goon
 const LOSE_AFTER = 4;        // s without sight before the search starts
 const LOOK_TIME = 8;         // s turning in place at lastSeen
 const GO_MAX = 25;           // give up walking to lastSeen after this long (unreachable perch)
-const WALK = 2.2;            // search and return pace
-const VAN_IDLE = 3;          // idle this close to the van's kerb-side point
+const WALK = 2.2;            // search pace
 const PERCEIVE = new Set(['chase', 'windup', 'recover', 'search', 'return']);
 
 export function createGoon(scene, pos, role, bat) {
@@ -73,6 +77,7 @@ export function updateGoon(e, dt, ctx) {
   e.wishX = e.wishZ = 0; e.speed = 0; e.faceX = undefined;
   if (e.cooldown > 0) e.cooldown -= dt;
   e.noRoad = !!p.vehicle;
+  if (ctx.grabUntil === Infinity && e.knockedT <= 0 && (e.pos.x - p.pos.x) ** 2 + (e.pos.z - p.pos.z) ** 2 < 9) { ctx.grabUntil = ctx.time + GRAB_WINDOW; ctx.grabStart = ctx.time; }
   if (e.knockedT <= 0 && PERCEIVE.has(e.state)) perceive(e, dt, ctx);
   if (e.knockedT > 0) {
     e.knockedT -= dt;
@@ -192,30 +197,6 @@ function search(e, dt, ctx) {
   if (e.stateT <= 0) { e.state = 'return'; e.idle = false; e.seek.nav = -1; e.seek.t = 0; }
 }
 
-// Back to the van (or where it parks) at walk speed; idle there, loose, until someone sees him.
-const _home = { x: 0, y: 0, z: 0 };
-export function vanHome(ctx) {
-  const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise && x.driver !== ctx.player);
-  const at = v ? v.pos : ctx.world.spawns.vanEntry.pos;
-  // The kerb side of the van: 3 m from it toward the middle of the block.
-  const l = Math.hypot(at.x, at.z) || 1;
-  _home.x = at.x - (at.x / l) * 3; _home.z = at.z - (at.z / l) * 3; _home.y = at.y || 0;
-  return _home;
-}
-
-function goHome(e, dt, ctx) {
-  const h = vanHome(ctx);
-  const d2 = (h.x - e.pos.x) ** 2 + (h.z - e.pos.z) ** 2;
-  if (e.idle && d2 < (VAN_IDLE + 2) ** 2) { e.wishX = e.wishZ = 0; e.speed = 0; return; }
-  e.idle = false;
-  e.speed = WALK;
-  if (seek(e, h.x, h.y, h.z, dt, ctx, VAN_IDLE) || d2 < VAN_IDLE * VAN_IDLE) {
-    e.idle = true; e.speed = 0; e.wishX = e.wishZ = 0;
-    const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise);
-    if (v) { e.faceX = v.pos.x; e.faceZ = v.pos.z; }
-  }
-}
-
 function chase(e, dt, ctx) {
   const p = ctx.player;
   const tgt = p.vehicle ? p.vehicle.pos : p.pos;
@@ -262,8 +243,8 @@ function strike(e, ctx) {
   if (p.vehicle || d2 > reach * reach || p.knockedT > 0) return;
   const d = Math.sqrt(d2) || 1;
   if (e.grab) {
-    // One shove lands per half second across the whole pack, so three goons cannot stack 30 in a tick.
-    if (ctx.lastGrabHitT !== undefined && ctx.time - ctx.lastGrabHitT < 0.5) return;
+    // One shove lands per GRAB_GAP across the whole pack: at most four in the 8 s window (40 hp).
+    if (ctx.lastGrabHitT !== undefined && ctx.time - ctx.lastGrabHitT < GRAB_GAP) return;
     ctx.lastGrabHitT = ctx.time;
     hurtPlayer(ctx, 10, 0, dx / d, dz / d, GRAB_PUSH);
     shake(ctx, 0.2);

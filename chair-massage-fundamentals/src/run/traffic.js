@@ -18,10 +18,10 @@ const COUNT = 6;
 const NEAR = 2 * SIZE, FAR = 2.5 * SIZE, AHEAD0 = SIZE, AHEAD1 = 2 * SIZE;
 const LOOK = 7;            // metres of clear lane wanted ahead of the bumper
 const EVERY = 0.5;
-const BEND = [10, 16, 3.5];  // see run/driver.js
+const BEND = [12, 18, 6, [6, 9]];  // see run/driver.js
 
 // count: how many cars to keep (COUNT; a debug handle can set it, e.g. 0 for an empty grid).
-export function createTraffic(seed) { return { cars: [], rng: makeRng((seed ^ 0x7a11c) >>> 0), loading: 0, gen: 0, log: [], t: 0, count: COUNT }; }
+export function createTraffic(seed) { return { cars: [], rng: makeRng((seed ^ 0x7a11c) >>> 0), loading: 0, gen: 0, log: [], jamLog: [], t: 0, count: COUNT }; }
 
 function travelDir(ctx) {
   const p = ctx.player, v = p.vehicle ? p.vehicle.vel : p.vel;
@@ -121,9 +121,9 @@ export function takeCivilian(ctx, v) {
   v.civilian = false; v.tr = null;
 }
 
-// Is anything in the lane just ahead of v?
-function blocked(ctx, v) {
-  const s = Math.sin(v.yaw), c = Math.cos(v.yaw), reach = v.spec.halfL + LOOK;
+// Is anything in the lane just ahead of v? (Police cars use it too, for the car in front.)
+export function blocked(ctx, v, look = LOOK) {
+  const s = Math.sin(v.yaw), c = Math.cos(v.yaw), reach = v.spec.halfL + look;
   // rf: the obstacle's reach toward us, rl: its half width across the lane.
   const test = (x, z, rf, rl) => {
     const rx = x - v.pos.x, rz = z - v.pos.z, f = rx * s + rz * c, l = -rx * c + rz * s;
@@ -141,13 +141,33 @@ function blocked(ctx, v) {
   return null;
 }
 
+// Waits behind anything in its lane. Stuck 5 s behind a vehicle: backs up 3 m, then turns round
+// for the intersection behind it and goes on from there (never down the blocked street again).
+const JAM = 5, BACK = 3, BACK_MAX = 3;
 function drive(ctx, v, dt) {
   const G = ctx.world.roads, tr = v.tr;
   if (!v.driver || v.driver.kind !== 'aiDriver') return;
-  // Waits behind anything; two civilians nose to nose at a corner give way after a few seconds.
+  if (tr.backT > 0) {
+    tr.backT -= dt;
+    v.ai = v.ai || {};
+    v.ai.throttle = v.speed > 0.3 ? -1 : -0.7; v.ai.steer = 0; v.ai.handbrake = false;
+    if (Math.hypot(v.pos.x - tr.backAt.x, v.pos.z - tr.backAt.z) >= BACK || tr.backT <= 0) {
+      tr.backT = 0; tr.stopT = 0; tr.jams = (tr.jams || 0) + 1;
+      const behind = tr.from;
+      tr.from = tr.to; tr.to = behind; tr.next = nextNode(G, tr.from, tr.to, ctx.traffic.rng);
+      makePoly(v, G, tr);
+      ctx.traffic.jamLog.push({ t: +ctx.time.toFixed(1), id: v.id, at: [Math.round(v.pos.x), Math.round(v.pos.z)] });
+    }
+    return;
+  }
   const b = blocked(ctx, v);
-  if (b && !(b === 'traffic' && tr.stopT > 4 + (v.id % 3))) { brake(v); tr.stopT += dt; return; }
-  if (!b) tr.stopT = 0;
+  if (b) {
+    brake(v);
+    tr.stopT = Math.abs(v.speed) < 0.3 ? tr.stopT + dt : 0;
+    if ((b === 'car' || b === 'traffic') && tr.stopT > JAM) { tr.backT = BACK_MAX; tr.backAt = { x: v.pos.x, z: v.pos.z }; }
+    return;
+  }
+  tr.stopT = 0;
   followPoly(v, tr.poly, dt, driveAt, tr.cruise, tr.cruise, BEND);
   if (tr.poly.seg >= 1) {                         // past the intersection: on to the next street
     tr.from = tr.to; tr.to = tr.next; tr.next = nextNode(G, tr.from, tr.to, ctx.traffic.rng);
@@ -166,13 +186,12 @@ export function updateTraffic(ctx, dt) {
   for (const v of T.cars) {
     if (v.driver !== null && v.driver.kind !== 'aiDriver') continue;
     const d = Math.hypot(v.pos.x - at.x, v.pos.z - at.z);
-    // Past 2.5 blocks, or out of sight and stuck behind something parked in its lane.
-    if (d <= FAR && !(v.tr.stopT > 8 && d > 60)) continue;
+    if (d <= FAR) continue;
     const s = pickSpot(ctx, AHEAD0, AHEAD1, true);
     if (!s) continue;
     T.log.push({ t: +ctx.time.toFixed(1), id: v.id, from: [Math.round(v.pos.x), Math.round(v.pos.z)], to: [Math.round(s.x), Math.round(s.z)] });
     v.pos.set(s.x, 0, s.z); v.yaw = s.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0;
-    v.hp = 100; v.aiBackT = 0; v.aiStuckT = 0;
+    v.hp = 100; v.aiBackT = 0; v.aiStuckT = 0; v.tr.backT = 0;
     v.tr.from = s.a; v.tr.to = s.b; v.tr.next = nextNode(ctx.world.roads, s.a, s.b, T.rng); v.tr.stopT = 0;
     makePoly(v, ctx.world.roads, v.tr);
     v.mesh.position.copy(v.pos); v.mesh.rotation.y = v.yaw;

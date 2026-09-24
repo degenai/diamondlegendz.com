@@ -24,10 +24,11 @@ export function buildRoads(parts) {
     const [cx, cz] = P.centre;
     const at = (edge, u, d) => { const [x, z] = toXZ(edge, u, d); return node(x + cx, z + cz); };
     for (const e of ['N', 'E', 'S', 'W']) {
-      // Stops along this side of the ring, west->east / north->south: corner, [escape], mid, corner.
+      // Stops along this side of the ring, west->east / north->south: corners, the middle, and any
+      // street that leaves the ring off the middle (the escape street, the plaza's link).
       const us = [-RING_C, 0, RING_C];
       const esc = P.gaps.find((q) => q.edge === e && q.kind === 'escape');
-      if (esc && Math.abs(esc.g) > 1) us.push(esc.g);
+      for (const q of P.gaps) if (q.edge === e && Math.abs(q.g) > 1) us.push(q.g);
       us.sort((a, b) => a - b);
       const ids = us.map((u) => at(e, u, RING_C));
       for (let k = 1; k < ids.length; k++) link(ids[k - 1], ids[k]);
@@ -40,7 +41,7 @@ export function buildRoads(parts) {
     // Link streets: this block's side midpoint to the neighbour's (the neighbour adds the same edge).
     for (const q of P.gaps) {
       if (q.kind !== 'link') continue;
-      link(at(q.edge, 0, RING_C), at(q.edge, 0, 160 - RING_C));
+      link(at(q.edge, q.g, RING_C), at(q.edge, q.g, 160 - RING_C));
     }
   }
   const adj = nodes.map(() => []);
@@ -107,9 +108,9 @@ export function route(G, from, to) {
 
 // Lane offset for travel a -> b, right of the centreline. The ring road is 8 m with parked cars
 // along its outer kerb, so the lane whose right side faces out (the kerb, the parked cars) keeps
-// 0.7 m off the centreline and the one facing in runs 1.8 m in (clear of the kerb trees); link and escape streets have
-// no parking and split evenly. `lane` given: that offset everywhere.
-export const LANE_OUT = 0.7, LANE_IN = 1.8, LANE_LINK = 1.5;
+// 0.4 m off the centreline and the one facing in runs 2 m in (clear of the kerb trees); link
+// and escape streets have no parking and split evenly. `lane` given: that offset everywhere.
+export const LANE_OUT = 0.4, LANE_IN = 2.0, LANE_LINK = 1.5;
 export function laneOffset(G, a, b, lane) {
   if (lane !== undefined) return lane;
   const A = G.nodes[a], B = G.nodes[b];

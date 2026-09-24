@@ -9,7 +9,7 @@ import { floorHeightAt } from '../physics.js';
 import { preload } from '../assets.js';
 import { addEntity, removeEntity } from '../entities/index.js';
 import { disposePed } from '../entities/ped.js';
-import { createGoon, disposeGoon, GRAB_WINDOW } from '../entities/goon.js';
+import { createGoon, disposeGoon } from '../entities/goon.js';
 import { disposeCop } from '../entities/cop.js';
 import { clearDriverRig } from '../entities/seated.js';
 import { updateWanted, emitChaos } from './wanted.js';
@@ -63,7 +63,7 @@ export function begin(ctx, fromPivot = false) {
   ctx.runEnd = null;
   ctx.lastChaos = null;
   ctx.goonPack = null;
-  ctx.grabUntil = ctx.time + GRAB_WINDOW;   // the opening beat: shove and grab only (goon.js)
+  ctx.grabUntil = Infinity; ctx.grabStart = null;   // the opening beat starts on first contact (goon.js)
   const p = ctx.player;
   p.hp = 100; p.prevHp = 100; p.hurtAt = -1e9; p.knockedT = 0;
   const rng = makeRng((ctx.world.seed ^ 0x9ed5) >>> 0);

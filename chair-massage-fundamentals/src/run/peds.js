@@ -10,6 +10,7 @@ import { SIZE } from '../world/layout.js';
 
 const NEAR = 2 * SIZE, FAR = 2.5 * SIZE, AHEAD0 = SIZE, AHEAD1 = 2 * SIZE;
 const EVERY = 0.5;
+const PEDS = 30;
 const BUSY = ['kneel', 'toChair', 'leave'];
 
 function putOnEdge(e, world, idx, rng) {
@@ -36,7 +37,7 @@ function pickPoint(world, rng, x, z, r0, r1, dx, dz) {
 export function spawnPeds(ctx, rng) {
   const world = ctx.world;
   const { points } = navInfo(world);
-  const n = rng.int(18, 26);
+  const n = PEDS;
   const base = world.spawns.peds;
   const p = ctx.player.pos;
   for (let i = 0; i < n; i++) {

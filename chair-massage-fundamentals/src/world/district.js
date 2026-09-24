@@ -7,7 +7,7 @@
 // merged pedestrian nav graph and the street graph for AI drivers (roads.js).
 import * as THREE from '../../vendor/three.module.js';
 import { makeRng } from '../rng.js';
-import { buildBlockPart } from './block.js';
+import { buildBlockPart, plazaLink } from './block.js';
 import { createBatch, buildBatch } from './batch.js';
 import { addSpur } from './nav.js';
 import { buildRoads } from './roads.js';
@@ -119,14 +119,23 @@ export function buildDistrict(seed, scene) {
 
   // The escape block: the corner farthest from the plaza block; its outer sides are candidates.
   const ei = PLAZA_IJ[0] < GRID / 2 ? GRID - 1 : 0, ej = PLAZA_IJ[1] < GRID / 2 ? GRID - 1 : 0;
+  // Links: the middle of every interior side, except round the plaza, whose one link street is its
+  // old escape gap (the neighbour on that side meets it at the same offset).
+  const pl = plazaLink(seed), OPP = { N: 'S', S: 'N', E: 'W', W: 'E' };
+  const STEP = { N: [0, -1], S: [0, 1], E: [1, 0], W: [-1, 0] };
+  const linksOf = (i, j) => neighbourEdges(i, j).flatMap((e) => {
+    const ni = i + STEP[e][0], nj = j + STEP[e][1];
+    if (ni === PLAZA_IJ[0] && nj === PLAZA_IJ[1]) return OPP[e] === pl.edge ? [{ edge: e, g: pl.g }] : [];
+    return [{ edge: e, g: 0 }];
+  });
   const parts = [];
   for (let j = 0; j < GRID; j++) {
     for (let i = 0; i < GRID; i++) {
       const index = j * GRID + i;
       const plaza = i === PLAZA_IJ[0] && j === PLAZA_IJ[1];
       const bseed = plaza ? seed : blockSeed(seed, index);
-      const links = neighbourEdges(i, j);
-      const wallEdges = ['N', 'E', 'S', 'W'].filter((e) => !links.includes(e));
+      const links = linksOf(i, j);
+      const wallEdges = ['N', 'E', 'S', 'W'].filter((e) => !neighbourEdges(i, j).includes(e));
       const kind = plaza ? 'plaza' : CENTRES[makeRng(bseed ^ 0x51ed27).int(0, CENTRES.length - 1)];
       const escEdges = i === ei && j === ej ? wallEdges : [];
       const part = buildBlockPart({ seed: bseed, kind, centre: blockCentre(i, j), links, wallEdges, escEdges, index });

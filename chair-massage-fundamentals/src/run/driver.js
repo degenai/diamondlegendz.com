@@ -6,8 +6,8 @@ import { nodeAhead, nearestEdge, route, lanePoints } from '../world/roads.js';
 import { followPoly } from '../pivot-path.js';
 const REPLAN = 1.0;
 // Street corners are 90 degrees with parked cars 2 m outside the lane: brake early, turn slowly.
-const STREET_BEND = [16, 24, 3.5];   // fast cars (cops, the van)
-const TOWN_BEND = [10, 16, 3.5];
+const STREET_BEND = [18, 26, 6, [6, 11]];   // fast cars (cops, the van)
+const TOWN_BEND = [12, 18, 6, [6, 9]];
 
 function wrap(a) {
   while (a > Math.PI) a -= Math.PI * 2;

@@ -44,14 +44,21 @@ export function escapeMarker(edge, g) {
   return group;
 }
 
+// The plaza block's link street: the single block's escape gap (its first two seeded draws).
+export function plazaLink(seed) {
+  const rng = makeRng(seed >>> 0);
+  const edge = EDGES[rng.int(0, 3)];
+  return { edge, g: Math.round(rng.range(-1, 1) * (edge === 'N' || edge === 'S' ? 30 : 22)) };
+}
+
 function offsetCollider(c, dx, dz) {
   if (c.kind === 'cyl') { c.x += dx; c.z += dz; }
   else { c.minX += dx; c.maxX += dx; c.minZ += dz; c.maxZ += dz; }
   return c;
 }
 
-// opts: { seed, kind ('plaza' | 'parking' | 'green' | 'square'), centre: [cx, cz], links: edges
-// with a link street, wallEdges: edges on the district edge, escEdges: candidate escape edges
+// opts: { seed, kind ('plaza' | 'parking' | 'green' | 'square'), centre: [cx, cz], links: [{ edge,
+// g }] link streets, wallEdges: edges on the district edge, escEdges: candidate escape edges
 // (only the escape block has any), index }.
 export function buildBlockPart(opts) {
   const seed = opts.seed >>> 0;
@@ -71,8 +78,12 @@ export function buildBlockPart(opts) {
     const edge = opts.escEdges.includes(escPick) ? escPick : opts.escEdges[rng.int(0, opts.escEdges.length - 1)];
     esc = { edge, g: Math.round(escG * (edge === 'N' || edge === 'S' ? 30 : 22)) };
   }
-  const gaps = (opts.links || []).map((edge) => ({ edge, g: 0, kind: 'link' }));
+  // Links: { edge, g }. The plaza block's only link is its old escape gap (plazaLink), so its lots,
+  // alleys and parked cars roll exactly as the single block's did.
+  const links = plaza ? [plazaLink(seed)] : (opts.links || []);
+  const gaps = links.map((q) => ({ edge: q.edge, g: q.g, kind: 'link' }));
   if (esc) gaps.push({ edge: esc.edge, g: esc.g, kind: 'escape' });
+  const lotEsc = plaza ? { edge: escPick } : esc;   // the side kept free of alleys and the Serenity lot
 
   const spec = plaza ? { variant: variant0, nav: { diag: variant0.includes('diag'), ring: variant0.includes('ring') } } : centreSpec(opts.kind, sub(10));
   const variant = spec.variant;
@@ -80,7 +91,7 @@ export function buildBlockPart(opts) {
   const batch = createBatch();
   const nav = buildNav({ stepAxis, ...spec.nav, plain: !plaza });
   const placer = createPlacer(nav, plaza);
-  const B = { batch, colliders, esc, gaps, wallEdges: opts.wallEdges || [], variant, stepAxis, placer, nav, deckColor: spec.deckColor };
+  const B = { batch, colliders, esc, gaps, lotEsc, plaza, wallEdges: opts.wallEdges || [], variant, stepAxis, placer, nav, deckColor: spec.deckColor };
 
   buildStreets({ ...B, rng: sub(1) });
   let plazaInfo = null, centre = { spots: [], furn: undefined };
@@ -103,7 +114,7 @@ export function buildBlockPart(opts) {
   const W = (v) => { v.x += cx; v.z += cz; return v; };
   const colourRng = sub(11);
   const lotCars = centre.spots.map((s) => ({ ...s, colour: CAR_COLOURS[colourRng.int(0, CAR_COLOURS.length - 1)] }));
-  const parking = [...planParking(sub(5), gaps), ...lotCars];
+  const parking = [...planParking(sub(5), gaps, plaza ? 43 : 31), ...lotCars];
   for (const s of parking) { W(s.pos); s.block = opts.index; }
   const prng = sub(6);
 

@@ -139,8 +139,8 @@ function buildAlley(b, colliders, nav, A) {
 
 export function buildBuildings(B) {
   const { batch: b, colliders, rng, esc, gaps } = B;
-  const lots = planLots(rng, esc, gaps);
-  const alleys = B.alleyRng ? planAlleys(B.alleyRng, lots, esc) : [];
+  const lots = planLots(rng, B.lotEsc, gaps);
+  const alleys = B.alleyRng ? planAlleys(B.alleyRng, lots, B.lotEsc) : [];
   for (const A of alleys) buildAlley(b, colliders, B.nav, A);
 
   // A flat pane 7 cm proud of the wall, facing local +Z (2 triangles, not a 12-triangle box: the

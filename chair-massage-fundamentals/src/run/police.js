@@ -15,6 +15,7 @@ import { floorHeightAt } from '../physics.js';
 import { SIZE } from '../world/layout.js';
 import { endRun } from './end.js';
 import { setupLights, updateLights } from './lights.js';
+import { blocked } from './traffic.js';
 
 export { updateLights };
 
@@ -206,6 +207,7 @@ function driveUnit(ctx, u, tgt, dt) {
   const goal = nearestNode(G, tgt.x, tgt.z), n = G.nodes[goal];
   const onPoint = Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 12;
   if (d < 30 || onPoint) driveAt(v, tgt.x, tgt.z, p.vehicle ? CRUISE[u.type] : 10, dt);
+  else if (blocked(ctx, v, 4) === 'car' && Math.abs(v.speed) > 0.5) brake(v);   // the unit in front
   else driveRoute(v, G, goal, CRUISE[u.type], dt);
 }
 

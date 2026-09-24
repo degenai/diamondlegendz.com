@@ -145,11 +145,14 @@ fifteen roll a plain centre from their own seed (run seed mixed with the block i
 with parked cars, a green with trees and benches, or a smaller paved square with planters. The block
 is inside-out (ring road around the plaza, lots on the outside), so neighbours meet lot-back to
 lot-back: a **link street** (the escape street's 12 m gap, 8 m road) at the middle of every interior
-side joins the two ring roads. Walls on the district edge only; one escape street, on an outer side of
+side joins the two ring roads. The plaza block keeps the single block's lots, alleys and parked cars
+exactly: its one link street is the old escape gap (ruled 2026-09-23), so it has a single way out. Walls on the district edge only; one escape street, on an outer side of
 the corner block farthest from the plaza. AI drivers route on a street graph (ring corners and side
 midpoints as nodes, link streets as edges, lane 1 m right of the centreline); the pivot van still
-enters from the plaza's own ring. Peds live within two blocks of the player and jump 1..2 blocks
-ahead of him past 2.5; six civilian cars drive the grid (carjack with E under 3 m/s); parked cars are
+enters from the plaza's own ring. 30 peds live within two blocks of the player and jump 1..2 blocks
+ahead of him past 2.5; six civilian cars drive the grid (carjack with E under 3 m/s; stuck 5 s
+behind a vehicle, one backs up 3 m and turns round). The 8 s grab window starts at first contact
+(a goon within 3 m), one shove per 2.2 s pack-wide; parked cars are
 instanced proxies that become drivable within 100 m. Every vehicle goes home, repaired, between runs.
 
 **Player**: third person, capsule body, box head, PE green shirt. WASD relative to camera yaw, mouse
