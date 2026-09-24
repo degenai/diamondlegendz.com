@@ -5,6 +5,7 @@
 import { initMassageHud } from './hud-massage.js';
 import { initRunHud } from './hud-run.js';
 import { initBubbles } from './bubbles.js';
+import { VERSION } from './version.js';
 
 export {
   showMassageHud, setMeter, setMeterState, setCompetency, setClientInfo, setModality,
@@ -56,7 +57,9 @@ export function initHud(hudRoot) {
 export function showTitle() { if (titleEl) titleEl.hidden = false; }
 export function hideTitle() { if (titleEl) titleEl.hidden = true; }
 
+// The fps line carries the build stamp so a screenshot says which build it came from.
 export function setStatus(text) {
+  if (/ fps$/.test(text)) text = `${text}  ·  build ${VERSION}`;
   if (statusEl && statusEl.textContent !== text) statusEl.textContent = text;
 }
 

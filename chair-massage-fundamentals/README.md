@@ -21,6 +21,9 @@ Phones get a polite card instead of the game.
   plaza layout, parked cars, the van's entry, the escape edge. Without it, every load rolls a new block.
 - Progress (runs, unlocks) lives in `localStorage` under `cmf.meta.v1`. Clear it to see the
   first-run version again. Volume lives under `cmf.volume`. **M** mutes.
+- The build stamp (`src/version.js`, shown in the title footer and next to the fps) is
+  `YYYY-MM-DD.N` plus the short hash of HEAD. The pilot runs `node tools/bump-version.mjs` before
+  each merge; it rewrites the file from today's date and `git rev-parse --short HEAD`.
 
 ## Where things are
 

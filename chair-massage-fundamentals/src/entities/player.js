@@ -220,28 +220,37 @@ export function tickStamina(p, dt, ctx, wants) {
 
 // Camera runs after every entity has moved (vehicles update after the player).
 const _camColliders = [];
+const _vehBoxes = [];
 // Static colliders plus a bounding box per vehicle (other than the one being driven),
-// so the camera pulls in front of cars instead of clipping through them.
-function cameraColliders(p, ctx) {
+// so the camera pulls in front of cars instead of clipping through them. The boxes are also
+// kept apart in _vehBoxes: the chase camera treats them differently at speed.
+function cameraColliders(p, ctx, withStatic = true) {
   const world = ctx.world;
   if (!world) return null;
-  _camColliders.length = 0;
-  for (const c of world.colliders) _camColliders.push(c);
+  _vehBoxes.length = 0;
   for (const e of ctx.entities) {
     if (e.kind !== 'vehicle' || e === p.vehicle || !e.spec) continue;
     const s = Math.abs(Math.sin(e.yaw)), c = Math.abs(Math.cos(e.yaw));
     const hx = e.spec.halfL * s + e.spec.halfW * c, hz = e.spec.halfL * c + e.spec.halfW * s;
-    _camColliders.push({ minX: e.pos.x - hx, maxX: e.pos.x + hx, minZ: e.pos.z - hz, maxZ: e.pos.z + hz,
-      maxY: e.pos.y + e.spec.height, camOnly: true });
+    _vehBoxes.push({ minX: e.pos.x - hx, maxX: e.pos.x + hx, minZ: e.pos.z - hz, maxZ: e.pos.z + hz,
+      maxY: e.pos.y + e.spec.height, camOnly: true, vehBox: true });
   }
+  if (!withStatic) return world.colliders;
+  _camColliders.length = 0;
+  for (const c of world.colliders) _camColliders.push(c);
+  for (const b of _vehBoxes) _camColliders.push(b);
   return _camColliders;
 }
 
 export function lateUpdatePlayer(p, dt, ctx) {
   if (p.exitGrace) { p.exitGrace.t -= dt; if (p.exitGrace.t <= 0) p.exitGrace = null; }
-  const colliders = cameraColliders(p, ctx);
-  if (p.vehicle) updateChaseCamera(p, p.vehicle, dt, ctx.camera, colliders, ctx.input);
-  else updateCamera(p, dt, ctx.camera, colliders);
+  if (p.vehicle) {
+    const statics = cameraColliders(p, ctx, false);
+    updateChaseCamera(p, p.vehicle, dt, ctx.camera, statics, ctx.input, statics ? _vehBoxes : null);
+  } else {
+    p.chaseLimit = undefined;
+    updateCamera(p, dt, ctx.camera, cameraColliders(p, ctx));
+  }
   applyShake(p, ctx.camera);
 }
 

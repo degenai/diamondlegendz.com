@@ -138,6 +138,11 @@ function pointInside(x, y, z, c) {
 // Analytic segment test from `from` toward `to`. Returns the distance to the first
 // visible collider entered (slab test for boxes, quadratic for cylinders, capped by
 // each collider's top), or the full length if clear. Thin walls cannot be skipped.
+// The full length is sqrt of the summed squares, bit-identical to THREE's distanceTo, so a
+// caller's `hit < from.distanceTo(to)` is never true on a clear segment. (Math.hypot rounds
+// differently: ~18% of the time it came out one ulp short, and the cameras read that as a
+// hit at their own end point and pulled in by CAM_PAD - the chase-cam zoom jitter.)
+// Optional `skip(c)` leaves a collider out of this test.
 const _cand = [];
 function slabHit(from, dx, dy, dz, len, c) {
   let t0 = 0, t1 = 1;
@@ -174,9 +179,9 @@ function cylHit(from, dx, dy, dz, len, c) {
   }
   return t0 * len;
 }
-export function segmentHit(from, to, colliders, _step = 0.25) {
+export function segmentHit(from, to, colliders, _step = 0.25, skip = null) {
   const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
-  const len = Math.hypot(dx, dy, dz);
+  const len = Math.sqrt(dx * dx + dy * dy + dz * dz);
   if (len < 1e-6) return 0;
   const loX = Math.min(from.x, to.x), hiX = Math.max(from.x, to.x);
   const loZ = Math.min(from.z, to.z), hiZ = Math.max(from.z, to.z);
@@ -184,7 +189,7 @@ export function segmentHit(from, to, colliders, _step = 0.25) {
   let best = len;
   colliders = query(colliders, loX - 0.1, hiX + 0.1, loZ - 0.1, hiZ + 0.1, _qd);
   for (const c of colliders) {
-    if (c.invisible || c.noCam || c.maxY <= loY || c.minY >= hiY) continue;
+    if (c.invisible || c.noCam || c.maxY <= loY || c.minY >= hiY || (skip && skip(c))) continue;
     if (c.kind === 'cyl') {
       if (c.x + c.r < loX || c.x - c.r > hiX || c.z + c.r < loZ || c.z - c.r > hiZ) continue;
     } else if (c.maxX < loX || c.minX > hiX || c.maxZ < loZ || c.minZ > hiZ) continue;
