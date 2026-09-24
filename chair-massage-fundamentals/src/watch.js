@@ -5,7 +5,9 @@
 // Repeats list (voice lines heard in three or more runs). The feed filters to All or Lines.
 // No server, nothing external.
 import { CHANNEL, KEY } from './events.js';
-import { groupRuns, runStats, fullReport, clock, repeatLines, repeatsText, REPEAT_RUNS } from './run-report.js';
+import { fullReport } from './run-report.js';
+import { groupRuns, runStats, clock } from './run-stats.js';
+import { repeatLines, repeatsText, REPEAT_RUNS } from './run-lines.js';
 
 const $ = (id) => document.getElementById(id);
 const W = { events: [], seen: new Set(), groups: [], selected: null, doneCount: 0, lastCopy: '', lastDownload: '' };
