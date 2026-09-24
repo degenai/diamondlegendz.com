@@ -10,7 +10,8 @@
 // First playthrough only, client 1 is guided: four course prompts by the ring (COACH below).
 // The per-client session is session.js; the pay and totals are ledger.js.
 import { STATES, setState } from '../state.js';
-import { roster, updateDialogue } from './clients.js';
+import { updateDialogue } from './clients.js';
+import { roster } from './client-lines.js';
 import { createGuide, modality, disposeGuide } from './guide.js';
 import * as stage from './stage.js';
 import { heard } from '../bubbles.js';
