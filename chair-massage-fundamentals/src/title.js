@@ -14,5 +14,12 @@ export function initTitle() {
   if (card) card.hidden = !phone;
   const build = document.getElementById('build');   // footer, after the byline
   if (build) build.textContent = `build ${VERSION}`;
+  // Reset the save: runs, unlocks, and the first-pivot flag go back to a fresh course.
+  const reset = document.getElementById('reset-progress');
+  if (reset) reset.addEventListener('click', () => {
+    if (!window.confirm('Reset all progress? Runs, unlocks and the first-time course come back fresh.')) return;
+    try { window.localStorage.removeItem('cmf.meta.v1'); } catch (_) { /* private mode */ }
+    window.location.reload();
+  });
   return phone;
 }
