@@ -138,7 +138,18 @@ answer, correct, late and the fill). Clients take about 20 to 35 s each with rig
 stay inside it. Patterns per modality:
 - Swedish: long slow ellipses.
 - Cross-fiber friction: short fast back-and-forth.
-- Trigger point: stationary, but the circle shrinks over 4 seconds then releases.
+- Trigger point: stationary, but the circle shrinks over 4 seconds then releases. **Trigger point is a
+  held click** (proposed by the open-ended Opus 2026-09-25, round two: the course taught every run verb
+  except the one the first prompt leads with; ruled by Alex the same day): hold left click with the
+  cursor inside the ring while it closes and let go when it resets. Only held-and-inside time counts as
+  on the ring in a trigger point segment; without the hold it counts as off the ring (half credit) and
+  the client says "Hold it. Don't let go." (once per segment, in their voice). While held the ring
+  fills and tightens; on the reset it pulses green. Taught on a first playthrough by a fifth guided
+  prompt, "Trigger point: hold the click while it closes" (waits for one full held close), and always by
+  the CLIENT WANTS line reading "hold click" during trigger point. Swedish and cross-fiber stay
+  mouse-only. The run's palm prompt is unchanged (ruled: the link stays unspoken). The pilot's ring
+  reflex holds the click in trigger point (`agent.js`). Watcher: `tutorial` step 'e', and the `call`
+  answer's `fill` shows the half credit.
 A / D cycle modality (except as the answer to "left / right"). Each client asks for a modality by
 name; the wrong modality fills nothing.
 Ruling (2026-09-24, Andy's first play: "the client could want a different one instantly and you get a
