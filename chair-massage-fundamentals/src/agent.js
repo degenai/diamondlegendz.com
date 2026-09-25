@@ -128,6 +128,10 @@ export function createAgent(ctx, hooks) {
   const agent = {
     get paused() { return A.paused; },
     pause(on = true) { A.paused = !!on; return A.paused; },
+    // The unpaused frame loop (main.js) drains a macro's due releases too, so a hold started by act()
+    // never outlives its ticks when nobody calls step() again (nitpick 2026-09-25).
+    beforeTick,
+    releaseAll() { for (const d of A.due.splice(0)) d.fn(); for (const h of A.holds.splice(0)) key(h.code, false); },
     get tick() { return ctx.tick; },
     get track() { return A.track; },
     ready: hooks.ready,

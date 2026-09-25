@@ -252,6 +252,7 @@ function boot() {
       accum = Math.min(accum + elapsed, MAX_ACCUM);
       preTick(ctx);                           // take the last shake offset out before anything moves
       while (accum >= STEP) {
+        agent.beforeTick();               // a macro's key releases fall due here too, not only under step()
         tick(STEP);
         accum -= STEP;
       }
