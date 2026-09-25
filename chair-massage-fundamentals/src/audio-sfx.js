@@ -102,6 +102,14 @@ export function createSfx(ctx, { bus, direct, noise, listener }) {
       tone(t, { f: 130, f2: 38, glide: 0.25, peak: 0.9 * a, decay: 0.35 });
       burst(t, { filter: 'lowpass', f: 700, q: 0.7, peak: 0.5 * a, decay: 0.12 });
     },
+    whoosh(t, a) { // the chair swing: a band of air sweeping up
+      const s = ctx.createBufferSource(); s.buffer = noise;
+      const bq = ctx.createBiquadFilter(); bq.type = 'bandpass'; bq.Q.value = 1.4;
+      bq.frequency.setValueAtTime(350, t); bq.frequency.exponentialRampToValueAtTime(1800, t + 0.3);
+      const g = ctx.createGain(); env(g, t, 0.35 * a, 0.12, 0.25);
+      s.connect(bq); bq.connect(g); g.connect(bus);
+      s.start(t, Math.random() * 1.5); s.stop(t + 0.45);
+    },
     tap(t, a) { // massage gun
       burst(t, { f: 2500, q: 2, peak: 0.35 * a, decay: 0.015 });
       tone(t, { f: 190, f2: 120, glide: 0.02, peak: 0.3 * a, decay: 0.03 });

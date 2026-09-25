@@ -69,16 +69,31 @@ function landHit(p, ctx, hit, charged) {
     treat(hit, ctx, dx / d, dz / d);
     sfx(ctx, 'pay', hit.pos.x, hit.pos.z);
   } else {
-    hit.knockedT = KNOCK;
-    hit.knockCause = 'palm';
+    knockBody(p, ctx, hit);
     emit('palm', { target: hit.kind });
-    hit.vel.x = (dx / d) * KNOCK_PUSH; hit.vel.z = (dz / d) * KNOCK_PUSH; hit.vel.y = 1.5;
-    hit.grounded = false;
-    sfx(ctx, 'thud', hit.pos.x, hit.pos.z);
-    if (ctx.hud && ctx.hud.floater) ctx.hud.floater('THUD', hit.pos.x, hit.pos.y + 1.6, hit.pos.z, 'thud');
     if (hit.onPalm) hit.onPalm(hit, p, ctx);
   }
   emitChaos(ctx, hit.pos.x, hit.pos.z, 'palm');
+}
+
+// The quick palm's hit, shared with the chair swing (player-actions.js): down KNOCK s, ~2 m of
+// knockback away from the player, a THUD and a floater. cause 'palm' rises relaxed; 'chair' rises
+// straight back into what he was doing (no treatment, no relief).
+export function knockBody(p, ctx, hit, cause = 'palm', text = 'THUD') {
+  const dx = hit.pos.x - p.pos.x, dz = hit.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
+  hit.knockedT = KNOCK;
+  hit.knockCause = cause;
+  hit.vel.x = (dx / d) * KNOCK_PUSH; hit.vel.z = (dz / d) * KNOCK_PUSH; hit.vel.y = 1.5;
+  hit.grounded = false;
+  sfx(ctx, 'thud', hit.pos.x, hit.pos.z);
+  if (ctx.hud && ctx.hud.floater) ctx.hud.floater(text, hit.pos.x, hit.pos.y + 1.6, hit.pos.z, 'thud');
+}
+
+// Who a body in front can hit: not someone already down, kneeling at the chair, treated or out,
+// nor on another floor, nor through a wall.
+export function palmable(p, ctx, e) {
+  if (e.knockedT > 0 || e.state === 'kneel' || e.state === 'treated' || e.state === 'out' || Math.abs(e.pos.y - p.pos.y) > 1.2) return false;
+  return !(ctx.world && !lineOfSight(ctx.world, p.pos, e.pos));
 }
 
 // TREATED: a short push, then he sits where he is for TREAT_SIT s (the entity's own update runs

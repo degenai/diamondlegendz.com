@@ -61,6 +61,7 @@ export function report(w, kind) {
   else if (kind === 'pedHurt') { w.carnage += 1; add(w, 2); }
   else if (kind === 'vehicleWreck') { w.carnage += 1; add(w, 1); }
   else if (kind === 'propertyHit') add(w, 0.25);
+  else if (kind === 'chairCop') add(w, 1);                           // a chair swing that catches a cop: a full star, every time
   // Unlicensed vending (minimassage.js, a third quick mini-massage on one spot): +1 once per run,
   // and never leaves him below one star.
   else if (kind === 'vending') { if (!w.vendingDone) { w.vendingDone = true; add(w, 1); } if (w.level < 1) add(w, 1 - w.heat); }

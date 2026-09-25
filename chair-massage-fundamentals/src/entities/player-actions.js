@@ -1,12 +1,14 @@
 // Player actions on foot: E (interactions, the chair fold that takes a moment), the Healing Palm
-// input (palm.js), the massage gun (gun.js) and the arm poses they hold, and the perks read here:
-// the ice pack on a chair pickup and the loaner scrubs.
+// input (palm.js) or, carrying the chair, the chair swing, the massage gun (gun.js) and the arm
+// poses they hold, and the perks read here: the ice pack on a chair pickup and the loaner scrubs.
 import { setPersonColours, shirtFor } from '../world/people.js';
-import { chairState } from './chair.js';
+import { chairState, wearChair, holdChairFront, chairToBack } from './chair.js';
 import { emit } from '../events.js';
 import { handleInteract, interaction } from './interact.js';
-import { startCharge, cancelCharge, updatePalm } from './palm.js';
+import { startCharge, cancelCharge, updatePalm, knockBody, palmable } from './palm.js';
 import { updateGun, poseGun } from './gun.js';
+import { emitChaos } from '../run/wanted.js';
+import { sfx, knockFx, shake } from '../juice.js';
 
 const FOLD = 0.5;          // s to fold the chair onto your back / into a vehicle (auto-fold halves it)
 const FOLD_ACTS = new Set(['pickup', 'take', 'load']);
@@ -15,7 +17,7 @@ const ICE_PACK = 20;       // hp the ice pack (perks.icePack) gives back on a ch
 // E: chair folding takes a moment (standing still); every other E acts at once.
 export function interactInput(p, dt, ctx, input) {
   // At the exit without the chair (end.js ctx.leave) E in a vehicle is the leave hold, not "get out".
-  if (input && input.ePressed && !(p.foldT > 0) && !(p.vehicle && ctx.leave)) {
+  if (input && input.ePressed && !(p.foldT > 0) && !(p.swingT >= 0) && !(p.vehicle && ctx.leave)) {
     const act = p.vehicle ? null : interaction(p, ctx).act;
     // Folding the chair or starting a mini-massage plants both hands: a charge or a quick palm's
     // wind-up in progress is dropped, or it would freeze under the massage and fire at its end.
@@ -38,15 +40,92 @@ export function gunTick(p, dt, ctx) { updateGun(p, dt, ctx); }
 
 // Healing Palm: press to charge, hold 0.7 s for the treating lunge, a tap for the quick
 // palm (palm.js). p.holdPalm stands in for the button in headless checks.
+// Carrying the chair, left click is the swing instead (the palm cannot be charged). p.swingChair
+// stands in for the click in headless checks.
 export function palmInput(p, dt, ctx, input, knocked) {
-  if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) startCharge(p);
-  updatePalm(p, dt, ctx, !!((input && input.mouseLeft && input.locked) || p.holdPalm));
+  const carrying = chairState(ctx.world).where === 'player';
+  if (carrying) {
+    if (((input && input.leftClicked && input.locked) || p.swingChair) && !knocked) startSwing(p, ctx);
+    p.swingChair = false;
+    updatePalm(p, dt, ctx, false);
+  } else {
+    if (input && input.leftClicked && input.locked && p.elbowT <= 0 && !knocked) startCharge(p);
+    updatePalm(p, dt, ctx, !!((input && input.mouseLeft && input.locked) || p.holdPalm));
+  }
+  updateSwing(p, dt, ctx, knocked);
   if (p.elbowT > 0) p.elbowT = Math.max(0, p.elbowT - dt);
 }
 
-// Arms: folding holds both out in front; otherwise the gun (if drawn) sets the right arm.
+// ---- The chair swing (Andy's suggestion, ruled 2026-09-24) ----
+// 0.15 s wind-up, 0.2 s arc, 0.15 s recover; no charge. The arc's midpoint hits everything up and
+// in the half circle in front within 2.5 m (goons, cops, peds): down 3 s, ~2 m of knockback, a THUD,
+// "CHAIR!", a bigger shake. No treatment: they rise straight back into what they were doing. A cop
+// caught is wanted +1 (report 'chairCop'). Each swing wears the chair 10 (chair.js). Nobody dies.
+export const SWING_UP = 0.15, SWING_ARC = 0.2, SWING_DOWN = 0.15;
+export const SWING_REACH = 2.5;
+const SWING_SHAKE = 0.5;
+
+function startSwing(p, ctx) {
+  if (p.swingT >= 0 || p.foldT > 0 || p.vehicle || p.massaging || p.knockedT > 0) return false;
+  cancelCharge(p, 'swing'); p.palmT = 0; p.lungeT = 0;
+  p.swingT = 0; p.swingHit = false;
+  p.yaw = Math.atan2(-Math.sin(p.camYaw), -Math.cos(p.camYaw));   // swing where the camera looks
+  sfx(ctx, 'whoosh', p.pos.x, p.pos.z);
+  return true;
+}
+
+function updateSwing(p, dt, ctx, knocked) {
+  if (!(p.swingT >= 0)) return;
+  if (knocked || p.vehicle || chairState(ctx.world).where !== 'player') { endSwing(p, ctx); return; }
+  p.swingT += dt;
+  const t = p.swingT;
+  if (!p.swingHit && t >= SWING_UP + SWING_ARC * 0.5) { p.swingHit = true; swingHit(p, ctx); }
+  if (t >= SWING_UP + SWING_ARC + SWING_DOWN) { endSwing(p, ctx); return; }
+  // The chair in both hands: raised over his right shoulder, swept right to left, lowered.
+  const a = t < SWING_UP ? -Math.PI / 2 : t < SWING_UP + SWING_ARC ? -Math.PI / 2 + Math.PI * (t - SWING_UP) / SWING_ARC : Math.PI / 2;
+  const lift = t < SWING_UP ? 0.25 * t / SWING_UP : t < SWING_UP + SWING_ARC ? 0.25 : 0.25 * (1 - (t - SWING_UP - SWING_ARC) / SWING_DOWN);
+  holdChairFront(ctx, p, a, lift);
+}
+
+function endSwing(p, ctx) {
+  p.swingT = -1; p.swingHit = false;
+  chairToBack(ctx, p);
+}
+
+function swingHit(p, ctx) {
+  const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
+  const hits = [];
+  for (const e of ctx.npcs || []) {
+    const dx = e.pos.x - p.pos.x, dz = e.pos.z - p.pos.z, r = SWING_REACH + (e.radius || 0.35);
+    if (dx * dx + dz * dz > r * r || dx * fx + dz * fz < 0 || !palmable(p, ctx, e)) continue;
+    hits.push(e);
+  }
+  const kinds = new Set();
+  for (const e of hits) {
+    knockBody(p, ctx, e, 'chair', 'CHAIR!');
+    kinds.add(e.kind);
+  }
+  const durability = wearChair(ctx);
+  if (hits.length) {
+    knockFx(ctx, hits[0], p);
+    shake(ctx, SWING_SHAKE);
+    p.shakeT = 0.15;
+    ctx.grabUntil = 0;                        // like the palm, it brings the bats out (goon.js)
+    if (ctx.wanted) {
+      if (kinds.has('cop')) ctx.wanted.report('chairCop');
+      if (kinds.has('goon')) ctx.wanted.report('goonHit');
+      if (kinds.has('ped')) ctx.wanted.report('pedHurt');
+    }
+    emitChaos(ctx, p.pos.x + fx, p.pos.z + fz, 'chair');
+  }
+  p.lastSwing = { t: ctx.time, hits: hits.length, kinds: [...kinds], durability };
+  emit('swing', { hits: hits.length, goons: hits.filter((e) => e.kind === 'goon').length, cops: hits.filter((e) => e.kind === 'cop').length,
+    peds: hits.filter((e) => e.kind === 'ped').length, durability });
+}
+
+// Arms: folding and swinging hold both out in front; otherwise the gun (if drawn) sets the right arm.
 export function poseArms(p) {
-  if (p.foldT > 0) { const l = p.mesh.userData.limbs; l.armL.rotation.x = -1.1; l.armR.rotation.x = -1.1; }
+  if (p.foldT > 0 || p.swingT >= 0) { const l = p.mesh.userData.limbs; l.armL.rotation.x = -1.1; l.armR.rotation.x = -1.1; }
   else poseGun(p);
 }
 

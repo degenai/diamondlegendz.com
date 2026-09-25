@@ -2,7 +2,7 @@
 // Also the RUN HUD strings (hint, vehicle line, chair strip) and the Healing Palm on bodywork.
 import { boxDistance, vehicleCircles } from './vehicle-collide.js';
 import { overlapsFootprint, floorHeightAt } from '../physics.js';
-import { chairState, chairWorldPos, pickUpChair, loadChair, findChair } from './chair.js';
+import { chairState, chairWorldPos, pickUpChair, loadChair, findChair, repairChair, DURABILITY } from './chair.js';
 import { setChairDown, canStart, startMassage } from '../run/mini-start.js';
 import { emitChaos } from '../run/wanted.js';
 import { seatRig, unseatRig, clearDriverRig } from './seated.js';
@@ -67,9 +67,14 @@ function nearCart(v, ctx) {
   }
   return null;
 }
-// null, or { v, cart, afford } for a damaged vehicle of his beside a cart.
+// The repair also straightens the chair (back to 100) if he carries it or it rides in that vehicle.
+function chairWith(p, ctx, v) {
+  const cs = chairState(ctx.world);
+  return (cs.where === 'player' || (cs.where === 'vehicle' && cs.vehicle === v)) && cs.durability < DURABILITY;
+}
+// null, or { v, cart, afford } for a damaged vehicle of his (or one carrying a worn chair) beside a cart.
 export function repairOffer(p, ctx, v) {
-  if (!v || !(v.hp < 100) || !ctx.world || !ctx.runStats) return null;
+  if (!v || !ctx.world || !ctx.runStats || !(v.hp < 100 || chairWith(p, ctx, v))) return null;
   const cart = nearCart(v, ctx);
   return cart ? { v, cart, afford: playerCash(ctx) >= REPAIR_COST } : null;
 }
@@ -77,6 +82,7 @@ export function repairVehicle(p, ctx, v) {
   const o = repairOffer(p, ctx, v);
   if (!o || !o.afford) return false;
   const before = v.hp;
+  const chair = chairWith(p, ctx, v) ? Math.round(repairChair(ctx)) : null;
   if (!ctx.massageTotals) ctx.massageTotals = { you: 0, host: 0 };
   ctx.massageTotals.you -= REPAIR_COST;
   ctx.runSpent = (ctx.runSpent || 0) + REPAIR_COST;
@@ -84,7 +90,7 @@ export function repairVehicle(p, ctx, v) {
   if (v.smoke) v.smoke.group.visible = false;
   sfx(ctx, 'pay', v.pos.x, v.pos.z);
   if (ctx.hud && ctx.hud.floater) ctx.hud.floater(`REPAIRED -$${REPAIR_COST}`, v.pos.x, v.pos.y + v.spec.height + 0.6, v.pos.z, 'cash');
-  emit('repair', { vehicle: v.type, hpBefore: Math.round(before), cost: REPAIR_COST, cash: Math.round(playerCash(ctx)), driving: p.vehicle === v });
+  emit('repair', { vehicle: v.type, hpBefore: Math.round(before), cost: REPAIR_COST, cash: Math.round(playerCash(ctx)), driving: p.vehicle === v, chairBefore: chair });
   return true;
 }
 
@@ -229,6 +235,7 @@ export function exitVehicle(p, ctx) {
   return true;
 }
 
+const SWING_HINT = 'Left click: swing the chair';
 const BROKE = `Repair $${REPAIR_COST} (not enough cash)`;
 const HINTS = { repair: `E: repair here ($${REPAIR_COST})`, enter: 'E enter vehicle', carjack: 'E pull the driver out', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
   setdown: 'E set chair down', massage: 'Hold E: start massage (W/S pressure)' };
@@ -242,8 +249,12 @@ export function runHudText(p, ctx) {
   if (cs.where === 'player') chair = 'Chair: on you';
   else if (cs.where === 'vehicle' && cs.vehicle) chair = `Chair: in the ${cs.vehicle.spec.label}`;
   else if (!findChair(ctx)) chair = "Don't leave the chair.";
+  let hint = it.broke ? (it.act === 'enter' ? `${HINTS.enter}  |  ${BROKE}` : BROKE) : (it.act && it.act !== 'exit') ? HINTS[it.act] : '';
+  if (cs.where === 'player' && !v && !p.massaging) hint = hint ? `${hint}  |  ${SWING_HINT}` : SWING_HINT;
+  if (cs.where === 'player' && cs.durability <= 0) chair = 'Chair: on you (bent)';
+  else if (cs.where === 'vehicle' && cs.vehicle && cs.durability <= 0) chair += ' (bent)';
   return {
-    hint: it.broke ? (it.act === 'enter' ? `${HINTS.enter}  |  ${BROKE}` : BROKE) : (it.act && it.act !== 'exit') ? HINTS[it.act] : '',
+    hint,
     vehicle: v ? `${v.spec.label.toUpperCase()}  ${Math.round(Math.abs(v.speed) * 3.6)} km/h  hp ${Math.ceil(v.hp)}` : '',
     chair,
   };

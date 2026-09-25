@@ -4,7 +4,7 @@
 // client walks off relaxed. A hostile goon/cop within 6 m, letting go of E, or chaos within 15 m
 // interrupts. Doing the actual work is how you cool heat.
 import * as THREE from '../../vendor/three.module.js';
-import { chairState } from '../entities/chair.js';
+import { chairState, chairBent } from '../entities/chair.js';
 import { poseKneeling, poseReaching, resetPose } from '../world/people.js';
 import { seek, say } from '../entities/npc-common.js';
 import { hostile, copHostile, alertPack } from '../entities/hostile.js';
@@ -18,6 +18,7 @@ const CALL_R2 = 12 * 12;
 const THREAT_R2 = 6 * 6;
 const CHAOS_R2 = 15 * 15;
 const HOLD = 5;
+const BENT_MUL = 2;           // a bent chair (worn out by swings, chair.js): the massage takes twice as long
 const HALF_BAND = 0.13;
 const _l = new THREE.Vector3();
 const _r = new THREE.Vector3();
@@ -109,7 +110,7 @@ export function updateMini(dt, ctx) {
       const mid = 0.5 + 0.2 * Math.sin((ctx.time - M.startT) * 1.1);
       M.lo = mid - HALF_BAND; M.hi = mid + HALF_BAND;
       M.zone = M.pressure < M.lo ? 'under' : M.pressure > M.hi ? 'over' : 'in';
-      if (M.zone === 'in') M.progress += dt / HOLD;
+      if (M.zone === 'in') M.progress += dt / (HOLD * (chairBent(ctx.world) ? BENT_MUL : 1));
       else if (M.zone === 'over') M.progress = Math.max(0, M.progress - dt * 0.1);
       if (M.progress >= 1) succeed(ctx);
     }

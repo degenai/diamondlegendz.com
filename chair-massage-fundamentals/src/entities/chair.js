@@ -1,7 +1,10 @@
 // The massage chair as a carryable object. It lives in the massage station (named
 // 'massageChair'); E folds it onto the player's back, E by a vehicle straps it in, a hard crash
 // throws it onto the road. world.chairState = { where: 'ground'|'player'|'vehicle', vehicle }
-// is what Phase 6's escape check reads.
+// is what Phase 6's escape check reads. The chair is also a weapon of last resort (the swing,
+// player-actions.js) and wears: durability 100, 10 per swing, BENT at 0 (still carryable and
+// loadable; a mini-massage on it takes twice as long). A cart repair straightens it; MASSAGE
+// entry (resetChair) brings a fresh one.
 import * as THREE from '../../vendor/three.module.js';
 import { loadMesh } from '../assets.js';
 import { floorHeightAt, overlapsFootprint } from '../physics.js';
@@ -13,10 +16,53 @@ const FOLD = 0.22;                  // folded depth factor (the chair collapses 
 const BACK_MOUNT = { pos: [0, -0.5, 0.12], rot: [0, 0, 0], scale: 0.85 };
 const THROW_BACK = 3;               // metres behind the vehicle's tail
 const _v = new THREE.Vector3();
+export const DURABILITY = 100;
+export const SWING_WEAR = 10;
 
 export function chairState(world) {
-  if (!world.chairState) world.chairState = { where: 'ground', vehicle: null };
+  if (!world.chairState) world.chairState = { where: 'ground', vehicle: null, durability: DURABILITY };
+  if (!(world.chairState.durability >= 0)) world.chairState.durability = DURABILITY;
   return world.chairState;
+}
+
+export function chairBent(world) { return chairState(world).durability <= 0; }
+
+// One swing's wear. Returns the durability after; the swing that reaches 0 bends it (watcher `chair` bent).
+export function wearChair(ctx, amount = SWING_WEAR) {
+  const cs = chairState(ctx.world);
+  const was = cs.durability;
+  cs.durability = Math.max(0, was - amount);
+  if (was > 0 && cs.durability <= 0) {
+    emit('chair', { act: 'bent', where: cs.where, durability: 0 });
+    const p = ctx.player;
+    if (p && ctx.hud && ctx.hud.floater) ctx.hud.floater('bent chair', p.pos.x, p.pos.y + 2.1, p.pos.z, 'speech dim');
+  }
+  return cs.durability;
+}
+
+// Cart repair (interact.js repairVehicle): back to 100. Returns the durability it had.
+export function repairChair(ctx) {
+  const cs = chairState(ctx.world);
+  const was = cs.durability;
+  cs.durability = DURABILITY;
+  return was;
+}
+
+// Mid-swing: the folded chair comes off his back into both hands in front of him and sweeps the
+// arc; a (radians) runs from -PI/2 (his left) to +PI/2. Torso frame: +Z is forward, +X his left.
+export function holdChairFront(ctx, p, a, lift = 0) {
+  const c = findChair(ctx), torso = p.mesh.userData.torso;
+  if (!c || !torso) return;
+  if (c.parent !== torso) torso.add(c);
+  const r = 0.75;
+  c.position.set(Math.sin(a) * r, -0.35 + lift, Math.cos(a) * r);
+  c.rotation.set(-1.2, a, 0);
+}
+
+// Back onto his back after a swing (or a swing cut short).
+export function chairToBack(ctx, p) {
+  const c = findChair(ctx), back = p.mesh.userData.back;
+  if (c && back && chairState(ctx.world).where === 'player' && c.parent !== back) mount(c, back, BACK_MOUNT);
 }
 
 export function findChair(ctx) {
@@ -62,11 +108,13 @@ export function pickUpChair(ctx, p) {
   const back = p.mesh.userData.back;
   if (!c || !back) return false;
   const cs = chairState(ctx.world);
-  emit('chair', { act: cs.vehicle ? 'take' : 'pickup', where: 'player', vehicle: cs.vehicle ? cs.vehicle.spec.label : null });
+  const bent = cs.durability <= 0;
+  emit('chair', { act: cs.vehicle ? 'take' : 'pickup', where: 'player', vehicle: cs.vehicle ? cs.vehicle.spec.label : null, durability: cs.durability, bent });
   if (cs.vehicle) cs.vehicle.chairLoaded = false;
   mount(c, back, BACK_MOUNT);
   Object.assign(chairState(ctx.world), { setDown: false, where: 'player', vehicle: null });
   sfx(ctx, 'chairFold', p.pos.x, p.pos.z);
+  if (bent && ctx.hud && ctx.hud.floater) ctx.hud.floater('bent chair', p.pos.x, p.pos.y + 2.1, p.pos.z, 'speech dim');
   return true;
 }
 
@@ -118,5 +166,5 @@ export function resetChair(ctx) {
     h.parent.add(c);
     c.position.copy(h.pos); c.quaternion.copy(h.quat); c.scale.copy(h.scale);
   }
-  Object.assign(chairState(w), { where: 'ground', vehicle: null });
+  Object.assign(chairState(w), { where: 'ground', vehicle: null, durability: DURABILITY });
 }
