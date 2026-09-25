@@ -10,7 +10,8 @@
 import { STATES, setState } from '../state.js';
 import { createDialogue, updateDialogue, say, started, segmentsOf } from './clients.js';
 import { createCaller, nextGap, pickCall, makeCall, openCall, judge, takesAD } from './meter.js';
-import { updateGuide, cycleModality, setModality, modality, toneGuide, resetPattern } from './guide.js';
+import { updateGuide, cycleModality, setModality, modality, toneGuide, resetPattern, fillGuide } from './guide.js';
+import { TP, createHold, resetHoldNag, holding, holdTick } from './hold.js';
 import * as stage from './stage.js';
 import { say as bubble } from '../bubbles.js';
 import { emit } from '../events.js';
@@ -29,14 +30,17 @@ const FIRST_CALL = 4;   // s to the guided client's first call (the floor of the
 // Layered on the real session: one prompt at a time, each waits for the action, and nothing here
 // gates the fill, so the client still finishes in about the usual time. Step a waits for the first
 // right answer (the guided client says "harder" until they get one), b follows it, c waits for the
-// first segment change, d for the client being done. A step the session outruns (a debug finish,
+// first segment change, e (trigger point, shown once it is matched) for one full held close, d for
+// the client being done. A step the session outruns (a debug finish,
 // a segment filled before the prompt was obeyed) is closed as skipped.
 export const COACH = [
   { step: 'a', text: 'When they say harder, hold W.' },                 // until the first right answer
   { step: 'b', text: 'Keep the cursor on the guide.', hold: 2 },        // 2 s inside the ring in all
   { step: 'c', text: 'Press Space to give them what they asked for.' }, // until the modality matches
+  { step: 'e', text: 'Trigger point: hold the click while it closes.' }, // until one full held close (hold.js)
   { step: 'd', text: "Press E when they're done." },                    // until E
 ];
+const STEP_E = 3, STEP_D = 4;   // e runs before d: trigger point is the last segment before E
 
 function coachShow(ctx, S, k) {
   const C = S.coach, p = COACH[k];
@@ -74,7 +78,10 @@ function coachTick(ctx, S, dt, inside) {
     if (C.held >= COACH[1].hold) coachDone(ctx, S);
   } else if (C.step === 2) {
     if (modality(S.guide) === wanted(S)) coachDone(ctx, S);
+  } else if (C.step === STEP_E) {
+    if (S.hold.closed) coachDone(ctx, S);
   }
+  if (C.next <= STEP_E && S.live && wanted(S) === TP && modality(S.guide) === TP) coachTo(ctx, S, STEP_E);
 }
 
 // What the client wants: only once the segment's request line has started speaking (S.live).
@@ -93,7 +100,7 @@ function startSegment(ctx, S, k) {
   const client = c;
   say(S.dlg, c.name, text, 3.2, 'request', () => {
     if (S.client !== client || S.pending !== k) return;
-    S.seg = k; S.live = true; S.pending = -1; S.wrongT = 0; S.notIt = 0;
+    S.seg = k; S.live = true; S.pending = -1; S.wrongT = 0; S.notIt = 0; resetHoldNag(S.hold);
     req.startedAt = S.time;
     if (S.guide) ctx.hud.setModality(modality(S.guide), wanted(S)); // the HUD switches with the voice, same frame
   });
@@ -118,7 +125,7 @@ export function startClient(ctx, S, st, i) {
   S.segs = segmentsOf(c); S.forceDone = false; S.seg = 0; S.live = false; S.pending = -1;
   stage.seatClient(st, c.kind);
   S.caller = createCaller(c, ctx.seed, `${i}:${(ctx.meta && ctx.meta.runs) || 0}`);  // per run seed, client and visit: a regular calls differently each time back
-  S.flash = null; S.flashT = 0; S.trackT = 0; S.trackIn = 0;
+  S.flash = null; S.flashT = 0; S.trackT = 0; S.trackIn = 0; S.hold = createHold();
   if (!Number.isFinite(S.press)) S.press = 40;  // the hands' press, eased toward W / S (looks only)
   S.guide.baseRadius = c.ringRadius;
   S.guide.speed = c.travelSpeed || 1;
@@ -156,7 +163,7 @@ function finishClient(ctx, S, st) {
     setState(STATES.PIVOT);
     return;
   }
-  if (S.coach.on) coachTo(ctx, S, 3);
+  if (S.coach.on) coachTo(ctx, S, STEP_D);
   ctx.hud.setPrompt('Client complete. Press E for the next client.');
   stage.standClient(st);
   S.guide.mesh.visible = false;
@@ -184,7 +191,7 @@ function answerCall(ctx, S, st, r) {
   if (r.correct) {
     const track = S.trackT > 0 ? Math.min(1, S.trackIn / S.trackT / ON_RING) : 1;
     fill = modality(S.guide) === wanted(S) ? share * (0.5 + 0.5 * track) : 0;
-    if (S.coach.on && S.seg === 0) fill *= 0.5;  // the guided warm-up takes two, so prompt b gets its turn
+    if (S.coach.on && (S.seg === 0 || wanted(S) === TP)) fill *= 0.5;  // the guided warm-up and trigger point take two, so prompts b and e get their turn
     S.flash = 'ok';
     if (S.coach.on) S.coach.firstRight = true;
   } else {
@@ -217,6 +224,7 @@ export function updateSession(dt, ctx, S, st) {
   if (input && input.spacePressed && wanted(S)) setModality(S.guide, wanted(S));
   stage.poseClient(st, dt, S.time);
   const g = S.guide;
+  g.tight = holding(S.hold, g, input);           // trigger point is a held click (hold.js)
   const inside = updateGuide(g, dt, st.client.userData.back, ctx.camera,
     input ? input.mouseX : -1, input ? input.mouseY : -1, window.innerWidth, window.innerHeight);
   const aim = input && input.forward ? 85 : input && input.back ? 10 : 40; // W leans in, S eases off
@@ -230,7 +238,10 @@ export function updateSession(dt, ctx, S, st) {
     S.notIt = 1;
     say(S.dlg, c.name, c.notIt || "That's not it.", 2);
   }
-  if (S.live) { S.trackT += dt; if (inside) S.trackIn += dt; } // how well the stroke is tracked between answers
+  const onRing = holdTick(S.hold, g, dt, inside, S.live, want);   // in trigger point: held and inside
+  fillGuide(g, S.hold.fill);
+  if (S.hold.nag) say(S.dlg, c.name, c.holdIt || "Hold it. Don't let go.", 2, 'request');
+  if (S.live) { S.trackT += dt; if (onRing) S.trackIn += dt; } // how well the stroke is tracked between answers
 
   if (!k.call) {                                   // calls only on a live segment, one at a time
     if (S.live && S.pending < 0) { k.wait -= dt; if (k.wait <= 0) askCall(ctx, S); }
@@ -239,7 +250,7 @@ export function updateSession(dt, ctx, S, st) {
     if (r) answerCall(ctx, S, st, r);
   }
   if (S.flashT > 0) { S.flashT -= dt; if (S.flashT <= 0) S.flash = null; }
-  toneGuide(g, S.flash);
+  toneGuide(g, S.flash || (S.hold.pulseT > 0 ? 'ok' : null));   // green on a full held close
   setRingFlash(S.flash);
   let top = ((S.seg + 1) * 100) / S.segs.length; // a finished segment stays finished
   S.competency = Math.max(segFloor(S), Math.min(top, S.competency));

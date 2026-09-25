@@ -12,7 +12,9 @@ const SWEDISH = { a: 0.22, b: 0.10, period: 3, top: 0.06 }; // long ellipse acro
 // 12 cm peak to peak across the fibres, worked slowly up and down the band (8 cm, 3 s): the jitter
 // alone is narrower than the ring, so a parked cursor at its middle would never fall out.
 const CROSS = { amp: 0.06, period: 0.5, sweep: 0.08, sweepPeriod: 3, top: 0.08 };
-const TRIGGER = { speed: 0.02, box: 0.03, shrink: 4, turn: 5 }; // 2 cm/s walk in a 6 cm box
+const TRIGGER = { speed: 0.02, box: 0.03, shrink: 4, turn: 5 };
+const TIGHT = 0.9;          // trigger point held (hold.js): the ring pulls in a tenth
+const DOT = 0.08, INNER = 0.82;   // the centre dot and the ring's inner edge, in ring radii // 2 cm/s walk in a 6 cm box
 const _c = new THREE.Vector3();
 const _p = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -22,9 +24,9 @@ export function createGuide(scene) {
   const material = new THREE.MeshBasicMaterial({
     color: WHITE, transparent: true, opacity: 0.9, depthTest: false, side: THREE.DoubleSide,
   });
-  const mesh = new THREE.Mesh(new THREE.RingGeometry(0.82, 1, 40), material);
+  const mesh = new THREE.Mesh(new THREE.RingGeometry(INNER, 1, 40), material);
   mesh.renderOrder = 10;
-  const dot = new THREE.Mesh(new THREE.CircleGeometry(0.08, 12), material);
+  const dot = new THREE.Mesh(new THREE.CircleGeometry(DOT, 24), material);
   dot.renderOrder = 10;
   mesh.add(dot);
   scene.add(mesh);
@@ -67,6 +69,13 @@ export function toneGuide(g, flash) {
   g.mesh.material.opacity = g.inside ? 0.95 : 0.35;
 }
 
+// Trigger point held (hold.js): the centre dot grows toward the ring's inner edge as the ring
+// closes, f 0..1 (0 is the plain dot).
+export function fillGuide(g, f) {
+  const s = 1 + (INNER / DOT - 1) * Math.max(0, Math.min(1, f)) * 0.92;
+  if (g.mesh.children[0].scale.x !== s) g.mesh.children[0].scale.setScalar(s);
+}
+
 export function disposeGuide(g, scene) {
   scene.remove(g.mesh);
   g.mesh.geometry.dispose();
@@ -99,7 +108,7 @@ function pattern(g, dt) {
     if (Math.abs(w.x) > b) { w.x = Math.sign(w.x) * (2 * b - Math.abs(w.x)); w.h = Math.PI - w.h; }
     if (Math.abs(w.y) > b) { w.y = Math.sign(w.y) * (2 * b - Math.abs(w.y)); w.h = -w.h; }
     g.u = w.x; g.v = w.y;
-    g.radius = g.baseRadius * (1 - 0.45 * ((g.t % TRIGGER.shrink) / TRIGGER.shrink)); // shrinks to 55%, never a pinhole
+    g.radius = g.baseRadius * (1 - 0.45 * ((g.t % TRIGGER.shrink) / TRIGGER.shrink)) * (g.tight ? TIGHT : 1); // shrinks to 55%, never a pinhole; tighter while held (hold.js)
   }
 }
 

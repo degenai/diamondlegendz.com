@@ -177,7 +177,7 @@ export function setModality(current, requested) {
   setText('modReq', els.modReq, requested ? `Client requested: ${requested}` : '');
   const ok = !requested || current === requested;
   els.modCur.classList.toggle('cm-wrong', !ok);
-  last.wantsText = requested ? `CLIENT WANTS: ${requested.toUpperCase()}` : '';
+  last.wantsText = requested ? `CLIENT WANTS: ${requested.toUpperCase()}${requested === 'Trigger point' ? ' · hold click' : ''}` : '';   // trigger point is a held click (massage/hold.js)
   setText('wants', els.wantsText, last.wantsText);
   els.wants.classList.toggle('cm-pulse', !ok);
   els.wantsKey.hidden = ok;                 // "SPACE to match" only while they do not match

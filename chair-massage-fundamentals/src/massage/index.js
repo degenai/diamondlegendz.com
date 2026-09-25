@@ -9,7 +9,7 @@
 // the modality to the one the client wants (owner ruling 2026-09-24, Andy's first play: cycling
 // under a fresh request was a micro panic). Space does nothing else here. The last client never
 // gets up: the moment they are done, PIVOT fires with them still in the chair (the cast stays).
-// First playthrough only, client 1 is guided: four course prompts by the ring (COACH below).
+// First playthrough only, client 1 is guided: five course prompts by the ring (COACH in session.js).
 // The per-client session is session.js; the pay and totals are ledger.js.
 import { STATES, setState } from '../state.js';
 import { updateDialogue } from './clients.js';
@@ -108,7 +108,7 @@ export function update(dt, ctx) {
     showDialogue(ctx, S, st);
     stage.walkOff(st, dt);
     if (input && input.ePressed) {
-      if (S.coach.on && S.coach.step === 3) { coachDone(ctx, S); S.coach.on = false; }
+      if (S.coach.on && COACH[S.coach.step] && COACH[S.coach.step].step === 'd') { coachDone(ctx, S); S.coach.on = false; }
       if (S.idx + 1 < S.roster.length) startClient(ctx, S, st, S.idx + 1);
       else setState(STATES.PIVOT);
     }

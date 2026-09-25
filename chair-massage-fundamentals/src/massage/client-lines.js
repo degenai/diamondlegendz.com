@@ -18,6 +18,7 @@ export const PRIYA = {
   calls: { every: [4.5, 7], weights: { lighter: 1, harder: 1, still: 1, left: 1, right: 1 }, miss: "Nope. Not that." },
   asks: ['Long strokes first, please. The morning rush was a lot.', "Now the cross-fiber, across the forearm. That's the one I came for."],
   notIt: "Nope. That's not it.",
+  holdIt: "Nope, hold it. Don't let go.",
   lines: [
     [8.0, 'Six hundred shots a day. The tamper is winning.'],
     [15.0, 'The van guys order oat milk. Every single one of them.'],

@@ -8,7 +8,8 @@
 // wrong or late answer. (bandWidth is left over from the pressure meter; nothing reads it now.)
 // Every session runs in segments (owner ruling 2026-09-23): Swedish warm-up, then cross-fiber,
 // then trigger point, each a third of competency. `asks` are the client's requests in that order;
-// `notIt` is said once per segment after 3 s on the wrong modality.
+// `notIt` is said once per segment after 3 s on the wrong modality; `holdIt` once per trigger
+// point segment after 2 s without the held click (hold.js).
 
 export const MODALITIES = ['Swedish', 'Cross-fiber', 'Trigger point'];
 
@@ -19,6 +20,7 @@ export const CLIENTS = [
     calls: { every: [5, 8], weights: { lighter: 2, harder: 1, still: 1, left: 0.5, right: 0.5 }, miss: 'Not that.' },
     asks: ['Long strokes first. Slow. My calves are cooked.', 'Now the cross-fiber, right across the knot.', 'Now hold that spot. Right there.'],
     notIt: "That's not it.",
+    holdIt: "Hold it. Don't let go.",
     lines: [
       [8.0, 'Pond loop twice this morning. The geese have opinions about my pace.'],
       [15.0, 'The new place at the strip mall wants ninety bucks for this.'],
@@ -32,6 +34,7 @@ export const CLIENTS = [
     calls: { every: [4.5, 7.5], weights: { lighter: 0.5, harder: 2, still: 1, left: 0.5, right: 0.5 }, miss: 'Not that, kid.' },
     asks: ['Long strokes first. These shoulders are old.', "Now the cross-fiber. Don't be shy about it.", 'Now hold that spot. Upper traps. Hold it.'],
     notIt: "That's not it, kid.",
+    holdIt: "Hold it, kid. Don't let go.",
     lines: [
       [8.5, 'Same bench eleven years. The pigeons know my car.'],
       [16.0, 'Some guys in a black van were asking who runs the chair.'],
@@ -45,6 +48,7 @@ export const CLIENTS = [
     calls: { every: [4, 6.5], weights: { lighter: 1, harder: 1, still: 1, left: 1, right: 1 }, miss: 'Hm. Not that.' },
     asks: ['Long strokes first. It all runs up from the forearms.', 'Now the cross-fiber, across the forearm.', 'Now hold that spot. That one. Yes.'],
     notIt: "Hm. That's not it.",
+    holdIt: "Hm. Hold it. Don't let go.",
     lines: [
       [7.0, 'Four hundred swing pushes. I counted. "Higher" every single time.'],
       [13.0, "There's a sign-up sheet for the swings now. Laminated. Who laminates?"],

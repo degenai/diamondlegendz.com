@@ -37,7 +37,7 @@ function massageText(s, A) {
   else {
     L.push(`MASSAGE. Client ${m.idx + 1} of ${m.n} (${m.client}), segment ${m.seg + 1} of ${m.segs}, competency ${Math.round(m.comp)}%. Paid so far: ${m.paid} of ${m.n}.`);
     L.push(m.want ? `The client wants ${m.want}; you are on ${m.mod}${m.mod === m.want ? ' (matched).' : ' (NOT matched: Space matches it).'}` : `Modality ${m.mod}; the client has not asked for one yet.`);
-    L.push(`Ring tracking ${A.track ? 'on' : 'off'}; the cursor is ${m.inside ? 'on' : 'off'} the ring.`);
+    L.push(`Ring tracking ${A.track ? 'on' : 'off'}; the cursor is ${m.inside ? 'on' : 'off'} the ring.${m.mod === 'Trigger point' ? ` Trigger point is a held click: ${A.clickHeld ? 'the click is held' : 'the click is NOT held (half credit)'}.` : ''}`);
   }
   if (c && c.open) L.push(`CALL OPEN: the client wants ${CALL_WORDS[c.name] || c.name}. ${Math.max(0, Math.round((c.window - c.t) * 10) / 10)} s of ${c.window} s left. Answer now.`);
   else if (c) L.push(`The client is starting to say something (${CALL_WORDS[c.name] || c.name}); the answer window opens when the line starts.`);
@@ -88,7 +88,7 @@ export function menuFor(s, A) {
       o.answer_right = 'Tap D: the answer to "a little to the right".';
     } else if (m.phase === 'session') {
       if (m.want && m.mod !== m.want) o.match_modality = 'Press Space: switch to the modality the client wants.';
-      if (A.track) o.track_ring_off = 'Stop keeping the cursor on the ring.'; else o.track_ring_on = 'Keep the cursor on the ring from now on (full credit per right answer).';
+      if (A.track) o.track_ring_off = 'Stop keeping the cursor on the ring.'; else o.track_ring_on = 'Keep the cursor on the ring from now on, holding the click in trigger point (full credit per right answer).';
     }
   } else if (s.st === 'RUN' && s.p) {
     const p = s.p, M = s.mini || {};

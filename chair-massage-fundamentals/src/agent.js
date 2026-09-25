@@ -34,7 +34,7 @@ export function INTERRUPTS(type, d) {
 }
 
 export function createAgent(ctx, hooks) {
-  const A = { paused: !!hooks.startPaused, track: false, stepping: false, due: [], holds: [], recent: [], log: [] };
+  const A = { paused: !!hooks.startPaused, track: false, clickHeld: false, stepping: false, due: [], holds: [], recent: [], log: [] };
   onEvent((type, data) => {
     if (type === 'peds') return;
     A.recent.push(`${type}: ${short({ type, data })}`);
@@ -119,10 +119,13 @@ export function createAgent(ctx, hooks) {
       if (ph === 'massage') h.started = true;
       if (ctx.tick >= h.until || (h.started && ph !== 'massage') || (!h.started && ctx.tick >= h.until - 840 && ph !== 'massage')) { key(h.code, false); A.holds.splice(i, 1); }
     }
-    if (A.track && hooks.state() === 'MASSAGE') {
-      const m = hooks.massageState();
-      if (m.ring && Number.isFinite(m.ring.x)) window.dispatchEvent(new MouseEvent('mousemove', { clientX: Math.round(m.ring.x), clientY: Math.round(m.ring.y), bubbles: true }));
-    }
+    const m = A.track && hooks.state() === 'MASSAGE' ? hooks.massageState() : null;
+    if (m && m.ring && Number.isFinite(m.ring.x)) window.dispatchEvent(new MouseEvent('mousemove', { clientX: Math.round(m.ring.x), clientY: Math.round(m.ring.y), bubbles: true }));
+    // Trigger point is a held click (massage/hold.js): the reflex holds the left button while the
+    // modality is trigger point and lets go otherwise, and always outside the course (a button
+    // still down at the pivot would charge a palm in the run).
+    const hold = !!(m && m.phase === 'session' && m.modality === 'Trigger point');
+    if (hold !== A.clickHeld) { A.clickHeld = hold; button(0, hold); }
   }
 
   const agent = {
@@ -131,7 +134,7 @@ export function createAgent(ctx, hooks) {
     // The unpaused frame loop (main.js) drains a macro's due releases too, so a hold started by act()
     // never outlives its ticks when nobody calls step() again (nitpick 2026-09-25).
     beforeTick,
-    releaseAll() { for (const d of A.due.splice(0)) d.fn(); for (const h of A.holds.splice(0)) key(h.code, false); },
+    releaseAll() { for (const d of A.due.splice(0)) d.fn(); for (const h of A.holds.splice(0)) key(h.code, false); if (A.clickHeld) { A.clickHeld = false; button(0, false); } },
     get tick() { return ctx.tick; },
     get track() { return A.track; },
     ready: hooks.ready,

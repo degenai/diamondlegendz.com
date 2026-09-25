@@ -21,6 +21,7 @@ Phones get a polite card instead of the game.
 The course: the client calls out and you answer. "Harder": hold W. "Lighter": tap S. "Right there":
 hands off W and S. "A little to the left / right": tap A or D. Otherwise A / D modality, **Space
 matches the client** (snaps to the modality they asked for), mouse on the guide, E next client.
+Trigger point is a held click: hold left click inside the ring while it closes (`src/massage/hold.js`).
 On a first playthrough the first client walks you through it, one prompt at a time.
 In the run, a goon winding up on you is a call too: the S cue over his head, tap S to back off, he whiffs and staggers 1 s (`src/entities/goon-dodge.js`).
 
