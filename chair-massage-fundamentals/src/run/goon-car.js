@@ -156,6 +156,7 @@ function bail(ctx, C) {
     ctx.npcs.push(e);
     emit('goon', { act: 'bail', car: C.n });
   });
+  v.vel.set(0, 0, 0); v.speed = 0;               // the doors open on a stopped car: no driverless plough into his parked cart
   v.driver = null; v.ai = null; v.route = null; v.parked = true;
   C.mode = 'parked'; C.idleT = 0;
 }
