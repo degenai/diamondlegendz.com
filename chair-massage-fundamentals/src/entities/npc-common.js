@@ -6,6 +6,7 @@ import * as THREE from '../../vendor/three.module.js';
 import { resolveStatic, supportHeight, LAND_BAND } from '../physics.js';
 import { vehicleCircles } from './vehicle-collide.js';
 import { nearColliders, nearestNav, entryNav, nextHop, walkable, isRoad } from './npc-nav.js';
+import { stream } from '../rng.js';   // seeded per kind (Jev milestone 1): a replay repeats the NPCs
 
 const GRAVITY = 18;
 const ACCEL = 20;
@@ -20,7 +21,7 @@ export function createNpc(kind, mesh, pos, extra) {
   return {
     id: null, kind, npc: true,
     pos: pos.clone(), vel: new THREE.Vector3(), yaw: 0, radius: 0.35, hp: 100, mesh,
-    grounded: true, walkPhase: Math.random() * 6, knockedT: 0, knockTilt: 0, knockCause: null,
+    grounded: true, walkPhase: stream('npc.walk').next() * 6, knockedT: 0, knockTilt: 0, knockCause: null,
     loose: 0, sore: false, soreT: 0, state: 'idle', stateT: 0,
     wishX: 0, wishZ: 0, speed: 0,
     seek: { mode: 'direct', t: 0, nav: -1, goal: -1, stuckT: 0, forceNavT: 0, sideT: 0, side: 1 },
@@ -52,7 +53,7 @@ export function seek(e, tx, ty, tz, dt, ctx, arrive = 0.5) {
   const dx = tx - e.pos.x, dz = tz - e.pos.z, d2 = dx * dx + dz * dz;
   if (d2 < arrive * arrive && Math.abs(ty - e.pos.y) < 0.5) { e.wishX = e.wishZ = 0; return true; }
   if (s.t <= 0) {
-    s.t = REPLAN * (0.8 + Math.random() * 0.4);
+    s.t = REPLAN * (0.8 + stream('npc.replan').next() * 0.4);
     const direct = s.forceNavT <= 0 && walkable(world, e.pos.x, e.pos.y, e.pos.z, tx, ty, tz);
     if (direct) s.mode = 'direct';
     else if (s.forceNavT <= 0 && Math.abs(ty - e.pos.y) < 0.3 && feel(e, world, dx, dz, s)) s.mode = 'feel';
@@ -95,7 +96,7 @@ export function seek(e, tx, ty, tz, dt, ctx, arrive = 0.5) {
     const hs = Math.hypot(e.vel.x, e.vel.z);
     s.stuckT = hs < e.speed * 0.3 ? s.stuckT + dt : Math.max(0, s.stuckT - dt);
     if (s.stuckT > 0.6) {
-      s.stuckT = 0; s.sideT = 0.6; s.side = Math.random() < 0.5 ? -1 : 1;
+      s.stuckT = 0; s.sideT = 0.6; s.side = stream('npc.side').next() < 0.5 ? -1 : 1;
       if (s.mode !== 'nav') { s.forceNavT = 3; s.t = 0; s.nav = -1; }
     }
   }

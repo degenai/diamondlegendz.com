@@ -16,6 +16,7 @@ import { disposeCop } from '../entities/cop.js';
 import { navInfo, nearestNav } from '../entities/npc-nav.js';
 import { blockAt } from '../world/district-layout.js';
 import { emit } from '../events.js';
+import { makeRng, hashSeed } from '../rng.js';
 
 const QUOTA = [9, 3, 1];     // by Chebyshev block distance from the player's block
 const PEDS = 40;
@@ -146,7 +147,7 @@ export function recyclePeds(ctx, dt, dispose = disposeNpc) {
   if (ctx.pedT > 0 || !ctx.pedTarget) return;
   ctx.pedT = EVERY;
   const world = ctx.world, at = ctx.player.vehicle ? ctx.player.vehicle.pos : ctx.player.pos;
-  const rng = ctx.pedRng || (ctx.pedRng = { next: Math.random, range: (a, b) => a + Math.random() * (b - a), int: (a, b) => a + Math.floor(Math.random() * (b - a + 1)) });
+  const rng = ctx.pedRng || (ctx.pedRng = makeRng(hashSeed(`${ctx.seed}:peds.move`)));   // seeded (Jev milestone 1)
   const home = blockAt(at.x, at.z), hk = key(home);
   const Q = quotas(world, home);
   const by = new Map();
@@ -169,7 +170,10 @@ export function recyclePeds(ctx, dt, dispose = disposeNpc) {
   }
   const need = [...Q.entries()].map(([k, q]) => [k, q - (by.get(k) || []).length]).filter(([, d]) => d > 0).sort((a, b) => b[1] - a[1]);
   if (!need.length) { note(ctx, hk, 0, (by.get(hk) || []).length); return; }
-  const cam = ctx.camera, f = cam ? cam.getWorldDirection(ctx._pedDir || (ctx._pedDir = cam.position.clone())) : null;
+  // "Behind the camera" from the camera's yaw, not its pose: the palm's shake jitters camera.position
+  // with Math.random and the lerp carries it on, which must not decide where a ped lands (Jev milestone 1).
+  const pl = ctx.player, cy = pl.vehicle ? (pl.chaseYaw ?? pl.vehicle.yaw + Math.PI) + (pl.orbitYaw || 0) : pl.camYaw;
+  const f = Number.isFinite(cy) ? { x: -Math.sin(cy), z: -Math.cos(cy) } : null;
   let moves = 0;
   for (const nd of need) {
     while (nd[1] > 0 && moves < MOVES) {

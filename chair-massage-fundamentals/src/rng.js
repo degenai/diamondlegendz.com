@@ -27,3 +27,16 @@ export function makeRng(seed) {
     pick(arr) { return arr[Math.floor(next() * arr.length)]; },
   };
 }
+
+// Named seeded streams for gameplay code that has no rng of its own (Playtesting with Jev, milestone
+// 1: the goon sight phase, the NPC replan timer and sidestep, the ped relocation). main.js seeds them
+// from the run seed at boot; each name gets its own mulberry32 stream, so one kind's draws never shift
+// another's. Before seedStreams() runs (module tests) the base is 0: still repeatable.
+let streamBase = 0;
+const streams = new Map();
+export function seedStreams(seed) { streamBase = seed >>> 0; streams.clear(); }
+export function stream(name) {
+  let r = streams.get(name);
+  if (!r) { r = makeRng(hashSeed(`${streamBase}:${name}`)); streams.set(name, r); }
+  return r;
+}

@@ -18,7 +18,7 @@ import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer, pack, PERCEIVE } from './hostile.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
-import { emit } from '../events.js';
+import { emit } from '../events.js'; import { stream } from '../rng.js';
 import { vehicleMoves, vehicleStrike, clingTick } from './goon-vehicle.js';
 // hostile and alertPack moved to hostile.js (refactor/split); re-exported for one release.
 export { hostile, alertPack } from './hostile.js'; export { vanHome };
@@ -55,7 +55,7 @@ export function createGoon(scene, pos, role, bat) {
     radius: 0.4,
   });
   e.state = 'chase'; e.lastSeen = null;
-  e.sightT = Math.random() * SIGHT_EVERY;
+  e.sightT = stream('goon.sight').next() * SIGHT_EVERY;   // seeded (Jev milestone 1): when he first looks
   if (bat) {
     loadMesh('assets/bat.json').then((g) => {
       const b = g.getObjectByName('bat') || g;

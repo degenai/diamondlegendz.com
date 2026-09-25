@@ -75,3 +75,10 @@ export function loadMesh(url) {
 export function preload(urls) {
   return Promise.all(urls.map((u) => template(u)));
 }
+
+// Every baked mesh the game loads mid-session (vehicles, props, people). A stepped run (?agent or
+// ?norender, Jev milestone 1) preloads them all before tick 0: a first fetch mid-run resolves on
+// network time, so the loadMesh().then() spawns would land on a different tick each replay.
+export const ALL_MESHES = ['assets/sedan.json', 'assets/van.json', 'assets/cart.json', 'assets/copcar.json', 'assets/swatvan.json',
+  'assets/ranger.json', 'assets/bat.json', 'assets/chair.json', 'assets/massagegun.json', 'assets/person.json'];
+export function preloadAll() { return preload(ALL_MESHES); }

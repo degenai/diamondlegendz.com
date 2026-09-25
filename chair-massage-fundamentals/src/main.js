@@ -2,10 +2,10 @@
 import * as THREE from '../vendor/three.module.js';
 import { STATES, setState, getState } from './state.js';
 import * as input from './input.js';
-import { makeRng, hashSeed } from './rng.js';
+import { makeRng, hashSeed, seedStreams } from './rng.js';
 import { buildDistrict } from './world/district.js';
 import { initParked, updateParked } from './world/parked.js';
-import { preload } from './assets.js';
+import { preload, preloadAll } from './assets.js';
 import * as meta from './meta.js';
 import { createPlayer } from './entities/player.js';
 import { wearPerks } from './entities/player-actions.js';
@@ -29,9 +29,14 @@ import { initEvents, setSink, setWhy } from './events.js';
 import { initSession, recordEvent, recordInput, sessionTick, whyOf } from './session-log.js';
 import { initJuice, juiceTick, juiceCamera, preTick, frozen, tickFrozen } from './juice.js';
 import { wireStates, END } from './wiring.js';
+import { createAgent } from './agent.js';
 
 const STEP = 1 / 60;
 const MAX_ACCUM = 0.25; // cap to avoid spiral of death after a stall
+// Jev milestone 1: ?norender skips the camera juice, audio and draw; ?agent (implied by ?norender)
+// boots paused for CMF.agent.step and preloads every mesh before tick 0 (agent.js).
+const QS = new URLSearchParams(window.location.search);
+const NORENDER = QS.has('norender'), AGENT = NORENDER || QS.has('agent');
 
 function boot() {
   const canvas = document.getElementById('game');
@@ -61,6 +66,7 @@ function boot() {
   const seed = seedParam === null ? hashSeed(String(Date.now()))
     : /^\d+$/.test(seedParam) ? Number(seedParam) >>> 0 : hashSeed(seedParam);
   const rng = makeRng(seed);
+  seedStreams(seed);                // the NPC streams (rng.js stream()): a replay repeats them
   const world = buildDistrict(seed, scene);
   world.ready = initParked(world);   // parked-car proxies; sedans near the player go live (parked.js)
 
@@ -76,12 +82,13 @@ function boot() {
   scene.add(sun);
 
   // Baked meshes: the chair is placed by the massage module at world.chairSpot.
-  preload(['assets/chair.json', 'assets/massagegun.json']).catch((err) => console.warn('[CMF] preload failed', err));
+  const meshes = AGENT ? preloadAll() : preload(['assets/chair.json', 'assets/massagegun.json']);
+  meshes.catch((err) => console.warn('[CMF] preload failed', err));
 
   const entities = [];
   const player = addEntity(entities, createPlayer(scene, new THREE.Vector3(0, 0, 3)));
   // Parked sedans become drivable once their meshes load; cart, van and cop car join them.
-  world.ready.then(() => spawnVehicles(world, world.root, entities));
+  const vehiclesReady = world.ready.then(() => spawnVehicles(world, world.root, entities));
 
   input.initInput(canvas);
   input.onLockChangeListener((locked) => {
@@ -176,6 +183,12 @@ function boot() {
     debug: { palm: () => startPalm(player), charge: () => startCharge(player), finishClient: massage.debugComplete },
   };
 
+  // One stepped tick (agent.js): matrices settled first, so a projection in the tick (the ring, the
+  // bubbles) sees this pose whether or not a frame was drawn in between; then the shake offset out.
+  function stepOnce() { scene.updateMatrixWorld(); camera.updateMatrixWorld(); preTick(ctx); tick(STEP); }
+  const agent = window.CMF.agent = createAgent(ctx, { stepOnce, canvas, startPaused: AGENT, state: getState, massageState: massage.debugState,
+    ready: Promise.all([meshes, vehiclesReady]).then(() => new Promise((r) => setTimeout(r, 0))).then(() => ctx.tick) });
+
   setState(STATES.TITLE);
 
   // --- loop ---
@@ -191,7 +204,7 @@ function boot() {
   function simTick(realDt) {
     const s = getState();
     if (s === STATES.RUN && frozen()) { tickFrozen(realDt); return; } // hit-stop: the sim holds, the render goes on
-    const dt = realDt * (ctx.timeScale || 1);  // 0.25 under the run-end slow motion
+    const dt = realDt * (ctx.timeScale ?? 1);  // 0.25 under the run-end slow motion; 0 holds the sim
     ctx.time += dt;
     ctx.input = input.snapshot();
     recordInput(ctx.input);
@@ -232,12 +245,16 @@ function boot() {
     let elapsed = (now - last) / 1000;
     last = now;
     if (elapsed < 0) elapsed = 0;
-    accum = Math.min(accum + elapsed, MAX_ACCUM);
-    preTick(ctx);                             // take the last shake offset out before anything moves
-    while (accum >= STEP) {
-      tick(STEP);
-      accum -= STEP;
+    if (agent.paused) accum = 0;              // CMF.agent.step owns the clock
+    else {
+      accum = Math.min(accum + elapsed, MAX_ACCUM);
+      preTick(ctx);                           // take the last shake offset out before anything moves
+      while (accum >= STEP) {
+        tick(STEP);
+        accum -= STEP;
+      }
     }
+    if (NORENDER) return;
 
     fpsFrames++;
     fpsTime += elapsed;
