@@ -13,6 +13,7 @@ import { shake, sfx, burst } from '../juice.js';
 import { collideStatic } from '../entities/vehicle-collide.js';
 import { lineOfSight } from '../entities/npc-nav.js';
 import { waveStep, VAN_CRUISE } from './goon-waves.js';
+import { yieldStep } from './van-yield.js';
 
 const CUT_LOG = 15;          // s between `van cut` events at most
 
@@ -46,13 +47,20 @@ function exitPark(ctx) {
   return (W._vanPark = { inner: a, outer: b, x: s.x, z: s.z, yaw: s.yaw - Math.PI / 2, street: s.yaw });
 }
 
+// The driver's plan for this tick (driveVan), then braking for his own people (van-yield.js).
 export function updateVan(ctx, dt) {
   const A = ctx.vanAI;
   if (!A) return;
+  driveVan(ctx, A, dt);
+  if (A.v) yieldStep(ctx, A, A.v, dt);
+}
+
+function driveVan(ctx, A, dt) {
   if (!A.v) {
     const v = ctx.world.vehicles && ctx.world.vehicles.find((x) => x.franchise);
     if (!v || v.driver) return;
     A.v = v; v.driver = { kind: 'aiDriver', pos: new THREE.Vector3() }; v.parked = false;
+    v.spares = 'goons';                       // never knocks down goons or cops (vehicle-collide.js)
   }
   const v = A.v, p = ctx.player;
   if (v.driver === p || !v.driver) return;

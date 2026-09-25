@@ -52,15 +52,50 @@ export function routeDist(G, goal) {
   return d;
 }
 
-// A lane spot one block out by road (SPAWN_ROUTE metres of street to the node nearest the
+// The old rule (nearSpawn): a lane spot one block out by road (SPAWN_ROUTE metres of street to the node nearest the
 // player, about 40 s for a cart to reach the plaza; ruled 2026-09-24 after run 5, when level 2
 // units spawned 2..3 blocks out took ~98 s and never arrived). Never on a ring inside the plaza
 // block or the player's own block; just out of the intersection, on the street toward him.
 const SPAWN_ROUTE = SIZE;
-function roadSpawn(ctx) {
+const AHEAD_NEAR = 40;       // m: no spawn this close to him on his route
+const clearSpot = (ctx, s) => !(ctx.world.vehicles || []).some((v) => (v.pos.x - s.x) ** 2 + (v.pos.z - s.z) ** 2 < 49)
+  && !ctx.police.pending.some((q) => (q.x - s.x) ** 2 + (q.z - s.z) ** 2 < 49);
+
+// Units spawn ahead (ruled 2026-09-25 after run 1 on 25.2: two stars for 58 s and no unit ever
+// saw the cart): in a vehicle, or on foot outside the plaza block, the node about SPAWN_ROUTE of
+// road along his route to the escape (the farthest on it when the route is shorter), never the
+// exit or escape node nor within AHEAD_NEAR m of him, on the street back toward him, facing him.
+// Null when there is no such spot: the old rule (nearSpawn) stands.
+function aheadSpawn(ctx) {
+  const G = ctx.world.roads, pl = ctx.player;
+  const p = pl.vehicle ? pl.vehicle.pos : pl.pos;
+  if (!pl.vehicle) { const b = blockAt(p.x, p.z), c = blockAt(0, 0); if (b[0] === c[0] && b[1] === c[1]) return null; }
+  const path = route(G, nearestNode(G, p.x, p.z), G.exitNode);
+  if (path.length < 2) return null;
+  const cands = [];
+  let acc = Math.hypot(G.nodes[path[0]].x - p.x, G.nodes[path[0]].z - p.z);
+  for (let k = 1; k < path.length; k++) {
+    const a = G.nodes[path[k - 1]], n = G.nodes[path[k]];
+    acc += Math.hypot(n.x - a.x, n.z - a.z);
+    if (path[k] === G.exitNode || path[k] === G.escapeNode || Math.hypot(n.x - p.x, n.z - p.z) < AHEAD_NEAR) continue;
+    cands.push({ k, d: acc });
+  }
+  cands.sort((a, b) => Math.abs(a.d - SPAWN_ROUTE) - Math.abs(b.d - SPAWN_ROUTE));
+  for (const c of cands) {
+    const s = edgeSpot(G, path[c.k], path[c.k - 1], 9);
+    if (!clearSpot(ctx, s)) continue;
+    const spot = { x: s.x, z: s.z, yaw: s.yaw, node: path[c.k], d: Math.round(c.d), ahead: true };
+    ctx.police.pending.push(spot);
+    return spot;
+  }
+  return null;
+}
+
+function roadSpawn(ctx) { return aheadSpawn(ctx) || nearSpawn(ctx); }
+
+function nearSpawn(ctx) {
   const G = ctx.world.roads;
   const p = ctx.player.vehicle ? ctx.player.vehicle.pos : ctx.player.pos;
-  const vs = ctx.world.vehicles || [];
   const taken = ctx.police.pending;         // spawns still loading their mesh
   const goal = nearestNode(G, p.x, p.z), dist = routeDist(G, goal);
   const home = blockAt(p.x, p.z), plaza = blockAt(0, 0);
@@ -74,15 +109,14 @@ function roadSpawn(ctx) {
     for (const m of G.adj[c.i]) if (dist[m] < bd) { bd = dist[m]; best = m; }
     if (best < 0) continue;
     const s = edgeSpot(G, c.i, best, 9);
-    if (vs.some((v) => (v.pos.x - s.x) ** 2 + (v.pos.z - s.z) ** 2 < 49)) continue;
-    if (taken.some((q) => (q.x - s.x) ** 2 + (q.z - s.z) ** 2 < 49)) continue;
-    const spot = { x: s.x, z: s.z, yaw: s.yaw, node: c.i, d: c.d };
+    if (!clearSpot(ctx, s)) continue;
+    const spot = { x: s.x, z: s.z, yaw: s.yaw, node: c.i, d: Math.round(c.d), ahead: false };
     taken.push(spot);
     return spot;
   }
   const c0 = cands[0] ? cands[0].i : goal;
   const s = edgeSpot(G, c0, G.adj[c0][0], 9);
-  return { x: s.x, z: s.z, yaw: s.yaw };
+  return { x: s.x, z: s.z, yaw: s.yaw, node: c0, ahead: false };
 }
 
 function spawnTier(ctx, P, tier) {
@@ -91,6 +125,7 @@ function spawnTier(ctx, P, tier) {
     const s = roadSpawn(ctx);
     const unit = { kind: 'drive', type, crew, rank, cops: [], v: null, t: 0 };
     P.units.push(unit);
+    emit('police', { act: 'spawn', unit: type, node: s.node, ahead: !!s.ahead, route: s.d, onFoot: !ctx.player.vehicle });
     spawnVehicle(ctx, type, s.x, s.z, s.yaw).then((v) => {
       const k = P.pending.indexOf(s);
       if (k >= 0) P.pending.splice(k, 1);

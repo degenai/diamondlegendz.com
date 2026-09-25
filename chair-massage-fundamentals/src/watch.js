@@ -30,7 +30,8 @@ function short(e) {
     case 'damage': return `-${d.amount} from ${d.source}, hp ${d.hp}`;
     case 'knockdown': return `${d.who} (${d.by || d.cause})${d.mine ? ' by you' : ''}`;
     case 'mini': return `${d.phase}${d.reason ? ` (${d.reason})` : ''}${d.pay ? ` +$${d.pay}` : ''}`;
-    case 'van': return `${d.act}${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.x !== undefined ? ` at ${d.x}, ${d.z}` : ''}`;
+    case 'police': return `${d.act} ${d.unit} at node ${d.node}, ${d.ahead ? 'ahead on his route' : 'near him'}${d.route !== undefined ? ` (${d.route} m of road)` : ''}`;
+    case 'van': return `${d.act}${d.who ? ` for a ${d.who}` : ''}${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.x !== undefined ? ` at ${d.x}, ${d.z}` : ''}`;
     case 'vending': return `${d.act}${d.heat ? ` (heat ${d.heat})` : ''}${d.goons !== undefined ? `, ${d.goons} goons` : ''}${d.rank ? `, ${d.rank}` : ''}${d.after !== undefined ? ` after ${d.after} s` : ''}`;
     case 'peds': return `left block ${d.block}: ${d.arrived} peds on arrival, ${d.moved} moved in, ${d.have} at the end`;
     case 'treat': return `${d.kind || d.target}${d.wave ? ' (wave)' : ''}${d.rank ? ` (${d.rank})` : ''} ${d.phase || 'sit'}`;

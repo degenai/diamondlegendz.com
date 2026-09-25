@@ -184,6 +184,13 @@ export function collidePlayer(v, p, ctx) {
   return true;
 }
 
+// The van avoids its own people (ruled 2026-09-25): a vehicle flagged v.spares = 'goons' (the
+// Serenity van, van-ai.js; later the goon cars) never knocks down a goon or a cop while an AI
+// drives it. It still pushes them out of the body; its driver brakes for them (van-yield.js).
+export function spares(v, e) {
+  return v.spares === 'goons' && !!v.driver && v.driver.kind === 'aiDriver' && (e.kind === 'goon' || e.kind === 'cop');
+}
+
 // NPC on foot (ped, goon, cop): pushed out; knocked down (3 s, no hp) when the vehicle is moving
 // faster than HIT_SPEED. e.onVehicleHit(e, v, ctx) does the wanted/flee/sore bookkeeping.
 export function collideNpc(v, e, ctx) {
@@ -199,9 +206,16 @@ export function collideNpc(v, e, ctx) {
     px += (dx / d) * (r - d); pz += (dz / d) * (r - d);
   }
   if (px === 0 && pz === 0) return false;
+  const spared = spares(v, e);
+  if (spared) {
+    // Aside, not ahead: a body in front of a van creeping through slides off to the nearer side
+    // instead of being bulldozed down the street.
+    const s = Math.sin(v.yaw), c = Math.cos(v.yaw), l = dx0 * c - dz0 * s, k = Math.hypot(px, pz) * (l < 0 ? -1 : 1);
+    if (dx0 * s + dz0 * c > 0) { px += c * k; pz -= s * k; }
+  }
   e.pos.x += px; e.pos.z += pz;
   const speed = Math.hypot(v.vel.x, v.vel.z);
-  if (speed > HIT_SPEED && !(e.knockedT > 0)) {
+  if (speed > HIT_SPEED && !(e.knockedT > 0) && !spared) {
     hitEntity(v, e, { knockT: 3, damage: false });
     emit('knockdown', { who: e.kind, cause: 'vehicle', by: v.spec.label, mine: !!ctx.player && v.driver === ctx.player });
     shake(ctx, Math.min(0.5, speed / 25), e.pos.x, e.pos.z); sfx(ctx, 'thud', e.pos.x, e.pos.z, Math.min(0.8, speed / 15));
