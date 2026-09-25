@@ -149,9 +149,8 @@ and its first segment takes two right answers so the next prompt gets its turn),
 segment change "Press Space to give them what they asked for" (until the modality matches), and at
 completion "Press E when they're done". Competency fills as usual underneath. A `tutorial` watcher
 event marks each prompt shown and done. Between-run and later clients never show them.
-Between-run clients use the same calls. The **mini-massage during the run** (`run/minimassage.js`)
-still has its own small pressure bar (W/S into a band); it should adopt the calls next, so the
-course and the run teach the same thing.
+Between-run clients use the same calls, and so does the run's mini-massage (`run/minimassage.js`,
+ruled 2026-09-25; see The run).
 
 **Clients.** Three park regulars: a jogger (tight calves, wants Swedish), a retiree from the bench
 (upper traps, wants trigger point), a dad from the playground (forearms from pushing swings, wants
@@ -288,8 +287,17 @@ leaving the vehicle leaves the chair in it; a hard crash throws it out onto the 
 
 **Peds**: wander the nav graph on sidewalks and plaza paths. Flee when chaos happens nearby. **Mini-
 massage during a run** (decided 2026-09-23): set the chair down (E while carrying, on foot), the nearest
-willing ped walks over and sits, hold E for 5 s with a small pressure meter (W/S) on the HUD; on success
-they pay, wanted drops one star, the massage gun battery refills. Goons and cops within 6 m interrupt it.
+willing ped walks over and sits, hold E for 5 s; on success
+they pay, wanted drops one star, the massage gun battery refills. **The ped calls like a course client**
+(ruled 2026-09-25, "same calls, faster": one mechanic across the whole game): no pressure bar. During
+the hold the ped calls "Ow. Lighter." (tap S), "Harder." (hold W 0.6 s), "That's it, right there." (no
+W/S) every 2 to 3 s, seeded per run seed and ped, judged by `massage/meter.js` judge() with shorter
+windows (lighter 1.2 s, harder within 2 s, still 1.5 s; no left/right, the run's A/D are strafe).
+Progress runs on E alone (5 s, 10 s bent); a miss adds 1 s to the hold and the ped says their miss
+line; a third miss in one massage and they get up ("Forget it.", no pay, the chair stays down, the
+usual `mini` cancel event with reason 'three misses'). The run HUD's mini strip shows the E hold's
+progress and, while a call is open, the same key cue with a countdown bar the course uses. Between
+calls the ped may say one of their regular lines. Watcher: `call` events with where 'run'. Goons and cops within 6 m interrupt it.
 **Camping the chair has a risk** (ruled 2026-09-24): every success within 90 s of the previous one on
 the same spot (40 m) counts toward heat, the first success being heat 1 and free. The second quick
 success (heat 2) radios the goon pack to the chair (every goon up and working who is not already on him
