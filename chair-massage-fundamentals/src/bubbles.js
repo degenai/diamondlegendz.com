@@ -137,11 +137,14 @@ function start(b, line) {
 // Returns the bubble when the line starts at once; a queued line returns a stand-in whose `life`
 // is the estimated wait plus speech plus linger (so a script pacing on b.life - 0.8 still works),
 // and null when the line was dropped.
+// opts.replace: drop whatever this speaker is saying and has queued, and say this now (the mini-
+// massage's payoff or "Forget it." must not wait behind a call line that outlives the hold).
 export function say(ctx, speaker, text, opts = {}) {
   const anchor = anchorOf(speaker);
   if (!anchor || !root || !text) return null;
   const line = { ctx, text, opts, kind: opts.kind || 'banter', who: whoIs(ctx, speaker, opts) };
   let b = bubbles.get(anchor);
+  if (opts.replace && b) { drop(b); b = null; }
   if (busy(b)) {
     if (!enqueue(b, line)) return null;
     return { queued: true, text, life: eta(b, line) + LINGER };

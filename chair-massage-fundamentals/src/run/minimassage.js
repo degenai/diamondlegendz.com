@@ -45,7 +45,7 @@ function release(ctx, line, relaxed) {
     const dx = e.pos.x - M.pos.x, dz = e.pos.z - M.pos.z, d = Math.hypot(dx, dz) || 1;
     e.cwX = dx / d; e.cwZ = dz / d; e.cSpeed = relaxed ? 0.9 : 1.3;
     if (e.knockedT > 0) e.state = 'wander';
-    if (line) say(ctx, e, line);
+    if (line) say(ctx, e, line, { replace: true });   // over any call line still speaking
   }
   M.client = null;
   if (M.caller) M.caller.call = null;       // an open call dies with the massage: no late miss after it
@@ -88,7 +88,7 @@ function callClient(ctx) {
 export function updateMini(dt, ctx) {
   const M = ctx.mini, p = ctx.player, cs = chairState(ctx.world);
   if (!M || M.phase === 'idle') { if (ctx.hud.setMini) ctx.hud.setMini(null); return; }
-  if (cs.where !== 'ground' || !cs.setDown) { cancel(ctx, null, 'idle', 'chair moved'); ctx.hud.setMini(null); return; }
+  if (cs.where !== 'ground' || !cs.setDown) { cancel(ctx, null, 'idle', 'chair moved'); if (ctx.hud.setMini) ctx.hud.setMini(null); return; }
   const e = M.client;
   if (e && (e.knockedT > 0 || e.state === 'flee' || !ctx.npcs.includes(e))) { cancel(ctx, null, 'waiting', 'client knocked or fled'); }
   M.t += dt;

@@ -84,7 +84,7 @@ export function judge(c, input, dt) {
       if (W(p)) return done(false, 'W');
       break;
     case 'harder':
-      if (Sk(p)) return done(false, 'S');
+      if (Sk(p) || (bk && c.t > STILL_GRACE)) return done(false, 'S');   // S held past the grace is the wrong answer now, not late
       c.held = fw ? c.held + dt : 0;
       if (c.held >= c.hold) return done(true, 'W');
       break;
