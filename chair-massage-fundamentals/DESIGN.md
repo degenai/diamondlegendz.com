@@ -294,7 +294,7 @@ the hold the ped calls "Ow. Lighter." (tap S), "Harder." (hold W 0.6 s), "That's
 W/S) every 2 to 3 s, seeded per run seed and ped, judged by `massage/meter.js` judge() with shorter
 windows (lighter 1.2 s, harder within 2 s, still 1.5 s; no left/right, the run's A/D are strafe).
 Progress runs on E alone (5 s, 10 s bent); a miss adds 1 s to the hold and the ped says their miss
-line; a third miss in one massage and they get up ("Forget it.", no pay, the chair stays down, the
+line (a miss on a bent chair steps progress back by one second of that longer hold); a third miss in one massage and they get up ("Forget it.", no pay, the chair stays down, the
 usual `mini` cancel event with reason 'three misses'). The run HUD's mini strip shows the E hold's
 progress and, while a call is open, the same key cue with a countdown bar the course uses. Between
 calls the ped may say one of their regular lines. Watcher: `call` events with where 'run'. Goons and cops within 6 m interrupt it.
