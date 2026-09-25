@@ -5,7 +5,8 @@
 // unlock: RUN begins, the course HUD tears off, the client walks off, the camera blends into
 // the third-person view, and the goons start pursuing 1.5 s later.
 // The lines read the record (pivot-lines.js); on the third run and some late ones the passenger
-// door opens too. With the skipPivot unlock any key or click cuts straight to RUN (skip()).
+// door opens too. Every pivot that reaches the van stop is a viewing (meta.pivotsSeen); ten earn
+// the skipPivot hall pass, and with it a key or click during the drive-up cuts to the stop (pivot-skip.js).
 import * as THREE from '../vendor/three.module.js';
 import * as stage from './massage/stage.js';
 import { STATES, setState } from './state.js';
@@ -15,13 +16,13 @@ import { ringS, ringPoint, ringYaw, ringDelta } from './pivot-ring.js';
 import { clear as clearSpawner } from './run/spawner.js';
 import { spawnGoons } from './run/goon-waves.js';
 import { seek, stepBody, poseRig } from './entities/npc-common.js';
-import { say as bubble, clearBubbles } from './bubbles.js';
+import { say as bubble } from './bubbles.js';
 import * as massage from './massage/index.js';
 import { planVanPath, planEntry, buildPoly } from './pivot-path.js';
 import { pivotLines } from './pivot-lines.js';
-import { spawnBoss, dropBoss, showSkip, hideSkip, spawnRanger, stopPoint, pivotCamera } from './pivot-cast.js';
-import { has } from './meta.js';
-import { floorHeightAt } from './physics.js';
+import { spawnBoss, dropBoss, hideSkip, spawnRanger, pivotCamera } from './pivot-cast.js';
+import { showDriveSkip, checkDriveSkip } from './pivot-skip.js';
+import { has, save as saveMeta } from './meta.js';
 import { emit } from './events.js';
 
 const STOP_AT = 8;          // metres from the chair
@@ -56,7 +57,7 @@ export function start(ctx) {
     lines: pivotLines(ctx.meta), boss: null, bossDoor: null, bossBackAt: Infinity,
     canSkip: has(ctx.meta, 'skipPivot'), skipped: false, skipEl: null,
   };
-  if (P.canSkip) showSkip(P);
+  if (P.canSkip) showDriveSkip(P);
   // The hidden player stands where the therapist is (the van must not find it on the road).
   const p = ctx.player;
   if (p && !p.vehicle) { p.pos.set(chair.x, chair.y, chair.z + 1); p.vel.set(0, 0, 0); }
@@ -115,6 +116,10 @@ function arrive(ctx) {
   P.arriveT = P.t;
   P.next = P.t + 0.3;
   emit('pivot', { beat: 'vanStop', at: Math.round(P.t * 10) / 10 });
+  hideSkip(P);                                   // the drive-up is over: no line, no skip
+  // A viewing, whatever comes next (meta.js: the tenth earns the hall pass at the run's end).
+  const m = ctx.meta;
+  if (m) { m.pivotsSeen = (m.pivotsSeen || 0) + 1; saveMeta(m); emit('pivot', { beat: 'seen', n: m.pivotsSeen }); }
   if (P.van) { brake(P.van); P.van.vel.set(0, 0, 0); P.van.speed = 0; }
 }
 
@@ -182,8 +187,7 @@ function script(ctx) {
 export function update(dt, ctx) {
   if (!P) return;
   P.t += dt;
-  const inp = ctx.input;
-  if (P.canSkip && inp && (inp.pressed.size || inp.clicked.size)) { skip(ctx); return; }
+  checkDriveSkip(ctx, P, arrive);                // hall pass: a key during the drive-up cuts to the stop
   driveVan(dt, ctx);
   script(ctx);
   for (const g of goons(ctx)) walkNpc(g, g.goal, g.goal && Math.hypot(g.goal.x - g.pos.x, g.goal.z - g.pos.z) > 6 ? 3.5 : 1.6, dt, ctx);
@@ -197,41 +201,6 @@ export function update(dt, ctx) {
   pivotCamera(dt, ctx, P);
   musicCue(ctx);
   if (P.runAt >= 0 && P.t >= P.runAt) { emit('pivot', { beat: 'unlock', at: Math.round(P.t * 10) / 10 }); setState(STATES.RUN); }
-}
-
-// The skipPivot unlock: jump to the moment controls unlock, as if the scene had played. The van
-// parks at its stop, the crew stands on their marks and the ranger by the chair; RUN begins and
-// beginRun takes the client away at once instead of walking them off.
-function skip(ctx) {
-  P.skipped = true;
-  hideSkip(P);
-  if (ctx.voice && typeof ctx.voice.stop === 'function') ctx.voice.stop();
-  clearBubbles();
-  const v = P.van;
-  if (v && P.phase !== 'parked' && P.poly && P.poly.pts.length > 1) {
-    const s = stopPoint(ctx, P);
-    // Up on the plaza: settleHeight only steps up gradually, and a van left at road height inside
-    // the terrace's footprint gets pushed out of it.
-    v.pos.set(s.x, floorHeightAt(s.x, s.z, ctx.world.colliders, ctx.world.chairSpot.y + 0.5), s.z); v.yaw = s.yaw;
-  }
-  if (P.phase !== 'parked') arrive(ctx);
-  if (v) { v.steer = 0; v.yawRate = 0; v.mesh.position.copy(v.pos); v.mesh.rotation.y = v.yaw; }
-  if (!goons(ctx).length) spawnCrew(ctx);
-  dropBoss(ctx, P);
-  const c = ctx.world.chairSpot;
-  for (const g of goons(ctx)) {
-    if (!g.goal) continue;
-    g.pos.set(g.goal.x, floorHeightAt(g.goal.x, g.goal.z, ctx.world.colliders, g.pos.y + 0.3), g.goal.z);
-    g.vel.set(0, 0, 0); g.yaw = Math.atan2(c.x - g.pos.x, c.z - g.pos.z); g.mesh.position.copy(g.pos);
-  }
-  if (!P.ranger) spawnRanger(ctx, P);
-  const r = P.ranger, rg = P.rangerGoal;
-  r.pos.set(rg.x, floorHeightAt(rg.x, rg.z, ctx.world.colliders, rg.y + 0.3), rg.z);
-  r.vel.set(0, 0, 0); r.mesh.position.copy(r.pos);
-  P.rangerEnd = P.t;                        // his permit line is behind us: the hang line comes at once
-  P.lineIdx = P.lines.goons.length + 2; P.next = Infinity; P.runAt = P.t;
-  emit('pivot', { beat: 'skip', at: Math.round(P.t * 10) / 10 });
-  setState(STATES.RUN);
 }
 
 // RUN entered from PIVOT: tear the course off and hand the player the controls.
@@ -259,7 +228,6 @@ export function beginRun(ctx) {
     P.hangAt = Math.max(0, (P.rangerEnd ?? P.t) - P.t) + 0.3;  // after his permit line finishes
   }
   for (const g of goons(ctx)) { g.goal = null; }
-  if (P.skipped) stage.removeLeaver(massage.station(), ctx.scene);   // skipped: the client is already gone
   hud.tearOffMassageHud();
   hud.setRunTitle(true, true);
 }

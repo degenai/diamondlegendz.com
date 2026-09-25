@@ -13,7 +13,9 @@ const $ = (id) => document.getElementById(id);
 const W = { events: [], seen: new Set(), groups: [], selected: null, doneCount: 0, lastCopy: '', lastDownload: '' };
 window.__watch = W;                                   // debug handle, like window.CMF
 
-const keyOf = (e) => `${e.wall}|${e.run}|${e.type}|${e.t}`;
+// The data is part of the key: one tick can emit two events of a type (the pivot's skip, vanStop and
+// seen share a wall and a sim time), and the feed must not fold them into one.
+const keyOf = (e) => `${e.wall}|${e.run}|${e.type}|${e.t}|${JSON.stringify(e.data)}`;
 const FEED_MAX = 2000;
 
 function short(e) {
@@ -28,7 +30,8 @@ function short(e) {
       : d.car ? `${d.act} (goon car ${d.car})${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.who ? ` for a ${d.who}` : ''}`
       : `${d.act}${d.vehicle ? ` (${d.vehicle})` : ''}${d.n ? `, ${d.n} on` : ''}`;
     case 'chair': return `${d.act} -> ${d.where}${d.vehicle ? ` (${d.vehicle})` : ''}`;
-    case 'pivot': return d.beat === 'line' ? `${d.speaker}: "${d.text}"` : `${d.beat}${d.at !== undefined ? ` at ${d.at} s` : ''}`;
+    case 'pivot': return d.beat === 'line' ? `${d.speaker}: "${d.text}"` : d.beat === 'seen' ? `viewing ${d.n} (van stop reached)`
+      : `${d.beat}${d.at !== undefined ? ` at ${d.at} s` : ''}${d.to ? ` to ${d.to}` : ''}`;
     case 'damage': return `-${d.amount} from ${d.source}, hp ${d.hp}`;
     case 'knockdown': return `${d.who} (${d.by || d.cause})${d.mine ? ' by you' : ''}`;
     case 'mini': return `${d.phase}${d.reason ? ` (${d.reason})` : ''}${d.pay ? ` +$${d.pay}` : ''}`;

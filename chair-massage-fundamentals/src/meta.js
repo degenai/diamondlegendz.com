@@ -3,6 +3,12 @@
 // same"). unlocks: the main track, ids in UNLOCKS order, one per ESCAPE. consolations: ids in
 // CONSOLATIONS order, one per arrest or death, each once; exhausted, a failure grants nothing.
 // Leaving the chair grants nothing on either track.
+// Viewings (re-ruled 2026-09-25, DESIGN.md PIVOT "Skipping it is earned by watching"): pivotsSeen
+// counts every pivot that reached the van stop (pivot.js arrive, skipped drive-ups included, any
+// outcome). An UNLOCKS entry with track 'viewings' is never an escape award: it is granted by the
+// first run to end (any outcome, leaving the chair included) with pivotsSeen >= its `viewings`.
+// It takes that run's seal and the next client's gift line in place of the run's track award,
+// which is not lost: each track hands out the next item it has not given yet, on its next turn.
 const KEY = 'cmf.meta.v1';
 
 // gift: how a between-runs client talks about it ("... left you <gift> ...").
@@ -18,8 +24,10 @@ export const UNLOCKS = [
   { id: 'disguise', name: 'Franchise disguise', desc: 'Goons ignore you for 20 s, once.', gift: 'a Serenity Group polo' },
   { id: 'gun3', name: 'Gun range 3 "Pro"', desc: 'The massage gun reaches 14 m.', gift: 'the Pro head' },
   { id: 'blockparty', name: 'Block party', desc: 'Peds cheer, cops slower.', gift: 'a block party flyer' },
-  // Ruled 2026-09-23 after the first plays: any key skips the van cutscene straight to RUN (pivot.js).
-  { id: 'skipPivot', name: 'Module review: skippable', desc: "You've seen enough.", gift: 'a hall pass from the course office' },
+  // Ruled 2026-09-23, re-ruled 2026-09-25: the tenth viewing earns it; any key skips the drive-up
+  // to the van stop (pivot-skip.js). Still listed here for has(), perks() and the gift lines.
+  { id: 'skipPivot', name: 'Module review: skippable', desc: "You've seen enough.", gift: 'a hall pass from the course office',
+    track: 'viewings', viewings: 10 },
 ];
 
 // The consolation track: smaller things for a run that ended in the back of a car or face down.
@@ -42,7 +50,7 @@ export const CONSOLATIONS = [
 export const NO_CONSOLATION = 'No unlock. Escape for the next one.';
 
 const DEFAULTS = {
-  runs: 0, bestTime: 0, bestCash: 0, escapes: 0, firstPivotSeen: false, firstRunSeen: false, unlocks: [], consolations: [],
+  runs: 0, bestTime: 0, bestCash: 0, escapes: 0, pivotsSeen: 0, firstPivotSeen: false, firstRunSeen: false, unlocks: [], consolations: [],
   lastOutcome: null, lastUnlock: null, lastTrack: null, // lastTrack: 'main' | 'consolation' | null
 };
 
@@ -52,8 +60,8 @@ export function load() {
   const m = { ...DEFAULTS, unlocks: [], consolations: [] };
   if (data && typeof data === 'object') {
     // Counts are whole and nobody escapes in negative time: a hand-edited value that is not falls back.
-    for (const k of ['runs', 'bestTime', 'bestCash', 'escapes']) if (Number.isFinite(data[k]) && data[k] >= 0 && data[k] < 1e9) m[k] = data[k];
-    m.runs = Math.floor(m.runs); m.escapes = Math.min(Math.floor(m.escapes), m.runs);
+    for (const k of ['runs', 'bestTime', 'bestCash', 'escapes', 'pivotsSeen']) if (Number.isFinite(data[k]) && data[k] >= 0 && data[k] < 1e9) m[k] = data[k];
+    m.runs = Math.floor(m.runs); m.pivotsSeen = Math.floor(m.pivotsSeen); m.escapes = Math.min(Math.floor(m.escapes), m.runs);
     m.firstPivotSeen = data.firstPivotSeen === true;
     // firstRunSeen (2026-09-24, the grab-window prompts): a save from before it has seen a run if
     // it booked one or got through the pivot (set on RUN entry), so it gets no prompts.
@@ -106,9 +114,10 @@ export function perks(meta) {
   };
 }
 
-// Book a finished run. outcome: escape | arrest | death | left. An escape takes the next main
-// unlock, an arrest or death the next consolation. Returns { ...item, track } or null (the chair was
-// left, or that track is exhausted).
+// Book a finished run. outcome: escape | arrest | death | left. A viewings award now due takes the
+// run's seal whatever the outcome; otherwise an escape takes the next main unlock, an arrest or
+// death the next consolation. Returns { ...item, track } or null (the chair was left, or that track
+// is exhausted).
 export function recordRun(meta, outcome, seconds, cash) {
   if (!Array.isArray(meta.consolations)) meta.consolations = [];
   meta.runs += 1;
@@ -118,9 +127,13 @@ export function recordRun(meta, outcome, seconds, cash) {
     meta.bestCash = Math.max(meta.bestCash || 0, Math.round(cash)); // bests are escape-only, like bestTime
   }
   let next = null, track = null;
-  if (outcome === 'escape') {
+  const due = UNLOCKS.find((u) => u.track === 'viewings' && !meta.unlocks.includes(u.id) && (meta.pivotsSeen || 0) >= u.viewings);
+  if (due) {
+    track = 'main'; next = due;
+    meta.unlocks.push(due.id);
+  } else if (outcome === 'escape') {
     track = 'main';
-    next = UNLOCKS.find((u) => !meta.unlocks.includes(u.id)) || null;
+    next = UNLOCKS.find((u) => !u.track && !meta.unlocks.includes(u.id)) || null;
     if (next) meta.unlocks.push(next.id);
   } else if (outcome === 'arrest' || outcome === 'death') {
     track = 'consolation';

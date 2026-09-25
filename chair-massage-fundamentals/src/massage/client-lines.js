@@ -206,7 +206,8 @@ export function roster(meta) {
     second = !info ? reg.empty : info.sympathy && reg === DANA ? info.sympathy : reg.gifts[info.id] || `The regulars chipped in for ${info.gift}.`;
     if (hasPerk(meta, 'getwellcard') && meta.lastUnlock !== 'getwellcard') opener = reg.getWell[outcome];
   } else if (outcome === 'left') {
-    second = reg.leftSecond[k % reg.leftSecond.length];
+    // Leaving grants nothing, but the tenth viewing's hall pass arrives whatever the outcome (meta.js).
+    second = (info && giftLine(reg, info, k)) || reg.leftSecond[k % reg.leftSecond.length];
   } else {
     second = giftLine(reg, info, k) || giftLine(reg, { id: '', gift: 'a thank-you card' }, k);
   }

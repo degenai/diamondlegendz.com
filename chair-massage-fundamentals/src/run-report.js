@@ -138,7 +138,7 @@ export function reportRun(events, opts = {}) {
   if (st.roster) pre.push(`${plural(st.roster, 'client')} before the van`);
   if (st.pivot && st.pivot.vanStop !== undefined) pre.push(`van stopped at ${st.pivot.vanStop} s`);
   if (st.pivot && st.pivot.unlock !== undefined) pre.push(`controls at ${st.pivot.unlock} s`);
-  if (st.pivot && st.pivot.skip !== undefined) pre.push('cutscene skipped');
+  if (st.pivot && st.pivot.skip !== undefined) pre.push(`drive-up skipped at ${st.pivot.skip} s`);   // to the van stop: the lines still played
   if (pre.length) out.push(`(${pre.join(', ')})`);
   for (let i = 0; i < body.length; i++) {
     const s = line(body[i], body, i, t0);
