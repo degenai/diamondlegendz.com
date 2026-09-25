@@ -11,7 +11,7 @@ import { updateWanted, emitChaos } from './wanted.js';
 import { createPolice, updatePolice } from './police.js';
 import { clearPolice } from './police-units.js';
 import { spawnPeds, spawnRegular, recyclePeds, disposeNpc } from './peds-budget.js';
-import { openingPack } from './goon-waves.js';
+import { openingPack, onboardStep } from './goon-waves.js';
 import { updateVan, vanHit } from './van-ai.js';
 import { createTraffic, beginTraffic, clearTraffic, updateTraffic } from './traffic.js';
 import { resetVehicles } from './reset.js';
@@ -107,4 +107,5 @@ export function update(dt, ctx) {
   }
   updateWanted(ctx.wanted, dt, ctx, _cops);
   updatePolice(ctx.police, dt, ctx);
+  onboardStep(ctx, dt);                       // first-run prompts in the grab window (goon-waves.js)
 }

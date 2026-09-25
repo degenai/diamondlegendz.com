@@ -12,6 +12,7 @@ let runId = 1;
 let buf = null;
 let chan = null;
 let timer = 0;
+const taps = new Set();
 
 function load() {
   if (buf) return buf;
@@ -43,7 +44,12 @@ function runsSoFar() { return (ctx && ctx.meta && Number.isFinite(ctx.meta.runs)
 // the pivot, the run, and its certificate (after recordRun counted it) all carry the same number.
 export function currentRun() { return runId; }
 
+// In-game listeners on the same events (goon-waves.js onboarding hears a charge start that the
+// headless tests' unlocked pointer cancels within the tick). Returns an unsubscribe.
+export function onEvent(fn) { taps.add(fn); return () => taps.delete(fn); }
+
 export function emit(type, data = {}) {
+  for (const fn of taps) { try { fn(type, data); } catch (_) { /* never into the game */ } }
   try {
     if (type === 'state' && (data.to === 'MASSAGE' || data.to === 'RUN')) runId = runsSoFar() + 1;
     const ev = { t: Math.round(((ctx && ctx.time) || 0) * 100) / 100, wall: Date.now(), run: runId, type, data };

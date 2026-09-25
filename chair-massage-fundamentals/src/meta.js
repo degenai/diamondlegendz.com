@@ -42,7 +42,7 @@ export const CONSOLATIONS = [
 export const NO_CONSOLATION = 'No unlock. Escape for the next one.';
 
 const DEFAULTS = {
-  runs: 0, bestTime: 0, bestCash: 0, escapes: 0, firstPivotSeen: false, unlocks: [], consolations: [],
+  runs: 0, bestTime: 0, bestCash: 0, escapes: 0, firstPivotSeen: false, firstRunSeen: false, unlocks: [], consolations: [],
   lastOutcome: null, lastUnlock: null, lastTrack: null, // lastTrack: 'main' | 'consolation' | null
 };
 
@@ -55,6 +55,9 @@ export function load() {
     for (const k of ['runs', 'bestTime', 'bestCash', 'escapes']) if (Number.isFinite(data[k]) && data[k] >= 0 && data[k] < 1e9) m[k] = data[k];
     m.runs = Math.floor(m.runs); m.escapes = Math.min(Math.floor(m.escapes), m.runs);
     m.firstPivotSeen = data.firstPivotSeen === true;
+    // firstRunSeen (2026-09-24, the grab-window prompts): a save from before it has seen a run if
+    // it booked one or got through the pivot (set on RUN entry), so it gets no prompts.
+    m.firstRunSeen = data.firstRunSeen === true || (data.firstRunSeen === undefined && (m.runs > 0 || m.firstPivotSeen));
     if (Array.isArray(data.unlocks)) m.unlocks = data.unlocks.filter((id) => UNLOCKS.some((u) => u.id === id));
     if (typeof data.lastOutcome === 'string') m.lastOutcome = data.lastOutcome;
     // Saves from before the two tracks have one mixed unlocks array: it stays the main track as is.

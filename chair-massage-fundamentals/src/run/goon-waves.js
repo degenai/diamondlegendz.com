@@ -8,6 +8,8 @@ import { addEntity } from '../entities/index.js';
 import { createGoon } from '../entities/goon.js';
 import { driveRoute, driveAt, brake } from './driver.js';
 import { nearestNode } from '../world/roads.js';
+import { setOnboard } from '../hud-run.js';
+import { emit, onEvent } from '../events.js';
 
 export const WAVE = 90;
 export const GOON_CAP = 9;
@@ -66,4 +68,69 @@ export function waveStep(ctx, A, v, dt) {
     A.mode = 'wait'; A.waveT = 0; A.spawnedAt = ctx.time; A.parked = false;
   }
   return true;
+}
+
+// First-run prompts in the grab window (ruled 2026-09-24: Andy got swarmed before he knew he could
+// fight or drive). Only on the run that set meta.firstRunSeen (wiring.js arms it). When the grab
+// window opens (first goon contact; or a palm or gun hit that skipped it), three prompts show above
+// the player one at a time, each for ONBOARD_SHOW s or until performed; past the window's end the
+// rest still show in order. An action already performed this run before its turn is skipped.
+// Watcher: `tutorial` events, where 'run', act shown | done | timeout | skipped | cut.
+export const ONBOARD = [
+  { step: 'palm', text: 'Hold left click: HEALING PALM' },   // a charge starts (palm event), or any palm
+  { step: 'drive', text: 'E at any car: drive' },            // he is in a vehicle
+  { step: 'sprint', text: 'Shift: sprint. It runs out.' },   // stamina draws down on foot
+];
+export const ONBOARD_SHOW = 4;
+const ONBOARD_Y = 2.35;      // m above his feet
+
+let heard = null;            // the armed run's state, for the event tap below
+export function armOnboard(ctx, on) {
+  if (heard === null) onEvent((type, d) => {
+    const O = heard && heard.onboard;
+    if (O && type === 'palm' && d.phase === 'charge') O.did.palm = true;
+  });
+  heard = ctx;
+  ctx.onboard = on ? { k: -1, t: -1, did: { palm: false, drive: false, sprint: false }, stam: null, log: [] } : null;
+  ctx.onboardLog = ctx.onboard ? ctx.onboard.log : null;
+  setOnboard(null);
+}
+
+function onboardAct(ctx, O, k, act) {
+  const p = ONBOARD[k];
+  O.log.push({ step: p.step, act, at: ctx.time });
+  emit('tutorial', { where: 'run', step: p.step, act, text: p.text });
+}
+
+// Per RUN tick (spawner.update), after the entities moved.
+export function onboardStep(ctx, dt) {
+  const O = ctx.onboard;
+  if (!O) return;
+  const p = ctx.player;
+  if (ctx.runEnd) {                              // the run is over: close the open prompt as cut
+    if (O.t >= 0) onboardAct(ctx, O, O.k, 'cut');
+    setOnboard(null); ctx.onboard = null; return;
+  }
+  if (p.chargeT >= 0 || p.palmT > 0 || p.lungeT > 0) O.did.palm = true;   // a charge, or a quick click's palm
+  if (p.vehicle) O.did.drive = true;
+  if (!p.vehicle && O.stam !== null && p.stamina < O.stam - 1e-4) O.did.sprint = true;
+  O.stam = p.stamina ?? null;
+  if (O.k < 0) {
+    if (ctx.grabStart == null && ctx.grabUntil === Infinity) return;   // no contact yet
+    O.k = 0;
+  }
+  if (O.t >= 0) {                                // a prompt is up
+    O.t += dt;
+    const did = O.did[ONBOARD[O.k].step];
+    if (!did && O.t < ONBOARD_SHOW) { setOnboard(ONBOARD[O.k].text, p.pos.x, p.pos.y + ONBOARD_Y, p.pos.z); return; }
+    onboardAct(ctx, O, O.k, did ? 'done' : 'timeout');
+    O.k++; O.t = -1;
+  }
+  while (O.k < ONBOARD.length && O.did[ONBOARD[O.k].step]) {   // already performed: no need to say it
+    onboardAct(ctx, O, O.k, 'skipped'); O.k++;
+  }
+  if (O.k >= ONBOARD.length) { setOnboard(null); ctx.onboard = null; return; }
+  O.t = 0;
+  onboardAct(ctx, O, O.k, 'shown');
+  setOnboard(ONBOARD[O.k].text, p.pos.x, p.pos.y + ONBOARD_Y, p.pos.z);
 }

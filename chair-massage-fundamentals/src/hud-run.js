@@ -13,6 +13,7 @@ const RISE = 60;           // px over the floater's life
 let wrap = null, stars = [], hpFill = null, cashEl = null, flashEl = null, miniEl = null, mini = {};
 let batWrap = null, batFill = null, heatEl = null, stampEl = null, stamBar = null, stamFill = null;
 let chargeEl = null, chargeRing = null;
+let onbEl = null; const onb = { on: false, x: 0, y: 0, z: 0, text: '' };
 const STAM_HIDE = 2;       // s the stamina bar lingers once full
 const floaters = [];
 const last = {};
@@ -68,6 +69,9 @@ export function initRunHud(root) {
   const prog = el('div', 'rh-mini-prog', miniEl);
   mini.prog = el('i', '', prog);
   mini.note = el('div', 'rh-mini-note', miniEl, 'Hold E  |  W/S pressure');
+  // The first run's grab-window prompt (goon-waves.js), a big floater pinned above the player.
+  onbEl = el('div', 'rh-float rh-onboard', root);
+  onbEl.hidden = true;
   for (let i = 0; i < POOL; i++) {
     const n = el('div', 'rh-float', root);
     n.hidden = true;
@@ -83,6 +87,7 @@ export function showRunHud(visible) {
     last.mini = 'off';
     if (chargeEl) chargeEl.hidden = true;
     last.charge = 'off';
+    setOnboard(null);
   }
 }
 
@@ -196,10 +201,28 @@ export function activeFloaters() {
   return floaters.filter((f) => f.on).map((f) => f.n.textContent);
 }
 
+// The first-run prompt: text anchored at a world point (moved per tick), null hides it.
+export function setOnboard(text, x = 0, y = 0, z = 0) {
+  if (!onbEl) return;
+  onb.on = !!text; onb.x = x; onb.y = y; onb.z = z;
+  if (!text) { onbEl.hidden = true; onb.text = ''; return; }
+  if (onb.text !== text) {           // a new prompt pops in (ui.css .rh-onboard.go)
+    onb.text = text; onbEl.textContent = text;
+    onbEl.classList.remove('go'); void onbEl.offsetWidth; onbEl.classList.add('go');
+  }
+}
+export function onboardText() { return onbEl && !onbEl.hidden ? onbEl.textContent : ''; }
+
 // Per tick after the camera moved: project, rise, fade.
 export function updateFloaters(dt, camera) {
   if (!camera) return;
   const w = window.innerWidth, h = window.innerHeight;
+  if (onbEl && onb.on) {
+    _v.set(onb.x, onb.y, onb.z).project(camera);
+    const off = _v.z > 1 || _v.z < -1 || Math.abs(_v.x) > 1.2 || Math.abs(_v.y) > 1.2;
+    if (onbEl.hidden !== off) onbEl.hidden = off;
+    if (!off) onbEl.style.transform = `translate(${((_v.x * 0.5 + 0.5) * w).toFixed(1)}px, ${((-_v.y * 0.5 + 0.5) * h).toFixed(1)}px) translate(-50%, -100%)`;
+  }
   for (const f of floaters) {
     if (!f.on) continue;
     f.t += dt;

@@ -9,6 +9,7 @@ import { wearPerks } from './entities/player-actions.js';
 import { ensureChair, resetChair } from './entities/chair.js';
 import { exitVehicle } from './entities/interact.js';
 import * as spawner from './run/spawner.js';
+import { armOnboard } from './run/goon-waves.js';
 import { createMini } from './run/minimassage.js';
 import { cancelCharge } from './entities/palm.js';
 import { resetGun } from './entities/gun.js';
@@ -54,6 +55,9 @@ onEnter(STATES.RUN, (prev) => {
     ctx.meta.firstPivotSeen = true;
     meta.save(ctx.meta);
   }
+  // The first run on this save gets the grab-window prompts (goon-waves.js); spent on arrival.
+  const firstRun = !ctx.meta.firstRunSeen;
+  if (firstRun) { ctx.meta.firstRunSeen = true; meta.save(ctx.meta); }
   ensureChair(ctx);
   ctx.mini = createMini();
   ctx.perks = meta.perks(ctx.meta);
@@ -62,6 +66,7 @@ onEnter(STATES.RUN, (prev) => {
   resetGun(player);
   if (prev === STATES.PIVOT) pivot.beginRun(ctx); else hud.setRunTitle(true);
   spawner.begin(ctx, prev === STATES.PIVOT);
+  armOnboard(ctx, firstRun);
   startStats(ctx);
   emit('run.start', { seed: ctx.seed, build: VERSION, unlocks: [...ctx.meta.unlocks], perks: { ...ctx.perks }, cash: ctx.massageTotals ? ctx.massageTotals.you : 0, fromPivot: prev === STATES.PIVOT });
   hud.showRunHud(true); updateHint();
