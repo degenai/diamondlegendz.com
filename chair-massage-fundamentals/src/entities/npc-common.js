@@ -1,7 +1,7 @@
 // Shared NPC plumbing: the plain-object body, steering + physics step (gravity, kerbs, static
 // pushout from the nearby-collider grid, parked vehicles, separation), seek-with-nav-fallback,
 // knockdown and the Chex Quest relaxed rise, and the procedural rig poses (walk, loose, sore,
-// sit, swing). Behaviour modules (ped.js, goon.js, cop.js) own their state machines.
+// sit, swing, cling). Behaviour modules (ped.js, goon.js, cop.js) own their state machines.
 import * as THREE from '../../vendor/three.module.js';
 import { resolveStatic, supportHeight, LAND_BAND } from '../physics.js';
 import { vehicleCircles } from './vehicle-collide.js';
@@ -246,6 +246,15 @@ export function poseRig(e, dt) {
     u.torso.rotation.x = -0.28; u.torso.rotation.z = w; u.head.rotation.x = -0.25;
     j.upperArmL.rotation.set(-0.3, 0, 0.9 + w); j.upperArmR.rotation.set(-0.3, 0, -0.9 + w);
     j.lowerArmL.rotation.set(-0.4, 0, 0); j.lowerArmR.rotation.set(-0.4, 0, 0);
+  } else if (pose === 'cling') {
+    // Hanging off a vehicle's tail (goon-vehicle.js): crouched on the bumper, knees bent, both
+    // arms up on the roof, pounding it in turn.
+    const k = Math.sin(t * 2.2);
+    u.hips.position.set(0, -0.32, 0); u.torso.rotation.x = 0.3; u.head.rotation.x = -0.35;
+    j.upperLegL.rotation.set(-0.95, 0, 0.12); j.upperLegR.rotation.set(-0.95, 0, -0.12);
+    j.lowerLegL.rotation.set(1.35, 0, 0); j.lowerLegR.rotation.set(1.35, 0, 0);
+    j.upperArmL.rotation.set(-2.6 + k * 0.3, 0, 0.18); j.upperArmR.rotation.set(-2.6 - k * 0.3, 0, -0.18);
+    j.lowerArmL.rotation.set(-0.35, 0, 0); j.lowerArmR.rotation.set(-0.35, 0, 0);
   } else if (pose === 'reach') {
     j.upperArmR.rotation.set(-1.4, 0, 0); j.lowerArmR.rotation.set(0, 0, 0);
   }

@@ -44,6 +44,8 @@ function line(e, evs, i, t0) {
     case 'wanted': return d.level === d.prev ? null : `${at} wanted ${d.level} (${wantedWhy(evs, i, d)})`;
     case 'vehicle':
       if (d.act === 'carjack') return null;       // the wanted line says it
+      if (d.act === 'batHit') return `${at} a goon's bat on the ${d.type} (hp ${d.hp})`;
+      if (d.act === 'exit' && (nearby(evs, i, 'goon', 0.1) || {}).data?.act === 'pullout') return null;   // the pull-out line says it
       return d.act === 'exit' ? `${at} got out of the ${d.type}` : `${at} ${d.stolen ? 'took' : 'got in'} the ${d.type}${d.stolen ? ' (stolen)' : ''}`;
     case 'chair':
       if (d.act === 'pickup') return `${at} chair on your back`;
@@ -65,7 +67,11 @@ function line(e, evs, i, t0) {
       if (d.act === 'dispatch') return `${at} a ${d.rank} sent to the chair`;
       if (d.act === 'arrive') return `${at} "We told you to stop that."`;
       return null;
+    case 'goon':
+      if (d.act === 'pullout') return `${at} a goon pulled you out of the ${d.vehicle}`;
+      return d.act === 'cling' ? `${at} a goon jumped on the ${d.vehicle}` : d.act === 'thrown' ? `${at} threw a goon off the ${d.vehicle}` : null;
     case 'knockdown':
+      if (d.who === 'player' && d.cause === 'pullout') return null;   // the goon line says it
       if (d.who === 'player') return `${at} knocked down (${d.by ? `${d.by}` : d.cause})`;
       return d.mine ? `${at} ran down a ${d.who} (${d.by})` : null;
     case 'damage': return `${at} took ${d.amount} (${d.source}), hp ${d.hp}`;

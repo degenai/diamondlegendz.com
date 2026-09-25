@@ -13,6 +13,7 @@ const DMG_K = 3.5;         // hp per m/s above DMG_FROM
 const THROW_AT = 12;       // m/s impact that throws a loaded chair out
 const RESTITUTION = 0.15;
 const HIT_SPEED = 2;       // moving faster than this knocks a body down
+const SHAKE_OFF = 8;       // m/s wall impact that throws a clinging goon off
 
 const _c = { x: 0, z: 0 };
 const _push = { x: 0, z: 0 };
@@ -86,6 +87,7 @@ export function collideStatic(v, ctx) {
     v.vel.x -= (1 + RESTITUTION) * vn * nx;
     v.vel.z -= (1 + RESTITUTION) * vn * nz;
     damage(v, -vn, ctx, v.pos.x - nx * r, v.pos.z - nz * r);
+    if (-vn > SHAKE_OFF && ctx) v.hardHitT = ctx.time;   // throws a clinging goon off (goon-vehicle.js)
   }
   return true;
 }

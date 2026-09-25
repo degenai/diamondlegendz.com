@@ -121,6 +121,11 @@ export function createSfx(ctx, { bus, direct, noise, listener }) {
         burst(t + dt, { filter: 'highpass', f: 4000, q: 0.7, peak: 0.2 * a * k, decay: 0.01 });
       }
     },
+    clang(t, a) { // a bat on bodywork: a dull knock and a ringing panel
+      tone(t, { f: 180, f2: 70, glide: 0.12, peak: 0.6 * a, decay: 0.18 });
+      burst(t, { f: 1250, q: 18, peak: 0.7 * a, decay: 0.22 });
+      burst(t, { f: 2900, q: 22, peak: 0.35 * a, decay: 0.12 });
+    },
     pay(t, a) { // coin ping
       tone(t, { f: 1976, peak: 0.25 * a, decay: 0.35 });
       tone(t + 0.07, { f: 2637, peak: 0.25 * a, decay: 0.5 });

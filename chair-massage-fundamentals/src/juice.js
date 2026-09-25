@@ -40,6 +40,9 @@ export function shake(ctx, amount, x, z) {
   J.trauma = Math.min(1, J.trauma + k);
 }
 
+// A continuous rumble (a goon pounding the roof, goon-vehicle.js): keeps trauma at least `level`.
+export function rumble(ctx, level) { if (J && ctx && ctx.camera) J.trauma = Math.max(J.trauma, level); }
+
 export function burst(ctx, kind, x, y, z, n, dirX, dirZ) { if (J) spawnBurst(J.parts, kind, x, y, z, n, dirX, dirZ); }
 
 // A knockdown from the palm or the gun: freeze, spark, thump. The burst sits between the two

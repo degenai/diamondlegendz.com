@@ -1,8 +1,8 @@
 // Serenity Group heavies. Pack pursuit: two chase straight at the player, one flanks to a point
 // 6 m off the player's side and then closes. 5.5 m/s. Bat swing at 1.6 m (0.4 s wind-up, 20 dmg,
 // 1.2 s knockdown) or an unarmed shove (10 dmg). A Healing Palm puts one down; he gets up loose,
-// sits on the ground for 8 s, then his radio puts him back on. On-foot goons wait at the kerb
-// while the player is in a vehicle.
+// sits on the ground for 8 s, then his radio puts him back on. Against the vehicle he drives:
+// pull-out, bat on the bodywork, cling to the tail (goon-vehicle.js); else they wait at the kerb.
 // Perception (sight lines ruling, 2026-09-23): a goon tracks the player only while he has line of
 // sight (head to head against static colliders; vehicles never block) or is within 6 m. Any goon
 // who sees him updates the whole pack's lastSeen (and pulls searching or returning goons back
@@ -19,9 +19,9 @@ import { hurtPlayer, pack, PERCEIVE } from './hostile.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
 import { emit } from '../events.js';
+import { vehicleMoves, vehicleStrike, clingTick } from './goon-vehicle.js';
 // hostile and alertPack moved to hostile.js (refactor/split); re-exported for one release.
-export { hostile, alertPack } from './hostile.js';
-export { vanHome };
+export { hostile, alertPack } from './hostile.js'; export { vanHome };
 
 const RUN = 5.5;
 const BAT_REACH = 1.6, SHOVE_REACH = 1.3;
@@ -68,20 +68,19 @@ export function createGoon(scene, pos, role, bat) {
   return e;
 }
 
-export function disposeGoon(e, scene) { scene.remove(e.mesh); disposePerson(e.mesh); }
+export function disposeGoon(e, scene) { (e.mesh.parent || scene).remove(e.mesh); disposePerson(e.mesh); } // a clinger rides a vehicle
 
 export function updateGoon(e, dt, ctx) {
   const p = ctx.player;
   e.wishX = e.wishZ = 0; e.speed = 0; e.faceX = undefined;
   if (e.cooldown > 0) e.cooldown -= dt;
+  if (e.cling) { clingTick(e, dt, ctx); return; }   // on a vehicle's tail (goon-vehicle.js)
   e.noRoad = !!p.vehicle;
   if (ctx.grabUntil === Infinity && e.knockedT <= 0 && (e.pos.x - p.pos.x) ** 2 + (e.pos.z - p.pos.z) ** 2 < 9) { ctx.grabUntil = ctx.time + GRAB_WINDOW; ctx.grabStart = ctx.time; }
   if (e.stunT > 0 && e.knockedT <= 0) {           // Gun stun (gun.js): a 1.5 s stagger, no movement, no attack.
     e.stunT -= dt;
     if (e.state === 'windup') e.state = 'chase';
-    e.pose = 'stagger';
-    stepBody(e, dt, ctx); poseRig(e, dt); cull(e, ctx);
-    return;
+    e.pose = 'stagger'; stepBody(e, dt, ctx); poseRig(e, dt); cull(e, ctx); return;
   }
   if (e.knockedT <= 0 && PERCEIVE.has(e.state)) perceive(e, dt, ctx);
   if (e.knockedT > 0) {
@@ -112,7 +111,7 @@ export function updateGoon(e, dt, ctx) {
   } else if (e.state === 'windup') {
     e.stateT -= dt;
     e.faceX = p.pos.x; e.faceZ = p.pos.z;
-    if (e.stateT <= 0) strike(e, ctx);
+    if (e.stateT <= 0 && !vehicleStrike(e, ctx)) strike(e, ctx);
   } else if (e.state === 'recover') {
     e.stateT -= dt;
     if (e.stateT <= 0) e.state = 'chase';
@@ -125,7 +124,7 @@ export function updateGoon(e, dt, ctx) {
     goHome(e, dt, ctx);
   }
   e.pose = e.knockedT > 0 ? 'down' : e.state === 'sit' || e.state === 'treated' ? 'sit' : e.state === 'out' ? 'loose' : (e.state === 'loose' || e.idle) ? 'loose'
-    : e.state === 'windup' ? (e.bat && !e.grab ? 'windup' : 'shove') : e.state === 'recover' ? (e.bat && !e.grab ? 'swing' : 'shove') : 'walk';
+    : e.state === 'windup' ? (e.bat && !e.grab && e.vmove !== 'pull' ? 'windup' : 'shove') : e.state === 'recover' ? (e.bat && !e.grab && e.vmove !== 'pull' ? 'swing' : 'shove') : 'walk';
   stepBody(e, dt, ctx);
   poseRig(e, dt);
   cull(e, ctx);
@@ -214,12 +213,13 @@ function chase(e, dt, ctx) {
   const tgt = p.vehicle ? p.vehicle.pos : p.pos;
   const dx = tgt.x - e.pos.x, dz = tgt.z - e.pos.z, d2 = dx * dx + dz * dz;
   e.speed = RUN;
+  if (p.vehicle && vehicleMoves(e, dt, ctx, e.bat && !grabbing(ctx))) return;
   if (!p.vehicle && p.knockedT <= 0) {
     const grab = grabbing(ctx);
     const reach = e.bat && !grab ? BAT_REACH : SHOVE_REACH;
     if (d2 < reach * reach && e.cooldown <= 0 && Math.abs(p.pos.y - e.pos.y) < 1) {
       e.state = 'windup';
-      e.grab = grab;
+      e.grab = grab; e.vmove = null;
       e.stateT = e.bat && !grab ? BAT_WIND : SHOVE_WIND;
       return;
     }
