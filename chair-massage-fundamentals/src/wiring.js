@@ -6,7 +6,7 @@ import * as meta from './meta.js';
 import * as hud from './hud.js';
 import * as massage from './massage/index.js';
 import { wearPerks } from './entities/player-actions.js';
-import { ensureChair, resetChair } from './entities/chair.js';
+import { ensureChair, resetChair, chairToBack, chairState } from './entities/chair.js';
 import { exitVehicle } from './entities/interact.js';
 import * as spawner from './run/spawner.js';
 import { armOnboard } from './run/goon-waves.js';
@@ -55,9 +55,9 @@ onEnter(STATES.RUN, (prev) => {
     ctx.meta.firstPivotSeen = true;
     meta.save(ctx.meta);
   }
-  // The first run on this save gets the grab-window prompts (goon-waves.js); spent on arrival.
+  // The first run on this save gets the grab-window prompts (goon-waves.js); spent when the first
+  // prompt shows (nitpick 2026-09-25: a refresh or a death before contact should not forfeit them).
   const firstRun = !ctx.meta.firstRunSeen;
-  if (firstRun) { ctx.meta.firstRunSeen = true; meta.save(ctx.meta); }
   ensureChair(ctx);
   ctx.mini = createMini();
   ctx.perks = meta.perks(ctx.meta);
@@ -84,6 +84,8 @@ for (const s of END) {
     // Nor a palm: the end states still tick the player with neutral input (button up), which would
     // turn a charge into a quick palm, or finish a wind-up or a lunge, under the stamp.
     cancelCharge(player, 'runend'); player.palmT = 0; player.lungeT = 0; player.holdPalm = false;
+    // Nor a chair swing: the slow-motion budget is exactly one swing long, and SUMMARY never ticks him.
+    if (player.swingT >= 0) { player.swingT = -1; player.swingHit = false; if (chairState(ctx.world).where === 'player') chairToBack(ctx, player); }
     resetEscapeMarker(ctx);
     startSlowmo(ctx, ctx.runEnd.reason);
   });

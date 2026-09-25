@@ -11,6 +11,7 @@ import { nearestNode } from '../world/roads.js';
 import { setOnboard } from '../hud-run.js';
 import { emit, onEvent } from '../events.js';
 import { chairState } from '../entities/chair.js';
+import * as meta from '../meta.js';
 
 export const WAVE = 90;
 export const GOON_CAP = 9;
@@ -125,6 +126,7 @@ export function onboardStep(ctx, dt) {
   if (O.k < 0) {
     if (ctx.grabStart == null && ctx.grabUntil === Infinity) return;   // no contact yet
     O.k = 0;
+    if (ctx.meta && !ctx.meta.firstRunSeen) { ctx.meta.firstRunSeen = true; meta.save(ctx.meta); }   // spent now, not on arrival
   }
   if (O.t >= 0) {                                // a prompt is up
     O.t += dt;
