@@ -64,6 +64,7 @@ export function vehicleMoves(e, dt, ctx, bat) {
 
 function windup(e, move, t) {
   e.state = 'windup'; e.vmove = move; e.grab = false; e.stateT = t;
+  emit('telegraph', { who: 'goon', id: e.id, act: move === 'pull' ? 'pulloutWindup' : 'batWindup', on: 'vehicle', t });   // Jev milestone 0
   e.wishX = e.wishZ = 0; e.speed = 0;
   return true;
 }

@@ -54,8 +54,7 @@ export function createGoon(scene, pos, role, bat) {
     role, bat, cooldown: 0.8, flankDone: false, update: updateGoon, onPalm, onVehicleHit,
     radius: 0.4,
   });
-  e.state = 'chase';
-  e.lastSeen = null;
+  e.state = 'chase'; e.lastSeen = null;
   e.sightT = Math.random() * SIGHT_EVERY;
   if (bat) {
     loadMesh('assets/bat.json').then((g) => {
@@ -221,6 +220,7 @@ function chase(e, dt, ctx) {
       e.state = 'windup';
       e.grab = grab; e.vmove = null;
       e.stateT = e.bat && !grab ? BAT_WIND : SHOVE_WIND;
+      emit('telegraph', { who: 'goon', id: e.id, act: grab ? 'grabWindup' : e.bat ? 'batWindup' : 'shoveWindup', t: e.stateT });   // Jev milestone 0
       return;
     }
   }

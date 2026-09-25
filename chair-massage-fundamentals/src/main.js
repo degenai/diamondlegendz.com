@@ -25,7 +25,8 @@ import { tickSlowmo, slowmoLog, NEUTRAL } from './run/slowmo.js';
 import { trackStats } from './run/summary.js';
 import { initAudio, audioFrame, audioInternals } from './audio-wire.js';
 import { initTitle } from './title.js';
-import { initEvents } from './events.js';
+import { initEvents, setSink, setWhy } from './events.js';
+import { initSession, recordEvent, recordInput, sessionTick, whyOf } from './session-log.js';
 import { initJuice, juiceTick, juiceCamera, preTick, frozen, tickFrozen } from './juice.js';
 import { wireStates, END } from './wiring.js';
 
@@ -93,7 +94,7 @@ function boot() {
     wanted: createWanted(), hud: null, audio: null, voice: null, time: 0, timeScale: 1,
     npcs: [], mini: createMini(), runCash: 0, runEnd: null,
     perf: { last: 0, max: 0, sum: 0, n: 0 },
-    camera, scene, seed,
+    camera, scene, seed, tick: 0,     // tick: fixed steps since boot (events, snapshots, the agent)
     meta: meta.load(),
     massageTotals: { you: 0, host: 0 },
     station: null, perks: null, runStats: null, lastSummary: null,
@@ -101,6 +102,8 @@ function boot() {
   ctx.perks = meta.perks(ctx.meta);
   wearPerks(player, ctx.perks);     // the loaner scrubs from the first spawn
   initEvents(ctx);                  // the run watcher's event bus (watch.html)
+  const session = initSession(ctx, { massageState: massage.debugState, pivotState: pivot.pivotState });
+  setSink(recordEvent); setWhy(whyOf); // Jev milestone 0: every event into the session log, state.why
   initAudio(ctx, hudRoot);          // before the state wiring: its MASSAGE hook hushes the voice first
   initJuice(ctx);
   ctx.hud = speechHud(ctx, hud);    // goons, cops and mini-massage clients talk in bubbles
@@ -156,7 +159,7 @@ function boot() {
   window.CMF = {
     scene, camera, entities, player, world, renderer,
     state: { get current() { return getState(); }, STATES },
-    input, setState, ctx,
+    input, setState, ctx, session,
     get massage() { return massage.debugState(); },
     massageTuning: massage.tuning,
     get meta() { return ctx.meta; },
@@ -180,12 +183,18 @@ function boot() {
   let accum = 0;
   let fpsFrames = 0, fpsTime = 0, fps = 0;
 
-  function tick(realDt) {
+  function tick(realDt) {           // one fixed step: the sim, then the session log's snapshot
+    ctx.tick++;
+    simTick(realDt);
+    sessionTick();
+  }
+  function simTick(realDt) {
     const s = getState();
     if (s === STATES.RUN && frozen()) { tickFrozen(realDt); return; } // hit-stop: the sim holds, the render goes on
     const dt = realDt * (ctx.timeScale || 1);  // 0.25 under the run-end slow motion
     ctx.time += dt;
     ctx.input = input.snapshot();
+    recordInput(ctx.input);
     if (s === STATES.RUN) {
       const t0 = performance.now();
       updateAll(dt, ctx);

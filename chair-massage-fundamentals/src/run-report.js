@@ -13,6 +13,40 @@ import { REPEAT_RUNS, linesHeard, linesSection, repeatLines, repeatsText } from 
 // Moved out in the split; re-exported here for one release (watch.js and the test scripts).
 export { clock, groupRuns, runStats, diffRuns, bestEscapeNote, REPEAT_RUNS, linesHeard, linesSection, repeatLines, repeatsText };
 
+// One event as a short line: the watcher's feed and the agent's "just now" (Jev milestone 1).
+export function short(e) {
+  const d = e.data || {};
+  switch (e.type) {
+    case 'state': return `${d.from || '-'} -> ${d.to}${d.why ? ` (${d.why})` : ''}`;
+    case 'wanted': return `${d.prev} -> ${d.level} stars, heat ${d.heat} (${d.cause})`;
+    case 'run.start': return `seed ${d.seed}, build ${d.build}, unlocks [${(d.unlocks || []).join(', ')}]`;
+    case 'run.end': return `${d.reason} in ${clock(d.time)}, cash $${d.cash}, tension ${d.tension}${d.unlock ? `, unlocked ${d.unlock}` : ''}`;
+    case 'vehicle': return d.act === 'batHit' ? `bat on the ${d.type}, hp ${d.hp}` : `${d.act} ${d.type}${d.stolen ? ' (stolen)' : ''}`;
+    case 'goon': return d.act === 'car' ? `goon car ${d.n} with wave ${d.wave}, ${d.crew} aboard (${d.alive} out)`
+      : d.car ? `${d.act} (goon car ${d.car})${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.who ? ` for a ${d.who}` : ''}`
+      : `${d.act}${d.vehicle ? ` (${d.vehicle})` : ''}${d.n ? `, ${d.n} on` : ''}`;
+    case 'chair': return `${d.act} -> ${d.where}${d.vehicle ? ` (${d.vehicle})` : ''}`;
+    case 'pivot': return d.beat === 'line' ? `${d.speaker}: "${d.text}"` : d.beat === 'seen' ? `viewing ${d.n} (van stop reached)`
+      : `${d.beat}${d.at !== undefined ? ` at ${d.at} s` : ''}${d.to ? ` to ${d.to}` : ''}`;
+    case 'damage': return `-${d.amount} from ${d.source}, hp ${d.hp}`;
+    case 'knockdown': return `${d.who} (${d.by || d.cause})${d.mine ? ' by you' : ''}`;
+    case 'mini': return `${d.phase}${d.reason ? ` (${d.reason})` : ''}${d.pay ? ` +$${d.pay}` : ''}`;
+    case 'police': return `${d.act} ${d.unit} at node ${d.node}, ${d.ahead ? 'ahead on his route' : 'near him'}${d.route !== undefined ? ` (${d.route} m of road)` : ''}`;
+    case 'van': return `${d.act}${d.who ? ` for a ${d.who}` : ''}${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.x !== undefined ? ` at ${d.x}, ${d.z}` : ''}`;
+    case 'vending': return `${d.act}${d.heat ? ` (heat ${d.heat})` : ''}${d.goons !== undefined ? `, ${d.goons} goons` : ''}${d.rank ? `, ${d.rank}` : ''}${d.after !== undefined ? ` after ${d.after} s` : ''}`;
+    case 'peds': return `left block ${d.block}: ${d.arrived} peds on arrival, ${d.moved} moved in, ${d.have} at the end`;
+    case 'treat': return `${d.kind || d.target}${d.wave ? ' (wave)' : ''}${d.rank ? ` (${d.rank})` : ''} ${d.phase || 'sit'}`;
+    case 'leave': return `${d.phase}${d.vehicle ? ` (${d.vehicle})` : ''}${d.why ? ` (${d.why})` : ''}${d.held !== undefined ? ` after ${d.held} s` : ''}`;
+    case 'palm': return d.target ? `${d.charged ? 'charged' : 'quick'} on ${d.target}` : `${d.phase}${d.cause ? ` (${d.cause})` : ''}`;
+    case 'line': return `${d.speaker}${d.name !== null && d.name !== undefined ? ` ${d.name}` : ''}: "${d.text}" [${d.state || '-'}]`;
+    case 'tutorial': return `step ${d.step} ${d.act}: ${d.text}`;
+    case 'call': return d.act === 'answer' ? `${d.call} answered ${d.answer}: ${d.correct ? 'right' : d.late ? 'late' : 'wrong'}${d.where ? ' (run)' : ''}`
+      : `${d.act} ${d.call}: "${d.prompt}" (${d.key}, ${d.window} s)${d.where ? ' (run)' : ''}`;
+    case 'telegraph': return `${d.who} ${d.id} ${d.act}${d.on ? ` on the ${d.on}` : ''}${d.t ? ` (${d.t} s)` : ''}`;
+    default: return Object.entries(d).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ');
+  }
+}
+
 function wantedWhy(evs, i, d) {
   const v = nearby(evs, i, 'vehicle', 0.6);
   switch (d.cause) {

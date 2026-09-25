@@ -227,11 +227,12 @@ function arrest(P, dt, ctx) {
     if (c.kind !== 'cop' || !copHostile(c)) continue;
     if (Math.abs(c.pos.y - p.pos.y) > 1.2) continue;      // not across a ledge
     const d2 = (c.pos.x - p.pos.x) ** 2 + (c.pos.z - p.pos.z) ** 2;
-    if (d2 < 1.2 * 1.2) touch = true;
+    if (d2 < 1.2 * 1.2) touch = touch || c;
     if (d2 < 2 * 2) near = true;
   }
   if (p.knockedT > 0 && near) { endRun(ctx, 'arrest'); return; }
   const speed = Math.hypot(p.vel.x, p.vel.z);
+  if (touch && speed < 0.5 && !(P.arrestT > 0)) { P.arrestBy = touch.id; emit('telegraph', { who: touch.rank === 'ranger' ? 'ranger' : 'cop', id: touch.id, act: 'arrestStart', t: 1.5 }); }   // Jev milestone 0
   P.arrestT = touch && speed < 0.5 ? P.arrestT + dt : Math.max(0, P.arrestT - dt);
   if (P.arrestT >= 1.5) endRun(ctx, 'arrest');
 }

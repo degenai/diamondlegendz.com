@@ -4,8 +4,8 @@
 // report (src/run-report.js) with its diffs under the selected run, and under the finished runs the
 // Repeats list (voice lines heard in three or more runs). The feed filters to All or Lines.
 // No server, nothing external.
-import { CHANNEL, KEY } from './events.js';
-import { fullReport } from './run-report.js';
+import { CHANNEL, KEY, SESSION_CHANNEL } from './events.js';
+import { fullReport, short } from './run-report.js';
 import { groupRuns, runStats, clock } from './run-stats.js';
 import { repeatLines, repeatsText, REPEAT_RUNS } from './run-lines.js';
 
@@ -17,36 +17,6 @@ window.__watch = W;                                   // debug handle, like wind
 // seen share a wall and a sim time), and the feed must not fold them into one.
 const keyOf = (e) => `${e.wall}|${e.run}|${e.type}|${e.t}|${JSON.stringify(e.data)}`;
 const FEED_MAX = 2000;
-
-function short(e) {
-  const d = e.data || {};
-  switch (e.type) {
-    case 'state': return `${d.from || '-'} -> ${d.to}`;
-    case 'wanted': return `${d.prev} -> ${d.level} stars, heat ${d.heat} (${d.cause})`;
-    case 'run.start': return `seed ${d.seed}, build ${d.build}, unlocks [${(d.unlocks || []).join(', ')}]`;
-    case 'run.end': return `${d.reason} in ${clock(d.time)}, cash $${d.cash}, tension ${d.tension}${d.unlock ? `, unlocked ${d.unlock}` : ''}`;
-    case 'vehicle': return d.act === 'batHit' ? `bat on the ${d.type}, hp ${d.hp}` : `${d.act} ${d.type}${d.stolen ? ' (stolen)' : ''}`;
-    case 'goon': return d.act === 'car' ? `goon car ${d.n} with wave ${d.wave}, ${d.crew} aboard (${d.alive} out)`
-      : d.car ? `${d.act} (goon car ${d.car})${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.who ? ` for a ${d.who}` : ''}`
-      : `${d.act}${d.vehicle ? ` (${d.vehicle})` : ''}${d.n ? `, ${d.n} on` : ''}`;
-    case 'chair': return `${d.act} -> ${d.where}${d.vehicle ? ` (${d.vehicle})` : ''}`;
-    case 'pivot': return d.beat === 'line' ? `${d.speaker}: "${d.text}"` : d.beat === 'seen' ? `viewing ${d.n} (van stop reached)`
-      : `${d.beat}${d.at !== undefined ? ` at ${d.at} s` : ''}${d.to ? ` to ${d.to}` : ''}`;
-    case 'damage': return `-${d.amount} from ${d.source}, hp ${d.hp}`;
-    case 'knockdown': return `${d.who} (${d.by || d.cause})${d.mine ? ' by you' : ''}`;
-    case 'mini': return `${d.phase}${d.reason ? ` (${d.reason})` : ''}${d.pay ? ` +$${d.pay}` : ''}`;
-    case 'police': return `${d.act} ${d.unit} at node ${d.node}, ${d.ahead ? 'ahead on his route' : 'near him'}${d.route !== undefined ? ` (${d.route} m of road)` : ''}`;
-    case 'van': return `${d.act}${d.who ? ` for a ${d.who}` : ''}${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.x !== undefined ? ` at ${d.x}, ${d.z}` : ''}`;
-    case 'vending': return `${d.act}${d.heat ? ` (heat ${d.heat})` : ''}${d.goons !== undefined ? `, ${d.goons} goons` : ''}${d.rank ? `, ${d.rank}` : ''}${d.after !== undefined ? ` after ${d.after} s` : ''}`;
-    case 'peds': return `left block ${d.block}: ${d.arrived} peds on arrival, ${d.moved} moved in, ${d.have} at the end`;
-    case 'treat': return `${d.kind || d.target}${d.wave ? ' (wave)' : ''}${d.rank ? ` (${d.rank})` : ''} ${d.phase || 'sit'}`;
-    case 'leave': return `${d.phase}${d.vehicle ? ` (${d.vehicle})` : ''}${d.why ? ` (${d.why})` : ''}${d.held !== undefined ? ` after ${d.held} s` : ''}`;
-    case 'palm': return d.target ? `${d.charged ? 'charged' : 'quick'} on ${d.target}` : `${d.phase}${d.cause ? ` (${d.cause})` : ''}`;
-    case 'line': return `${d.speaker}${d.name !== null && d.name !== undefined ? ` ${d.name}` : ''}: "${d.text}" [${d.state || '-'}]`;
-    case 'tutorial': return `step ${d.step} ${d.act}: ${d.text}`;
-    default: return Object.entries(d).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ');
-  }
-}
 
 function hhmmss(wall) {
   const d = new Date(wall);
@@ -225,6 +195,32 @@ function clearLog() {
   note('log cleared');
 }
 
+// The session log (session-log.js, Jev milestone 0): the game tab posts its latest snapshot once a
+// second on SESSION_CHANNEL (the card's "Now" line; a minimap can hang off W.snap later), and answers
+// {want: 'dump'} with the whole in-memory log as NDJSON, which "Download session" saves.
+function snapLine(s) {
+  if (!s) return '-';
+  if (s.m) return `${s.st} tick ${s.tick} · client ${s.m.idx + 1}/${s.m.n} ${s.m.comp}% · ${s.m.mod}${s.m.want ? ` (wants ${s.m.want})` : ''}${s.call ? ` · call ${s.call.name}${s.call.open ? ' open' : ''}` : ''}`;
+  if (s.p) return `${s.st} tick ${s.tick} · hp ${s.p.hp} · ${s.p.veh || 'on foot'} · chair ${s.p.chair} · ${s.w.lv}★ · exit ${s.tgt.exit ? `${s.tgt.exit[0]} m` : '-'} · ${s.near.length} near`;
+  return `${s.st} tick ${s.tick}`;
+}
+function downloadSession() {
+  if (!W.schan) { note('BroadcastChannel unavailable'); return; }
+  W.wantDump = true;
+  W.schan.postMessage({ want: 'dump' });
+  clearTimeout(downloadSession.t);
+  downloadSession.t = setTimeout(() => { if (W.wantDump) { W.wantDump = false; note('no game tab answered (open the game on this origin)'); } }, 2500);
+}
+function saveSession(text, n) {
+  W.wantDump = false; W.lastSession = text;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'application/x-ndjson' }));
+  a.download = `cmf-session-${new Date().toISOString().replace(/[:.]/g, '-')}.ndjson`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  note(`downloaded the session: ${n} entries, ${Math.round(text.length / 1024)} KB`);
+}
+
 function boot() {
   let saved = [];
   try { const a = JSON.parse(window.localStorage.getItem(KEY) || '[]'); if (Array.isArray(a)) saved = a; } catch (_) { saved = []; }
@@ -237,6 +233,14 @@ function boot() {
   }
   add(saved, false);
   W.replayed = saved.length;
+  try {
+    W.schan = new BroadcastChannel(SESSION_CHANNEL);
+    W.schan.onmessage = (m) => {
+      const d = m.data || {};
+      if (d.type === 'snap') { W.snap = d; $('c-snap').textContent = snapLine(d); } else if (typeof d.dump === 'string' && W.wantDump) saveSession(d.dump, d.n);
+    };
+  } catch (_) { W.schan = null; }
+  $('w-session').addEventListener('click', downloadSession);
   $('w-download').addEventListener('click', download);
   $('w-copy').addEventListener('click', copyLast);
   $('w-clear').addEventListener('click', clearLog);

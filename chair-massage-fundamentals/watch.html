@@ -51,6 +51,7 @@
   .w-feed-bar select { font: 12px var(--mono); }
   .w-empty { color: #999; font-style: italic; }
   .w-note { font-size: 11px; color: #cfe0ee; }
+  .w-now { font: 11px var(--mono); color: #6b5a2e; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   @media (max-width: 800px) { .w-main { grid-template-columns: 1fr; height: auto; } .w-feed { height: 60vh; } }
 </style>
 </head>
@@ -60,6 +61,7 @@
   <span class="w-live" id="w-live">listening</span>
   <select id="w-scope" aria-label="Download scope"><option value="all">All runs</option><option value="sel">Selected run</option></select>
   <button id="w-download" type="button">Download run log (JSON)</button>
+  <button id="w-session" type="button" title="The game tab's in-memory session log: events, 4 Hz snapshots, input (NDJSON)">Download session</button>
   <button id="w-copy" type="button">Copy last run</button>
   <button id="w-clear" type="button">Clear log</button>
   <span class="w-note" id="w-note"></span>
@@ -76,6 +78,7 @@
         <div><span>Chair</span><b id="c-chair">-</b></div>
         <div><span>Cash</span><b id="c-cash">-</b></div>
       </div>
+      <div class="w-now">Now: <span id="c-snap">-</span></div>
       <div class="w-strip" id="c-strip" title="Wanted stars over the run"></div>
       <div class="w-strip-legend"><span>0:00</span><span id="c-strip-end"></span></div>
     </div>

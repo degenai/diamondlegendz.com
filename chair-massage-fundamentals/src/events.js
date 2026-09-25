@@ -2,8 +2,13 @@
 // each event { t, wall, run, type, data } goes out on BroadcastChannel('cmf') to any watch tab and
 // into a localStorage ring buffer (cmf.events.v1, newest 2,000) that a watch tab replays on load.
 // Nothing here may ever throw into the game: every browser call is wrapped.
+// Playtesting with Jev (milestone 0): every event carries `tick` (ctx.tick, the fixed-step count);
+// `state` events carry `why` (from the provider main.js sets); `run.start` carries the meta subset
+// that changes a run; and every event is also handed to the session log's sink (session-log.js),
+// which is where the 4 Hz snapshots and the input live. The ring below stays events only.
 export const CHANNEL = 'cmf';
 export const KEY = 'cmf.events.v1';
+export const SESSION_CHANNEL = 'cmf.session';   // session-log.js: 1 Hz snapshots, dump on request
 export const CAP = 2000;
 const FLUSH_MS = 250;
 
@@ -13,6 +18,12 @@ let buf = null;
 let chan = null;
 let timer = 0;
 const taps = new Set();
+let sink = null;          // session-log.js record(ev)
+let why = null;           // (from, to) -> text
+export function setSink(fn) { sink = fn; }
+export function setWhy(fn) { why = fn; }
+const META_KEYS = ['runs', 'escapes', 'pivotsSeen', 'firstPivotSeen', 'firstRunSeen', 'lastOutcome', 'lastUnlock', 'lastTrack', 'consolations', 'bestTime'];
+function metaSubset(m) { const o = {}; for (const k of META_KEYS) o[k] = Array.isArray(m[k]) ? [...m[k]] : m[k]; return o; }
 
 function load() {
   if (buf) return buf;
@@ -49,13 +60,18 @@ export function currentRun() { return runId; }
 export function onEvent(fn) { taps.add(fn); return () => taps.delete(fn); }
 
 export function emit(type, data = {}) {
+  try {
+    if (type === 'state' && why && data.why === undefined) data.why = why(data.from, data.to);
+    if (type === 'run.start' && ctx && ctx.meta && !data.meta) data.meta = metaSubset(ctx.meta);
+  } catch (_) { /* never into the game */ }
   for (const fn of taps) { try { fn(type, data); } catch (_) { /* never into the game */ } }
   try {
     if (type === 'state' && (data.to === 'MASSAGE' || data.to === 'RUN')) runId = runsSoFar() + 1;
-    const ev = { t: Math.round(((ctx && ctx.time) || 0) * 100) / 100, wall: Date.now(), run: runId, type, data };
+    const ev = { t: Math.round(((ctx && ctx.time) || 0) * 100) / 100, tick: (ctx && ctx.tick) || 0, wall: Date.now(), run: runId, type, data };
     if (chan) { try { chan.postMessage(ev); } catch (_) { /* uncloneable data */ } }
     load().push(ev);
     if (buf.length > CAP) buf.splice(0, buf.length - CAP);
     if (!timer) timer = setTimeout(flush, FLUSH_MS);
+    if (sink) sink(ev);
   } catch (_) { /* never into the game */ }
 }

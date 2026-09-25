@@ -183,6 +183,7 @@ function kneel(e, M) {
   e.mesh.rotation.set(0, e.yaw, 0);
   poseKneeling(e.mesh);
   M.phase = 'ready';
+  emit('mini', { phase: 'ready', client: e.id, sore: !!e.sore });   // Jev milestone 0: hold E now
 }
 
 function succeed(ctx) {

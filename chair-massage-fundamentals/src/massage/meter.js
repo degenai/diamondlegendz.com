@@ -11,6 +11,7 @@
 // starts its window when the line starts, and pays out or drains. The file keeps its old name so
 // the module map stays put.
 import { makeRng, hashSeed } from '../rng.js';
+import { emit } from '../events.js';
 
 export const CALLS = {
   lighter: { text: 'Ow. Lighter.', key: 'S', window: 1.5 },
@@ -62,7 +63,13 @@ export function pickCall(k, force = null) {
 export function makeCall(name, over = null) {
   return { name, ...CALLS[name], ...(over || {}), open: false, t: 0, held: 0, result: null, answer: null };
 }
-export function openCall(c) { c.open = true; c.t = 0; c.held = 0; }
+// The window opens (Jev milestone 0: `call` act 'open', the moment a player is judged from). The
+// run's calls carry MINI_CALLS' shorter windows, which is how the event tells the two apart.
+export function openCall(c) {
+  c.open = true; c.t = 0; c.held = 0;
+  const run = c.window !== (CALLS[c.name] || {}).window;
+  emit('call', { act: 'open', call: c.name, prompt: c.text, key: c.key || 'none', window: c.window, ...(run ? { where: 'run' } : {}) });
+}
 
 const W = (p) => p.has('KeyW') || p.has('ArrowUp');
 const Sk = (p) => p.has('KeyS') || p.has('ArrowDown');
