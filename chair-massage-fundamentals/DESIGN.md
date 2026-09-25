@@ -148,8 +148,8 @@ stay inside it. Patterns per modality:
   prompt, "Trigger point: hold the click while it closes" (waits for one full held close), and always by
   the CLIENT WANTS line reading "hold click" during trigger point. Swedish and cross-fiber stay
   mouse-only. The run's palm prompt is unchanged (ruled: the link stays unspoken). The pilot's ring
-  reflex holds the click in trigger point (`agent.js`). Watcher: `tutorial` step 'e', and the `call`
-  answer's `fill` shows the half credit.
+  reflex holds the click in trigger point (`agent.js`). Watcher: `tutorial` step 'e' (it runs before 'd', which is completion, so the guided steps read a b c e d), and the `call`
+  answer's `fill` shows the half credit. The guided client's trigger point segment takes two right answers, as its warm-up does, so a full 4 s held close can happen before the segment ends.
 A / D cycle modality (except as the answer to "left / right"). Each client asks for a modality by
 name; the wrong modality fills nothing.
 Ruling (2026-09-24, Andy's first play: "the client could want a different one instantly and you get a
