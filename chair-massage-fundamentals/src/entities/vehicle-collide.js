@@ -92,7 +92,8 @@ export function collideStatic(v, ctx) {
   return true;
 }
 
-const rammer = (v) => !!(v.franchise && v.driver && v.driver.kind === 'aiDriver');
+// The van and the goon cars (v.spares = 'goons', goon-car.js): their ram is the hit, contact is free.
+const rammer = (v) => !!((v.franchise || v.spares === 'goons') && v.driver && v.driver.kind === 'aiDriver');
 
 export function collideVehicles(a, b, ctx) {
   const reach = a.spec.halfL + b.spec.halfL;

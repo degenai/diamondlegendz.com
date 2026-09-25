@@ -98,7 +98,7 @@ export function dropCar(ctx, van, goons, wave) {
     recolourBody(m, SERENITY_BLACK);
     const v = placeVehicle(ctx.world, ctx.world.root, ctx.entities, 'sedan', m, new THREE.Vector3(spot.x, spot.y, spot.z), spot.yaw);
     v.serenity = true; v.spares = 'goons';
-    const C = { v, n: ++G.n, wave, crew: [], mode: 'parked', idleT: 0, lost: false, seen: null };
+    const C = { v, n: ++G.n, wave, crew: [], mode: 'parked', idleT: 0, lost: false };
     C.chase = { car: C.n, ramCd: 0, rams: 0, yieldTag: 'goon' };
     G.list.push(C);
     for (const e of crew) {
@@ -213,13 +213,11 @@ function tick(ctx, C, dt) {
   const pv = p.vehicle;
   if (C.mode === 'drive') {
     C.chase.ramCd = Math.max(0, (C.chase.ramCd || 0) - dt);
-    refund(C, v, pv);
     if (!pv) {
       if (d < BAIL_R) { brake(v); if (Math.abs(v.speed) < BAIL_SPEED) bail(ctx, C); }
       else drive(ctx, v, p.pos, dt);
     } else pursue(ctx, C.chase, v, pv, dt, CHASE);
     if (v.driver) yieldStep(ctx, C.chase, v, dt);
-    C.seen = pv ? { v: pv, hp: pv.hp } : null;
     return true;
   }
   if (C.mode === 'boarding') {
@@ -247,15 +245,6 @@ function drive(ctx, v, t, dt) {
   const d = Math.hypot(t.x - v.pos.x, t.z - v.pos.z);
   if (d < 30 || Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 12) driveAt(v, t.x, t.z, FOOT_CRUISE, dt);
   else driveRoute(v, G, goal, ROUTE_CRUISE, dt);
-}
-
-// The goon car's contact with his vehicle is not crash damage (the ram is the hit, like the van's
-// shove): hp his vehicle lost since the last tick while touching the car comes back.
-function refund(C, v, pv) {
-  const S = C.seen;
-  if (!pv || !S || S.v !== pv || !(pv.hp > 0) || pv.hp >= S.hp) return;
-  if (Math.hypot(pv.pos.x - v.pos.x, pv.pos.z - v.pos.z) > v.spec.halfL + pv.spec.halfL + 0.5) return;
-  pv.hp = S.hp; pv._hpSeen = pv.hp;
 }
 
 // Between runs (spawner.clear): the riders and every goon car go; bailed crew are ordinary npcs.
