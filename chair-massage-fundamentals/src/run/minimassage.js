@@ -45,7 +45,7 @@ function release(ctx, line, relaxed) {
     const dx = e.pos.x - M.pos.x, dz = e.pos.z - M.pos.z, d = Math.hypot(dx, dz) || 1;
     e.cwX = dx / d; e.cwZ = dz / d; e.cSpeed = relaxed ? 0.9 : 1.3;
     if (e.knockedT > 0) e.state = 'wander';
-    if (line) say(ctx, e, line, { replace: true });   // over any call line still speaking
+    if (line) say(ctx, e, line, 'speech replace');   // over any call line still speaking (bubbles.js speechHud)
   }
   M.client = null;
   if (M.caller) M.caller.call = null;       // an open call dies with the massage: no late miss after it

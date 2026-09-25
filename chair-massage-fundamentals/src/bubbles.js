@@ -256,7 +256,7 @@ export function speechHud(ctx, hud) {
       if (typeof cls === 'string' && cls.startsWith('speech')) {
         const e = ctx.npcs.find((n) => n.pos.x === x && n.pos.z === z && Math.abs(n.pos.y + 2.1 - y) < 1e-6);
         const kind = e && preset(e);
-        if (kind) return say(ctx, e, text, { skin: 'run', preset: kind });
+        if (kind) return say(ctx, e, text, { skin: 'run', preset: kind, replace: /replace/.test(cls) });   // 'speech replace': cut what they were saying
       }
       return plain(text, x, y, z, cls);
     },
