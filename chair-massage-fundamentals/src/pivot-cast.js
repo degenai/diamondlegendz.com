@@ -12,7 +12,7 @@ import { floorHeightAt } from './physics.js';
 
 const STOP_AT = 8;          // metres from the chair (pivot.js)
 const BOSS_SUIT = { shirt: 0x6d6f74, pants: 0x5f6166, shoes: 0x1a1a1a };
-const SKIP_TEXT = 'Press any key to skip the module review';
+const SKIP_TEXT = 'Press any key to skip the drive-up';   // shown during the drive-up only (pivot-skip.js)
 const _a = new THREE.Vector3();
 const _b = new THREE.Vector3();
 const _m = new THREE.Matrix4();
