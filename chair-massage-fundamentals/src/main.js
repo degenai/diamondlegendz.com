@@ -88,7 +88,9 @@ function boot() {
   const entities = [];
   const player = addEntity(entities, createPlayer(scene, new THREE.Vector3(0, 0, 3)));
   // Parked sedans become drivable once their meshes load; cart, van and cop car join them.
-  const vehiclesReady = world.ready.then(() => spawnVehicles(world, world.root, entities));
+  // A stepped run waits for every mesh first: the cart, van and cop car then take their entity ids in
+  // code order, not in the order their fetches happen to finish (a replay saw v2 and v3 swap).
+  const vehiclesReady = (AGENT ? Promise.all([world.ready, meshes]) : world.ready).then(() => spawnVehicles(world, world.root, entities));
 
   input.initInput(canvas);
   input.onLockChangeListener((locked) => {
