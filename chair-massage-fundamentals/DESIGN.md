@@ -96,30 +96,55 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
 
 Camera: over the shoulder of the therapist, looking down at the client in the chair. Park in the background.
 
-**Pressure (WASD).** A vertical meter on the HUD. W raises pressure, S lowers it. A/D shift the working
-spot left/right across the client's back (the visible therapist hands slide). Each client has a hidden
-sweet-spot band that drifts slowly. In band: progress fills. Under band: nothing. Over band: client flinches,
-progress drains, "Ouch" text. This is exactly a "hold direction to move at a speed" skill.
+**Pressure is call and response (W / S)** (ruled 2026-09-24, Andy: "the pressure meter reads too
+heavy"; ruling: pure QTE, no meter at all). There is no gauge, no pressure number and no hidden band.
+The client speaks every 4 to 8 s (seeded from the run seed, per client personality: `calls` in
+`clients.js`, the calls and the judging in `massage/meter.js`), and the answer window opens when the
+line starts speaking:
+- "Ow. Lighter." tap S within 1.5 s.
+- "Harder. Try to hurt me." hold W for 1 s (finished within 2.5 s).
+- "That's it, right there." do nothing for 2 s: no W, no S.
+- "A little to the left." / "A little to the right." tap A or D once within 2 s, without changing
+  the modality: during that call A/D are the answer; outside it they cycle the modality as always.
+
+The opposite key is a wrong answer (W for lighter, S for harder, W or S while still, D for left, A for
+right); running out the window is late. A right answer fills the segment's share of competency: all
+of it when the modality is the one asked for and the cursor stayed on the ring since the last answer
+(80% of the time counts as all of it), half for a cursor that never did, nothing on the wrong
+modality. A wrong or late answer drains a
+quarter share (never below the segment's floor), the client says their miss line ("Not that."), and
+pushing W when they asked for less or for stillness makes them flinch. So W stays "more" and S stays
+"less", which is what the run needs (pillar 1): W is forward, S is back. The ring's colour is the last
+result: green for 1 s after a right answer, red after a wrong or late one, white otherwise. While a
+call is open a small cue beside the ring shows the key and a bar running down with the window.
+Personalities: Dana calls "lighter" most (5 to 8 s), Walt "harder" (4.5 to 7.5 s), Marcus mixes all
+five fastest (4 to 6.5 s), Priya mixes all five (4.5 to 7 s). Each call and each answer is a `call`
+watcher event (act `asked` with the prompt, the call and the key; act `answer` with the prompt, the
+answer, correct, late and the fill). Clients take about 20 to 35 s each with right answers.
 
 **Stroke tracking (mouse).** A circle on the HUD (over the client's back) moves in a pattern. Mouse must
 stay inside it. Patterns per modality:
 - Swedish: long slow ellipses.
 - Cross-fiber friction: short fast back-and-forth.
 - Trigger point: stationary, but the circle shrinks over 4 seconds then releases.
-A / D cycle modality. Each client asks for a modality by name; the wrong modality fills nothing.
+A / D cycle modality (except as the answer to "left / right"). Each client asks for a modality by
+name; the wrong modality fills nothing.
 Ruling (2026-09-24, Andy's first play: "the client could want a different one instantly and you get a
 micro panic"): **Space always snaps to the requested modality**, any time in a session, no bonus and
 no window. CLIENT WANTS shows a Space keycap ("SPACE to match") whenever the modality is wrong. Space
 does nothing else in the course (it is the run's jump and handbrake).
 **Guided first client** (ruled 2026-09-24, Andy: "took a min to figure out how to play"): on a
 first-time playthrough only (`meta.firstPivotSeen` false), client 1 is a tutorial layered on the real
-session, one course-skin prompt under the ring at a time, each waiting for the action: "Hold W until
-the ring turns green" (zone in for 1 s), "Keep the cursor on the guide" (2 s inside), at the first
+session, one course-skin prompt under the ring at a time, each waiting for the action: "When they say
+harder, hold W" (until the first right answer; the guided client calls "harder" until they get one,
+and its first segment takes two right answers so the next prompt gets its turn),
+"Keep the cursor on the guide" (2 s inside), at the first
 segment change "Press Space to give them what they asked for" (until the modality matches), and at
 completion "Press E when they're done". Competency fills as usual underneath. A `tutorial` watcher
 event marks each prompt shown and done. Between-run and later clients never show them.
-Ruling (2026-09-23): the ring only gates *fill*. Over-band pressure drains and flinches even when the
-cursor is off the ring; you hurt them whether or not you are watching your hands.
+Between-run clients use the same calls. The **mini-massage during the run** (`run/minimassage.js`)
+still has its own small pressure bar (W/S into a band); it should adopt the calls next, so the
+course and the run teach the same thing.
 
 **Clients.** Three park regulars: a jogger (tight calves, wants Swedish), a retiree from the bench
 (upper traps, wants trigger point), a dad from the playground (forearms from pushing swings, wants
@@ -127,8 +152,8 @@ cross-fiber). Two or three lines each about their day. One line each quietly for
 "the new place at the strip mall wants ninety bucks for this", "some guys in a black van were asking
 who runs the chair", "my HOA got a letter about unlicensed vendors, is that you?".
 
-**Boredom curve.** Client 1 is easy. Client 2 tighter band. Client 3 both mechanics at once with talky
-client dialogue about their day. It should feel like a real, competent, slightly tedious edutainment game.
+**Boredom curve.** Client 1 is easy. Client 2 calls faster. Client 3 calls fastest, all five calls,
+with talky client dialogue about their day. It should feel like a real, competent, slightly tedious edutainment game.
 
 **Money.** Each finished client pays. The dollar figure is the run's starting cash later. Half goes to
 "the host cause" in a visible ledger (the 50/50 split is in the game).

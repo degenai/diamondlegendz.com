@@ -1,8 +1,10 @@
-// MASSAGE: the minigame loop. Intro card -> clients (meter + stroke guide + speech bubbles)
+// MASSAGE: the minigame loop. Intro card -> clients (calls + stroke guide + speech bubbles)
 // -> payout and ledger -> E for the next client. Each client runs in segments (Swedish, then
 // cross-fiber, then trigger point; two between runs): the client asks for each one out loud, the
 // HUD says CLIENT WANTS over the ring, and only the requested modality fills competency.
-// Keys match the run (DESIGN.md pillar 1): W/S pressure (forward/back), A/D modality (strafe),
+// Keys match the run (DESIGN.md pillar 1): W/S answer the client's calls, more and less (forward/
+// back: "harder" is hold W, "lighter" is tap S), A/D modality (strafe; during "a little to the left /
+// right" they are the answer instead),
 // mouse on the guide (look), E next client (interact), Space (the run's jump and handbrake) snaps
 // the modality to the one the client wants (owner ruling 2026-09-24, Andy's first play: cycling
 // under a fresh request was a micro panic). Space does nothing else here. The last client never
@@ -20,13 +22,14 @@ import { COACH, wanted, coachDone, showDialogue, startClient, updateSession, han
 import { resetLedger } from './ledger.js';
 
 const INTRO_TITLE = 'Module 1: Pressure and Stroke.';
-const INTRO_BODY = 'W / S pressure, A / D modality, Space to match the client, mouse on the guide, E next client. '
-  + 'The ring is your pressure gauge; the client tells you which modality they want.';
+const INTRO_BODY = 'Listen to the client. Harder: hold W. Lighter: tap S. Right there: hands off W and S. '
+  + 'A little to the left or right: tap A or D. The rest of the time A / D change the modality, '
+  + 'Space matches the one they want, the mouse stays on the guide, and E brings the next client.';
 
 let st = null; // stage (persists: the chair stays at the spot for the run)
 const S = {
-  phase: 'idle', roster: [], idx: 0, client: null, meter: null, guide: null, dlg: null,
-  competency: 0, ouchCd: 0, time: 0, totals: { you: 0, host: 0 }, paid: [],
+  phase: 'idle', roster: [], idx: 0, client: null, caller: null, guide: null, dlg: null,
+  competency: 0, time: 0, flash: null, flashT: 0, trackT: 0, trackIn: 0, press: 40, totals: { you: 0, host: 0 }, paid: [],
   segs: [], seg: 0, live: false, pending: -1, wrongT: 0, notIt: 0, requests: [], forceDone: false,
   coach: { on: false, step: -1, next: 0, held: 0, log: [] },
 };
@@ -37,7 +40,7 @@ export function enter(ctx) {
   if (st.therapist || st.client) stage.removeCast(st, ctx.scene); // a run that never reached RUN
   stage.addCast(st, ctx.scene, ctx.perks && ctx.perks.shirt);
   S.roster = roster(ctx.meta);
-  S.idx = 0; S.client = null; S.meter = null; S.time = 0;
+  S.idx = 0; S.client = null; S.caller = null; S.time = 0;
   S.competency = 0; S.segs = []; S.seg = 0; S.live = false; S.pending = -1; S.requests = [];
   S.guide = createGuide(ctx.scene);
   S.guide.mesh.visible = false;
@@ -46,7 +49,6 @@ export function enter(ctx) {
   hud.showMassageHud(true);
   resetLedger(ctx, S);                    // totals, paid list, the ledger strip (ledger.js)
   hud.setCompetency(0);
-  hud.setMeter(0, 0, 0);
   hud.setClientInfo(`${S.roster.length} client${S.roster.length > 1 ? 's' : ''} scheduled`);
   hud.setModality(modality(S.guide), '');
   setRing(null);
@@ -136,7 +138,7 @@ export const tuning = { CAM_POS: stage.CAM_POS, CAM_LOOK: stage.CAM_LOOK, THERAP
 
 // Plain snapshot for window.CMF.massage (debug handle + headless tests).
 export function debugState() {
-  const m = S.meter, g = S.guide;
+  const k = S.caller, g = S.guide, c = k && k.call;
   return {
     phase: S.phase,
     clientIndex: S.idx,
@@ -151,10 +153,11 @@ export function debugState() {
     notItSaid: !!S.notIt,
     requests: S.requests.slice(),
     modality: g ? modality(g) : null,
-    pressure: m ? m.pressure : 0,
     spot: g ? handSpot(g) : 0,
-    band: m ? { centre: m.bandCentre, width: m.bandWidth, lo: m.bandCentre - m.bandWidth / 2, hi: m.bandCentre + m.bandWidth / 2 } : null,
-    zone: m ? m.zone : null,
+    call: c ? { name: c.name, text: c.text, key: c.key || 'none', open: c.open, t: c.t, window: c.window } : null,
+    nextCallIn: k && !c ? k.wait : null,
+    calls: k ? k.log.slice() : [],
+    flash: S.flash,
     inside: g ? g.inside : false,
     ring: g ? { x: g.screen.x, y: g.screen.y, r: g.screen.r, worldRadius: g.radius, u: g.u, v: g.v, speed: g.speed } : null,
     gauge: gaugeState(),

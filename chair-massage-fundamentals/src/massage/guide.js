@@ -59,10 +59,11 @@ export function resetPattern(g) {
   g.walk.x = 0; g.walk.y = 0;
 }
 
-// The ring is the pressure gauge's colour too: red over the band, green in it, white under.
-// Off the ring (cursor outside) it dims instead of turning red, so red only ever means "too hard".
-export function toneGuide(g, zone) {
-  g.mesh.material.color.copy(zone === 'over' ? RED : zone === 'in' ? GREEN : WHITE);
+// The ring's colour is the last call's result (owner ruling 2026-09-24, call and response): green
+// for a second after a right answer, red after a wrong or late one, white otherwise. Off the ring
+// (cursor outside) it dims instead. flash: 'ok' | 'bad' | null.
+export function toneGuide(g, flash) {
+  g.mesh.material.color.copy(flash === 'bad' ? RED : flash === 'ok' ? GREEN : WHITE);
   g.mesh.material.opacity = g.inside ? 0.95 : 0.35;
 }
 
@@ -140,6 +141,6 @@ export function updateGuide(g, dt, back, camera, mouseX, mouseY, w, h) {
   g.screen.inside = inside;
   g.screen.x = _sc.x; g.screen.y = _sc.y;
   g.screen.r = (Math.hypot(ax, ay) + Math.hypot(bx, by)) / 2;
-  g.screen.ax = ax; g.screen.ay = ay; g.screen.bx = bx; g.screen.by = by; // for the HUD gauge
+  g.screen.ax = ax; g.screen.ay = ay; g.screen.bx = bx; g.screen.by = by; // for the HUD labels
   return inside;
 }

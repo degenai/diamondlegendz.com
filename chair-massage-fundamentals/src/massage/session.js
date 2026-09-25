@@ -1,27 +1,38 @@
-// MASSAGE, one client's session: the meter, the stroke guide, the segments the client asks for
-// out loud, and the guided first client's course prompts (COACH). index.js owns the state object S
-// and the stage st and passes them in; the pay and totals are ledger.js.
+// MASSAGE, one client's session: the calls and answers, the stroke guide, the segments the client
+// asks for out loud, and the guided first client's course prompts (COACH). index.js owns the state
+// object S and the stage st and passes them in; the pay and totals are ledger.js.
+// Call and response (owner ruling 2026-09-24, Andy: "the pressure meter reads too heavy"): no meter.
+// Every 4 to 8 s the client calls out (meter.js has the calls and the judging) and competency fills
+// only on a right answer: the segment's whole share when the modality is the one asked for and the
+// cursor stayed on the ring (80% of the time is enough) since the last answer, half of it for a
+// cursor that never did, nothing on the wrong modality. The guided client's first segment takes two
+// right answers. A wrong or late answer drains a quarter share and gets a line ("Not that.").
 import { STATES, setState } from '../state.js';
-import { createDialogue, updateDialogue, say, started, OUCH, segmentsOf } from './clients.js';
-import { createMeter, updateMeter, hintRange } from './meter.js';
+import { createDialogue, updateDialogue, say, started, segmentsOf } from './clients.js';
+import { createCaller, nextGap, pickCall, makeCall, openCall, judge, takesAD } from './meter.js';
 import { updateGuide, cycleModality, setModality, modality, toneGuide, resetPattern } from './guide.js';
 import * as stage from './stage.js';
 import { say as bubble } from '../bubbles.js';
 import { emit } from '../events.js';
 import { sfx } from '../juice.js';
-import { setRing, setCoach } from '../hud-massage.js';
+import { setRing, setCoach, setCall, setRingFlash } from '../hud-massage.js';
 import { payClient, showPaid } from './ledger.js';
 
 const NOT_IT_AFTER = 3; // s on the wrong modality before the client says so (once per segment)
 const HAND_SPOT = 0.86; // hands follow the ring across the back but stop short of the torso's edge
+const DRAIN = 0.25;     // a wrong or late answer takes this much of a segment's share back
+const FLASH = 1;        // s the ring stays green or red after an answer
+const ON_RING = 0.8;    // on the ring this share of the time since the last answer counts as tracked in full
+const FIRST_CALL = 4;   // s to the guided client's first call (the floor of the 4 to 8 s cadence)
 
 // The guided first client (owner ruling 2026-09-24, Andy: "took a min to figure out how to play").
 // Layered on the real session: one prompt at a time, each waits for the action, and nothing here
-// gates the fill, so the client still finishes in about the usual time. Steps a and b come at once,
-// c waits for the first segment change, d for the client being done. A step the session outruns
-// (a debug finish, a segment filled before the prompt was obeyed) is closed as skipped.
+// gates the fill, so the client still finishes in about the usual time. Step a waits for the first
+// right answer (the guided client says "harder" until they get one), b follows it, c waits for the
+// first segment change, d for the client being done. A step the session outruns (a debug finish,
+// a segment filled before the prompt was obeyed) is closed as skipped.
 export const COACH = [
-  { step: 'a', text: 'Hold W until the ring turns green.', hold: 1 },   // zone 'in' for 1 s straight
+  { step: 'a', text: 'When they say harder, hold W.' },                 // until the first right answer
   { step: 'b', text: 'Keep the cursor on the guide.', hold: 2 },        // 2 s inside the ring in all
   { step: 'c', text: 'Press Space to give them what they asked for.' }, // until the modality matches
   { step: 'd', text: "Press E when they're done." },                    // until E
@@ -52,13 +63,12 @@ function coachTo(ctx, S, k) {
 }
 
 // Per session tick while the guided client is on.
-function coachTick(ctx, S, dt, zone, inside) {
+function coachTick(ctx, S, dt, inside) {
   const C = S.coach;
   if (!C.on) return;
   if (C.next <= 2 && S.seg >= 1 && S.live) coachTo(ctx, S, 2);  // the first segment change came
   if (C.step === 0) {
-    C.held = zone === 'in' ? C.held + dt : 0;
-    if (C.held >= COACH[0].hold) { coachDone(ctx, S); coachShow(ctx, S, 1); }
+    if (C.firstRight) { coachDone(ctx, S); coachShow(ctx, S, 1); }
   } else if (C.step === 1) {
     if (inside) C.held += dt;
     if (C.held >= COACH[1].hold) coachDone(ctx, S);
@@ -104,10 +114,12 @@ export function showDialogue(ctx, S, st) {
 
 export function startClient(ctx, S, st, i) {
   const c = S.roster[i];
-  S.idx = i; S.client = c; S.competency = 0; S.ouchCd = 0;
+  S.idx = i; S.client = c; S.competency = 0;
   S.segs = segmentsOf(c); S.forceDone = false; S.seg = 0; S.live = false; S.pending = -1;
   stage.seatClient(st, c.kind);
-  S.meter = createMeter(c.bandWidth, ctx.rng, S.meter ? S.meter.pressure : 0); // pressure holds where left
+  S.caller = createCaller(c, ctx.seed, i);     // seeded per run seed and client
+  S.flash = null; S.flashT = 0; S.trackT = 0; S.trackIn = 0;
+  if (!Number.isFinite(S.press)) S.press = 40;  // the hands' press, eased toward W / S (looks only)
   S.guide.baseRadius = c.ringRadius;
   S.guide.speed = c.travelSpeed || 1;
   S.guide.spineV = c.spineV;
@@ -116,7 +128,9 @@ export function startClient(ctx, S, st, i) {
   S.dlg = createDialogue(c);
   const C = S.coach;
   C.on = i === 0 && !!ctx.meta && ctx.meta.firstPivotSeen === false; // first playthrough, client 1 only
-  C.step = -1; C.next = 0; C.held = 0; C.log = [];
+  C.step = -1; C.next = 0; C.held = 0; C.log = []; C.firstRight = false;
+  S.caller.wait = C.on ? FIRST_CALL : nextGap(S.caller);
+  setCall(null); setRingFlash(null);
   setCoach('');
   if (C.on) coachShow(ctx, S, 0);
   startSegment(ctx, S, 0);
@@ -130,6 +144,7 @@ function finishClient(ctx, S, st) {
   const c = S.client;
   const half = payClient(ctx, S, c);  // totals first, then the ring and the till sound (ledger.js)
   setRing(null);
+  S.caller.call = null; setCall(null);
   sfx(ctx, 'pay');
   S.pending = -1;
   say(S.dlg, c.name, c.done, 4, 'request'); // the thank-you is never dropped
@@ -148,11 +163,52 @@ function finishClient(ctx, S, st) {
   S.phase = 'paid';
 }
 
+// The client calls out: the line jumps the chatter, and the answer window opens when it starts.
+function askCall(ctx, S) {
+  const k = S.caller, c = S.client, C = S.coach;
+  const call = makeCall(pickCall(k, C.on && !C.firstRight ? 'harder' : null));
+  k.call = call;
+  emit('call', { act: 'asked', prompt: call.text, call: call.name, key: call.key || 'none', window: call.window, client: c.id });
+  const client = c;
+  say(S.dlg, c.name, call.text, 1.8, 'request', () => {
+    if (S.client === client && k.call === call && !call.open) openCall(call);
+  });
+}
+
+function answerCall(ctx, S, st, r) {
+  const k = S.caller, c = S.client, call = k.call;
+  k.call = null;
+  k.wait = nextGap(k);
+  const share = 100 / S.segs.length;
+  let fill;
+  if (r.correct) {
+    const track = S.trackT > 0 ? Math.min(1, S.trackIn / S.trackT / ON_RING) : 1;
+    fill = modality(S.guide) === wanted(S) ? share * (0.5 + 0.5 * track) : 0;
+    if (S.coach.on && S.seg === 0) fill *= 0.5;  // the guided warm-up takes two, so prompt b gets its turn
+    S.flash = 'ok';
+    if (S.coach.on) S.coach.firstRight = true;
+  } else {
+    fill = -share * DRAIN;
+    S.flash = 'bad';
+    if (r.answer === 'W') stage.flinch(st);     // pushing when they asked for less, or for stillness
+    say(S.dlg, c.name, (c.calls && c.calls.miss) || 'Not that.', 1.4, 'request');
+  }
+  const was = S.competency;                     // the segment's floor and top hold (a finished segment stays finished)
+  S.competency = Math.max(segFloor(S), Math.min(((S.seg + 1) * 100) / S.segs.length, was + fill));
+  fill = S.competency - was;
+  S.flashT = FLASH;
+  S.trackT = 0; S.trackIn = 0;
+  const rec = { call: call.name, prompt: call.text, key: call.key || 'none', answer: r.answer, correct: r.correct, late: r.late,
+    after: Math.round(call.t * 100) / 100, fill: Math.round(fill * 10) / 10, at: Math.round(S.time * 100) / 100 };
+  k.log.push(rec);
+  emit('call', { act: 'answer', ...rec, client: c.id });
+}
+
 export function updateSession(dt, ctx, S, st) {
   const input = ctx.input;
   const c = S.client;
-  const zone = updateMeter(S.meter, input, dt, ctx.rng);
-  if (input && input.pressed) {           // edges only: holding A or D does not spin the list
+  const k = S.caller;
+  if (input && input.pressed && !takesAD(k.call)) { // edges only; during "left / right" A and D answer instead
     const p = input.pressed;
     if (p.has('KeyA') || p.has('ArrowLeft')) cycleModality(S.guide, -1);
     if (p.has('KeyD') || p.has('ArrowRight')) cycleModality(S.guide, 1);
@@ -163,8 +219,9 @@ export function updateSession(dt, ctx, S, st) {
   const g = S.guide;
   const inside = updateGuide(g, dt, st.client.userData.back, ctx.camera,
     input ? input.mouseX : -1, input ? input.mouseY : -1, window.innerWidth, window.innerHeight);
-  toneGuide(g, zone);
-  stage.placeHands(st, handSpot(g), S.meter.pressure, g.spineV + g.v); // hands ride the ring
+  const aim = input && input.forward ? 85 : input && input.back ? 10 : 40; // W leans in, S eases off
+  S.press += (aim - S.press) * Math.min(1, 6 * dt);
+  stage.placeHands(st, handSpot(g), S.press, g.spineV + g.v); // hands ride the ring
 
   const want = wanted(S);
   const right = modality(g) === want;
@@ -173,29 +230,26 @@ export function updateSession(dt, ctx, S, st) {
     S.notIt = 1;
     say(S.dlg, c.name, c.notIt || "That's not it.", 2);
   }
-  const fill = c.fillRate * (right ? 1 : 0);    // wrong modality: nothing
-  S.ouchCd = Math.max(0, S.ouchCd - dt);
-  if (zone === 'over') {                        // over-pressure still hurts, right modality or not
-    S.competency -= 2 * c.fillRate * dt;
-    if (S.ouchCd <= 0) {
-      stage.flinch(st);
-      say(S.dlg, c.name, OUCH[Math.floor(ctx.rng.next() * OUCH.length)], 1.6, 'aside');
-      S.ouchCd = 1.8;
-    }
-  } else if (zone === 'in' && inside && S.live) { // off the ring: the fill stops at once, no grace
-    S.competency += fill * dt;
+  if (S.live) { S.trackT += dt; if (inside) S.trackIn += dt; } // how well the stroke is tracked between answers
+
+  if (!k.call) {                                   // calls only on a live segment, one at a time
+    if (S.live && S.pending < 0) { k.wait -= dt; if (k.wait <= 0) askCall(ctx, S); }
+  } else if (k.call.open) {
+    const r = judge(k.call, input, dt);
+    if (r) answerCall(ctx, S, st, r);
   }
+  if (S.flashT > 0) { S.flashT -= dt; if (S.flashT <= 0) S.flash = null; }
+  toneGuide(g, S.flash);
+  setRingFlash(S.flash);
   let top = ((S.seg + 1) * 100) / S.segs.length; // a finished segment stays finished
   S.competency = Math.max(segFloor(S), Math.min(top, S.competency));
 
   updateDialogue(S.dlg, dt);
-  const [lo, hi] = hintRange(S.meter);
-  ctx.hud.setMeter(S.meter.pressure, lo, hi);
-  ctx.hud.setMeterState(zone);
   ctx.hud.setCompetency(S.competency);
   ctx.hud.setModality(modality(g), want);
   setRing(g.mesh.visible ? g.screen : null);
-  coachTick(ctx, S, dt, zone, inside);
+  setCall(k.call && k.call.open ? { name: k.call.name, frac: 1 - k.call.t / k.call.window } : null);
+  coachTick(ctx, S, dt, inside);
   if (S.forceDone) { S.forceDone = false; S.seg = S.segs.length - 1; S.live = true; S.pending = -1; S.competency = top = 100; } // debug / tests
   if (S.pending < 0 && S.live && S.competency >= top - 1e-9) {
     if (S.seg + 1 < S.segs.length) startSegment(ctx, S, S.seg + 1);

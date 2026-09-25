@@ -1,8 +1,11 @@
 // Client roster (DESIGN.md "Clients") and the timed subtitle scheduler. The between-run regulars
 // and their lines are in client-lines.js.
 
-// Difficulty follows the boredom curve: band width 30 -> 18 -> 12, ring 0.09 -> 0.075 -> 0.06 m,
-// ring travel speed 0.8x -> 1x -> 1.2x (third play, 2026-09-23: small rings that really move).
+// Difficulty follows the boredom curve: ring 0.13 -> 0.11 -> 0.09 m, ring travel speed 0.8x -> 1x
+// -> 1.2x (third play, 2026-09-23: small rings that really move), and the calls come faster.
+// `calls` is the client's personality for the call and response (meter.js): `every` is the gap
+// range in seconds between calls, `weights` how often each call comes, `miss` the line after a
+// wrong or late answer. (bandWidth is left over from the pressure meter; nothing reads it now.)
 // Every session runs in segments (owner ruling 2026-09-23): Swedish warm-up, then cross-fiber,
 // then trigger point, each a third of competency. `asks` are the client's requests in that order;
 // `notIt` is said once per segment after 3 s on the wrong modality.
@@ -13,6 +16,7 @@ export const CLIENTS = [
   {
     id: 'jogger', name: 'Dana', role: 'jogger', kind: 'jogger',
     pay: 40, bandWidth: 30, ringRadius: 0.13, travelSpeed: 0.8, fillRate: 5, spineV: -0.02,
+    calls: { every: [5, 8], weights: { lighter: 2, harder: 1, still: 1, left: 0.5, right: 0.5 }, miss: 'Not that.' },
     asks: ['Long strokes first. Slow. My calves are cooked.', 'Now the cross-fiber, right across the knot.', 'Now hold that spot. Right there.'],
     notIt: "That's not it.",
     lines: [
@@ -25,6 +29,7 @@ export const CLIENTS = [
   {
     id: 'retiree', name: 'Walt', role: 'retiree, the bench by the pond', kind: 'retiree',
     pay: 45, bandWidth: 18, ringRadius: 0.11, travelSpeed: 1, fillRate: 4, spineV: 0.14,
+    calls: { every: [4.5, 7.5], weights: { lighter: 0.5, harder: 2, still: 1, left: 0.5, right: 0.5 }, miss: 'Not that, kid.' },
     asks: ['Long strokes first. These shoulders are old.', "Now the cross-fiber. Don't be shy about it.", 'Now hold that spot. Upper traps. Hold it.'],
     notIt: "That's not it, kid.",
     lines: [
@@ -37,6 +42,7 @@ export const CLIENTS = [
   {
     id: 'dad', name: 'Marcus', role: 'dad from the playground', kind: 'dad',
     pay: 60, bandWidth: 12, ringRadius: 0.09, travelSpeed: 1.2, fillRate: 3.5, spineV: 0.06,
+    calls: { every: [4, 6.5], weights: { lighter: 1, harder: 1, still: 1, left: 1, right: 1 }, miss: 'Hm. Not that.' },
     asks: ['Long strokes first. It all runs up from the forearms.', 'Now the cross-fiber, across the forearm.', 'Now hold that spot. That one. Yes.'],
     notIt: "Hm. That's not it.",
     lines: [
@@ -53,14 +59,14 @@ export const CLIENTS = [
 // Segment plan per client: MODALITIES in order, or only the first `segments` of them (between runs).
 export function segmentsOf(client) { return MODALITIES.slice(0, client.segments || MODALITIES.length); }
 
-export const OUCH = ['Ouch.', 'Easy!', 'Ow. OW.', 'Too much, too much.', 'Hey!'];
+export const OUCH = ['Ouch.', 'Easy!', 'Ow. OW.', 'Too much, too much.', 'Hey!']; // no longer said in the course (no over-pressure)
 
 const LINE_TIME = 5.0;
 
 // Plain-object scheduler: scheduled lines plus one-off interjections (ouch, done). It does not
 // speak by itself: say() puts a line in the outbox and the massage loop hands it to the speaker's
-// bubble queue (bubbles.js), which plays one line at a time. kind: 'request' (a segment ask; jumps
-// ahead of chatter, never dropped), 'banter' (the default) or 'aside' (ouch: dropped first).
+// bubble queue (bubbles.js), which plays one line at a time. kind: 'request' (a segment ask, a call
+// or a miss line; jumps ahead of chatter, never dropped), 'banter' (the default) or 'aside' (ouch: dropped first).
 // onStart runs when the line actually starts speaking; the subtitle follows the spoken line.
 export function createDialogue(client) {
   return { client, t: 0, next: 0, out: [], speaker: '', text: '', until: -1 };

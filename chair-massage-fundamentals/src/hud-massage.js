@@ -1,10 +1,10 @@
 // MASSAGE HUD: a continuing-education course skin. Beige panels, serif headings,
-// competency bar, modality panel, ledger, subtitle strip. Pressure has no panel: the stroke ring
-// is the gauge (owner ruling 2026-09-23). An SVG arc on the projected ring fills clockwise from the
-// bottom with pressure 0..100, the hinted sweet band is a lighter arc on the same ellipse, red over
-// the band, green in it; the number sits small beside it and CLIENT WANTS sits over it (with a
-// Space keycap, "SPACE to match", whenever the modality is wrong). The guided first client's
-// prompts (setCoach) sit under the ring in the course skin.
+// competency bar, modality panel, ledger, subtitle strip. There is no pressure gauge any more (owner
+// ruling 2026-09-24, Andy: "the pressure meter reads too heavy"): the client calls out and the player
+// answers (massage/meter.js). While a call is open a small cue sits beside the ring: the key and a
+// bar that runs down with the window. The ring mesh itself turns green or red with the last answer
+// (guide.js). CLIENT WANTS sits over the ring (with a Space keycap, "SPACE to match", whenever the
+// modality is wrong). The guided first client's prompts (setCoach) sit under the ring.
 // Also owns the generic centred card (course intro, pivot stub). Styles live in index.html.
 
 let wrap = null;
@@ -12,20 +12,13 @@ let els = {};
 let cardEl = null;
 let last = {};
 let tearTimer = 0;
-const SVGNS = 'http://www.w3.org/2000/svg';
-// The gauge ellipse sits a fixed gap outside the ring mesh's outer edge. A fixed pixel gap (not a
-// fixed ratio) keeps it clear of the ring now that rings are 27 to 40 px (third play, 2026-09-23).
-const GAUGE_GAP = 9;      // px
-const STROKE = { track: 8, band: 12, fill: 6 }; // px; a little heavier than the CSS for the small rings
-const OFF_RING = 0.5;     // gauge opacity while the cursor is off the ring (the mesh dims too)
-const G = { value: 0, lo: 0, hi: 0, zone: 'under', ring: null, scale: 1 };
-
-function svg(tag, cls, parent) {
-  const n = document.createElementNS(SVGNS, tag);
-  if (cls) n.setAttribute('class', cls);
-  parent.appendChild(n);
-  return n;
-}
+const GAP = 9;            // px between the ring's outer edge and the labels around it
+const G = { ring: null, call: null, flash: null };
+// What the cue says per call (the key, then the word). "Right there" has no key: hands off W and S.
+const CUE = {
+  lighter: ['S', 'lighter'], harder: ['W', 'hold: harder'], still: ['', 'hold still: no W / S'],
+  left: ['A', 'to the left'], right: ['D', 'to the right'],
+};
 
 function el(tag, className, parent, text) {
   const n = document.createElement(tag);
@@ -53,16 +46,21 @@ export function initMassageHud(root) {
   els.compFill = el('i', '', bar);
   els.compPct = el('b', '', comp, '0%');
 
-  els.ringSvg = svg('svg', 'cm-ring', wrap);
-  els.ringTrack = svg('path', 'cm-ring-track', els.ringSvg);
-  els.ringBand = svg('path', 'cm-ring-band', els.ringSvg);
-  els.ringFill = svg('path', 'cm-ring-fill', els.ringSvg);
-  els.ringTrack.style.strokeWidth = `${STROKE.track}px`;
-  els.ringBand.style.strokeWidth = `${STROKE.band}px`;
-  els.ringFill.style.strokeWidth = `${STROKE.fill}px`;
-  els.ringSvg.style.display = 'none';
-  els.pVal = el('div', 'cm-ring-val', wrap, '0');
-  els.pVal.hidden = true;
+  // The call cue (styled inline: index.html's CSS still carries the old gauge's rules, unused).
+  els.call = el('div', 'cm-call', wrap);
+  Object.assign(els.call.style, {
+    position: 'absolute', left: '0', top: '0', whiteSpace: 'nowrap', background: 'rgba(35,30,20,.78)',
+    border: '1px solid var(--cm-rule)', padding: '4px 10px 6px', font: '16px var(--cm-serif)', color: '#fdf8ea',
+  });
+  els.callKey = el('span', 'cm-wants-key', els.call);
+  els.callKey.style.marginLeft = '0';
+  els.callKbd = el('kbd', '', els.callKey, 'S');
+  els.callWord = el('span', '', els.call, '');
+  const track = el('div', '', els.call);
+  Object.assign(track.style, { height: '4px', marginTop: '4px', background: 'rgba(253,248,234,.25)' });
+  els.callBar = el('i', '', track);
+  Object.assign(els.callBar.style, { display: 'block', height: '100%', width: '100%', background: '#ffd27a' });
+  els.call.hidden = true;
   els.wants = el('div', 'cm-wants', wrap);
   els.wantsText = el('span', '', els.wants);
   els.wantsKey = el('span', 'cm-wants-key', els.wants);
@@ -105,61 +103,44 @@ export function showMassageHud(visible) {
 export function tearOffMassageHud() {
   if (!wrap || wrap.hidden) return;
   els.sub.hidden = true;
+  els.call.hidden = true;
   wrap.classList.add('cm-tear');
   document.body.classList.remove('massage');
   tearTimer = setTimeout(() => { tearTimer = 0; showMassageHud(false); }, 600);
 }
 export function massageHudTearing() { return !!wrap && wrap.classList.contains('cm-tear'); }
 
-export function setMeter(value, hintLo, hintHi) {
-  G.value = Math.max(0, Math.min(100, value));
-  G.lo = Math.max(0, Math.min(100, hintLo)); G.hi = Math.max(G.lo, Math.min(100, hintHi));
+// The pressure gauge is gone (2026-09-24). hud.js still re-exports these two, so they stay as no-ops.
+export function setMeter() {}
+export function setMeterState() {}
+
+// The open call (null hides the cue): { name, frac } where frac is the window left, 1 -> 0.
+export function setCall(c) {
+  G.call = c ? { name: c.name, frac: Math.max(0, Math.min(1, c.frac)) } : null;
   if (!wrap) return;
-  const v = Math.round(G.value);
-  if (last.meter !== v) { els.pVal.textContent = String(v); last.meter = v; }
+  els.call.hidden = !c || !G.ring;
+  if (!c) return;
+  const [k, word] = CUE[c.name] || ['', c.name];
+  els.callKey.hidden = !k;
+  setText('callKbd', els.callKbd, k);
+  setText('callWord', els.callWord, word);
+  els.callBar.style.width = `${(G.call.frac * 100).toFixed(1)}%`;
 }
 
-export function setMeterState(zone) {
-  G.zone = zone;
-  if (wrap && last.zone !== zone) { els.ringSvg.dataset.zone = zone; els.pVal.dataset.zone = zone; last.zone = zone; }
-}
+// The ring's colour for the tests ('ok', 'bad' or null); guide.js paints the mesh itself.
+export function setRingFlash(f) { G.flash = f || null; }
 
-// Arc on the projected ring from pressure fraction f0 to f1 (0 = bottom, clockwise on screen).
-// r: { x, y, ax, ay, bx, by } where a/b are the ring's in-plane axes in px (b points up the spine).
-function arc(r, f0, f1) {
-  if (f1 - f0 <= 1e-4) return '';
-  const k = G.scale, dir = r.ax * r.by - r.ay * r.bx > 0 ? 1 : -1; // screen y is down
-  const n = Math.max(2, Math.ceil((f1 - f0) * 72));
-  let d = '';
-  for (let i = 0; i <= n; i++) {
-    const f = f0 + ((f1 - f0) * i) / n;
-    const phi = -Math.PI / 2 + dir * f * Math.PI * 2;
-    const c = Math.cos(phi) * k, s = Math.sin(phi) * k;
-    d += `${i ? 'L' : 'M'}${(r.x + r.ax * c + r.bx * s).toFixed(1)} ${(r.y + r.ay * c + r.by * s).toFixed(1)}`;
-  }
-  return d;
-}
-
-// Called every session tick with the guide's projected ring (null hides the gauge).
+// Called every session tick with the guide's projected ring (null hides the labels around it).
 export function setRing(r) {
   G.ring = r ? { x: r.x, y: r.y, ax: r.ax, ay: r.ay, bx: r.bx, by: r.by, inside: r.inside !== false } : null;
   if (!wrap) return;
   const on = !!r && Number.isFinite(r.x) && Math.hypot(r.ax, r.ay) > 1;
-  els.ringSvg.style.display = on ? '' : 'none';
-  els.pVal.hidden = !on;
-  if (!on) { els.wants.hidden = true; return; }
+  if (!on) { els.wants.hidden = true; els.call.hidden = true; return; }
   const rpx = (Math.hypot(r.ax, r.ay) + Math.hypot(r.bx, r.by)) / 2;
-  G.scale = 1 + GAUGE_GAP / Math.max(1, rpx);
-  const op = G.ring.inside ? '1' : String(OFF_RING);
-  if (last.ringOp !== op) { // on the paths, not the svg: the tear-off's opacity rule stays in charge
-    for (const n of [els.ringTrack, els.ringBand, els.ringFill]) n.style.opacity = op;
-    last.ringOp = op;
-  }
-  els.ringTrack.setAttribute('d', arc(r, 0, 0.9999));
-  els.ringBand.setAttribute('d', arc(r, G.lo / 100, G.hi / 100));
-  els.ringFill.setAttribute('d', arc(r, 0, G.value / 100));
-  const rx = Math.hypot(r.ax, r.bx) * G.scale, ry = Math.hypot(r.ay, r.by) * G.scale;
-  els.pVal.style.transform = `translate(${Math.round(r.x + rx + 10)}px, ${Math.round(r.y - 9)}px)`;
+  const k = 1 + GAP / Math.max(1, rpx);
+  const rx = Math.hypot(r.ax, r.bx) * k, ry = Math.hypot(r.ay, r.by) * k;
+  els.call.style.transform = `translate(${Math.round(r.x + rx + 8)}px, ${Math.round(r.y)}px) translate(0, -50%)`;
+  els.call.hidden = !G.call;
   els.wants.style.transform = `translate(${Math.round(r.x)}px, ${Math.round(r.y - ry - 14)}px) translate(-50%, -100%)`;
   els.wants.hidden = !last.wantsText;
   // The coach prompt hangs under the ring (and stays where the ring was once the ring is gone).
@@ -173,11 +154,13 @@ export function setCoach(text) {
   setText('coach', els.coach, text || '');
 }
 
-// Debug / tests: what the gauge is drawing right now.
+// Debug / tests: what the HUD around the ring shows right now. `arc` and `number` are the old
+// pressure gauge's arc and number: both must stay false.
 export function gaugeState() {
   return {
-    value: G.value, lo: G.lo, hi: G.hi, zone: G.zone, ring: G.ring, scale: G.scale, opacity: els.ringFill ? els.ringFill.style.opacity || '1' : '', visible: !!els.ringSvg && els.ringSvg.style.display !== 'none',
-    fillPath: els.ringFill ? els.ringFill.getAttribute('d') || '' : '',
+    ring: G.ring, flash: G.flash, call: G.call,
+    arc: !!wrap && !!wrap.querySelector('svg, .cm-ring-val'), number: !!wrap && !!wrap.querySelector('.cm-ring-val'),
+    cue: els.call && !els.call.hidden ? els.call.textContent : '',
     wants: els.wants && !els.wants.hidden ? last.wantsText || '' : '', wantsPulse: !!els.wants && els.wants.classList.contains('cm-pulse'),
     wantsSpace: !!els.wantsKey && !els.wants.hidden && !els.wantsKey.hidden,
     coach: els.coach && !els.coach.hidden ? els.coach.textContent : '',

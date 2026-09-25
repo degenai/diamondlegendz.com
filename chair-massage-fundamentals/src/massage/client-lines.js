@@ -15,6 +15,7 @@ import { CLIENTS } from './clients.js';
 export const PRIYA = {
   id: 'priya', name: 'Priya', role: 'the barista from the corner', kind: 'client',
   pay: 50, bandWidth: 18, ringRadius: 0.1, travelSpeed: 1, fillRate: 4, spineV: 0.06,
+  calls: { every: [4.5, 7], weights: { lighter: 1, harder: 1, still: 1, left: 1, right: 1 }, miss: "Nope. Not that." },
   asks: ['Long strokes first, please. The morning rush was a lot.', "Now the cross-fiber, across the forearm. That's the one I came for."],
   notIt: "Nope. That's not it.",
   lines: [

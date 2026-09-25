@@ -1,7 +1,8 @@
 # Chair Massage Fundamentals
 
 A dull chair-massage training course that turns into a low-poly GTA3-style roguelike. You learn
-pressure (W/S) and stroke tracking (the mouse) on three park regulars, then a franchise's
+pressure (the client calls "harder" or "lighter", you answer on W and S) and stroke tracking
+(the mouse) on three park regulars, then a franchise's
 "compliance team" pulls up in a black van, and those same controls now move, aim, and drive you
 around a city block while you try to leave with the chair. Nobody gets hurt: every weapon relaxes
 its target (the Chex Quest rule), and doing the actual massage work is how you cool your wanted level.
@@ -17,9 +18,10 @@ python -m http.server 8000
 Then open <http://localhost:8000/chair-massage-fundamentals/>. You need a keyboard and a mouse.
 Phones get a polite card instead of the game.
 
-The course: W / S pressure, A / D modality, **Space matches the client** (snaps to the modality
-they asked for), mouse on the guide, E next client. On a first playthrough the first client walks
-you through it, one prompt at a time.
+The course: the client calls out and you answer. "Harder": hold W. "Lighter": tap S. "Right there":
+hands off W and S. "A little to the left / right": tap A or D. Otherwise A / D modality, **Space
+matches the client** (snaps to the modality they asked for), mouse on the guide, E next client.
+On a first playthrough the first client walks you through it, one prompt at a time.
 
 - `?seed=12345` (or any text, like `?seed=andy`) pins the run's city block: building heights,
   plaza layout, parked cars, the van's entry, the escape edge. Without it, every load rolls a new block.
@@ -72,7 +74,7 @@ From here, Andy is a co-designer.
 | Goons: speed, bat and shove reach, cooldowns, sit time, the 8 s opening grab window | `src/entities/goon.js` (`RUN`, `BAT_*`, `SHOVE_*`, `SIT_TIME`, `GRAB_*`) |
 | Cops on foot | `src/entities/cop.js` (`SPEED`, `WALK_OFF`) |
 | Goon waves and caps | `src/run/goon-waves.js` (`WAVE`, `GOON_CAP`) |
-| Massage clients: pay, sweet-spot band, ring size, fill rate, lines | `src/massage/clients.js` (`CLIENTS`); between-run regulars in `src/massage/client-lines.js`; meter feel in `src/massage/meter.js` |
+| Massage clients: pay, ring size, call cadence and mix (`calls`), lines | `src/massage/clients.js` (`CLIENTS`); between-run regulars in `src/massage/client-lines.js`; the calls, their keys and windows in `src/massage/meter.js` |
 | Mini-massage during a run | `src/run/minimassage.js` (`HOLD`, `HALF_BAND`, radii) |
 | Healing Palm and the massage gun | `src/entities/palm.js`, `src/entities/gun.js` |
 | Unlock order: main track (escapes), consolation track (arrests, deaths) | `src/meta.js` (`UNLOCKS`, `CONSOLATIONS`) |
