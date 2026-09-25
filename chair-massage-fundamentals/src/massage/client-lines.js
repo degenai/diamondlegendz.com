@@ -203,7 +203,7 @@ export function roster(meta) {
   let opener = opens[k % opens.length], second;
   if (failed) {
     // A save from before the two tracks can hold a failure that earned a main unlock: say it plainly.
-    second = !info ? reg.empty : info.sympathy && reg === DANA ? info.sympathy : reg.gifts[info.id] || `The regulars chipped in for ${info.gift}.`;
+    second = !info ? reg.empty : giftLine(reg, info, k);   // the same voice as any gift (Dana's templates included)
     if (hasPerk(meta, 'getwellcard') && meta.lastUnlock !== 'getwellcard') opener = reg.getWell[outcome];
   } else if (outcome === 'left') {
     // Leaving grants nothing, but the tenth viewing's hall pass arrives whatever the outcome (meta.js).
