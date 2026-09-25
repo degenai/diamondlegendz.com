@@ -250,7 +250,7 @@ export function updateSession(dt, ctx, S, st) {
     if (r) answerCall(ctx, S, st, r);
   }
   if (S.flashT > 0) { S.flashT -= dt; if (S.flashT <= 0) S.flash = null; }
-  toneGuide(g, S.flash || (S.hold.pulseT > 0 ? 'ok' : null));   // green on a full held close
+  toneGuide(g, S.hold.pulseT > 0 ? 'ok' : S.flash);   // a full held close pulses green over an expiring miss flash
   setRingFlash(S.flash);
   let top = ((S.seg + 1) * 100) / S.segs.length; // a finished segment stays finished
   S.competency = Math.max(segFloor(S), Math.min(top, S.competency));

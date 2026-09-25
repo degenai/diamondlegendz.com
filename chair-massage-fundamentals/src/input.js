@@ -42,8 +42,11 @@ function onBlur() {
   dx = dy = 0;
 }
 
-function onMouseMove(ev) {
+function onMouseMove(ev) {
   mouseX = ev.clientX;
+  // A button released outside the window never sends mouseup: resync from the event's button mask
+  // (nitpick 2026-09-25: the trigger point's hold read as held forever).
+  if (ev.buttons !== undefined && !(ev.buttons & 1)) buttons.delete(0);
   mouseY = ev.clientY;
   if (locked) { dx += ev.movementX || 0; dy += ev.movementY || 0; }
 }
