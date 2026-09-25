@@ -114,7 +114,7 @@ function swingHit(p, ctx) {
     if (ctx.wanted) {
       for (const e of hits) if (e.kind === 'cop') ctx.wanted.report('copHit');   // any action on a cop: +1 each
       if (kinds.has('goon')) ctx.wanted.report('goonHit');
-      if (kinds.has('ped')) ctx.wanted.report('pedHurt');
+      for (const e of hits) if (e.kind === 'ped') ctx.wanted.report('pedHurt');   // +2 per ped, as the car counts them
     }
     emitChaos(ctx, p.pos.x + fx, p.pos.z + fz, 'chair');
   }
