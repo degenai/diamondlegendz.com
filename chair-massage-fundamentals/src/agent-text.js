@@ -99,7 +99,7 @@ export function menuFor(s, A) {
     } else if (M.ph === 'massage' && M.call && M.call.open) {
       Object.assign(o, { mini_answer_lighter: 'Tap S (keep holding E): "lighter".', mini_answer_harder: 'Hold W 0.7 s (keep holding E): "harder".', mini_answer_still: 'Keep off W and S (keep holding E): "right there".' });
     } else {
-      if (s.dodge && !p.kn) o.dodge = 'Tap S: back off from the goon winding up (he whiffs and staggers 1 s).';
+      if (s.dodge && !p.kn && !p.mass) o.dodge = 'Tap S: back off from the goon winding up (he whiffs and staggers 1 s).';
       Object.assign(o, { walk_fwd_1s: 'Hold W 1 s.', sprint_fwd_2s: 'Hold W+Shift 2 s.', back_off_1s: 'Hold S 1 s.', strafe_left_1s: 'Hold A 1 s.', strafe_right_1s: 'Hold D 1 s.',
         turn_left_30: 'Turn the camera 30 degrees left.', turn_right_30: 'Turn the camera 30 degrees right.', turn_around: 'Turn the camera 180 degrees.',
         face_exit: 'Turn toward the exit.', face_chair: 'Turn toward the chair.', face_nearest_goon: 'Turn toward the nearest goon.', face_nearest_car: 'Turn toward the nearest car.',

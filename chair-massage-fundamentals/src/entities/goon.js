@@ -274,7 +274,7 @@ function strike(e, ctx) {
 }
 
 function getUp(e, ctx) {
-  e.knockedT = 0;
+  e.knockedT = 0; e.stunT = 0;   // a stagger or gun stun does not outlive the knockdown
   if (e.state === 'treated' || e.state === 'out') return;   // run over while treated: still treated
   if (e.knockCause === 'palm') {
     e.state = 'loose'; e.stateT = 1.0; e.loose = 1;
@@ -292,7 +292,7 @@ function onVehicleHit(e, v, ctx) {
   // A relaxed goon (loose or sitting after a palm) hit by a car stays relaxed: he gets up loose
   // and sits his full 8 s again instead of rising straight into the chase.
   e.knockCause = e.state === 'loose' || e.state === 'sit' ? 'palm' : 'vehicle';
-  e.knockedT = 3;
+  e.knockedT = 3; e.stunT = 0;
   if (e.state === 'windup') e.state = 'chase';
   if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('goonHit'); // a stolen car you bailed from is still yours (ped.js)
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');

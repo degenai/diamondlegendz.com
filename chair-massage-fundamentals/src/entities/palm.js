@@ -81,7 +81,7 @@ function landHit(p, ctx, hit, charged) {
 // straight back into what he was doing (no treatment, no relief).
 export function knockBody(p, ctx, hit, cause = 'palm', text = 'THUD') {
   const dx = hit.pos.x - p.pos.x, dz = hit.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
-  hit.knockedT = KNOCK;
+  hit.knockedT = KNOCK; hit.stunT = 0;   // a knockdown ends a stagger (as treat() does)
   hit.knockCause = cause;
   hit.vel.x = (dx / d) * KNOCK_PUSH; hit.vel.z = (dz / d) * KNOCK_PUSH; hit.vel.y = 1.5;
   hit.grounded = false;

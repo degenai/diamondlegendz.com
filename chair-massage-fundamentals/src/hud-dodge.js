@@ -28,7 +28,9 @@ export function initDodgeHud(root) {
 
 // Per tick after the camera moved (main.js). ctx.dodge null (outside RUN) hides every cue.
 export function updateDodgeCues(ctx, camera) {
-  const list = ctx.dodge && camera ? ctx.dodge.cues : [];
+  const all = ctx.dodge && camera ? ctx.dodge.cues : [];
+  const live = (c) => !c.dodged && c.struckAt === null;   // open cues take a slot before resolved ones
+  const list = all.filter(live).concat(all.filter((c) => !live(c)));
   const w = window.innerWidth, h = window.innerHeight;
   for (let i = 0; i < cues.length; i++) {
     const q = cues[i], c = list[i];

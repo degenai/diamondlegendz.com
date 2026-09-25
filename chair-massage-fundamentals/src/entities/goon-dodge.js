@@ -24,12 +24,15 @@ const r2 = (v) => Math.round(v * 100) / 100;
 export function resetDodge(ctx) { ctx.dodge = { lastS: -1e9, cues: [] }; }
 
 function canDodge(p) {
-  return !p.vehicle && !(p.knockedT > 0) && !p.massaging && !(p.lungeT > 0);
+  return !p.vehicle && !(p.knockedT > 0) && !p.massaging && !(p.lungeT > 0) && !(p.foldT > 0) && !(p.swingT >= 0);   // not mid-fold or mid-swing
 }
 
-// Backstep away from the first open cue's goon; every cue open right now is dodged by it.
+// Backstep away from the goon whose strike comes soonest; he whiffs, and so does any other goon
+// winding up on the far side of the same step (the step carries straight away from him too,
+// within AWAY of it). The rest still swing: a second tap can take the next one.
+const AWAY = 0.7;             // cos 45 degrees
 function dodge(ctx, open, buffered) {
-  const p = ctx.player, e = open[0].e;
+  const p = ctx.player, e = open.reduce((a, b) => (b.end < a.end ? b : a)).e;
   let dx = p.pos.x - e.pos.x, dz = p.pos.z - e.pos.z;
   const d = Math.hypot(dx, dz);
   if (d > 1e-3) { dx /= d; dz /= d; } else { dx = Math.sin(p.yaw || 0); dz = Math.cos(p.yaw || 0); }
@@ -37,6 +40,10 @@ function dodge(ctx, open, buffered) {
   cancelCharge(p, 'dodge');
   sfx(ctx, 'whoosh', p.pos.x, p.pos.z, 0.7);
   for (const c of open) {
+    if (c.e !== e) {
+      const ox = p.pos.x - c.e.pos.x, oz = p.pos.z - c.e.pos.z, od = Math.hypot(ox, oz) || 1;
+      if ((ox * dx + oz * dz) / od < AWAY) continue;
+    }
     c.dodged = true; c.doneAt = ctx.time;
     emit('dodge', { who: 'goon', id: c.id, act: 'dodged', kind: c.kind, buffered, at: r2(ctx.time - c.t0), window: c.win });
   }
