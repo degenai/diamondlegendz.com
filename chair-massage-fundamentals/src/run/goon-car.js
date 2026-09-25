@@ -34,6 +34,7 @@ const CREW = 2;
 const RAM_HP = 8;
 const BAIL_R = 15;           // m: the player on foot this close, the crew gets out
 const BAIL_SPEED = 1.5;      // m/s: slow enough to open the doors
+const BAIL_MAX = 3;          // s within BAIL_R before they bail whatever the speed (a wedged or rolling car)
 const BOARD_R = 20;          // m: bailed crew this close to the car go back to it
 const BOARD_MAX = 10;        // s to reach the doors before the car leaves without them
 const DOOR_R = 1.0;          // m from the body: in
@@ -214,8 +215,8 @@ function tick(ctx, C, dt) {
   if (C.mode === 'drive') {
     C.chase.ramCd = Math.max(0, (C.chase.ramCd || 0) - dt);
     if (!pv) {
-      if (d < BAIL_R) { brake(v); if (Math.abs(v.speed) < BAIL_SPEED) bail(ctx, C); }
-      else drive(ctx, v, p.pos, dt);
+      if (d < BAIL_R) { brake(v); C.bailT = (C.bailT || 0) + dt; if (Math.abs(v.speed) < BAIL_SPEED || C.bailT > BAIL_MAX) bail(ctx, C); }
+      else { C.bailT = 0; drive(ctx, v, p.pos, dt); }
     } else pursue(ctx, C.chase, v, pv, dt, CHASE);
     if (v.driver) yieldStep(ctx, C.chase, v, dt);
     return true;

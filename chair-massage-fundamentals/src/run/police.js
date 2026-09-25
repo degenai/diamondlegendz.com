@@ -72,12 +72,14 @@ function aheadSpawn(ctx) {
   if (!pl.vehicle) { const b = blockAt(p.x, p.z), c = blockAt(0, 0); if (b[0] === c[0] && b[1] === c[1]) return null; }
   const path = route(G, nearestNode(G, p.x, p.z), G.exitNode);
   if (path.length < 2) return null;
+  const home = blockAt(p.x, p.z), plaza = blockAt(0, 0);   // never on a ring inside the plaza block or his own (the old rule holds here too)
+  const inside = (n) => { const b = blockAt(n.x, n.z); return (b[0] === home[0] && b[1] === home[1]) || (b[0] === plaza[0] && b[1] === plaza[1]); };
   const cands = [];
   let acc = Math.hypot(G.nodes[path[0]].x - p.x, G.nodes[path[0]].z - p.z);
   for (let k = 1; k < path.length; k++) {
     const a = G.nodes[path[k - 1]], n = G.nodes[path[k]];
     acc += Math.hypot(n.x - a.x, n.z - a.z);
-    if (path[k] === G.exitNode || path[k] === G.escapeNode || Math.hypot(n.x - p.x, n.z - p.z) < AHEAD_NEAR) continue;
+    if (path[k] === G.exitNode || path[k] === G.escapeNode || inside(n) || Math.hypot(n.x - p.x, n.z - p.z) < AHEAD_NEAR) continue;
     cands.push({ k, d: acc });
   }
   cands.sort((a, b) => Math.abs(a.d - SPAWN_ROUTE) - Math.abs(b.d - SPAWN_ROUTE));
