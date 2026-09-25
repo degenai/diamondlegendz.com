@@ -260,6 +260,14 @@ Pillar 1 becomes literal: "Ow. Lighter." = S = back off. Lethality is unchanged;
 Watcher: `dodge` { who, id, act: 'shown' | 'dodged' | 'miss' | 'late' }. Lives in goon.js / hostile.js
 (the whiff and stagger), player-move.js (the backstep), hud-run.js (the mini cue reused).
 
+**The palm is nonviolent to property too** (proposed by the open-ended Opus 2026-09-25, round three:
+four of six naive test players earned a star off the goons' own van by 5 s, palming goons who stood in front
+of it, and were arrested by the ranger 4 m away; ruled 2026-09-25, recommended options taken). A palm,
+charged or quick, on any vehicle raises no wanted and is never property damage; the dent and wobble stay
+as cosmetic feedback, and the car "relaxes": a suspension bounce and a small "sigh" floater. A palm that
+lands on a body never also strikes the car behind him. Car hits, the chair swing and the gun's level-3
+knockback still dent for real. Watcher: the `palm` event carries `vehicle: true` for a car hit.
+
 **The chair swing** (Andy's suggestion, ruled 2026-09-24). Carrying the chair on foot, left click swings
 it instead of the palm (the palm cannot be charged or tapped while the chair is on his back; the hint
 line adds "Left click: swing the chair"). No charge: 0.15 s wind-up, 0.2 s arc, 0.15 s recover. The
