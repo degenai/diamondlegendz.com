@@ -194,6 +194,11 @@ function animate(v, dt, vf, vf0) {
   if (v.wobbleT > 0) { v.wobbleT = Math.max(0, v.wobbleT - dt); wob = Math.sin(v.wobbleT * 45) * 0.06 * v.wobbleT; }
   v.body.rotation.z = v.lean.roll + wob;
   v.body.rotation.x = v.lean.pitch + wob * 0.5;
+  if (v.bounceT > 0 || v.bodyY !== undefined) {  // a palmed car relaxes (palm.js): a damped bob on the springs
+    if (v.bodyY === undefined) v.bodyY = v.body.position.y;
+    v.bounceT = Math.max(0, (v.bounceT || 0) - dt);
+    v.body.position.y = v.bodyY - Math.sin(v.bounceT * 26) * 0.07 * (v.bounceT / 0.6);
+  }
   v.mesh.position.copy(v.pos);
   v.mesh.rotation.y = v.yaw;
 }

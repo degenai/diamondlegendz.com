@@ -149,7 +149,7 @@ export function updatePalm(p, dt, ctx, hold = false) {
       p.lungeT = 0; p.vel.x = fx * 2; p.vel.z = fz * 2;
       p.lastPalm = { t: ctx.time, hit: hit ? hit.kind : null, charged: true, treated: !!hit };
       if (hit) landHit(p, ctx, hit, true);
-      else vehicles(p, ctx, fx, fz, false);
+      else vehicles(p, ctx, fx, fz, true);
       return hit;
     }
     return null;
@@ -164,19 +164,26 @@ export function updatePalm(p, dt, ctx, hold = false) {
   const hit = palmTarget(p, ctx, fx, fz);
   p.lastPalm = { t: ctx.time, hit: hit ? hit.kind : null };
   if (hit) landHit(p, ctx, hit, false);
-  vehicles(p, ctx, fx, fz, !!hit);
+  else vehicles(p, ctx, fx, fz, false);   // a palm that lands on a body never also strikes the car behind him
   return hit;
 }
 
-function vehicles(p, ctx, fx, fz, hit) {
+// The palm is nonviolent to property too (ruled 2026-09-25, round three): a palm on any vehicle
+// raises no wanted and is never property damage. The dent and wobble stay as feedback, and the car
+// relaxes: a suspension bounce (vehicle.js) and a small "sigh". Only called when no body was hit.
+function vehicles(p, ctx, fx, fz, charged) {
   const v = palmVehicles(p, ctx);
   if (!v) return;
+  v._hpSeen = v.hp;                         // not his property damage (spawner.js watchVehicles)
+  v.bounceT = BOUNCE;
   p.shakeT = SHAKE;
   shake(ctx, 0.2);
-  if (!hit) sfx(ctx, 'thud', p.pos.x + fx, p.pos.z + fz, 0.7);
-  if (ctx.wanted) ctx.wanted.report('propertyHit');
-  if (!hit && ctx.hud && ctx.hud.floater) ctx.hud.floater('THUD', p.pos.x + fx, p.pos.y + 1.3, p.pos.z + fz, 'thud');
+  sfx(ctx, 'thud', p.pos.x + fx, p.pos.z + fz, 0.7);
+  const off = v.spec && v.spec.halfL ? v.spec.halfL * 0.6 : 1;   // over the bonnet, clear of his shout bubble
+  if (ctx.hud && ctx.hud.floater) ctx.hud.floater('sigh', v.pos.x + Math.sin(v.yaw) * off, v.pos.y + (v.spec ? v.spec.height : 1.4) + 0.3, v.pos.z + Math.cos(v.yaw) * off, 'speech');
+  emit('palm', { target: v.type, vehicle: true, charged, hp: Math.round(v.hp) });
 }
+const BOUNCE = 0.6;                         // s of the relaxed car's suspension bounce
 
 function palmTarget(p, ctx, fx, fz) {
   const list = ctx.npcs;
@@ -196,7 +203,7 @@ function palmTarget(p, ctx, fx, fz) {
   return best;
 }
 
-// Healing Palm: a vehicle just in front of the strike gets dented. (Was interact.js; moved in
+// Healing Palm: a vehicle just in front of the strike gets a cosmetic dent (3 hp) and a wobble. (Was interact.js; moved in
 // refactor/split so palm.js no longer imports interact.js. hurtPlayer went to hostile.js.)
 export function palmVehicles(p, ctx) {
   const list = ctx.world && ctx.world.vehicles;

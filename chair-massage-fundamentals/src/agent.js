@@ -109,11 +109,16 @@ export function createAgent(ctx, hooks) {
 
   // Before each stepped tick: releases that are due, the E hold of a mini-massage (let go when it
   // ends), and the ring reflex (the absolute mouse onto the ring's last projected centre).
+  // Releases due by now. Also run before a new macro presses anything: a macro's release falls on
+  // the tick the next decision is made, and drained after the new press it let go of the new one
+  // (two palm_charge in a row became a charge and a quick palm; open-1, 2026-09-25).
+  function drainDue() {
+    if (!A.due.length) return;
+    const now = A.due.filter((d) => d.at <= ctx.tick);
+    if (now.length) { A.due = A.due.filter((d) => d.at > ctx.tick); for (const d of now) d.fn(); }
+  }
   function beforeTick() {
-    if (A.due.length) {
-      const now = A.due.filter((d) => d.at <= ctx.tick);
-      if (now.length) { A.due = A.due.filter((d) => d.at > ctx.tick); for (const d of now) d.fn(); }
-    }
+    drainDue();
     for (let i = A.holds.length - 1; i >= 0; i--) {
       const h = A.holds[i], ph = ctx.mini && ctx.mini.phase;
       if (ph === 'massage') h.started = true;
@@ -159,12 +164,13 @@ export function createAgent(ctx, hooks) {
     act(id) {
       const s = buildSnap(), menu = menuFor(s, A);
       if (!(id in menu)) return { ok: false, id, error: `not a valid action now (${s.st})`, options: Object.keys(menu) };
+      drainDue();
       const ticks = macro(id, s);
       A.log.push({ tick: ctx.tick, id });
       return { ok: ticks >= 0, id, ticks: Math.max(0, ticks) };
     },
     // Replay: the same act without the menu check (a recorded action list may be replayed blind).
-    replay(id) { const t = macro(id, buildSnap()); A.log.push({ tick: ctx.tick, id }); return { ok: t >= 0, id, ticks: Math.max(0, t) }; },
+    replay(id) { drainDue(); const t = macro(id, buildSnap()); A.log.push({ tick: ctx.tick, id }); return { ok: t >= 0, id, ticks: Math.max(0, t) }; },
   };
   return agent;
 }
