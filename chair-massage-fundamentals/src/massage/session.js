@@ -117,7 +117,7 @@ export function startClient(ctx, S, st, i) {
   S.idx = i; S.client = c; S.competency = 0;
   S.segs = segmentsOf(c); S.forceDone = false; S.seg = 0; S.live = false; S.pending = -1;
   stage.seatClient(st, c.kind);
-  S.caller = createCaller(c, ctx.seed, i);     // seeded per run seed and client
+  S.caller = createCaller(c, ctx.seed, `${i}:${(ctx.meta && ctx.meta.runs) || 0}`);  // per run seed, client and visit: a regular calls differently each time back
   S.flash = null; S.flashT = 0; S.trackT = 0; S.trackIn = 0;
   if (!Number.isFinite(S.press)) S.press = 40;  // the hands' press, eased toward W / S (looks only)
   S.guide.baseRadius = c.ringRadius;
