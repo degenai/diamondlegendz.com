@@ -223,7 +223,7 @@ function boot() {
       updateMini(dt, ctx);
       trackStats(ctx);
       pivot.runTick(dt, ctx);
-      hud.updateFloaters(dt, camera); hud.updateCompass(ctx);
+      hud.updateFloaters(dt, camera); hud.updateCompass(ctx); hud.updateDodgeCues(ctx, camera);
       updateRunHud();
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);
@@ -233,7 +233,7 @@ function boot() {
       juiceTick(dt, ctx);
       spawner.update(dt, ctx);
       massage.updateLeaving(dt, ctx);
-      hud.updateFloaters(dt, camera);
+      hud.updateFloaters(dt, camera); hud.updateDodgeCues(ctx, camera);
       if (tickSlowmo(realDt, ctx)) setState(STATES.SUMMARY);
     } else if (s === STATES.PIVOT) {
       pivot.update(dt, ctx);

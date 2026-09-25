@@ -18,7 +18,7 @@ import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer, pack, PERCEIVE } from './hostile.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
-import { emit } from '../events.js'; import { stream } from '../rng.js';
+import { emit } from '../events.js'; import { stream } from '../rng.js'; import { dodgeOpen, dodgeWhiff } from './goon-dodge.js';
 import { vehicleMoves, vehicleStrike, clingTick } from './goon-vehicle.js';
 // hostile and alertPack moved to hostile.js (refactor/split); re-exported for one release.
 export { hostile, alertPack } from './hostile.js'; export { vanHome };
@@ -220,7 +220,7 @@ function chase(e, dt, ctx) {
       e.state = 'windup';
       e.grab = grab; e.vmove = null;
       e.stateT = e.bat && !grab ? BAT_WIND : SHOVE_WIND;
-      emit('telegraph', { who: 'goon', id: e.id, act: grab ? 'grabWindup' : e.bat ? 'batWindup' : 'shoveWindup', t: e.stateT });   // Jev milestone 0
+      emit('telegraph', { who: 'goon', id: e.id, act: grab ? 'grabWindup' : e.bat ? 'batWindup' : 'shoveWindup', t: e.stateT }); dodgeOpen(e, ctx);   // Jev milestone 0; the wind-up is a call (goon-dodge.js)
       return;
     }
   }
@@ -244,7 +244,7 @@ function chase(e, dt, ctx) {
 }
 
 function strike(e, ctx) {
-  const p = ctx.player;
+  const p = ctx.player; if (dodgeWhiff(e, ctx)) return;   // dodged: a whiff and a stagger (goon-dodge.js)
   const bat = e.bat && !e.grab;
   const reach = (bat ? BAT_REACH : SHOVE_REACH) + 0.4;
   const dx = p.pos.x - e.pos.x, dz = p.pos.z - e.pos.z, d2 = dx * dx + dz * dz;

@@ -22,6 +22,7 @@ The course: the client calls out and you answer. "Harder": hold W. "Lighter": ta
 hands off W and S. "A little to the left / right": tap A or D. Otherwise A / D modality, **Space
 matches the client** (snaps to the modality they asked for), mouse on the guide, E next client.
 On a first playthrough the first client walks you through it, one prompt at a time.
+In the run, a goon winding up on you is a call too: the S cue over his head, tap S to back off, he whiffs and staggers 1 s (`src/entities/goon-dodge.js`).
 
 - `?seed=12345` (or any text, like `?seed=andy`) pins the run's city block: building heights,
   plaza layout, parked cars, the van's entry, the escape edge. Without it, every load rolls a new block.

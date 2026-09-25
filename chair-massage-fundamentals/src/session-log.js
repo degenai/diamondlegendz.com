@@ -13,6 +13,7 @@ import { SESSION_CHANNEL } from './events.js';
 import { chairState, chairWorldPos } from './entities/chair.js';
 import { hostile, copHostile } from './entities/hostile.js';
 import { playerCash } from './entities/interact.js';
+import { openDodges } from './entities/goon-dodge.js';
 
 const CAP_TICKS = 20 * 60 * 60;   // 20 min at 60 ticks/s
 const MOUSE_EVERY = 6;            // ticks between coalesced mouse entries (10/s)
@@ -114,7 +115,7 @@ function kindOf(e) {
   return e.kind;
 }
 function tagOf(e) {
-  if (e.kind === 'goon') return [e.state === 'windup' ? e.vmove || (e.grab ? 'grab' : e.bat ? 'bat' : 'shove') : e.bat ? 'bat' : '', e.cling ? 'cling' : ''].filter(Boolean).join(',');
+  if (e.kind === 'goon') return [e.state === 'windup' ? e.vmove || (e.grab ? 'grab' : e.bat ? 'bat' : 'shove') : e.bat ? 'bat' : '', e.cling ? 'cling' : '', e.stunT > 0 && !(e.knockedT > 0) ? 'stagger' : ''].filter(Boolean).join(',');
   if (e.kind === 'ped') return [e.regular ? 'regular' : '', e.sore ? 'sore' : '', e.paid ? 'paid' : '', e.knockedT > 0 ? 'down' : ''].filter(Boolean).join(',');
   if (e.kind === 'cop') return e.knockedT > 0 ? 'down' : e.standDown ? 'standdown' : '';
   return '';
@@ -170,6 +171,7 @@ export function buildSnap() {
     const tgt = (q) => { if (!q) return null; const d = Math.hypot(q.x - at.x, q.z - at.z); return d < 1.5 ? [0, null] : [Math.round(d), bearing(h, at.x, at.z, q.x, q.z)]; };
     s.tgt = { chair: tgt(cw), exit: tgt(esc && esc.centre) };
     s.near = nearList(p, h, at.x, at.z);
+    const dg = openDodges(ctx); if (dg.length) s.dodge = dg;   // goon wind-ups open on him (the S call)
     const M = ctx.mini;
     s.mini = M ? { ph: M.phase, prog: r2(M.progress || 0), miss: M.misses || 0, call: callOf(M.caller && M.caller.call) } : null;
   }

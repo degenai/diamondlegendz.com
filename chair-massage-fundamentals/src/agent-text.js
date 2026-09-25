@@ -22,7 +22,8 @@ const STATE_WORDS = {
 };
 function thing([id, kind, dist, b, state, tag]) {
   let what = STATE_WORDS[state] || state;
-  if (state === 'windup') what = `winding up ${tag.includes('pull') ? 'to pull you out' : tag.includes('bat') ? 'a bat swing' : tag.includes('grab') ? 'a grab' : 'a shove'}`;
+  if (tag.includes('stagger')) what = 'staggered (open to a palm)';
+  else if (state === 'windup') what = `winding up ${tag.includes('pull') ? 'to pull you out' : tag.includes('bat') ? 'a bat swing' : tag.includes('grab') ? 'a grab' : 'a shove'}`;
   const extra = kind === 'goon' && tag.includes('bat') && state !== 'windup' ? ', has a bat' : kind.startsWith('car:') && tag.includes('keys') ? ', keys in' : kind === 'ped' && tag.includes('sore') ? ', sore back' : '';
   return `${kind.replace('car:', '')} ${id} ${Math.round(dist)} m ${side(b)}, ${what}${extra}`;
 }
@@ -54,6 +55,7 @@ function runText(s) {
   const tg = (n, v) => (!v ? `${n}: unknown` : v[1] === null ? `${n}: here` : `${n}: ${v[0]} m ${side(v[1])} (${v[1]} deg)`);
   L.push(`${tg('Exit', t.exit)}. ${tg('Chair', t.chair)}.${s.hud && s.hud.heat ? ` Heat line: "${s.hud.heat}"` : ''}`);
   L.push(s.near && s.near.length ? `Near: ${s.near.map(thing).join('; ')}.` : 'Nobody near.');
+  if (s.dodge) L.push(`A GOON IS WINDING UP ON YOU (${s.dodge.map((d) => `goon ${d.id}, ${d.kind}, ${d.left} s left`).join('; ')}): tap S to back off and he whiffs, then he staggers 1 s (palm him).`);
   const M = s.mini;
   if (M && M.ph !== 'idle') L.push(`Mini-massage: ${M.ph}${M.ph === 'massage' ? `, ${Math.round(M.prog * 100)}% done, ${M.miss} misses` : ''}${M.call && M.call.open ? `; CALL OPEN: ${CALL_WORDS[M.call.name] || M.call.name}, ${Math.max(0, Math.round((M.call.window - M.call.t) * 10) / 10)} s left` : ''}.`);
   return L;
@@ -97,6 +99,7 @@ export function menuFor(s, A) {
     } else if (M.ph === 'massage' && M.call && M.call.open) {
       Object.assign(o, { mini_answer_lighter: 'Tap S (keep holding E): "lighter".', mini_answer_harder: 'Hold W 0.7 s (keep holding E): "harder".', mini_answer_still: 'Keep off W and S (keep holding E): "right there".' });
     } else {
+      if (s.dodge && !p.kn) o.dodge = 'Tap S: back off from the goon winding up (he whiffs and staggers 1 s).';
       Object.assign(o, { walk_fwd_1s: 'Hold W 1 s.', sprint_fwd_2s: 'Hold W+Shift 2 s.', back_off_1s: 'Hold S 1 s.', strafe_left_1s: 'Hold A 1 s.', strafe_right_1s: 'Hold D 1 s.',
         turn_left_30: 'Turn the camera 30 degrees left.', turn_right_30: 'Turn the camera 30 degrees right.', turn_around: 'Turn the camera 180 degrees.',
         face_exit: 'Turn toward the exit.', face_chair: 'Turn toward the chair.', face_nearest_goon: 'Turn toward the nearest goon.', face_nearest_car: 'Turn toward the nearest car.',

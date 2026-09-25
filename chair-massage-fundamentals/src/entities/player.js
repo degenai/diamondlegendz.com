@@ -12,6 +12,7 @@ import { updateChaseCamera, blendLook } from './chase-cam.js';
 import { cancelCharge, updateHealth, applyShake } from './palm.js';
 import { poseTherapist } from '../run/minimassage.js';
 import { moveOnFoot, tickStamina, animate } from './player-move.js';
+import { dodgeInput } from './goon-dodge.js';
 import { interactInput, gunTick, palmInput, poseArms } from './player-actions.js';
 
 // Moved out in the split; re-exported here for one release.
@@ -67,6 +68,7 @@ export const update = updatePlayer;
 
 export function updatePlayer(p, dt, ctx) {
   const input = ctx.input;
+  dodgeInput(p, ctx, input);          // a goon's wind-up is a call: S backsteps (goon-dodge.js)
 
   // Chair folding takes a moment (standing still); every other E acts at once (player-actions.js).
   interactInput(p, dt, ctx, input);
