@@ -3,7 +3,8 @@
 // (a cone ahead of the nose on v.yaw) turns that into a stop; after YIELD_MAX s of waiting it
 // creeps through at CREEP m/s. The contact never knocks them down (vehicle-collide.js spares);
 // the body circles still push them aside. Any vehicle flagged v.spares = 'goons' with an AI
-// driver can use it (the goon cars later).
+// driver can use it: the goon cars (goon-car.js) pass their chase state, with yieldTag 'goon' and
+// car (their number) for the event.
 import { spares } from '../entities/vehicle-collide.js';
 import { emit } from '../events.js';
 
@@ -41,7 +42,7 @@ export function yieldStep(ctx, A, v, dt) {
     A.yielding = true;
     if (ctx.time - (A.yieldLogT ?? -1e9) >= YIELD_LOG) {
       A.yieldLogT = ctx.time;
-      emit('van', { act: 'yield', who: e.kind, speed: Math.round(v.speed * 10) / 10 });
+      emit(A.yieldTag || 'van', { act: 'yield', who: e.kind, speed: Math.round(v.speed * 10) / 10, ...(A.car ? { car: A.car } : {}) });
     }
   }
   if (A.yieldT < YIELD_MAX) {

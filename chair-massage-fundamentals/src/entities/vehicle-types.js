@@ -4,6 +4,9 @@
 // and with the handbrake. hpScale scales crash damage. chair: folded-chair mount (vehicle local).
 // seat: the driver's seat (entities/seated.js), vehicle local, the floor point under the hips;
 // left (+X) is the driver's side. The cart's seat is open; the others show through the glass.
+// Serenity livery: the franchise van's black (world/cars.js paints the van with the same value), also
+// the goon cars' sedans (run/goon-car.js): recolourBody swaps the asset's Paint for it.
+export const SERENITY_BLACK = 0x111214;
 export const VEHICLE_TYPES = {
   sedan: {
     label: 'sedan', asset: 'assets/sedan.json',

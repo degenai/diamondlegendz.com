@@ -1,7 +1,9 @@
 // The Serenity Group's goons: the opening pack of three and the van's 90 s waves (GOON_CAP alive).
 // The first three come out of the van during the PIVOT (pivot.js calls spawnGoons); spawner.begin()
 // only spawns them itself on the debug path that skips the pivot (openingPack). Every WAVE s the
-// van driver (van-ai.js) breaks off whatever he is doing, returns to vanEntry and drops three more.
+// van driver (van-ai.js) breaks off whatever he is doing, returns to vanEntry and drops three more;
+// from the second drop on, a black Serenity sedan comes with it and two of the three take it
+// (goon-car.js). GOON_CAP counts the goons riding in goon cars too.
 import * as THREE from '../../vendor/three.module.js';
 import { floorHeightAt } from '../physics.js';
 import { addEntity } from '../entities/index.js';
@@ -12,6 +14,7 @@ import { setOnboard } from '../hud-run.js';
 import { emit, onEvent } from '../events.js';
 import { chairState } from '../entities/chair.js';
 import * as meta from '../meta.js';
+import { dropCar, crewAboard } from './goon-car.js';
 
 export const WAVE = 90;
 export const GOON_CAP = 9;
@@ -26,7 +29,7 @@ export function countKind(ctx, kind) {
 // Out of the van's side door (the side facing the plaza), or at vanEntry without a van.
 // wave: the van's drop (waveStep); the opening three (pivot.js) are not a wave.
 export function spawnGoons(ctx, n, wave = false) {
-  const alive = countKind(ctx, 'goon');
+  const alive = countKind(ctx, 'goon') + crewAboard(ctx);   // riders are out of ctx.npcs
   n = Math.min(n, GOON_CAP - alive);
   const van = ctx.world.vehicles && ctx.world.vehicles.find((v) => v.franchise);
   const at = van ? van.pos : ctx.world.spawns.vanEntry.pos;
@@ -66,7 +69,9 @@ export function waveStep(ctx, A, v, dt) {
   else if (d > 3.5) driveAt(v, e.x, e.z, 7, dt);
   else brake(v);
   if ((d <= 3.5 && Math.abs(v.speed) < 0.5) || A.dropT > 30) {
-    spawnGoons(ctx, 3, true);
+    const n = spawnGoons(ctx, 3, true);
+    A.waves = (A.waves || 0) + 1;
+    if (A.waves >= 2 && n > 0) dropCar(ctx, v, ctx.npcs.slice(-n), A.waves);   // goon cars (goon-car.js)
     A.mode = 'wait'; A.waveT = 0; A.spawnedAt = ctx.time; A.parked = false;
   }
   return true;

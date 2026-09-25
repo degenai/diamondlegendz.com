@@ -69,6 +69,13 @@ function line(e, evs, i, t0) {
       return null;
     case 'goon':
       if (d.act === 'pullout') return `${at} a goon pulled you out of the ${d.vehicle}`;
+      if (d.act === 'car') return `${at} a black Serenity sedan joined the chase (goon car ${d.n})`;
+      if (d.act === 'ram') return `${at} a goon car rammed you (hp ${d.hp})`;
+      if (d.act === 'bail' || d.act === 'board') {                // one line per pair of doors
+        const q = evs[i - 1];
+        if (q && q.type === 'goon' && q.data && q.data.act === d.act && q.data.car === d.car && q.t === e.t) return null;
+        return d.act === 'bail' ? `${at} the goon car's crew got out after you` : `${at} the goon car's crew got back in`;
+      }
       return d.act === 'cling' ? `${at} a goon jumped on the ${d.vehicle}` : d.act === 'thrown' ? `${at} threw a goon off the ${d.vehicle}` : null;
     case 'knockdown':
       if (d.who === 'player' && d.cause === 'pullout') return null;   // the goon line says it

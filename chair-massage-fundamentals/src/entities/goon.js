@@ -74,7 +74,7 @@ export function updateGoon(e, dt, ctx) {
   const p = ctx.player;
   e.wishX = e.wishZ = 0; e.speed = 0; e.faceX = undefined;
   if (e.cooldown > 0) e.cooldown -= dt;
-  if (e.cling) { clingTick(e, dt, ctx); return; }   // on a vehicle's tail (goon-vehicle.js)
+  if (e.cling) { clingTick(e, dt, ctx); return; } if (e.hold) { e.hold(e, dt, ctx); return; }   // on a tail (goon-vehicle.js); to his car (goon-car.js)
   e.noRoad = !!p.vehicle;
   if (ctx.grabUntil === Infinity && e.knockedT <= 0 && (e.pos.x - p.pos.x) ** 2 + (e.pos.z - p.pos.z) ** 2 < 9) { ctx.grabUntil = ctx.time + GRAB_WINDOW; ctx.grabStart = ctx.time; }
   if (e.stunT > 0 && e.knockedT <= 0) {           // Gun stun (gun.js): a 1.5 s stagger, no movement, no attack.

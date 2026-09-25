@@ -24,7 +24,9 @@ function short(e) {
     case 'run.start': return `seed ${d.seed}, build ${d.build}, unlocks [${(d.unlocks || []).join(', ')}]`;
     case 'run.end': return `${d.reason} in ${clock(d.time)}, cash $${d.cash}, tension ${d.tension}${d.unlock ? `, unlocked ${d.unlock}` : ''}`;
     case 'vehicle': return d.act === 'batHit' ? `bat on the ${d.type}, hp ${d.hp}` : `${d.act} ${d.type}${d.stolen ? ' (stolen)' : ''}`;
-    case 'goon': return `${d.act}${d.vehicle ? ` (${d.vehicle})` : ''}${d.n ? `, ${d.n} on` : ''}`;
+    case 'goon': return d.act === 'car' ? `goon car ${d.n} with wave ${d.wave}, ${d.crew} aboard (${d.alive} out)`
+      : d.car ? `${d.act} (goon car ${d.car})${d.hp !== undefined ? `, your ${d.vehicle} at ${d.hp} hp` : ''}${d.who ? ` for a ${d.who}` : ''}`
+      : `${d.act}${d.vehicle ? ` (${d.vehicle})` : ''}${d.n ? `, ${d.n} on` : ''}`;
     case 'chair': return `${d.act} -> ${d.where}${d.vehicle ? ` (${d.vehicle})` : ''}`;
     case 'pivot': return d.beat === 'line' ? `${d.speaker}: "${d.text}"` : `${d.beat}${d.at !== undefined ? ` at ${d.at} s` : ''}`;
     case 'damage': return `-${d.amount} from ${d.source}, hp ${d.hp}`;

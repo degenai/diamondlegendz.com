@@ -32,6 +32,14 @@ const PLAN_EVERY = 0.5;
 const PARK_ALONG = 20;       // m out along the link street from the plaza ring
 const PARK_LANE = 2.4;       // m right of the centreline for outbound travel: one lane of two
 
+// The chase profile pursue() and ram() run on: the van's here; a goon car (goon-car.js) passes its
+// own (top speed, ram hp, its events). A is whatever keeps the chase state (ctx.vanAI for the van).
+export const VAN_CHASE = {
+  top: VAN_TOP, ramHp: RAM_HP,
+  onRam: (ctx, A, pv) => emit('van', { act: 'ram', hp: Math.round(pv.hp), vehicle: pv.type, n: A.rams }),
+  onCut: (ctx, A, node) => emit('van', { act: 'cut', node }),
+};
+
 // The plaza's exit street: its ring node, the neighbour's, and the parking pose across one lane.
 function exitPark(ctx) {
   const W = ctx.world;
@@ -89,17 +97,17 @@ function driveVan(ctx, A, dt) {
 
 // Pursuit: straight at his vehicle when close, else the cut (the first node on his route to the
 // escape the van reaches before him; it waits there), else his street node.
-function pursue(ctx, A, v, pv, dt) {
+export function pursue(ctx, A, v, pv, dt, P = VAN_CHASE) {
   const G = ctx.world.roads;
   const d = Math.hypot(pv.pos.x - v.pos.x, pv.pos.z - v.pos.z);
-  if (d < v.spec.halfL + pv.spec.halfL + 0.8 && A.ramCd <= 0) ram(ctx, A, v, pv, d);
+  if (d < v.spec.halfL + pv.spec.halfL + 0.8 && A.ramCd <= 0) ram(ctx, A, v, pv, d, P);
   const lead = Math.min(0.8, d / 20), tx = pv.pos.x + pv.vel.x * lead, tz = pv.pos.z + pv.vel.z * lead;
   if (d < 30 && clearRun(ctx.world, v, tx, tz)) {
     // Direct, slowing hard for a sharp turn: a 5.5 m van taking a corner at speed ploughs into the lots.
     let err = Math.atan2(tx - v.pos.x, tz - v.pos.z) - v.yaw;
     while (err > Math.PI) err -= Math.PI * 2;
     while (err < -Math.PI) err += Math.PI * 2;
-    const cruise = Math.abs(err) > 0.5 ? 9 : Math.abs(err) > 0.2 ? 12 : VAN_TOP;
+    const cruise = Math.abs(err) > 0.5 ? 9 : Math.abs(err) > 0.2 ? 12 : P.top;
     A.mode = 'pursue';
     driveAt(v, tx, tz, cruise, dt, 30);
     return;
@@ -107,17 +115,17 @@ function pursue(ctx, A, v, pv, dt) {
   A.planT = (A.planT || 0) - dt;
   if (A.planT <= 0 || !A.goal) {
     A.planT = PLAN_EVERY;
-    A.goal = cutNode(G, v, pv);
+    A.goal = cutNode(G, v, pv, P.top);
     A.mode = A.goal.cut ? 'cut' : 'pursue';
     // Log a cut only when the node changes and at most every CUT_LOG s: re-planning every
     // PLAN_EVERY s flips between neighbouring nodes (fifteen `cut` a minute in run 7).
     if (A.goal.cut && A.cutAt !== A.goal.node && ctx.time - (A.cutLogT ?? -1e9) >= CUT_LOG) {
-      A.cutAt = A.goal.node; A.cutLogT = ctx.time; emit('van', { act: 'cut', node: A.goal.node });
+      A.cutAt = A.goal.node; A.cutLogT = ctx.time; if (P.onCut) P.onCut(ctx, A, A.goal.node);
     }
   }
   const n = G.nodes[A.goal.node];
   if (A.goal.cut && Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 6) brake(v);
-  else driveRoute(v, G, A.goal.node, VAN_TOP, dt);
+  else driveRoute(v, G, A.goal.node, P.top, dt);
 }
 
 // A straight run at (tx, tz) the van's width clears (both flanks at bonnet height): a direct chase
@@ -134,8 +142,8 @@ function clearRun(world, v, tx, tz) {
 }
 
 // The first node on his route to the escape (after the one he is driving at) that the van can
-// reach before him; none: the node he is driving at.
-function cutNode(G, v, pv) {
+// reach before him (at 0.7 of its top speed); none: the node he is driving at.
+function cutNode(G, v, pv, top) {
   const from = nodeAhead(G, pv.pos.x, pv.pos.z, pv.vel.x, pv.vel.z);
   const path = route(G, from, G.exitNode);
   const vd = routeDist(G, nearestNode(G, v.pos.x, v.pos.z));
@@ -144,17 +152,17 @@ function cutNode(G, v, pv) {
   for (let k = 1; k < path.length; k++) {
     acc += Math.hypot(G.nodes[path[k]].x - G.nodes[path[k - 1]].x, G.nodes[path[k]].z - G.nodes[path[k - 1]].z);
     if (path[k] === G.exitNode) break;
-    if (vd[path[k]] / (VAN_TOP * 0.7) < acc / ps) return { node: path[k], cut: true };
+    if (vd[path[k]] / (top * 0.7) < acc / ps) return { node: path[k], cut: true };
   }
   return { node: from, cut: false };
 }
 
-// Alongside: a shove away from the van, 10 hp and a wobble; never below 1 hp (no wreck).
-function ram(ctx, A, v, pv, d) {
+// Alongside: a shove away from the van, P.ramHp (10 for the van) and a wobble; never below 1 hp.
+function ram(ctx, A, v, pv, d, P) {
   A.ramCd = RAM_CD;
   const nx = (pv.pos.x - v.pos.x) / (d || 1), nz = (pv.pos.z - v.pos.z) / (d || 1);
   pv.vel.x += nx * RAM_PUSH; pv.vel.z += nz * RAM_PUSH;
-  pv.hp = Math.max(Math.min(pv.hp, 1), pv.hp - RAM_HP);
+  pv.hp = Math.max(Math.min(pv.hp, 1), pv.hp - P.ramHp);
   pv._hpSeen = pv.hp;                          // his own crash bookkeeping ignores the van's shove
   pv.wobbleT = Math.max(pv.wobbleT || 0, 0.6);
   pv.asleep = false;
@@ -162,7 +170,7 @@ function ram(ctx, A, v, pv, d) {
   sfx(ctx, 'thud', pv.pos.x, pv.pos.z, 0.9);
   emitChaos(ctx, pv.pos.x, pv.pos.z, 'vanRam');
   A.rams = (A.rams || 0) + 1;
-  emit('van', { act: 'ram', hp: Math.round(pv.hp), vehicle: pv.type, n: A.rams });
+  P.onRam(ctx, A, pv);
 }
 
 // Back to the plaza's exit street by the plaza ring (the route to the street's inner end, then out

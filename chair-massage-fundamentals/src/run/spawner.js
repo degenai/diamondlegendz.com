@@ -13,6 +13,7 @@ import { clearPolice } from './police-units.js';
 import { spawnPeds, spawnRegular, recyclePeds, disposeNpc } from './peds-budget.js';
 import { openingPack, onboardStep } from './goon-waves.js';
 import { updateVan, vanHit } from './van-ai.js';
+import { updateGoonCars, clearGoonCars } from './goon-car.js';
 import { createTraffic, beginTraffic, clearTraffic, updateTraffic } from './traffic.js';
 import { resetVehicles } from './reset.js';
 import { spawnPassCar, clearPassCar } from '../world/cars.js';
@@ -35,6 +36,7 @@ export function initSpawner(ctx) {
 export function clear(ctx) {
   clearPolice(ctx.police, ctx);
   clearTraffic(ctx);
+  clearGoonCars(ctx);                         // before the npcs: the riders are not in ctx.npcs
   for (const e of ctx.npcs) disposeNpc(ctx, e);
   ctx.npcs.length = 0;
   ctx.goonPack = null;                        // the pack forgets the last run's sightings (goon.js)
@@ -93,6 +95,7 @@ function watchVehicles(ctx, dt) {
 
 export function update(dt, ctx) {
   updateVan(ctx, dt);
+  updateGoonCars(ctx, dt);                    // before watchVehicles: a goon car's contact is not his damage
   updateTraffic(ctx, dt);
   recyclePeds(ctx, dt);
   watchVehicles(ctx, dt);
