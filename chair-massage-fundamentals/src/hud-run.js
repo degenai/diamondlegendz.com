@@ -1,5 +1,5 @@
 // RUN HUD: wanted stars (top right, flashing while rising), thin health bar, cash, world-space
-// floaters (THUD, lines, TENSION RELEASED, +$), the chaos flash and the mini-massage meter.
+// floaters (THUD, lines, TENSION RELEASED, +$), the chaos flash and the mini-massage strip.
 // Styles in index.html (.rh-*). Hidden outside RUN so the MASSAGE course skin is untouched.
 import * as THREE from '../vendor/three.module.js';
 import { WANTED_CAP } from './run/wanted.js';
@@ -14,6 +14,9 @@ let wrap = null, stars = [], hpFill = null, cashEl = null, flashEl = null, miniE
 let batWrap = null, batFill = null, heatEl = null, stampEl = null, stamBar = null, stamFill = null;
 let chargeEl = null, chargeRing = null;
 let onbEl = null; const onb = { on: false, x: 0, y: 0, z: 0, text: '' };
+const MINI_NOTE = 'Hold E  |  answer the client';
+// The cue per call (the key, then the word), as the course's (hud-massage.js). No left / right here.
+const MINI_CUE = { lighter: ['S', 'lighter'], harder: ['W', 'hold: harder'], still: ['', 'hold still: no W / S'] };
 const STAM_HIDE = 2;       // s the stamina bar lingers once full
 const floaters = [];
 const last = {};
@@ -63,12 +66,15 @@ export function initRunHud(root) {
   miniEl = el('div', 'rh-mini', wrap);
   miniEl.hidden = true;
   el('div', 'rh-mini-title', miniEl, 'Chair massage');
-  const track = el('div', 'rh-mini-track', miniEl);
-  mini.band = el('div', 'rh-mini-band', track);
-  mini.needle = el('div', 'rh-mini-needle', track);
+  // The open call: the key and a bar running down with the window (the course's cue, hud-massage.js).
+  mini.call = el('div', 'rh-mini-call', miniEl);
+  mini.callKbd = el('kbd', '', mini.call, 'S');
+  mini.callWord = el('span', '', mini.call, '');
+  mini.callBar = el('i', '', el('div', 'rh-mini-callbar', mini.call));
+  mini.call.hidden = true;
   const prog = el('div', 'rh-mini-prog', miniEl);
   mini.prog = el('i', '', prog);
-  mini.note = el('div', 'rh-mini-note', miniEl, 'Hold E  |  W/S pressure');
+  mini.note = el('div', 'rh-mini-note', miniEl, MINI_NOTE);
   // The first run's grab-window prompt (goon-waves.js), a big floater pinned above the player.
   onbEl = el('div', 'rh-float rh-onboard', root);
   onbEl.hidden = true;
@@ -241,25 +247,35 @@ export function updateFloaters(dt, camera) {
   }
 }
 
-// Mini-massage meter: M = { pressure, lo, hi, progress, zone } while massaging, { ready } when a
-// client is kneeling, null to hide.
+// Mini-massage strip: M = { progress, call: { name, frac } | null, flash: 'ok' | 'bad' | null }
+// while massaging, { ready } when a client is kneeling, null to hide. The ped calls like a course
+// client (ruled 2026-09-25): no pressure bar, the E hold's progress and the open call's key cue.
 export function setMini(M) {
   if (!miniEl) return;
+  const c = M && !M.ready ? M.call : null;
   const key = !M ? 'off' : M.ready ? 'ready'
-    : `${M.lo.toFixed(3)}|${M.hi.toFixed(3)}|${M.pressure.toFixed(3)}|${M.zone}|${Math.min(1, M.progress).toFixed(3)}`;
+    : `${Math.min(1, M.progress).toFixed(3)}|${M.flash || ''}|${c ? `${c.name}:${c.frac.toFixed(3)}` : ''}`;
   if (last.mini === key) return;           // per tick; only touch the DOM when something moved
   last.mini = key;
   miniEl.hidden = !M;
   if (!M) return;
+  const flash = M.ready ? '' : M.flash || '';
+  miniEl.classList.toggle('rh-mini-ok', flash === 'ok');
+  miniEl.classList.toggle('rh-mini-bad', flash === 'bad');
+  miniEl.dataset.flash = flash;
   if (M.ready) {
     mini.note.textContent = 'Client ready: hold E';
     mini.prog.style.width = '0%';
+    mini.call.hidden = true;
     return;
   }
-  mini.note.textContent = 'Hold E  |  W/S pressure';
-  mini.band.style.bottom = `${(M.lo * 100).toFixed(1)}%`;
-  mini.band.style.height = `${((M.hi - M.lo) * 100).toFixed(1)}%`;
-  mini.needle.style.bottom = `${(M.pressure * 100).toFixed(1)}%`;
-  mini.needle.dataset.zone = M.zone;
+  mini.note.textContent = MINI_NOTE;
   mini.prog.style.width = `${Math.min(100, M.progress * 100).toFixed(1)}%`;
+  mini.call.hidden = !c;
+  if (!c) return;
+  const [k, word] = MINI_CUE[c.name] || ['', c.name];
+  mini.callKbd.hidden = !k;
+  if (mini.callKbd.textContent !== k) mini.callKbd.textContent = k;
+  if (mini.callWord.textContent !== word) mini.callWord.textContent = word;
+  mini.callBar.style.width = `${(Math.max(0, Math.min(1, c.frac)) * 100).toFixed(1)}%`;
 }

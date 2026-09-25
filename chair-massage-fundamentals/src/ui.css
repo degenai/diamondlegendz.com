@@ -107,3 +107,16 @@ body.massage .hud-mute { color: rgba(59,51,38,.55); text-shadow: none; }
   text-shadow: 0 2px 3px #000, 0 0 6px #000, 0 0 2px #000; }
 .rh-float.rh-onboard.go { animation: rh-onb .45s cubic-bezier(.2,1.6,.4,1) both; }
 @keyframes rh-onb { from { opacity: 0; scale: 1.6; } to { opacity: 1; scale: 1; } }
+
+/* The mini-massage strip (hud-run.js): the ped calls like a course client (ruled 2026-09-25). The
+   pressure bar is gone; the E hold's progress stays, the open call's key cue is the course's
+   (hud-massage.js), and the strip flashes green or red for 1 s after an answer. */
+.rh .rh-mini { width: 150px; transition: background-color .15s, box-shadow .15s; }
+.rh .rh-mini.rh-mini-ok { background: rgba(38,96,44,.8); box-shadow: 0 0 0 2px #6fd26a; }
+.rh .rh-mini.rh-mini-bad { background: rgba(120,24,16,.82); box-shadow: 0 0 0 2px #e0533d; }
+.rh-mini-call { margin: 0 0 6px; padding: 4px 8px 6px; background: rgba(35,30,20,.78); border: 1px solid #cdbf9a;
+  font: 14px Georgia, "Times New Roman", serif; color: #fdf8ea; text-align: left; }
+.rh-mini-call kbd { font: bold 13px var(--mono, monospace); color: #2d2616; background: #f3ecd8; border: 1px solid #cdbf9a;
+  border-bottom-width: 3px; border-radius: 4px; padding: 1px 10px; margin-right: 6px; }
+.rh-mini-callbar { height: 4px; margin-top: 4px; background: rgba(253,248,234,.25); }
+.rh-mini-callbar i { display: block; height: 100%; width: 100%; background: #ffd27a; }

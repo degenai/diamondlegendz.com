@@ -22,9 +22,23 @@ export const CALLS = {
 export const STILL_GRACE = 0.3; // s a W or S already held when "right there" starts may take to let go
 const DEFAULT = { every: [4, 8], weights: { lighter: 1, harder: 1, still: 1, left: 0.5, right: 0.5 } };
 
+// The run's mini-massage (DESIGN.md "The ped calls like a course client", ruled 2026-09-25: "same
+// calls, faster"): three calls every 2 to 3 s with shorter windows, no left / right (the run's A/D
+// strafe). The texts and windows ride on the call object (makeCall's `over`), so judge() is shared.
+export const MINI_CALLS = {
+  every: [2, 3],
+  weights: { lighter: 1, harder: 1, still: 1 },
+  calls: {
+    lighter: { text: 'Ow. Lighter.', window: 1.2 },
+    harder: { text: 'Harder.', window: 2, hold: 0.6 },
+    still: { text: "That's it, right there.", window: 1.5 },
+  },
+};
+
 // One caller per client: its own seeded stream, so the same run seed calls the same things.
-export function createCaller(client, seed, idx) {
-  const p = client.calls || DEFAULT;
+// opts ({ every, weights }, e.g. MINI_CALLS) overrides the client's own cadence and mix.
+export function createCaller(client, seed, idx, opts = null) {
+  const p = opts || client.calls || DEFAULT;
   return {
     every: p.every || DEFAULT.every, weights: p.weights || DEFAULT.weights,
     rng: makeRng(hashSeed(`${seed}:${client.id}:${idx}:calls`)),
@@ -44,8 +58,9 @@ export function pickCall(k, force = null) {
 }
 
 // A fresh call, not yet open: its window starts when the line starts speaking (openCall).
-export function makeCall(name) {
-  return { name, ...CALLS[name], open: false, t: 0, held: 0, result: null, answer: null };
+// `over` replaces the call's text / window / hold (the run's shorter windows, MINI_CALLS.calls).
+export function makeCall(name, over = null) {
+  return { name, ...CALLS[name], ...(over || {}), open: false, t: 0, held: 0, result: null, answer: null };
 }
 export function openCall(c) { c.open = true; c.t = 0; c.held = 0; }
 

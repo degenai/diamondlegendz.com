@@ -75,7 +75,7 @@ From here, Andy is a co-designer.
 | Cops on foot | `src/entities/cop.js` (`SPEED`, `WALK_OFF`) |
 | Goon waves and caps | `src/run/goon-waves.js` (`WAVE`, `GOON_CAP`) |
 | Massage clients: pay, ring size, call cadence and mix (`calls`), lines | `src/massage/clients.js` (`CLIENTS`); between-run regulars in `src/massage/client-lines.js`; the calls, their keys and windows in `src/massage/meter.js` |
-| Mini-massage during a run | `src/run/minimassage.js` (`HOLD`, `HALF_BAND`, radii) |
+| Mini-massage during a run | `src/run/minimassage.js` (`HOLD`, `MISS_ADD`, radii); the ped's calls and windows in `src/massage/meter.js` (`MINI_CALLS`) |
 | Healing Palm and the massage gun | `src/entities/palm.js`, `src/entities/gun.js` |
 | Unlock order: main track (escapes), consolation track (arrests, deaths) | `src/meta.js` (`UNLOCKS`, `CONSOLATIONS`) |
 | Audio balance: music, effects, voice bus levels | `src/audio.js` (`MUSIC_LEVEL`, `SFX_LEVEL`, `VOICE_LEVEL`) |

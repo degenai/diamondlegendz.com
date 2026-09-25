@@ -7,6 +7,7 @@ import { floorHeightAt } from '../physics.js';
 import { THERAPIST } from '../massage/stage.js';
 import { sfx } from '../juice.js';
 import { emit } from '../events.js';
+import { createCaller, nextGap, MINI_CALLS } from '../massage/meter.js';
 
 export function setChairDown(p, ctx) {
   const c = findChair(ctx);
@@ -37,7 +38,11 @@ export function canStart(p, ctx) {
 export function startMassage(p, ctx) {
   const M = ctx.mini;
   if (!canStart(p, ctx)) return false;
-  M.phase = 'massage'; M.progress = 0; M.t = 0; M.pressure = 0.5; M.startT = ctx.time;
+  M.phase = 'massage'; M.progress = 0; M.t = 0; M.startT = ctx.time;
+  // The ped's calls: seeded per run seed, ped and attempt (a ped who walked off may come back).
+  M.caller = createCaller(M.client, ctx.seed, `run:${(ctx.meta && ctx.meta.runs) || 0}:${M.tries++}`, MINI_CALLS);
+  M.caller.wait = nextGap(M.caller);
+  M.misses = 0; M.flash = null; M.flashT = 0;
   p.massaging = true;
   emit('mini', { phase: 'start', sore: !!(M.client && M.client.sore) });
   p.vel.set(0, 0, 0);
