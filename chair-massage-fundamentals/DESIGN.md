@@ -78,10 +78,15 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   line drifts ("I'm sorry, Alex. My hands are tied."). Runs 5 and 6 name an unlock the player owns
   ("Nice gun." / "The cart keys. Cute."). Run 7 on: two late sets alternate (never the same set twice
   in a row; the second brings the boss back with an offer on the chair). The third line stays "..."
-  so the pivot's timing is unchanged. **Skipping it is an unlock** (the last one, "Module review:
-  skippable. You've seen enough."): a course-skin line "Press any key to skip the module review" shows
-  for the whole cutscene and any key or click jumps to the moment controls unlock (van at its stop,
-  the crew on their marks, the ranger at the chair, the client already gone). No skip before it.
+  so the pivot's timing is unchanged. **Skipping it is earned by watching** (re-ruled 2026-09-25, Alex:
+  "make it skippable is an unlock, watch it like 10 times"): `meta.pivotsSeen` counts every pivot
+  watched to the van stop, any outcome; on the tenth the hall pass arrives (the certificate and the
+  next between-run client announce it: `skipPivot` leaves the escape track and becomes this counter's
+  award, still listed on the title's unlock strip). With it, a course-skin line "Press any key to
+  skip the drive-up" shows during the drive-up only, and any key or click cuts to the van stop
+  (van at its mark, the client gone, the crew stepping out): the crew's lines and the ranger still
+  play, because those change per run. Watcher `pivot` { beat: 'skip', at, to: 'vanStop' }. A skip
+  still counts as a viewing.
 - **RUN**: open park block. Goons hunt the player. Wanted level rises with chaos. Player can steal
   vehicles, run, fight (elbow strikes, it's The People's Elbow), and reach an ESCAPE point (a client's
   house on the far edge of the block, or the highway on-ramp) once wanted level has cooled to zero.
