@@ -5,7 +5,7 @@ Web playable, vanilla ES modules, Three.js 0.186 vendored (no CDN; CSP is `scrip
 
 ## The one-sentence design
 
-A boring chair-massage training tool whose controls (WASD pressure meter + mouse-in-a-moving-circle)
+A boring chair-massage training tool whose controls (W/S answering the client's calls for pressure + mouse-in-a-moving-circle)
 are secretly the movement and aim controls of the low-poly GTA3 roguelike it turns into.
 Frog Fractions structure: the title is honest, the first five minutes are honest, then franchise goons
 show up at the park and the game becomes something else.
@@ -13,7 +13,8 @@ show up at the park and the game becomes something else.
 ## Pillars
 
 1. **The tutorial is a lie that is also true.** Everything in the massage minigame trains a skill the
-   run phase needs. WASD = pressure now, movement later. Mouse-in-circle = stroke tracking now, aim/look later.
+   run phase needs. W/S = more/less pressure on the client's call now, forward/back later; A/D = their
+   left/right now, strafe later. Mouse-in-circle = stroke tracking now, aim/look later.
    Space = "give the client what they asked for" now (it snaps the modality to the request; ruled
    2026-09-24), jump/handbrake later. E = "next client" now, enter vehicle later.
 2. **Short-term by design.** A run is 3 to 8 minutes. Runs end in arrest, death, or escape. Nothing is saved
@@ -60,7 +61,13 @@ TITLE -> MASSAGE -> PIVOT -> RUN -> (ARREST | DEATH | ESCAPE) -> SUMMARY -> MASS
   up from its drop point, the same beat as the van stopping short.
   **Opening beat** (ruled 2026-09-23 after the loop test showed a still player dies in 10 s): for the
   first 8 s of RUN the goons only shove and grab (10 damage, no knockdown, a "Come with us." bubble);
-  bats come out after 8 s or at the first Healing Palm. **The ranger hangs back**: wanted starts at 0,
+  bats come out after 8 s or at the first Healing Palm. **First-run prompts** (ruled 2026-09-24, Andy
+  "got swarmed too quickly, didn't realize he could fight or drive"): on the run that spends
+  `meta.firstRunSeen`, first goon contact brings three run-skin prompts above the player one at a time,
+  4 s each or until done: "Hold left click: HEALING PALM" (or "Left click: swing the chair" while he
+  carries it, ruled 2026-09-25, cleared by a swing), "E at any car: drive", "Shift: sprint. It runs
+  out." One already done this run is skipped; the rest still show past the window. Watcher `tutorial`
+  events with where 'run'. Lives in `run/goon-waves.js`. **The ranger hangs back**: wanted starts at 0,
   he stands by the chair for 15 s ("I'm calling this in.") and only pursues once wanted reaches 1.
   **The lines read the record** (ruled 2026-09-23 after the first plays; `src/pivot-lines.js`): the
   three goon lines and the ranger's are chosen by `meta.runs` and `meta.lastOutcome`, escalating
@@ -221,10 +228,31 @@ back, a ring fills under the crosshair, and once the hold is past a tap he shout
 completing launches a 3 m lunge; the first body in the cone is **TREATED**: "TENSION RELEASED", sits
 20 s on the spot, then walks loose to the van (goons) or his unit's car (cops) and stays out of the
 chase for 90 s after that (`outUntil`): he does not look, is not radioed, and does not count for the
-wanted level's line of sight. Treated peds sit, then wander loose (wanted +2 still). A bat hit or a
+wanted level's line of sight. Treated peds sit, then wander loose (no wanted: the palm is nonviolent, ruled 2026-09-25). A bat hit or a
 shove during the charge cancels it: the wind-up is the risk, and the gun's stun is what buys the time.
 A **tap** (or letting go early) is the quick palm: 0.25 s wind-up, knockdown 3 s, relaxed rise, no
 treatment. A treatment counts as tension released on the certificate; a quick palm does not.
+
+**The chair swing** (Andy's suggestion, ruled 2026-09-24). Carrying the chair on foot, left click swings
+it instead of the palm (the palm cannot be charged or tapped while the chair is on his back; the hint
+line adds "Left click: swing the chair"). No charge: 0.15 s wind-up, 0.2 s arc, 0.15 s recover. The
+folded chair comes off his back into both hands and sweeps right to left across a 180-degree arc in
+front of him (where the camera looks). At the arc's midpoint everything up and in the half circle
+within 2.5 m (goons, cops, peds; not through walls, not someone already down, treated, or kneeling) is
+knocked down 3 s with about 2 m of knockback, a THUD, a "CHAIR!" floater, the palm's hit-stop and a
+bigger shake (0.5 trauma against the palm's 0.25). A whoosh plays hit or miss. **No treatment**: a
+chair knockdown (`knockCause: 'chair'`) rises straight back into what he was doing. Nobody dies.
+**Durability**: the chair has 100; each swing costs 10, hit or miss. At 0 it is **bent**: still
+carryable, loadable, swingable and usable, but a mini-massage on it takes twice as long (10 s of
+hold instead of 5); the pickup floater says "bent chair" and the strip reads "Chair: on you (bent)".
+The cart's $20 repair also straightens it when he carries it or it rides in the vehicle being repaired,
+and a worn or bent chair alone is reason enough to offer the repair at full vehicle hp (ruled
+2026-09-25). Durability resets on MASSAGE entry. Watcher: `swing` { hits, goons, cops, peds,
+durability }, `chair` { act: 'bent' }, pickup and take events carry { durability, bent }, `repair`
+carries `chairBefore`. Lives in `player-actions.js` (input, timing, the hit), `chair.js` (durability,
+wear, repair, the in-hands pose), `palm.js` (`knockBody`, `palmable`, shared with the quick palm),
+`interact.js`, `run/minimassage.js` (`BENT_MUL`), `audio-sfx.js` (`whoosh`). Headless:
+`player.swingChair = true` for one swing.
 
 **Massage gun** (added 2026-09-23): the only ranged weapon, and it starts as a literal massage gun. Right
 click fires it. Level 0: contact range (1.5 m), percussive taps; every tap stuns the target 1.5 s (a
@@ -301,10 +329,16 @@ hat asset on the person mesh, the same character as in the pivot. Driving units 
 road (ruled 2026-09-24 after run 5, where level 2 units spawned 2..3 blocks out took ~98 s and never
 arrived): the street node about 160 m of road from the node nearest the player, never on a ring inside
 the plaza block or his own block; measured 14..23 s to within 30 m of a player on the plaza. 2: parks police cart. 3: city cop cars
-(light bars flashing). 4: roadblocks at two road corners. 5: everything plus the SWAT van. Rises: +1 for
-the first hit goon or a stolen vehicle, +2 for hurting a ped (car or palm), +1 after 60 s of continuous
-chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated vehicle carnage (3+ ped
-hits or 3+ vehicle wrecks). Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
+(light bars flashing). 4: roadblocks at two road corners. 5: everything plus the SWAT van. Rises, by
+**two classes of attack** (ruled 2026-09-25, Alex: "if all our attacks are healing attacks, should
+we even get in trouble for this?"): the Healing Palm (charged or quick) and the massage gun are
+**NONVIOLENT** and raise nothing on a goon or a ped; the chair swing and a car hit are **DANGEROUS**:
++1 for the first goon hit that way, +2 for a ped hit that way (`pedHurt`, carnage). **Any action on a
+cop is aggression**: palm, gun, chair or car on a cop is +1 every time (`copHit`; the treated cop still
+walks off, the meter still rises). A stolen vehicle is +1 (+0.5 each after), a carjack +1, +1 after
+60 s of continuous chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated
+vehicle carnage (3+ ped hits or 3+ vehicle wrecks). The once-per-run `goonHit` and the `vending`
+star are unchanged. Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
 and walk off pursuit for a while; wanted does not drop from that.
 Rulings (2026-09-23, post-v1 relay): a stolen car still rolling after you bail out is yours; it
 raises wanted for anyone it hits, ped, goon, or cop, the same as if you were driving. A hit by an
