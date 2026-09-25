@@ -42,12 +42,27 @@ function need(name, alt) {
   throw new Error(`the chosen model needs ${name}${alt ? ` (or ${alt})` : ''} in the environment; it is not set.\nKeys are read from the environment only, never from a file in the repo.\n${MODEL_HELP}`);
 }
 
+// 429 / 5xx / network errors retry with backoff (1, 2, 4 ... s, RETRIES tries): Jev's gateway answered
+// "high demand" and 503 on the first real flight (2026-09-25). The sim is paused, so waiting is free.
+const RETRIES = Number(process.env.PILOT_RETRIES || 7);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function post(url, headers, body) {
   const t0 = Date.now();
-  const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
-  const text = await r.text();
-  if (!r.ok) throw new Error(`${url}: HTTP ${r.status} ${text.slice(0, 400)}`);
-  return { json: JSON.parse(text), ms: Date.now() - t0 };
+  let last = null;
+  for (let i = 0; i < RETRIES; i++) {
+    let r, text;
+    try {
+      r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(body) });
+      text = await r.text();
+    } catch (err) { last = new Error(`${url}: ${err.message}`); await sleep(1000 * 2 ** i); continue; }
+    if (r.ok) return { json: JSON.parse(text), ms: Date.now() - t0, retries: i };
+    last = new Error(`${url}: HTTP ${r.status} ${text.slice(0, 400)}`);
+    if (r.status !== 429 && r.status < 500) break;
+    process.stderr.write(`  retry ${i + 1}/${RETRIES} after HTTP ${r.status}
+`);
+    await sleep(1000 * 2 ** i);
+  }
+  throw last;
 }
 
 // The LLM sites: a JSON-only reply, parsed leniently (a code fence or prose around it is tolerated).
