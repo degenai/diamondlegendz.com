@@ -181,7 +181,7 @@ function separate(e, ctx) {
   const lie = e.knockedT > 0;
   for (let i = 0; i < list.length; i++) {
     const o = list[i];
-    if (o === e || o.knockedT > 0) continue;
+    if (o === e || o.knockedT > 0 || o.cling) continue;   // a clinger rides the vehicle; its body does the pushing
     const dx = e.pos.x - o.pos.x, dz = e.pos.z - o.pos.z, d2 = dx * dx + dz * dz;
     if (d2 >= SEP * SEP || d2 < 1e-8 || lie || e.fixed) continue;
     const d = Math.sqrt(d2), k = (SEP - d) * 0.5 / d;

@@ -36,6 +36,7 @@ const clingers = (ctx, v) => ctx.npcs.filter((o) => o.cling === v);
 // window). True when this took the goon's move for the tick.
 export function vehicleMoves(e, dt, ctx, bat) {
   const v = ctx.player.vehicle;
+  e.vTarget = v;                                      // the strike lands only on this one
   if (!driving(ctx, v) || Math.abs(v.pos.y - e.pos.y) > 1.2) return false;
   const d2 = (v.pos.x - e.pos.x) ** 2 + (v.pos.z - e.pos.z) ** 2;
   if (d2 > ENGAGE * ENGAGE) return false;
@@ -74,7 +75,7 @@ export function vehicleStrike(e, ctx) {
   e.state = 'recover'; e.stateT = 0.5;
   e.cooldown = pull ? PULL_CD : BAT_CD;
   if (!pull) emitChaos(ctx, e.pos.x, e.pos.z, 'batSwing');
-  if (!driving(ctx, v)) return true;
+  if (!driving(ctx, v) || v !== e.vTarget || Math.abs(v.pos.y - e.pos.y) > 1.2) return true;   // he changed cars mid wind-up: nothing lands
   const spd = Math.hypot(v.vel.x, v.vel.z), bd = boxDistance(v, e.pos.x, e.pos.z);
   if (pull && spd < PULL_SPEED + 0.5 && bd < PULL_REACH + 0.4) pullOut(e, v, ctx);
   else if (!pull && spd < BAT_SPEED + 1 && bd < BAT_REACH + 0.4) batHit(e, v, ctx);
@@ -143,7 +144,7 @@ export function clingTick(e, dt, ctx) {
   if (e.swerveT >= SWERVE_T || (v.hardHitT !== undefined && v.hardHitT > e.clingAt)) { letGo(e, ctx, true); return; }
   follow(e, v);
   const was = v.hp;
-  v.hp = Math.max(0, v.hp - CLING_DPS * dt);
+  v.hp = Math.max(0, v.hp - CLING_DPS * dt); v._hpSeen = v.hp;   // theirs, not his property damage (spawner.js)
   if (was > 0 && v.hp <= 0) wrecked(v, ctx);
   rumble(ctx, RUMBLE);
   e.poundT -= dt;
