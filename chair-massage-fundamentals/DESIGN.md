@@ -526,6 +526,61 @@ loaded (no external fonts under CSP); use a system monospace stack.
 Rendering budget: 60fps on integrated graphics. Under 400 draw calls. Use `InstancedMesh` for trees,
 windows, and street props.
 
+## Playtesting with Jev (ruled 2026-09-25)
+
+Alex: "Opus is trying to playtest, but the problem is it's too slow. Opus needs to make sure we have
+good enough logs so it has a really good resolution of everything that happened, and figure out a way
+to make Jev operate the game." The feasibility study (scratchpad `jev/playtest-jev.md`, Opus,
+2026-09-25) found that every headless playtest so far kept the model out of the loop: calls answered
+by an in-page script, goons pinned, waves forced, time slowed 27 times. An Opus decision through the
+harness takes 10 to 30 s against reaction windows of 0.4 to 2.5 s, so unassisted it makes none of the
+timed decisions, which are most of a session. **Jev** is TypeSafe AI's System One decision model
+(early access, Sept 2026): state in, a typed choice with probabilities out in about 0.2 s, text only,
+no tools, about 64k context, near-free. It cannot count, aim or plan routes.
+
+Rulings (Alex, 2026-09-25): Jev flies, Opus reviews the replay afterwards; the sim is **paused per
+decision and render-less**; Jev chooses from a **context-filtered macro menu** (code does bearings,
+holds and steering); access by signup or the Vercel AI Gateway, the harness first; first milestone
+"Jev completes the massage course from logs alone".
+
+**Milestone 0, logs.** Every event carries `tick`. New: `snap` at 4 Hz (`?snap=4`, 0 off; player
+pos/yaw/cam/speed/hp/stamina/vehicle/chair/durability, wanted level and heat, cash, chair and exit
+distance+bearing, the 8 nearest entities as `[id, kind, dist, bearing, state, tag]`, mini and call
+state, the HUD's hint/prompt/strip text, held input; in MASSAGE the client/segment/competency/
+modality/ring instead), `input` on change, `call` act 'open', `mini` phase 'ready', `telegraph`
+{who, id, act: batWindup | grabWindup | pulloutWindup | arrestStart}, `state.why`, `run.start` with
+the full perk/meta subset. `snap` and `input` never enter the 2,000-event localStorage ring: a
+separate in-memory session log (`src/session-log.js`, ~20 min cap) with `CMF.session.since(seq)` and
+`CMF.session.dump()` (NDJSON), and a "Download session" button on watch.html. A human's run becomes
+fully legible to Opus even if Jev never ships.
+
+**Milestone 1, stepping.** `window.CMF.agent`: `pause(on)`, `tick`, `step(n, {stopOn})` stepping
+whole ticks with one microtask yield per tick and stopping early on an interrupt (a call asked or
+open, mini ready, a telegraph, player knockdown or damage, a state change, a tutorial prompt, a
+leave prompt), `observe()` (the snapshot plus the last ~12 events and HUD text rendered as words,
+and the valid action menu), `act(id)` (synchronous synthetic key and mouse events; a hold is keydown,
+step, keyup; 30 degrees = 209 px at MOUSE_SENS). `?norender` skips camera juice, audio and draw.
+`ctx.timeScale ?? 1` (today `|| 1` makes 0 run at full speed). The four gameplay `Math.random` sites
+(goon.js sight timer, npc-common.js replan timer and sidestep, peds-budget.js relocation) move to
+seeded streams; palm.js's camera jitter must not feed ped placement; vehicle and prop meshes are
+preloaded before tick 0 of a stepped run; the default seed stays `Date.now()` but a harness always
+passes `?seed=`. Proof: the same seed, meta and action list twice give byte-identical snapshot
+streams.
+
+**Milestone 2, the first Jev win.** A Node CDP harness (`tools/jev/pilot.mjs`, the same bones as the
+scratchpad `lib.mjs`) runs render-less, paused, 2 decisions per sim second plus interrupts, and asks
+Jev (`POST api.typesafe.ai/v1/systemone`, key from the environment, never in the repo; a Haiku or
+Sonnet call site behind the same interface as the fallback) for an `action` choice among the valid
+macros and a `danger` score. MASSAGE macros: answer_lighter (tap S), answer_harder (hold W 1 s),
+stay_still, answer_left, answer_right, match_modality (Space), next_client (E), wait, and a
+`track_ring` code reflex on or off. Pass: all three clients paid and the pivot reached with no debug
+hooks, from a fresh profile, on three seeds. Every run writes `actions.json` (seed, build, meta,
+[{tick, action, probs}]) and `session.ndjson`.
+
+**Milestones 3 and 4 (later):** one mini-massage in the run on a fixed seed with goons live, then
+full runs to any ending and 50 seeds overnight scored by escape rate, time and chair kept, Opus
+reading the aggregate plus the three worst sessions. RUN macros are listed in the study.
+
 ## Relay protocol
 
 - Fable writes this doc and each phase's brief, and gates each phase.
