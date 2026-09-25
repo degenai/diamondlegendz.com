@@ -319,7 +319,34 @@ broadside across the plaza's single exit street, the outbound lane blocked and t
 drives, until woken or the next wave call). The player's vehicle (any type) hitting it above 3 m/s
 shoves it 2 m along the hit, with a wobble, a thud, sparks and 5 hp off his vehicle; the third shove
 wakes the driver, who drives off to `vanEntry` and parks there (`van` events `shoved`, `driven_off`).
-From there the old rule applies: 10 s on foot sends it back to the exit. A relaxed goon
+From there the old rule applies: 10 s on foot sends it back to the exit.
+**Goons versus a vehicle** (ruled 2026-09-25 after Alex's run 1 on 25.2: "I'm pretty much invincible in
+my cart, goons just stand and look at it"; all four moves ruled in, built in this order):
+1. **Pull-out.** A goon within reach of a vehicle the player drives that is moving under 2 m/s
+   (stopped, cornering, wedged) yanks him out through the door: 0.6 s wind-up with the grab pose,
+   then the player is out on the road beside the car, knocked down 3 s (`knockdown` who 'player',
+   cause 'pullout'), the chair stays where it was (in the vehicle or on his back), the vehicle keeps
+   rolling to a stop with no driver, `stolen` untouched. The reverse of his carjack. The goon says
+   "Out." Watcher `goon` { act: 'pullout', vehicle }.
+2. **Bats wreck the vehicle.** A goon with a bat beside a vehicle the player drives (any speed under
+   6 m/s, within bat reach of the body) swings at the bodywork: 12 hp per hit (about eight hits to
+   wreck a cart from full), a dent (the existing `dentVehicle`), sparks, a clang, the shove-off
+   wobble. A wreck at 0 hp coasts down and throws the chair out (the existing hard-crash rule). Sitting
+   still is fatal even when nobody pulls him out. `vehicle` { act: 'batHit', hp }.
+3. **Cling.** A goon that reaches the back of a moving vehicle (2 to 12 m/s, within 1 m of the tail)
+   jumps on and hangs off it (a `cling` pose on the rig, parented to the vehicle), pounding the roof:
+   2 hp to the vehicle per second and the camera wobbles. A handbrake swerve (Space with the wheel
+   turned, yaw rate above 1.2 rad/s for 0.4 s) or a static hit above 8 m/s throws him off: knocked
+   down 3 s on the road. At most two clinging at once. `goon` { act: 'cling' | 'thrown' }.
+4. **Goon cars at wave two.** From the second wave on, the van's drop comes with a sedan (Serenity
+   livery: black, the van's colour) that two goons take and drive: it chases the player's vehicle the
+   way the van does (pursue, cut) and rams at 8 hp, and its two goons bail out to chase on foot when
+   the player is on foot within 15 m. Two goon cars at most alive. `goon` { act: 'car', n }.
+**The van avoids its own people** (same ruling): goons and cops are never knocked down by the van or a
+goon car; those vehicles brake for them and pass through. Ramming stays for the player's vehicle and
+traffic. (Run 1 on 25.2 had five knockdowns, all the van's, three goons and two cops, and none on the
+player.)
+A relaxed goon
 (Healing Palm or massage gun) sits down for 8 s, then rejoins. Bat swing at melee range (20 damage, knockdown).
 Later waves arrive in black vans. Black suits, white shirts, no ties, one bat per van. Franchise name is
 locked: SERENITY GROUP INCORPORATED ("Serenity Group" on vans, "Serenity Group Incorporated" when a goon introduces himself).
@@ -336,7 +363,11 @@ sitting starts that over instead of putting him straight back on.
 hat asset on the person mesh, the same character as in the pivot. Driving units spawn one block out by
 road (ruled 2026-09-24 after run 5, where level 2 units spawned 2..3 blocks out took ~98 s and never
 arrived): the street node about 160 m of road from the node nearest the player, never on a ring inside
-the plaza block or his own block; measured 14..23 s to within 30 m of a player on the plaza. 2: parks police cart. 3: city cop cars
+the plaza block or his own block; measured 14..23 s to within 30 m of a player on the plaza. **Units
+spawn ahead** (ruled 2026-09-25 after run 1 on 25.2: two stars for 58 s and no unit ever had line of
+sight of a cart): the spawn node is chosen on the player's route to the escape (the node about 160 m
+of road along that route, or the farthest on it when the route is shorter), facing him, so he meets
+the unit head-on instead of outrunning it; when he is on foot with no route the old rule stands. 2: parks police cart. 3: city cop cars
 (light bars flashing). 4: roadblocks at two road corners. 5: everything plus the SWAT van. Rises, by
 **two classes of attack** (ruled 2026-09-25, Alex: "if all our attacks are healing attacks, should
 we even get in trouble for this?"): the Healing Palm (charged or quick) and the massage gun are
