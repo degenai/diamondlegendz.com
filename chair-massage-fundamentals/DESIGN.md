@@ -237,6 +237,18 @@ shove during the charge cancels it: the wind-up is the risk, and the gun's stun 
 A **tap** (or letting go early) is the quick palm: 0.25 s wind-up, knockdown 3 s, relaxed rise, no
 treatment. A treatment counts as tension released on the certificate; a quick palm does not.
 
+**A goon's wind-up is a call** (proposed by the open-ended Opus 2026-09-25 after finding the
+stunlock: a player doing what the first prompt says is OVERWORKED 7.8 s into the run with no input that
+changes it; ruled by Alex the same day, all four options as recommended). When a goon winds up on the
+player on foot (bat, shove, grab, pull-out), the course's key cue shows over the goon: the S keycap
+with the draining window bar, every run. The window is the wind-up plus a 0.15 s early buffer (about
+0.5 s). Tapping S inside it backsteps about 2 m so the strike whiffs (strike() already checks reach on
+release); a clean dodge makes him stagger 1 s on top of his recover and cooldown, which is the palm's
+charge window: dodge, counter, TREATED. Any other key or nothing is a miss and he connects as today.
+Pillar 1 becomes literal: "Ow. Lighter." = S = back off. Lethality is unchanged; it becomes learnable.
+Watcher: `dodge` { who, id, act: 'shown' | 'dodged' | 'miss' | 'late' }. Lives in goon.js / hostile.js
+(the whiff and stagger), player-move.js (the backstep), hud-run.js (the mini cue reused).
+
 **The chair swing** (Andy's suggestion, ruled 2026-09-24). Carrying the chair on foot, left click swings
 it instead of the palm (the palm cannot be charged or tapped while the chair is on his back; the hint
 line adds "Left click: swing the chair"). No charge: 0.15 s wind-up, 0.2 s arc, 0.15 s recover. The
