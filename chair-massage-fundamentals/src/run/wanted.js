@@ -2,6 +2,9 @@
 // need real vehicle carnage (3+ ped hits or 3+ wrecks, DESIGN.md), so heat caps below 4 until then.
 // Decays one level per 25 s while no cop has line of sight to the player. Also the chaos-event
 // bus: emitChaos() makes nearby peds flee and interrupts a mini-massage.
+// Two classes of attack (ruled 2026-09-25): the palm and the massage gun are NONVIOLENT and report
+// nothing on a goon or a ped; the chair swing and a car hit are DANGEROUS ('goonHit', 'pedHurt').
+// Anything on a cop is 'copHit'.
 import { lineOfSight } from '../entities/npc-nav.js';
 import { emit } from '../events.js';
 
@@ -61,7 +64,8 @@ export function report(w, kind) {
   else if (kind === 'pedHurt') { w.carnage += 1; add(w, 2); }
   else if (kind === 'vehicleWreck') { w.carnage += 1; add(w, 1); }
   else if (kind === 'propertyHit') add(w, 0.25);
-  else if (kind === 'chairCop') add(w, 1);                           // a chair swing that catches a cop: a full star, every time
+  // Any action on a cop is aggression (ruled 2026-09-25): palm, gun, chair or car, a full star every time.
+  else if (kind === 'copHit') add(w, 1);
   // Unlicensed vending (minimassage.js, a third quick mini-massage on one spot): +1 once per run,
   // and never leaves him below one star.
   else if (kind === 'vending') { if (!w.vendingDone) { w.vendingDone = true; add(w, 1); } if (w.level < 1) add(w, 1 - w.heat); }

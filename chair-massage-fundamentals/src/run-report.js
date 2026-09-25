@@ -18,12 +18,14 @@ function wantedWhy(evs, i, d) {
   switch (d.cause) {
     case 'stealVehicle': return v ? `stole a ${v.data.type}` : 'stole a car';
     case 'carjack': return v ? `carjacked a ${v.data.type}` : 'carjacked a car';
-    case 'goonHit': {
-      if (nearby(evs, i, 'palm', 0.1)) return 'palmed a goon';
-      if (nearby(evs, i, 'gun', 0.1)) return 'gunned a goon down';
-      return 'ran a goon down';
+    case 'goonHit': return nearby(evs, i, 'swing', 0.1) ? 'swung the chair at a goon' : 'ran a goon down';
+    case 'pedHurt': return nearby(evs, i, 'swing', 0.1) ? 'swung the chair at a pedestrian' : 'hit a pedestrian';
+    case 'copHit': {
+      if (nearby(evs, i, 'swing', 0.1)) return 'swung the chair at a cop';
+      if (nearby(evs, i, 'palm', 0.1)) return 'palmed a cop';
+      if (nearby(evs, i, 'gun', 0.1)) return 'gunned a cop';
+      return 'ran a cop down';
     }
-    case 'pedHurt': return 'hit a pedestrian';
     case 'vehicleWreck': return 'wrecked a car';
     case 'propertyHit': return 'dented a car';
     case 'chaos': return 'a minute of chaos';

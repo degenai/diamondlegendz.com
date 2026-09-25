@@ -283,8 +283,8 @@ function getUp(e, ctx) {
   }
 }
 
+// The palm and the gun are nonviolent (ruled 2026-09-25): no wanted for a goon.
 function onPalm(e, p, ctx) {
-  if (ctx.wanted) ctx.wanted.report('goonHit');
   say(ctx, e, 'TENSION RELEASED', 'released');
 }
 

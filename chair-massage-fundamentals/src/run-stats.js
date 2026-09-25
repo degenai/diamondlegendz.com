@@ -9,7 +9,7 @@ export const plural = (n, one, many = `${one}s`) => `${n} ${n === 1 ? one : many
 export const ENDING = { escape: 'escaped', arrest: 'arrested', death: 'overworked', left: 'left the chair' };
 const END_STATE = { ESCAPE: 'escape', ARREST: 'arrest', DEATH: 'death' };
 export const CAUSE = {
-  stealVehicle: 'a stolen car', carjack: 'a carjack', goonHit: 'a goon hit', pedHurt: 'a ped hit',
+  stealVehicle: 'a stolen car', carjack: 'a carjack', goonHit: 'a goon hit', pedHurt: 'a ped hit', copHit: 'a cop hit',
   vehicleWreck: 'a wreck', propertyHit: 'a dented car', chaos: 'a minute of chaos',
 };
 

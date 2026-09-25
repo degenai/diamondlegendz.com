@@ -110,10 +110,6 @@ export function tearOffMassageHud() {
 }
 export function massageHudTearing() { return !!wrap && wrap.classList.contains('cm-tear'); }
 
-// The pressure gauge is gone (2026-09-24). hud.js still re-exports these two, so they stay as no-ops.
-export function setMeter() {}
-export function setMeterState() {}
-
 // The open call (null hides the cue): { name, frac } where frac is the window left, 1 -> 0.
 export function setCall(c) {
   G.call = c ? { name: c.name, frac: Math.max(0, Math.min(1, c.frac)) } : null;

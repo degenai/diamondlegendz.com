@@ -115,6 +115,9 @@ function tap(p, ctx, level) {
   ctx.grabUntil = 0;                          // the first gun hit brings the bats out (goon.js)
   if (ctx.time - (e.gunTapT ?? -1e9) > TAP_FORGET) e.gunTaps = 0;
   e.gunTaps = (e.gunTaps || 0) + 1; e.gunTapT = ctx.time;
+  // Any action on a cop is aggression (ruled 2026-09-25): +1 per volley, on its first tap. Goons and
+  // peds get nothing: the gun is nonviolent.
+  if (e.kind === 'cop' && e.gunTaps === 1 && ctx.wanted) ctx.wanted.report('copHit');
   const hud = ctx.hud;
   if (e.gunTaps < TAPS) {
     e.stunT = STUN;
@@ -132,7 +135,9 @@ function tap(p, ctx, level) {
   knockFx(ctx, e, p);
   sfx(ctx, 'thud', e.pos.x, e.pos.z, 0.8);
   if (hud && hud.floater) hud.floater('THUD', e.pos.x, e.pos.y + 1.6, e.pos.z, 'thud');
+  e.gunKnock = true;                          // cop.js: this volley already reported its copHit
   if (e.onPalm) e.onPalm(e, p, ctx);
+  e.gunKnock = false;
   emitChaos(ctx, e.pos.x, e.pos.z, 'gun');
   if (ctx.runStats) ctx.runStats.tension++;
   return e;

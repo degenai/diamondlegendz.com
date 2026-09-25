@@ -136,8 +136,8 @@ function getUp(e, ctx) {
   }
 }
 
+// The palm and the gun are nonviolent (ruled 2026-09-25): no wanted for a ped.
 function onPalm(e, p, ctx) {
-  if (ctx.wanted) ctx.wanted.report('pedHurt');
   say(ctx, e, 'TENSION RELEASED', 'released');
   e.state = 'wander';
 }

@@ -10,6 +10,7 @@ import { driveRoute, driveAt, brake } from './driver.js';
 import { nearestNode } from '../world/roads.js';
 import { setOnboard } from '../hud-run.js';
 import { emit, onEvent } from '../events.js';
+import { chairState } from '../entities/chair.js';
 
 export const WAVE = 90;
 export const GOON_CAP = 9;
@@ -77,18 +78,24 @@ export function waveStep(ctx, A, v, dt) {
 // rest still show in order. An action already performed this run before its turn is skipped.
 // Watcher: `tutorial` events, where 'run', act shown | done | timeout | skipped | cut.
 export const ONBOARD = [
-  { step: 'palm', text: 'Hold left click: HEALING PALM' },   // a charge starts (palm event), or any palm
+  { step: 'palm', text: 'Hold left click: HEALING PALM', chair: 'Left click: swing the chair' },   // a charge, a quick palm or a swing
   { step: 'drive', text: 'E at any car: drive' },            // he is in a vehicle
   { step: 'sprint', text: 'Shift: sprint. It runs out.' },   // stamina draws down on foot
 ];
 export const ONBOARD_SHOW = 4;
+// Carrying the chair, left click swings it instead (ruled 2026-09-25): the palm step reads the swing
+// while the chair is on his back, checked each tick it is up; the step and its events are the same.
+function stepText(ctx, k) {
+  const s = ONBOARD[k];
+  return s.chair && chairState(ctx.world).where === 'player' ? s.chair : s.text;
+}
 const ONBOARD_Y = 2.35;      // m above his feet
 
 let heard = null;            // the armed run's state, for the event tap below
 export function armOnboard(ctx, on) {
   if (heard === null) onEvent((type, d) => {
     const O = heard && heard.onboard;
-    if (O && type === 'palm' && d.phase === 'charge') O.did.palm = true;
+    if (O && ((type === 'palm' && d.phase === 'charge') || type === 'swing')) O.did.palm = true;
   });
   heard = ctx;
   ctx.onboard = on ? { k: -1, t: -1, did: { palm: false, drive: false, sprint: false }, stam: null, log: [] } : null;
@@ -97,9 +104,9 @@ export function armOnboard(ctx, on) {
 }
 
 function onboardAct(ctx, O, k, act) {
-  const p = ONBOARD[k];
-  O.log.push({ step: p.step, act, at: ctx.time });
-  emit('tutorial', { where: 'run', step: p.step, act, text: p.text });
+  const p = ONBOARD[k], text = stepText(ctx, k);
+  O.log.push({ step: p.step, act, at: ctx.time, text });
+  emit('tutorial', { where: 'run', step: p.step, act, text });
 }
 
 // Per RUN tick (spawner.update), after the entities moved.
@@ -111,7 +118,7 @@ export function onboardStep(ctx, dt) {
     if (O.t >= 0) onboardAct(ctx, O, O.k, 'cut');
     setOnboard(null); ctx.onboard = null; return;
   }
-  if (p.chargeT >= 0 || p.palmT > 0 || p.lungeT > 0) O.did.palm = true;   // a charge, or a quick click's palm
+  if (p.chargeT >= 0 || p.palmT > 0 || p.lungeT > 0 || p.swingT >= 0) O.did.palm = true;   // a charge, a quick click's palm, or a swing
   if (p.vehicle) O.did.drive = true;
   if (!p.vehicle && O.stam !== null && p.stamina < O.stam - 1e-4) O.did.sprint = true;
   O.stam = p.stamina ?? null;
@@ -122,7 +129,7 @@ export function onboardStep(ctx, dt) {
   if (O.t >= 0) {                                // a prompt is up
     O.t += dt;
     const did = O.did[ONBOARD[O.k].step];
-    if (!did && O.t < ONBOARD_SHOW) { setOnboard(ONBOARD[O.k].text, p.pos.x, p.pos.y + ONBOARD_Y, p.pos.z); return; }
+    if (!did && O.t < ONBOARD_SHOW) { setOnboard(stepText(ctx, O.k), p.pos.x, p.pos.y + ONBOARD_Y, p.pos.z); return; }
     onboardAct(ctx, O, O.k, did ? 'done' : 'timeout');
     O.k++; O.t = -1;
   }
@@ -132,5 +139,5 @@ export function onboardStep(ctx, dt) {
   if (O.k >= ONBOARD.length) { setOnboard(null); ctx.onboard = null; return; }
   O.t = 0;
   onboardAct(ctx, O, O.k, 'shown');
-  setOnboard(ONBOARD[O.k].text, p.pos.x, p.pos.y + ONBOARD_Y, p.pos.z);
+  setOnboard(stepText(ctx, O.k), p.pos.x, p.pos.y + ONBOARD_Y, p.pos.z);
 }

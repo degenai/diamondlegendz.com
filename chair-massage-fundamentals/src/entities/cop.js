@@ -114,13 +114,16 @@ function getUp(e, ctx) {
   } else if (!e.standDown) e.state = 'chase';
 }
 
+// Any action on a cop is aggression (ruled 2026-09-25): the palm is +1 even though he walks off.
+// The gun's third tap lands here too; gun.js already reported that volley (e.gunKnock), so skip it.
 function onPalm(e, p, ctx) {
+  if (ctx.wanted && !e.gunKnock) ctx.wanted.report('copHit');
   say(ctx, e, 'TENSION RELEASED', 'released');
 }
 
 function onVehicleHit(e, v, ctx) {
   e.knockCause = 'vehicle';
   e.knockedT = 3;
-  if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('pedHurt'); // a stolen car you bailed from is still yours (ped.js)
+  if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('copHit'); // +1, not carnage; a stolen car you bailed from is still yours (ped.js)
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');
 }

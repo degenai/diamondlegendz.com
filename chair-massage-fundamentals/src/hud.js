@@ -9,7 +9,7 @@ import { initBubbles } from './bubbles.js';
 import { VERSION } from './version.js';
 
 export {
-  showMassageHud, setMeter, setMeterState, setCompetency, setClientInfo, setModality,
+  showMassageHud, setCompetency, setClientInfo, setModality,
   showDialogue, hideDialogue, setPrompt, setLedger, showCard, hideCard, tearOffMassageHud, massageHudTearing,
 } from './hud-massage.js';
 export {

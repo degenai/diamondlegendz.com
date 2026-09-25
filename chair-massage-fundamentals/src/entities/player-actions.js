@@ -60,7 +60,7 @@ export function palmInput(p, dt, ctx, input, knocked) {
 // 0.15 s wind-up, 0.2 s arc, 0.15 s recover; no charge. The arc's midpoint hits everything up and
 // in the half circle in front within 2.5 m (goons, cops, peds): down 3 s, ~2 m of knockback, a THUD,
 // "CHAIR!", a bigger shake. No treatment: they rise straight back into what they were doing. A cop
-// caught is wanted +1 (report 'chairCop'). Each swing wears the chair 10 (chair.js). Nobody dies.
+// caught is wanted +1 each (report 'copHit'); a goon 'goonHit', a ped 'pedHurt' (DANGEROUS, 2026-09-25). Each swing wears the chair 10 (chair.js). Nobody dies.
 export const SWING_UP = 0.15, SWING_ARC = 0.2, SWING_DOWN = 0.15;
 export const SWING_REACH = 2.5;
 const SWING_SHAKE = 0.5;
@@ -112,7 +112,7 @@ function swingHit(p, ctx) {
     p.shakeT = 0.15;
     ctx.grabUntil = 0;                        // like the palm, it brings the bats out (goon.js)
     if (ctx.wanted) {
-      if (kinds.has('cop')) ctx.wanted.report('chairCop');
+      for (const e of hits) if (e.kind === 'cop') ctx.wanted.report('copHit');   // any action on a cop: +1 each
       if (kinds.has('goon')) ctx.wanted.report('goonHit');
       if (kinds.has('ped')) ctx.wanted.report('pedHurt');
     }

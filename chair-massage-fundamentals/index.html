@@ -65,17 +65,6 @@
   .cm-bar i { display: block; height: 100%; width: 0; background: var(--cm-ok); }
   .cm-comp b { width: 40px; text-align: right; font-weight: normal; }
   /* Pressure lives on the stroke ring: SVG arcs on the projected ellipse (hud-massage.js). */
-  .cm-ring { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; }
-  .cm-ring path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .cm-ring-track { stroke: rgba(20,16,8,.35); stroke-width: 7px; }
-  .cm-ring-band { stroke: rgba(190,245,170,.55); stroke-width: 11px; stroke-linecap: butt; }
-  .cm-ring-fill { stroke: #fdf8ea; stroke-width: 5px; filter: drop-shadow(0 0 1px rgba(0,0,0,.7)); }
-  .cm-ring[data-zone="in"] .cm-ring-fill { stroke: #7fe07a; }
-  .cm-ring[data-zone="over"] .cm-ring-fill { stroke: #e0322c; }
-  .cm-ring[data-zone="over"] .cm-ring-track { stroke: rgba(224,50,44,.45); }
-  .cm-ring-val { position: absolute; left: 0; top: 0; font: 15px var(--mono); color: #fdf8ea; text-shadow: 0 1px 2px #000; }
-  .cm-ring-val[data-zone="over"] { color: #ff6a5c; }
-  .cm-ring-val[data-zone="in"] { color: #9cf29a; }
   .cm-wants { position: absolute; left: 0; top: 0; white-space: nowrap; font: bold 26px var(--cm-serif); letter-spacing: .06em;
     color: #fdf8ea; background: rgba(35,30,20,.72); border: 1px solid var(--cm-rule); padding: 4px 14px; }
   .cm-wants.cm-pulse { color: #ffd27a; animation: cm-pulse .7s ease-in-out infinite alternate; }
@@ -86,7 +75,7 @@
   .cm-coach { position: absolute; left: 0; top: 0; white-space: nowrap; background: var(--cm-paper); color: var(--cm-ink);
     border: 1px solid var(--cm-rule); border-left: 4px solid var(--cm-ok); padding: 6px 14px; font: 18px var(--cm-serif);
     box-shadow: 0 3px 12px rgba(0,0,0,.35); }
-  .cm-tear .cm-ring, .cm-tear .cm-ring-val, .cm-tear .cm-wants, .cm-tear .cm-coach { opacity: 0; }
+  .cm-tear .cm-wants, .cm-tear .cm-coach { opacity: 0; }
   .cm-mod { right: 16px; top: 132px; width: 210px; padding: 10px 12px; font-size: 14px; }
   .cm-mod-cur { font-size: 18px; color: var(--cm-ok); }
   .cm-mod-cur.cm-wrong { color: #a0463a; }
