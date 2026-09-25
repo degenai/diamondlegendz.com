@@ -144,6 +144,7 @@ export function enterVehicle(p, v, ctx, how = 'enter') {
   }
   v.parked = false;
   v.driver = p;
+  v._hpSeen = v.hp;                   // damage it took while he was out of it is not his property hit (spawner.js)
   v.asleep = false;
   p.vehicle = v;
   p.lastVehicle = v;                   // "your vehicle" for a repair on foot
