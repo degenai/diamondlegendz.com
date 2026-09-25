@@ -125,6 +125,29 @@ and certificate share it). Types and their `data`:
 | `line` | `speaker` (`narrator` / `client` / `goon` / `cop` / `ranger` / `player` / `boss`), `name` (client name, goon id, or null), `text`, `preset` (voice), `state` (game state) |
 | `tutorial` | `step` (`a` to `d`), `act` (`shown` / `done` / `skipped`), `text`, `client` (the guided first client) |
 
+## Playtesting with Jev
+
+A model can play the game paused and render-less, one decision at a time. The design is DESIGN.md
+"Playtesting with Jev"; the research behind it (the log audit, the snapshot schema, the agent API,
+determinism) is [docs/playtest-jev.md](docs/playtest-jev.md).
+
+- Every session keeps an in-memory log: every event (with its `tick`), a snapshot 4 times a second
+  (`?snap=N`, 0 off) and every input change. `CMF.session.since(seq)` / `CMF.session.dump()` read
+  it; the watcher's **Download session** button saves it as NDJSON.
+- `?norender` (or `?agent`) boots paused: `CMF.agent.step(n)`, `observe()` (the situation in words
+  plus the valid actions) and `act(id)` drive it. Same seed, meta and actions give byte-identical
+  snapshots: `node tools/jev/replay-test.mjs --seed 777`.
+- The pilot, with the game served on 8817 (`python -m http.server 8817 --bind 127.0.0.1`):
+
+  `node tools/jev/pilot.mjs --model oracle|jev|claude|openai:<model-id> --seeds 101,202,303 [--until pivot|end]`
+
+  Three call sites behind one interface: `jev` (TypeSafe System One; `TYPESAFE_API_KEY`, or
+  `AI_GATEWAY_API_KEY` through the Vercel AI Gateway), `claude` (`ANTHROPIC_API_KEY`, Haiku 4.5 by
+  default) and `openai:<model-id>` (any chat-completions endpoint: `PILOT_OPENAI_API_KEY`,
+  `PILOT_OPENAI_BASE_URL`, default the Nous inference portal). `oracle` needs no key: it answers
+  every call right, which proves the harness. Keys come from the environment only. Each seed writes
+  `tools/jev/out/<seed>.actions.json` and `<seed>.session.ndjson` (git-ignored).
+
 ## The debug handle
 
 Open the browser console. `window.CMF` exposes the running game:

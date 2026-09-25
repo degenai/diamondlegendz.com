@@ -4,6 +4,7 @@
 // a model whose key is missing refuses to start with a message that says what to set.
 //   oracle          no model: reads the open call from the observation and answers it right (the
 //                   harness proof while no key is at hand).
+// JEV_BASE_URL and ANTHROPIC_BASE_URL, when set, replace the hosts (a proxy, or a local test double).
 //   jev             TypeSafe System One. TYPESAFE_API_KEY -> https://api.typesafe.ai/v1/systemone with
 //                   model JEV_MODEL (default pinned 'jev-1.13.0'); or, with only AI_GATEWAY_API_KEY,
 //                   the Vercel AI Gateway https://ai-gateway.vercel.sh/typesafe/v1/systemone with
@@ -79,7 +80,8 @@ function oracle() {
 function jev() {
   need('TYPESAFE_API_KEY', 'AI_GATEWAY_API_KEY');
   const direct = !!process.env.TYPESAFE_API_KEY;
-  const url = direct ? 'https://api.typesafe.ai/v1/systemone' : 'https://ai-gateway.vercel.sh/typesafe/v1/systemone';
+  const url = process.env.JEV_BASE_URL ? `${process.env.JEV_BASE_URL.replace(/\/$/, '')}/v1/systemone`   // a proxy or a test double
+    : direct ? 'https://api.typesafe.ai/v1/systemone' : 'https://ai-gateway.vercel.sh/typesafe/v1/systemone';
   const key = direct ? process.env.TYPESAFE_API_KEY : process.env.AI_GATEWAY_API_KEY;
   const model = process.env.JEV_MODEL || (direct ? 'jev-1.13.0' : 'typesafe-ai/jev');
   return {
@@ -104,7 +106,7 @@ function claude() {
   return {
     name: `claude (${model})`,
     async decide(obs) {
-      const { json, ms } = await post('https://api.anthropic.com/v1/messages',
+      const { json, ms } = await post(`${(process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com').replace(/\/$/, '')}/v1/messages`,
         { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
         { model, max_tokens: 60, temperature: 0, system: INSTRUCT, messages: [{ role: 'user', content: prompt(obs) }] });
       const text = (json.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
