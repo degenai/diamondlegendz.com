@@ -84,7 +84,8 @@ function watchVehicles(ctx, dt) {
     }
   }
   if (pv) {
-    if (pv._hpSeen !== undefined && pv.hp < pv._hpSeen - 3 && ctx.time - (pv._propT || -9) > 1) {
+    // A crash within a second of a ram is the rammer's doing, not his property damage (ruled 2026-09-25: heat for his own dangerous acts).
+    if (pv._hpSeen !== undefined && pv.hp < pv._hpSeen - 3 && ctx.time - (pv._propT || -9) > 1 && ctx.time - (pv.rammedT ?? -9) > 1) {
       pv._propT = ctx.time;
       ctx.wanted.report('propertyHit');
       emitChaos(ctx, pv.pos.x, pv.pos.z, 'crash');

@@ -164,6 +164,7 @@ function ram(ctx, A, v, pv, d, P) {
   pv.vel.x += nx * RAM_PUSH; pv.vel.z += nz * RAM_PUSH;
   pv.hp = Math.max(Math.min(pv.hp, 1), pv.hp - P.ramHp);
   pv._hpSeen = pv.hp;                          // his own crash bookkeeping ignores the van's shove
+  pv.rammedT = ctx.time;                       // and the wall he is shoved into just after (spawner.js)
   pv.wobbleT = Math.max(pv.wobbleT || 0, 0.6);
   pv.asleep = false;
   shake(ctx, 0.45, pv.pos.x, pv.pos.z);
