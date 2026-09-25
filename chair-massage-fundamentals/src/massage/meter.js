@@ -59,10 +59,13 @@ export function judge(c, input, dt) {
   c.t += dt;
   const p = (input && input.pressed) || new Set();
   const fw = !!(input && input.forward), bk = !!(input && input.back);
+  // A key already held when the call opens never fires a pressed edge (nitpick 2026-09-25): the held
+  // level counts as the answer too, so easing off on S when they say "lighter" is right, not late.
+  const lf = !!(input && input.left), rt = !!(input && input.right);
   const done = (correct, answer, late = false) => ({ correct, late, answer });
   switch (c.name) {
     case 'lighter':
-      if (Sk(p)) return done(true, 'S');
+      if (Sk(p) || bk) return done(true, 'S');
       if (W(p)) return done(false, 'W');
       break;
     case 'harder':
@@ -75,11 +78,11 @@ export function judge(c, input, dt) {
       if (c.t >= c.window) return done(true, 'none');
       return null;
     case 'left':
-      if (A(p)) return done(true, 'A');
+      if (A(p) || lf) return done(true, 'A');
       if (D(p)) return done(false, 'D');
       break;
     case 'right':
-      if (D(p)) return done(true, 'D');
+      if (D(p) || rt) return done(true, 'D');
       if (A(p)) return done(false, 'A');
       break;
     default: break;
@@ -88,5 +91,7 @@ export function judge(c, input, dt) {
   return null;
 }
 
-// While this call is open, A/D answer it instead of cycling the modality.
-export const takesAD = (c) => !!c && c.open && (c.name === 'left' || c.name === 'right');
+// While a left / right call exists, A/D answer it instead of cycling the modality. Keyed on the call
+// existing, not on `open`: the bubble opens it at the end of the tick it was asked, and an A/D edge
+// on that tick would otherwise cycle the modality and be lost as an answer (nitpick 2026-09-25).
+export const takesAD = (c) => !!c && (c.name === 'left' || c.name === 'right');

@@ -176,5 +176,5 @@ export function debugComplete() { if (S.phase === 'session') S.forceDone = true;
 
 // Debug / headless tests: the current segment reaches its top on the next tick (the next request fires).
 export function debugSegment() {
-  if (S.phase === 'session' && S.live && S.pending < 0) S.competency = ((S.seg + 1) * 100) / S.segs.length;
+  if (S.phase === 'session' && S.live && S.pending < 0) { S.competency = ((S.seg + 1) * 100) / S.segs.length; if (S.caller) S.caller.call = null; }
 }
