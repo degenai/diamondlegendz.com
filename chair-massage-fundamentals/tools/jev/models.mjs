@@ -90,7 +90,7 @@ async function post(url, headers, body) {
     } catch (err) { last = new Error(`${url}: ${err.message}`); await sleep(backoff(i)); continue; }
     if (r.ok) return { json: JSON.parse(text), ms: Date.now() - t0, retries: i };
     last = new Error(`${url}: HTTP ${r.status} ${text.slice(0, 400)}`);
-    if (r.status !== 429 && r.status < 500) break;
+    if (r.status !== 429 && r.status !== 424 && r.status < 500) break;   // 424: the gateway reporting a typesafe upstream error; retry it too
     process.stderr.write(`  retry ${i + 1}/${RETRIES} after HTTP ${r.status}
 `);
     await sleep(backoff(i));
