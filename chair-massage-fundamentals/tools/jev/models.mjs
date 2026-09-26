@@ -36,14 +36,14 @@ const INSTRUCT = 'You are playing Chair Massage Fundamentals. Pick the one actio
 // The run's rules in one paragraph (DESIGN.md "The run"): what a player learns from the HUD and the first deaths.
 const RUN_RULES = 'You are playing the run of Chair Massage Fundamentals. You win by reaching the exit with the chair (carried, or loaded in the car you drive) '
   + 'and 0 wanted stars. Leaving without the chair loses. Goons (Serenity Group) want the chair: they chase, shove, grab and swing bats; when one winds up on you, '
-  + 'dodge (tap S) and he whiffs and staggers, then a charged HEALING PALM treats him (out of the chase for about two minutes). A quick palm only knocks down 3 s. '
+  + 'counter (tap Q) drops him for 3 s; counter_hold (hold Q through the wind-up) TREATS him (out of the chase for about two minutes) but plants you for it. Only one goon swings at a time; the rest circle. '
   + 'Palms never raise wanted on goons or pedestrians; any action on a cop raises it; a chair swing or a car hitting a goon or pedestrian raises it; taking a car raises it. '
   + 'Arrest: a cop touches you while you stand still for 1.5 s, or you are knocked down next to a cop. Wanted falls one star per 25 s no cop can see you. '
   + 'A mini-massage cools it: set the chair down (E while carrying it), a pedestrian walks over and kneels, hold E and answer their calls '
   + '(lighter: tap S; harder: hold W; right there: keep off W and S); success pays and drops one star, but any goon or cop within 6 m stops it. '
   + 'To move the chair by car: carry it to a car, E loads it, get in, drive. Goons pull you out of a car that is stopped or slow, and bat it. '
   + 'The code-steered macros (go_to_chair, go_to_car, run_to_exit, face_exit_steer, drive_to_chair) handle bearings and routes for you.';
-const PLAN = { fight: 'Fight: dodge and palm the goons (or swing the chair).', flee_on_foot: 'Flee on foot, carrying the chair.', get_a_car: 'Get the chair into a car and drive.',
+const PLAN = { fight: 'Fight: counter and palm the goons (or swing the chair).', flee_on_foot: 'Flee on foot, carrying the chair.', get_a_car: 'Get the chair into a car and drive.',
   massage: 'Set the chair down and give a mini-massage (drops a star).', head_for_exit: 'Head for the exit now.', wait: 'Wait and see.' };
 
 // The run's question battery (the owner: output is free, so ask many questions per state): the action
