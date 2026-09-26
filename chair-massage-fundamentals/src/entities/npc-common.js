@@ -147,7 +147,7 @@ export function stepBody(e, dt, ctx) {
   pushVehicles(e, ctx);
   separate(e, ctx);
 
-  if (!knocked && (e.wishX || e.wishZ) && e.speed > 0) {
+  if (!knocked && (e.wishX || e.wishZ) && e.speed > 0 && e.strafe !== ctx.tick) {   // circling goons strafe facing him (goon-turns.js)
     e.yaw = wrap(e.yaw + wrap(Math.atan2(e.wishX, e.wishZ) - e.yaw) * Math.min(1, 10 * dt));
   } else if (e.faceX !== undefined && !knocked) {
     e.yaw = wrap(e.yaw + wrap(Math.atan2(e.faceX - e.pos.x, e.faceZ - e.pos.z) - e.yaw) * Math.min(1, 8 * dt));

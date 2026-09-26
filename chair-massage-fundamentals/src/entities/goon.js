@@ -18,7 +18,7 @@ import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer, pack, PERCEIVE } from './hostile.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
-import { emit } from '../events.js'; import { stream } from '../rng.js'; import { counterOpen, counterCatch, WIND } from './goon-counter.js';
+import { emit } from '../events.js'; import { stream } from '../rng.js'; import { counterOpen, counterCatch, WIND } from './goon-counter.js'; import { mayWind, circle, CIRCLE_NEAR } from './goon-turns.js';
 import { vehicleMoves, vehicleStrike, clingTick } from './goon-vehicle.js';
 // hostile and alertPack moved to hostile.js (refactor/split); re-exported for one release.
 export { hostile, alertPack } from './hostile.js'; export { vanHome };
@@ -213,6 +213,7 @@ function chase(e, dt, ctx) {
   e.speed = RUN;
   if (p.vehicle && vehicleMoves(e, dt, ctx, e.bat && !grabbing(ctx))) return;
   if (!p.vehicle && p.knockedT <= 0) {
+    if (!mayWind(e, ctx)) { if (d2 < CIRCLE_NEAR * CIRCLE_NEAR) circle(e, dt, ctx); else seek(e, tgt.x, tgt.y, tgt.z, dt, ctx, 1.2); return; }   // the crowd takes turns (goon-turns.js)
     const grab = grabbing(ctx);
     const reach = e.bat && !grab ? BAT_REACH : SHOVE_REACH;
     if (d2 < reach * reach && e.cooldown <= 0 && Math.abs(p.pos.y - e.pos.y) < 1) {

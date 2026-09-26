@@ -111,7 +111,7 @@ export function counterInput(p, ctx, input) {
     }
     if (c.doneAt !== null && ctx.time - c.doneAt > FLASH) D.cues.splice(i, 1);
   }
-  if (D.used || !canCounter(p)) return;
+  if (!press || D.used || !canCounter(p)) return;   // a press this tick; an earlier one only counts through counterOpen's buffer
   const open = D.cues.filter((c) => !c.done && c.struckAt === null && c.armedAt === null);
   if (open.length) arm(ctx, open.reduce((a, b) => (b.end < a.end ? b : a)));   // the swing that lands first
 }
