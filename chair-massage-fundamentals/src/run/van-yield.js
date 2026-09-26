@@ -16,12 +16,12 @@ const YIELD_MAX = 2;         // s waiting before it creeps through
 const CREEP = 1.5;           // m/s
 const YIELD_LOG = 10;        // s between `van yield` events at most
 
-// The first spared body in the van's path, or null.
-export function inPath(v, npcs) {
+// The first spared body in the van's path, or null. ok(e): who counts (default: whom it spares).
+export function inPath(v, npcs, ok = null) {
   const s = Math.sin(v.yaw), c = Math.cos(v.yaw), sp = Math.max(0, v.speed || 0);
   const reach = v.spec.halfL + Math.min(AHEAD_MAX, AHEAD + (sp * sp) / (2 * STOP_DECEL));
   for (const e of npcs) {
-    if (e.cling || e.fixed || !spares(v, e) || Math.abs(e.pos.y - v.pos.y) > 1.5) continue;
+    if (e.cling || e.fixed || !(ok ? ok(e) : spares(v, e)) || Math.abs(e.pos.y - v.pos.y) > 1.5) continue;
     const dx = e.pos.x - v.pos.x, dz = e.pos.z - v.pos.z;
     const f = dx * s + dz * c, l = dx * c - dz * s;
     if (f > 0 && f < reach && Math.abs(l) < v.spec.halfW + SIDE + (e.radius || 0.4)) return e;
@@ -30,12 +30,12 @@ export function inPath(v, npcs) {
 }
 
 // A = ctx.vanAI (or any object to keep the wait on), v the vehicle. Call after its driver has
-// written v.ai this tick.
-export function yieldStep(ctx, A, v, dt) {
+// written v.ai this tick. ok: whom it brakes for, for a vehicle that spares nobody (police-offroad.js).
+export function yieldStep(ctx, A, v, dt, ok = null) {
   const a = v.ai;
-  if (!a || !v.driver || v.driver.kind !== 'aiDriver' || v.spares !== 'goons') return;
+  if (!a || !v.driver || v.driver.kind !== 'aiDriver' || (!ok && v.spares !== 'goons')) return;
   const wants = a.throttle > 0.05 && v.speed > -0.4;        // going forward (not backing, not braked)
-  const e = wants || v.speed > 0.4 ? inPath(v, ctx.npcs || []) : null;
+  const e = wants || v.speed > 0.4 ? inPath(v, ctx.npcs || [], ok) : null;
   if (!e) { A.yieldT = 0; A.yielding = false; return; }
   A.yieldT = (A.yieldT || 0) + dt;
   if (!A.yielding) {

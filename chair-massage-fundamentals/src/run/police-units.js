@@ -12,6 +12,7 @@ import { nearestNode } from '../world/roads.js';
 import { SIZE } from '../world/layout.js';
 import { setupLights, disposeLights } from './police-lights.js';
 import { blocked } from './traffic.js';
+import { offroadStep } from './police-offroad.js';
 
 const CRUISE = { copcar: 20, swatvan: 15, cart: 11 };
 const BAIL = { copcar: 12, swatvan: 12, cart: 8 };
@@ -84,6 +85,7 @@ export function driveUnit(ctx, u, tgt, dt) {
     if (Math.abs(v.speed) < 1.5) bail(ctx, u);
     return;
   }
+  if (offroadStep(ctx, u, tgt, dt)) return;   // he is off the road within 60 m: across the plaza (police-offroad.js)
   // Close, or already at the street node nearest the player (he is deep in a block): go in.
   const goal = nearestNode(G, tgt.x, tgt.z), n = G.nodes[goal];
   const onPoint = Math.hypot(n.x - v.pos.x, n.z - v.pos.z) < 12;
