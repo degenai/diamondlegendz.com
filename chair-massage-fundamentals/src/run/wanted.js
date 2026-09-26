@@ -1,6 +1,8 @@
 // Wanted level (GTA3 curve). heat is a float; level = floor(heat) clamped 0..WANTED_CAP (5 max). Levels 4 and 5
 // need real vehicle carnage (3+ ped hits or 3+ wrecks, DESIGN.md), so heat caps below 4 until then.
-// Decays one level per 25 s while no cop has line of sight to the player. Also the chaos-event
+// Decays one level per 25 s unless a cop within WATCH_R (40 m) has line of sight to the player (ruled
+// 2026-09-25: farther cops still chase but do not hold stars); w.watcher is the nearest such cop
+// (or cruiser proxy), for the compass line and the pilot's words. Also the chaos-event
 // bus: emitChaos() makes nearby peds flee and interrupts a mini-massage.
 // Two classes of attack (ruled 2026-09-25): the palm and the massage gun are NONVIOLENT and report
 // nothing on a goon or a ped; the chair swing and a car hit are DANGEROUS ('goonHit', 'pedHurt').
@@ -15,11 +17,12 @@ const CHAOS_WINDOW = 10;
 const CHAOS_RUN = 60;
 const LOS_EVERY = 0.25;
 const FLEE_R2 = 15 * 15;
+export const WATCH_R = 40;   // m: only a cop this close with line of sight holds a star
 
 export function createWanted() {
   const w = {
     heat: 0, level: 0, decayT: 0, chaosT: 0, lastEventT: -1e9, time: 0,
-    goonHitDone: false, vendingDone: false, stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0,
+    goonHitDone: false, vendingDone: false, stolen: 0, carnage: 0, seen: false, watcher: null, losT: 0, risingT: 0,
     counts: {},
     report: (kind) => report(w, kind),
     drop: (n = 1, cause = 'drop') => setLevel(w, Math.max(0, w.level - n), cause),
@@ -30,7 +33,7 @@ export function createWanted() {
 
 function resetWanted(w) {
   Object.assign(w, { heat: 0, level: 0, decayT: 0, chaosT: 0, lastEventT: -1e9, goonHitDone: false, vendingDone: false,
-    stolen: 0, carnage: 0, seen: false, losT: 0, risingT: 0, counts: {} });
+    stolen: 0, carnage: 0, seen: false, watcher: null, losT: 0, risingT: 0, counts: {} });
 }
 
 // The watcher hears every heat change, with the event kind that caused it.
@@ -86,14 +89,15 @@ export function updateWanted(w, dt, ctx, cops) {
   w.losT -= dt;
   if (w.losT <= 0) {
     w.losT = LOS_EVERY;
-    w.seen = false;
+    w.seen = false; w.watcher = null;
     const p = ctx.player;
-    for (let i = 0; i < cops.length && !w.seen; i++) {
+    let bd = WATCH_R * WATCH_R;
+    for (let i = 0; i < cops.length; i++) {
       const c = cops[i];
       if (c.knockedT > 0 || c.standDown || c.state === 'walkoff' || c.state === 'hang' || c.state === 'treated' || c.state === 'out' || c.loose > 0) continue;   // relaxed (or treated) cops relieve the pressure
-      const dx = c.pos.x - p.pos.x, dz = c.pos.z - p.pos.z;
-      if (dx * dx + dz * dz > 90 * 90) continue;
-      if (lineOfSight(ctx.world, c.pos, p.pos)) w.seen = true;
+      const dx = c.pos.x - p.pos.x, dz = c.pos.z - p.pos.z, d2 = dx * dx + dz * dz;
+      if (d2 > bd) continue;
+      if (lineOfSight(ctx.world, c.pos, p.pos)) { w.seen = true; w.watcher = c; bd = d2; }
     }
   }
   if (w.level > 0 && !w.seen) {

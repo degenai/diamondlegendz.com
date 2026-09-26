@@ -37,7 +37,7 @@ export const isThreat = (n) => (THREAT_KINDS.includes(n[1]) && (LIVE.includes(n[
 const MINI_CALL = { lighter: 'lighter (tap S)', harder: 'harder (hold W)', still: 'right there (keep off W and S)' };
 const IT_WORDS = { enter: 'get into the vehicle beside you', exit: 'get out', repair: 'repair the vehicle here ($20)', load: 'load the chair into the vehicle beside you',
   setdown: 'set the chair down here', massage: 'start the mini-massage (hold E)', pickup: 'pick up the chair', take: 'take the chair out of the vehicle', carjack: 'pull the driver out of the car beside you' };
-const DECAY = 25;   // run/wanted.js: a star drops after 25 s with no cop in sight
+const DECAY = 25;   // run/wanted.js: a star drops after 25 s with no cop within 40 m in sight
 
 function chairWords(p, t) {
   if (p.chair === 'player') return `You are carrying the chair (durability ${p.dur}%${p.dur <= 0 ? ', BENT' : ''}).`;
@@ -48,7 +48,7 @@ function chairWords(p, t) {
 
 function wantedWords(w) {
   if (!w.lv) return 'Wanted: 0 stars (clean: you can escape at the exit with the chair).';
-  const how = w.rise ? 'RISING' : w.seen ? `a cop can see you${w.cop ? ` (${w.cop[0]}, ${Math.round(w.cop[1])} m ${side(w.cop[2])})` : ''}, so it is not falling: break his line of sight` : `no cop sees you, so it is falling: the next star drops in ${Math.max(0, Math.round(DECAY - w.decay))} s`;
+  const how = w.rise ? 'RISING' : w.seen ? `a cop within 40 m can see you${w.cop ? ` (${w.cop[0]}, ${Math.round(w.cop[1])} m ${side(w.cop[2])})` : ''}, so it is not falling: break his line of sight or get more than 40 m away` : `no cop within 40 m sees you, so it is falling: the next star drops in ${Math.max(0, Math.round(DECAY - w.decay))} s`;
   return `Wanted: ${w.lv} star${w.lv === 1 ? '' : 's'}, ${how}. The exit only works at 0 stars; a finished mini-massage drops one star.`;
 }
 

@@ -3,6 +3,8 @@
 // gold exit for the escape gap, each with its distance in metres underneath. Lives inside the
 // RUN HUD wrap, so it is hidden in MASSAGE and PIVOT with the rest. Plain DOM, styles inline.
 // While he is at the exit without the chair (end.js ctx.leave) the chair marker is the one to follow.
+// Right of the strip, while a star is held: who holds it (wanted.js w.watcher, the nearest cop within
+// 40 m with line of sight), "seen by ranger, 22 m"; nothing when no one does (ruled 2026-09-25).
 import * as THREE from '../vendor/three.module.js';
 import { chairWorldPos } from './entities/chair.js';
 
@@ -10,7 +12,7 @@ const WIDTH = 360;          // px
 const SPAN = Math.PI;       // the strip covers 180 degrees (90 either side of straight ahead)
 const CHAIR_SVG = '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 1h2v6h6v2H9v4H7V9H5v4H3z" fill="#7fe3a0"/></svg>';
 
-let strip = null;
+let strip = null, watch = null;
 const marks = {};
 const _d = new THREE.Vector3();
 const _c = new THREE.Vector3();
@@ -35,6 +37,22 @@ export function initCompass(parent) {
     const dist = el('div', `margin-top:2px;font:bold 11px monospace;color:${colour};text-shadow:0 1px 2px #000,0 0 3px #000`, m);
     marks[k] = { m, dist };
   }
+  watch = el('div', 'position:absolute;left:100%;top:0;margin-left:8px;height:14px;line-height:14px;white-space:nowrap;'
+    + 'font:bold 11px monospace;color:#ff8a7a;text-shadow:0 1px 2px #000,0 0 3px #000', strip);
+  watch.className = 'rh-compass-watch';
+  watch.hidden = true;
+}
+
+const RANKS = { ranger: 'ranger', cop: 'cop', swat: 'SWAT' };
+// The watcher's name: a cop by rank, a cruiser still driving in by its unit (spawner.js label).
+export function watcherName(c) { return c.kind === 'cop' ? RANKS[c.rank] || 'cop' : c.label || 'police'; }
+
+// "seen by ranger, 22 m" while a cop holds the star, else ''.
+export function watchLine(ctx) {
+  const w = ctx.wanted, c = w && w.level > 0 && w.seen ? w.watcher : null;
+  if (!c || !c.pos) return '';
+  const p = ctx.player, from = p.vehicle ? p.vehicle.pos : p.pos;
+  return `seen by ${watcherName(c)}, ${Math.round(Math.hypot(c.pos.x - from.x, c.pos.z - from.z))} m`;
 }
 
 function wrap(a) {
@@ -68,6 +86,8 @@ export function updateCompass(ctx) {
   place('chair', chairWorldPos(ctx, _c), from, head);
   const esc = ctx.world.spawns && ctx.world.spawns.escape;
   place('exit', esc ? esc.centre : null, from, head);
+  const wl = watchLine(ctx);
+  if (watch.textContent !== wl) { watch.textContent = wl; watch.hidden = !wl; }
   // Leaving without the chair (end.js): the exit steps back and the chair marker grows and pulses.
   const focus = !!ctx.leave;
   if (strip.dataset.focus !== (focus ? 'chair' : '')) {

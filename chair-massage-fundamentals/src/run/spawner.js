@@ -94,6 +94,9 @@ function watchVehicles(ctx, dt) {
   }
 }
 
+// A cruiser still driving in, named on the compass when it is the one holding the star.
+const UNIT_LABEL = { cart: 'police cart', copcar: 'cop car', swatvan: 'SWAT van' };
+
 export function update(dt, ctx) {
   updateVan(ctx, dt);
   updateGoonCars(ctx, dt);                    // before watchVehicles: a goon car's contact is not his damage
@@ -105,7 +108,7 @@ export function update(dt, ctx) {
   // Cruisers still driving in (crew not yet bailed) watch the player too.
   for (const u of ctx.police.units) {
     if (u.kind !== 'drive' || !u.v || u.v.removed) continue;
-    const q = u.los || (u.los = { pos: null, knockedT: 0, standDown: false });
+    const q = u.los || (u.los = { pos: null, knockedT: 0, standDown: false, label: UNIT_LABEL[u.type] || u.type });
     q.pos = u.v.pos; q.standDown = !!u.standDown;
     _cops.push(q);
   }
