@@ -53,7 +53,7 @@ function wantedWords(w) {
 
 function miniWords(M, p) {
   if (!M || M.ph === 'idle') return p.chair === 'ground' ? 'Mini-massage: the chair is not set down for clients (pick it up and set it down to open).' : null;
-  if (M.ph === 'waiting') return `Mini-massage: the chair is set down, waiting for a willing pedestrian within 12 m (${M.t} s so far). Goons or cops within 6 m scare them off.`;
+  if (M.ph === 'waiting') return `Mini-massage: the chair is set down, waiting for a willing pedestrian within 30 m (${M.t} s so far). Goons or cops within 6 m scare them off.`;
   if (M.ph === 'coming') return `Mini-massage: ped ${M.who} is walking over to the chair (${M.cd} m away). Stay near; keep threats away.`;
   if (M.ph === 'ready') return `Mini-massage: ped ${M.who} is KNEELING AT THE CHAIR. Hold E beside it to start (they leave after 25 s or if you go 8 m away).`;
   const c = M.call && M.call.open ? ` CALL OPEN: the client wants ${MINI_CALL[M.call.name] || M.call.name}, ${Math.max(0, Math.round((M.call.window - M.call.t) * 10) / 10)} s left. Answer now.` : ' No call open: keep holding E.';

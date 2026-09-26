@@ -18,11 +18,15 @@ import { blockAt } from '../world/district-layout.js';
 import { emit } from '../events.js';
 import { makeRng, hashSeed } from '../rng.js';
 
-const QUOTA = [9, 3, 1];     // by Chebyshev block distance from the player's block
+const QUOTA = [12, 3, 1];    // by Chebyshev block distance from the player's block (home 9 -> 12, ruled 2026-09-25)
 const PEDS = 40;
 const EVERY = 0.5;
 const MOVES = 4;             // re-homed per tick
 const HIDE_R = 35;           // a re-homed ped lands at least this far from the player
+// Peds come to the chair (ruled 2026-09-25): with the chair set down for clients, a ped re-homed
+// into the chair's block lands within CHAIR_R of the chair (inside the 30 m call radius), still at
+// least NEAR_R from the player and behind the camera when it can manage.
+const CHAIR_R = 25, NEAR_R = 12;
 const BUSY = ['kneel', 'toChair', 'leave', 'flee'];
 
 // Any run NPC's teardown: the budget drops extras here, spawner.clear() drops them all.
@@ -81,6 +85,22 @@ function pointIn(world, k, rng, x, z, r0, fx, fz) {
     if (fx === undefined || dx * fx + dz * fz < 0) return i;
   }
   return fallback >= 0 ? fallback : ids[rng.int(0, ids.length - 1)];
+}
+
+// A nav point in block `k` within CHAIR_R of the chair (cx, cz), NEAR_R or more from the player
+// (px, pz), behind the camera preferred; else pointIn's rule from the chair.
+function pointNear(world, k, rng, cx, cz, px, pz, fx, fz) {
+  const ids = blockPoints(world).get(k), pts = navInfo(world).points;
+  if (!ids || !ids.length) return -1;
+  const near = ids.filter((i) => (pts[i].x - cx) ** 2 + (pts[i].z - cz) ** 2 < CHAIR_R * CHAIR_R && (pts[i].x - px) ** 2 + (pts[i].z - pz) ** 2 >= NEAR_R * NEAR_R);
+  if (!near.length) return pointIn(world, k, rng, px, pz, HIDE_R, fx, fz);
+  let fallback = -1;
+  for (let t = 0; t < 20; t++) {
+    const i = near[rng.int(0, near.length - 1)];
+    if (fallback < 0) fallback = i;
+    if (fx === undefined || (pts[i].x - px) * fx + (pts[i].z - pz) * fz < 0) return i;
+  }
+  return fallback;
 }
 
 function addPed(ctx, idx, rng) {
@@ -174,6 +194,7 @@ export function recyclePeds(ctx, dt, dispose = disposeNpc) {
   // with Math.random and the lerp carries it on, which must not decide where a ped lands (Jev milestone 1).
   const pl = ctx.player, cy = pl.vehicle ? (pl.chaseYaw ?? pl.vehicle.yaw + Math.PI) + (pl.orbitYaw || 0) : pl.camYaw;
   const f = Number.isFinite(cy) ? { x: -Math.sin(cy), z: -Math.cos(cy) } : null;
+  const M = ctx.mini, ck = M && M.phase !== 'idle' ? key(blockAt(M.pos.x, M.pos.z)) : null;   // the chair is set down for clients
   let moves = 0;
   for (const nd of need) {
     while (nd[1] > 0 && moves < MOVES) {
@@ -187,7 +208,8 @@ export function recyclePeds(ctx, dt, dispose = disposeNpc) {
       const l = by.get(donor);
       let e = null, fd = -1;
       for (const o of l) { if (!movable(o)) continue; const d = (o.pos.x - at.x) ** 2 + (o.pos.z - at.z) ** 2; if (d > fd) { fd = d; e = o; } }
-      const idx = pointIn(world, nd[0], rng, at.x, at.z, nd[0] === hk ? HIDE_R : 12, f && f.x, f && f.z);
+      const idx = nd[0] === ck ? pointNear(world, nd[0], rng, M.pos.x, M.pos.z, at.x, at.z, f && f.x, f && f.z)
+        : pointIn(world, nd[0], rng, at.x, at.z, nd[0] === hk ? HIDE_R : 12, f && f.x, f && f.z);
       if (idx < 0) break;
       const from = [Math.round(e.pos.x), Math.round(e.pos.z)];
       putOnEdge(e, world, idx, rng);

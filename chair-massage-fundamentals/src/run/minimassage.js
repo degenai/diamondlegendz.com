@@ -1,5 +1,5 @@
 // Mini-massage during the run: set the chair down (E while carrying, on foot), the nearest willing
-// ped within 12 m walks over and kneels, hold E for 5 s (10 s on a bent chair). The ped calls like a
+// ped within 30 m walks over and kneels, hold E for 5 s (10 s on a bent chair). The ped calls like a
 // course client (ruled 2026-09-25, "same calls, faster"): every 2 to 3 s "Ow. Lighter." (tap S),
 // "Harder." (hold W 0.6 s), "That's it, right there." (no W / S), judged by massage/meter.js with
 // shorter windows (MINI_CALLS). A miss adds 1 s to the hold and gets "Not that."; a third miss and
@@ -20,7 +20,7 @@ import { MINI_CALLS, nextGap, pickCall, makeCall, openCall, judge } from '../mas
 // E's two mini-massage actions moved to mini-start.js (refactor/split); re-exported for one release.
 export { setChairDown, canStart, startMassage } from './mini-start.js';
 
-const CALL_R2 = 12 * 12;
+const CALL_R2 = 30 * 30;      // a willing ped this close is called over (was 12 m; ruled 2026-09-25)
 const THREAT_R2 = 6 * 6;
 const CHAOS_R2 = 15 * 15;
 const HOLD = 5;
@@ -102,7 +102,7 @@ export function updateMini(dt, ctx) {
       (ctx.lastChaos && ctx.lastChaos.t > M.startT - 0.001 && (ctx.lastChaos.x - M.pos.x) ** 2 + (ctx.lastChaos.z - M.pos.z) ** 2 < CHAOS_R2 && ctx.lastChaos.t > ctx.time - 3);
     if (danger) cancel(ctx, 'Actually... no thanks.', 'waiting', 'danger');
     else if (arrived) kneel(e, M);
-    else if (M.t > 20) cancel(ctx, 'Eh, never mind.', 'waiting', 'client gave up');
+    else if (M.t > 35) cancel(ctx, 'Eh, never mind.', 'waiting', 'client gave up');   // 30 m at 1.4 m/s is ~21 s (was 20 s for 12 m)
   } else if (M.phase === 'ready') {
     // A kneeling client will not wait forever: the player wandering off, danger nearby,
     // or 25 s of nothing sends them on their way (and frees the chair for pickup).
