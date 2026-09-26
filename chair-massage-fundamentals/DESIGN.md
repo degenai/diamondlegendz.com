@@ -643,6 +643,15 @@ stay_still, answer_left, answer_right, match_modality (Space), next_client (E), 
 hooks, from a fresh profile, on three seeds. Every run writes `actions.json` (seed, build, meta,
 [{tick, action, probs}]) and `session.ndjson`.
 
+**The LLM-pilot rule** (Alex, 2026-09-25: "it should be a long-standing sequential thing... if you're
+worried about corruption from context, it needs to compact its own context"). The oracle is code, not a
+model. Jev is stateless by nature (each call is a photograph), so the harness sends it the observation
+alone. Any LLM put in the pilot seat (the `claude` and `openai` call sites) must NOT be a fresh call per
+decision: one running session per run, each observation appended, the pilot compacting itself with a
+rolling "what I've done and what I'm trying" summary every ~20 decisions, raw turns dropped behind it,
+the fixed system prefix cached. Today's fallback call sites are stateless and are for proving the
+harness only; convert them before any LLM flight is treated as evidence.
+
 **Milestones 3 and 4 (later):** one mini-massage in the run on a fixed seed with goons live, then
 full runs to any ending and 50 seeds overnight scored by escape rate, time and chair kept, Opus
 reading the aggregate plus the three worst sessions. RUN macros are listed in the study.
