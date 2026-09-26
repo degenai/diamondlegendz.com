@@ -169,6 +169,18 @@ determinism) is [docs/playtest-jev.md](docs/playtest-jev.md).
   between two instant actions ends as `loop`. `node tools/jev/review.mjs <dir> <seed>` prints the
   three worst decisions of a run (each bad outcome charged to the decision before it) with the
   observation text the pilot saw.
+- Two more seats for the same TypeSafe questions. `--model cf` is Jev on Cloudflare Workers AI
+  (`typesafe/jev`; `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`, else the wrangler login). It
+  answers 402 until the Cloudflare AI Gateway has credits, and the pilot says so. `--model laya` is
+  Laya (Apache 2.0, an open System One clone) on this machine: create the venv once
+  (`py -3.9 -m venv tools/jev/.venv`, then `tools/jev/.venv/Scripts/python -m pip install torch
+  --index-url https://download.pytorch.org/whl/cu128` and `pip install "laya>=0.3.3"`), then start
+  `tools/jev/.venv/Scripts/pythonw tools/jev/laya-server.py --model typed-decisions --device cuda`
+  (port 8899; `--device cpu` works at about 3 s a call against about 0.12 s on the RTX 3070). The
+  first start downloads the checkpoints (about 10 minutes).
+- `node tools/jev/compare.mjs --ref <dir> --seeds 101,202,303 --targets laya[,jev,cf]` replays a
+  run's logged observations through other models with no game running: action agreement, call
+  answers, the danger difference, latency, and how much of each input Laya could read.
 - **The overnight run** (about 2 hours for 50 seeds when the gateway is not throttling; serve the game
   on 8821 first, `pythonw -m http.server 8821 --bind 127.0.0.1`):
 
