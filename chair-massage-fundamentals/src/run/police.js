@@ -19,7 +19,7 @@ export { updateLights };
 // Moved to police-units.js (refactor/split); re-exported here for one release.
 export { spawnVehicle, removeVehicle, removeNpc, clearPolice } from './police-units.js';
 
-export function createPolice() { return { units: [], tiers: {}, episode: false, arrestT: 0, pending: [] }; }
+export function createPolice() { return { units: [], tiers: {}, episode: false, arrestT: 0, pauseT: 0, pending: [] }; }
 
 // ---- spawning ----
 function footSpawn(ctx) {
@@ -219,9 +219,11 @@ export function updatePolice(P, dt, ctx) {
   arrest(P, dt, ctx);
 }
 
+const PAUSE_MAX = 1.0;     // s of fold pause per arrest episode
+
 function arrest(P, dt, ctx) {
   const p = ctx.player;
-  if (p.vehicle) { P.arrestT = 0; return; }
+  if (p.vehicle) { P.arrestT = 0; P.pauseT = 0; return; }
   let touch = false, near = false;
   for (const c of ctx.npcs) {
     if (c.kind !== 'cop' || !copHostile(c)) continue;
@@ -234,9 +236,12 @@ function arrest(P, dt, ctx) {
   const speed = Math.hypot(p.vel.x, p.vel.z), still = touch && speed < 0.5;
   // Chair business pauses the touch (ruled 2026-09-25): mid-fold (pick up, take, load, the hold-E
   // set-down; getting in is instant and a driver is never touched) the meter holds where it is and
-  // resumes the moment the action ends. A beat of grace, not immunity.
-  if (still && p.foldT > 0) return;
+  // resumes the moment the action ends. A beat of grace, not immunity: at most PAUSE_MAX of pause
+  // per arrest episode (until the meter is back at 0), so chained folds (load, take, load) cannot
+  // hold it under 1.5 s for as long as he taps E.
+  if (still && p.foldT > 0 && (P.pauseT || 0) < PAUSE_MAX) { P.pauseT = (P.pauseT || 0) + dt; return; }
   if (still && !(P.arrestT > 0)) { P.arrestBy = touch.id; emit('telegraph', { who: touch.rank === 'ranger' ? 'ranger' : 'cop', id: touch.id, act: 'arrestStart', t: 1.5 }); }   // Jev milestone 0
   P.arrestT = still ? P.arrestT + dt : Math.max(0, P.arrestT - dt);
+  if (!(P.arrestT > 0)) P.pauseT = 0;           // the episode is over: a fresh budget
   if (P.arrestT >= 1.5) endRun(ctx, 'arrest');
 }

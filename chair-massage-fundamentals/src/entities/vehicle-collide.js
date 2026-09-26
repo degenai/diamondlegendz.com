@@ -15,7 +15,7 @@ const RESTITUTION = 0.15;
 const HIT_SPEED = 2;       // moving faster than this knocks a body down
 const SHAKE_OFF = 8;       // m/s wall impact that throws a clinging goon off
 const NUDGE_SPEED = 3;     // m/s: slower than this a relaxed goon is pushed aside, not knocked down
-const RELAXED = new Set(['sit', 'treated', 'out', 'loose']);
+const RELAXED = new Set(['sit', 'treated', 'out', 'loose', 'walkoff']);
 
 const _c = { x: 0, z: 0 };
 const _push = { x: 0, z: 0 };
@@ -218,10 +218,11 @@ export function collideNpc(v, e, ctx) {
   }
   e.pos.x += px; e.pos.z += pz;
   const speed = Math.hypot(v.vel.x, v.vel.z);
-  // A nudge is not a hit (ruled 2026-09-25): under NUDGE_SPEED a goon sitting, treated, out or loose
-  // is only pushed aside; no knockdown, nothing reported (a cart creeping off scored goonHit on the
-  // goon it had just treated). Above it, the old rule.
-  const nudge = e.kind === 'goon' && speed < NUDGE_SPEED && RELAXED.has(e.state);
+  // A nudge is not a hit (ruled 2026-09-25): under NUDGE_SPEED a relaxed body (a goon, cop or ped
+  // sitting, treated, out or loose, or a cop walking off a palm) is only pushed aside; no knockdown,
+  // nothing reported (a cart creeping off scored goonHit on the goon it had just treated). Above it,
+  // the old rule.
+  const nudge = speed < NUDGE_SPEED && (RELAXED.has(e.state) || e.loose > 0);
   if (speed > HIT_SPEED && !(e.knockedT > 0) && !spared && !nudge) {
     hitEntity(v, e, { knockT: 3, damage: false });
     emit('knockdown', { who: e.kind, cause: 'vehicle', by: v.spec.label, mine: !!ctx.player && v.driver === ctx.player });

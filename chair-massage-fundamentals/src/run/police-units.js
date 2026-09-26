@@ -140,5 +140,5 @@ export function clearPolice(P, ctx) {
     for (const c of u.cops) removeNpc(ctx, c);
     for (const v of [u.v, ...(u.cars || [])]) if (v && !v.removed && v.driver !== ctx.player) { v.removed = true; removeVehicle(ctx, v); }
   }
-  P.units.length = 0; P.tiers = {}; P.episode = false; P.arrestT = 0; P.pending.length = 0;
+  P.units.length = 0; P.tiers = {}; P.episode = false; P.arrestT = 0; P.pauseT = 0; P.pending.length = 0;
 }

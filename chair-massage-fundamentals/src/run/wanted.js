@@ -91,12 +91,12 @@ export function updateWanted(w, dt, ctx, cops) {
     w.losT = LOS_EVERY;
     w.seen = false; w.watcher = null;
     const p = ctx.player;
-    let bd = WATCH_R * WATCH_R;
+    let bd = WATCH_R * WATCH_R + 1e-6;
     for (let i = 0; i < cops.length; i++) {
       const c = cops[i];
       if (c.knockedT > 0 || c.standDown || c.state === 'walkoff' || c.state === 'hang' || c.state === 'treated' || c.state === 'out' || c.loose > 0) continue;   // relaxed (or treated) cops relieve the pressure
       const dx = c.pos.x - p.pos.x, dz = c.pos.z - p.pos.z, d2 = dx * dx + dz * dz;
-      if (d2 > bd) continue;
+      if (!(d2 < bd)) continue;                // strictly nearer: equidistant cops do not flicker the name
       if (lineOfSight(ctx.world, c.pos, p.pos)) { w.seen = true; w.watcher = c; bd = d2; }
     }
   }
