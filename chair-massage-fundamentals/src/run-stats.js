@@ -46,7 +46,7 @@ export function runStats(events) {
     ending: null, finished: false, duration: 0, cash: 0, tension: 0, unlock: null,
     level: 0, maxStars: 0, firstStar: null, decays: 0, stars: [{ t: 0, level: 0 }],
     chair: 'ground', chairMoved: false, chairLog: [], throws: [], setdowns: [], loads: [],
-    vehicles: [], carjacks: 0, steals: 0, palms: 0, treats: 0, guns: 0, runDowns: 0,
+    vehicles: [], carjacks: 0, steals: 0, palms: 0, counters: 0, treats: 0, guns: 0, runDowns: 0,
     minis: 0, miniStarts: 0, miniCancels: 0, miniCash: 0,
     damage: 0, damageBy: {}, knocked: 0, state: null, roster: null, pivot: null, lastT: 0,
   };
@@ -87,6 +87,7 @@ export function runStats(events) {
       if (d.act === 'setdown') st.setdowns.push(t);
       if (d.act === 'load') st.loads.push(d.vehicle);
     } else if (e.type === 'palm') { if (d.target) st.palms++; }
+    else if (e.type === 'counter') { if (d.act === 'tap' || d.act === 'hold') st.counters++; }
     else if (e.type === 'treat') { if (!d.phase || d.phase === 'sit') st.treats++; }
     else if (e.type === 'gun') { if (!d.stun) st.guns++; }
     else if (e.type === 'knockdown') {

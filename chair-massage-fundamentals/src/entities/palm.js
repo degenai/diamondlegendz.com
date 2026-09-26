@@ -58,7 +58,8 @@ export function cancelCharge(p, cause) {
   setCharge(null);
 }
 
-function landHit(p, ctx, hit, charged) {
+// Also the counter's outcome (goon-counter.js): charged = TREATED, else the quick palm's knockdown.
+export function landHit(p, ctx, hit, charged) {
   const dx = hit.pos.x - p.pos.x, dz = hit.pos.z - p.pos.z, d = Math.hypot(dx, dz) || 1;
   p.shakeT = SHAKE;
   ctx.grabUntil = 0;                        // the first palm brings the bats out (goon.js)

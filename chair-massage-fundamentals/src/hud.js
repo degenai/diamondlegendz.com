@@ -4,8 +4,8 @@
 // and is re-exported here so callers only ever import hud.js.
 import { initMassageHud } from './hud-massage.js';
 import { initRunHud } from './hud-run.js';
-import { initDodgeHud } from './hud-dodge.js';
-export { updateDodgeCues } from './hud-dodge.js';
+import { initCounterHud } from './hud-counter.js';
+export { updateCounterCues } from './hud-counter.js';
 export { updateCompass } from './hud-compass.js';
 import { initBubbles } from './bubbles.js';
 import { VERSION } from './version.js';
@@ -53,7 +53,7 @@ export function initHud(hudRoot) {
   chairEl.hidden = true;
   initMassageHud(root);
   initRunHud(root);
-  initDodgeHud(root);                 // the goon wind-up cue, inside the RUN overlay
+  initCounterHud(root);               // the goon wind-up cue (the Q counter), inside the RUN overlay
   initBubbles(root);
   return root;
 }

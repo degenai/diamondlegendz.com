@@ -73,7 +73,7 @@ function renderCard() {
   $('w-card-title').textContent = `Run ${g.run}${st.seed !== null ? ` · seed ${st.seed}` : ''}${st.ending ? ` · ${st.ending}` : ' · live'}`;
   $('c-dur').textContent = clock(dur);
   $('c-stars').textContent = `${'★'.repeat(st.level)}${'☆'.repeat(Math.max(0, 3 - st.level))} (${st.maxStars})`;
-  $('c-hits').textContent = `${st.palms} / ${st.guns}`;
+  $('c-hits').textContent = `${st.palms} / ${st.guns}${st.counters ? ` (${st.counters} Q counters)` : ''}`;
   $('c-chair').textContent = st.chair === 'vehicle' ? `in the ${st.chairVehicle || 'car'}` : st.chair === 'player' ? 'on your back' : st.chairMoved ? 'on the ground' : 'at the station';
   $('c-cash').textContent = `$${Math.round(st.cash * 100) / 100}`;
   const strip = $('c-strip');

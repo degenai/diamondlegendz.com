@@ -13,7 +13,7 @@ import { SESSION_CHANNEL } from './events.js';
 import { chairState, chairWorldPos } from './entities/chair.js';
 import { hostile, copHostile } from './entities/hostile.js';
 import { playerCash, interaction, JACK_SPEED } from './entities/interact.js';
-import { openDodges } from './entities/goon-dodge.js';
+import { openCounters } from './entities/goon-counter.js';
 
 const CAP_TICKS = 20 * 60 * 60;   // 20 min at 60 ticks/s
 const MOUSE_EVERY = 6;            // ticks between coalesced mouse entries (10/s)
@@ -188,7 +188,7 @@ export function buildSnap() {
     s.tgt = { chair: tgt(cw), exit: tgt(esc && esc.centre) };
     s.near = nearList(p, h, at.x, at.z);
     s.car = nearestTakeable(p, h, at.x, at.z);
-    const dg = openDodges(ctx); if (dg.length) s.dodge = dg;   // goon wind-ups open on him (the S call)
+    const dg = openCounters(ctx); if (dg.length) s.counter = dg;   // goon wind-ups open on him (the Q counter)
     const M = ctx.mini;
     s.mini = M ? { ph: M.phase, prog: r2(M.progress || 0), miss: M.misses || 0, call: callOf(M.caller && M.caller.call),
       who: M.client ? `p${M.client.id}` : null, cd: M.client ? r1(Math.hypot(M.client.pos.x - M.pos.x, M.client.pos.z - M.pos.z)) : null, t: r1(M.t || 0) } : null;

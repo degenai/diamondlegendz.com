@@ -18,14 +18,13 @@ import { emitChaos } from '../run/wanted.js';
 import { hurtPlayer, pack, PERCEIVE } from './hostile.js';
 import { sfx, shake } from '../juice.js';
 import { vanHome, goHome } from './goon-home.js';
-import { emit } from '../events.js'; import { stream } from '../rng.js'; import { dodgeOpen, dodgeWhiff } from './goon-dodge.js';
+import { emit } from '../events.js'; import { stream } from '../rng.js'; import { counterOpen, counterCatch, WIND } from './goon-counter.js';
 import { vehicleMoves, vehicleStrike, clingTick } from './goon-vehicle.js';
 // hostile and alertPack moved to hostile.js (refactor/split); re-exported for one release.
 export { hostile, alertPack } from './hostile.js'; export { vanHome };
 
 const RUN = 5.5;
 const BAT_REACH = 1.6, SHOVE_REACH = 1.3;
-const BAT_WIND = 0.4, SHOVE_WIND = 0.3;
 const COOLDOWN = 1.5;
 const FLANK_OFF = 6;
 const SIT_TIME = 8;
@@ -219,8 +218,8 @@ function chase(e, dt, ctx) {
     if (d2 < reach * reach && e.cooldown <= 0 && Math.abs(p.pos.y - e.pos.y) < 1) {
       e.state = 'windup';
       e.grab = grab; e.vmove = null;
-      e.stateT = e.bat && !grab ? BAT_WIND : SHOVE_WIND;
-      emit('telegraph', { who: 'goon', id: e.id, act: grab ? 'grabWindup' : e.bat ? 'batWindup' : 'shoveWindup', t: e.stateT }); dodgeOpen(e, ctx);   // Jev milestone 0; the wind-up is a call (goon-dodge.js)
+      e.stateT = WIND;   // on foot: one 0.45 s wind-up for bat, shove and grab (the counter's window, goon-counter.js)
+      emit('telegraph', { who: 'goon', id: e.id, act: grab ? 'grabWindup' : e.bat ? 'batWindup' : 'shoveWindup', t: e.stateT }); counterOpen(e, ctx);   // Jev milestone 0; the Q counter's cue (goon-counter.js)
       return;
     }
   }
@@ -244,7 +243,7 @@ function chase(e, dt, ctx) {
 }
 
 function strike(e, ctx) {
-  const p = ctx.player; if (dodgeWhiff(e, ctx)) return;   // dodged: a whiff and a stagger (goon-dodge.js)
+  const p = ctx.player; if (counterCatch(e, ctx)) return;   // countered: the strike never lands (goon-counter.js)
   const bat = e.bat && !e.grab;
   const reach = (bat ? BAT_REACH : SHOVE_REACH) + 0.4;
   const dx = p.pos.x - e.pos.x, dz = p.pos.z - e.pos.z, d2 = dx * dx + dz * dz;

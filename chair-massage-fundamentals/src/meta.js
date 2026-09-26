@@ -13,7 +13,7 @@ const KEY = 'cmf.meta.v1';
 
 // gift: how a between-runs client talks about it ("... left you <gift> ...").
 export const UNLOCKS = [
-  { id: 'gun', name: 'Massage gun', desc: 'Right click: percussive taps. Q switches palm / gun.', gift: 'a massage gun' },
+  { id: 'gun', name: 'Massage gun', desc: 'Right click: percussive taps. Tab switches palm / gun.', gift: 'a massage gun' },
   { id: 'sprint', name: 'Sprint stamina up', desc: 'Sprint 15% faster.', gift: 'better running shoes' },
   { id: 'gun1', name: 'Gun range 1', desc: 'The massage gun reaches 4 m with a shockwave.', gift: 'a longer barrel for the gun' },
   { id: 'autofold', name: 'Chair auto-fold', desc: 'Pick up and load the chair twice as fast.', gift: 'a new hinge for the chair' },

@@ -1,5 +1,5 @@
-// The massage gun (DESIGN.md "Massage gun"): the only ranged weapon, a meta unlock. Q switches
-// palm / gun; right click (pointer locked, on foot) fires percussive taps at 4/s while held.
+// The massage gun (DESIGN.md "Massage gun"): the only ranged weapon, a meta unlock. Tab switches
+// palm / gun (Q is the counter, 2026-09-25); right click (pointer locked, on foot) fires percussive taps at 4/s while held.
 // Level 0: contact range 1.5 m. Level 1+: range 4 / 8 / 14 m with a visible shockwave ring.
 // Every tap stuns the target 1.5 s (a stagger: no movement, no attack; ruled 2026-09-24, the stun
 // buys the 0.7 s a charged Healing Palm needs); three taps within 3 s knock him down like the
@@ -151,7 +151,7 @@ export function updateGun(p, dt, ctx) {
   setLook(G, level);
   if (p.battery === undefined) resetGun(p);
   const input = ctx.input;
-  if (input && input.pressed && input.pressed.has('KeyQ') && !p.vehicle) p.gunEquipped = !p.gunEquipped;
+  if (input && input.pressed && input.pressed.has('Tab') && !p.vehicle) p.gunEquipped = !p.gunEquipped;
   const onFoot = !p.vehicle && !p.massaging; // hidden while driving and while working the chair
   if (G.mesh) G.mesh.visible = !!p.gunEquipped && onFoot;
   if (p.gunCd > 0) p.gunCd -= dt;

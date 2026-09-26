@@ -43,6 +43,7 @@ export function short(e) {
     case 'call': return d.act === 'answer' ? `${d.call} answered ${d.answer}: ${d.correct ? 'right' : d.late ? 'late' : 'wrong'}${d.where ? ' (run)' : ''}`
       : `${d.act} ${d.call}: "${d.prompt}" (${d.key}, ${d.window} s)${d.where ? ' (run)' : ''}`;
     case 'telegraph': return `${d.who} ${d.id} ${d.act}${d.on ? ` on the ${d.on}` : ''}${d.t ? ` (${d.t} s)` : ''}`;
+    case 'counter': return `${d.who} ${d.id} ${d.kind}: ${d.act === 'shown' ? `Q cue (${d.window} s)` : d.act === 'tap' ? 'countered (down 3 s)' : d.act === 'hold' ? 'HEALING PALM counter (treated)' : d.act}${d.hit ? ', he connected' : ''}`;
     default: return Object.entries(d).map(([k, v]) => `${k}=${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' ');
   }
 }
@@ -89,6 +90,7 @@ function line(e, evs, i, t0) {
       if (d.act === 'setdown') return `${at} chair set down`;
       return null;
     case 'palm': return d.target ? `${at} ${d.charged ? 'HEALING PALM on' : 'palmed'} a ${d.target}` : d.phase === 'cancel' ? `${at} palm charge broken (${d.cause})` : null;
+    case 'counter': return d.act === 'tap' ? `${at} countered a goon's ${d.kind} (Q)` : d.act === 'hold' ? `${at} caught a goon's ${d.kind} and treated him (held Q)` : null;
     case 'treat': return !d.phase || d.phase === 'sit' ? `${at} treated a ${d.kind || d.target}${d.wave ? ' from a van wave' : ''}` : null;
     case 'leave':
       if (d.phase === 'prompt') return `${at} at the exit without the chair`;

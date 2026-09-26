@@ -14,7 +14,7 @@ let canvasEl = null;
 const lockListeners = [];
 
 const GAME_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ShiftLeft', 'ShiftRight',
-  'KeyE', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  'KeyE', 'KeyQ', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
 function isEditable(el) {
   if (!el) return false;
@@ -42,7 +42,8 @@ function onBlur() {
   dx = dy = 0;
 }
 
-function onMouseMove(ev) {
+function onMouseMove(ev) {
+
   mouseX = ev.clientX;
   // A button released outside the window never sends mouseup: resync from the event's button mask
   // (nitpick 2026-09-25: the trigger point's hold read as held forever).

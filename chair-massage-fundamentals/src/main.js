@@ -121,10 +121,10 @@ function boot() {
   let interactHint = '';
   function updateHint() {
     if (getState() === STATES.RUN && !input.isLocked()) {
-      const gun = ctx.perks.gun >= 0 ? (player.gunEquipped ? ' Right click massage gun, Q palm.' : ' Q massage gun.') : '';
+      const gun = ctx.perks.gun >= 0 ? (player.gunEquipped ? ' Right click massage gun, Tab palm.' : ' Tab massage gun.') : '';
       const base = player.vehicle
         ? 'Click to look around. W/S drive, A/D steer, Space handbrake, E exit. Esc releases mouse.'
-        : `Click to look around. WASD move, Shift sprint, Space jump, Tap left click: quick palm. Hold left click: HEALING PALM (treats).${gun} Esc releases mouse.`;
+        : `Click to look around. WASD move, Shift sprint, Space jump, Tap left click: quick palm. Hold left click: HEALING PALM (treats). Q when a goon winds up: counter (hold Q: treat him).${gun} Esc releases mouse.`;
       hud.setHint(interactHint ? `${interactHint}  |  ${base}` : base);
     } else {
       hud.setHint(getState() === STATES.RUN ? interactHint : '');
@@ -223,7 +223,7 @@ function boot() {
       updateMini(dt, ctx);
       trackStats(ctx);
       pivot.runTick(dt, ctx);
-      hud.updateFloaters(dt, camera); hud.updateCompass(ctx); hud.updateDodgeCues(ctx, camera);
+      hud.updateFloaters(dt, camera); hud.updateCompass(ctx); hud.updateCounterCues(ctx, camera);
       updateRunHud();
     } else if (s === STATES.MASSAGE) {
       massage.update(dt, ctx);
@@ -233,7 +233,7 @@ function boot() {
       juiceTick(dt, ctx);
       spawner.update(dt, ctx);
       massage.updateLeaving(dt, ctx);
-      hud.updateFloaters(dt, camera); hud.updateDodgeCues(ctx, camera);
+      hud.updateFloaters(dt, camera); hud.updateCounterCues(ctx, camera);
       if (tickSlowmo(realDt, ctx)) setState(STATES.SUMMARY);
     } else if (s === STATES.PIVOT) {
       pivot.update(dt, ctx);

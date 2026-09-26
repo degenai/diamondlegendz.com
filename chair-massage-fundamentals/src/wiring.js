@@ -11,7 +11,7 @@ import { exitVehicle } from './entities/interact.js';
 import * as spawner from './run/spawner.js';
 import { armOnboard } from './run/goon-waves.js';
 import { createMini } from './run/minimassage.js';
-import { resetDodge } from './entities/goon-dodge.js';
+import { resetCounter } from './entities/goon-counter.js';
 import { cancelCharge } from './entities/palm.js';
 import { resetGun } from './entities/gun.js';
 import * as pivot from './pivot.js';
@@ -60,7 +60,7 @@ onEnter(STATES.RUN, (prev) => {
   // prompt shows (nitpick 2026-09-25: a refresh or a death before contact should not forfeit them).
   const firstRun = !ctx.meta.firstRunSeen;
   ensureChair(ctx);
-  ctx.mini = createMini(); resetDodge(ctx);
+  ctx.mini = createMini(); resetCounter(ctx);
   ctx.perks = meta.perks(ctx.meta);
   wearPerks(player, ctx.perks);
   ctx.timeScale = 1;
@@ -73,7 +73,7 @@ onEnter(STATES.RUN, (prev) => {
   hud.showRunHud(true); updateHint();
 });
 onExit(STATES.RUN, () => {
-  input.releaseLock(); hud.setHint(''); hud.setRunTitle(false); ctx.dodge = null;
+  input.releaseLock(); hud.setHint(''); hud.setRunTitle(false); ctx.counter = null;
   hud.setVehicleLine(''); hud.setChairStrip(''); hud.setMini(null); hud.setHeatLine('');
 });
 // Run end: slow motion and a stamp (run/slowmo.js), then the certificate (run/summary.js).

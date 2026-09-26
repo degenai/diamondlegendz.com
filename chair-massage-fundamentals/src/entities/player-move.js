@@ -28,15 +28,6 @@ function wrapAngle(a) {
   return a;
 }
 
-// The dodge's backstep (goon-dodge.js, "A goon's wind-up is a call"): about 2 m straight away from
-// the goon winding up, carried at a fixed speed for DODGE_T whatever the keys say, then the usual
-// acceleration takes over. (dirX, dirZ) is a unit vector.
-const DODGE_V = 8, DODGE_T = 0.25;
-export function backstep(p, dirX, dirZ) {
-  p.vel.x = dirX * DODGE_V; p.vel.z = dirZ * DODGE_V;
-  p.dodgeT = DODGE_T;
-}
-
 // One on-foot tick: wish direction from the camera yaw, speed (walk or sprint), acceleration,
 // jump and gravity, landing, static collisions, facing. Returns the horizontal speed.
 export function moveOnFoot(p, dt, ctx, input, knocked) {
@@ -45,7 +36,7 @@ export function moveOnFoot(p, dt, ctx, input, knocked) {
   _fwd.set(-Math.sin(p.camYaw), 0, -Math.cos(p.camYaw));
   _right.set(Math.cos(p.camYaw), 0, -Math.sin(p.camYaw));
   _wish.set(0, 0, 0);
-  if (input && !knocked && !(p.foldT > 0) && !(p.chargeT >= 0) && !(p.lungeT > 0)) {   // planted while charging the palm
+  if (input && !knocked && !(p.foldT > 0) && !(p.chargeT >= 0) && !(p.lungeT > 0) && !p.counterHold) {   // planted while charging the palm or holding the Q counter
     if (input.forward) _wish.add(_fwd);
     if (input.back) _wish.sub(_fwd);
     if (input.right) _wish.add(_right);
@@ -57,9 +48,7 @@ export function moveOnFoot(p, dt, ctx, input, knocked) {
   const speed = sprinting ? SPRINT : WALK;
   const tx = _wish.x * speed, tz = _wish.z * speed;
   const a = (knocked ? KNOCK_DECEL : p.grounded ? ACCEL : AIR_ACCEL) * dt;
-  const dodging = p.dodgeT > 0 && !knocked; // the backstep carries itself (backstep)
-  if (p.dodgeT > 0) p.dodgeT = Math.max(0, p.dodgeT - dt);
-  if (!dodging && !(p.lungeT > 0)) {        // the charged lunge carries itself (palm.js)
+  if (!(p.lungeT > 0)) {        // the charged lunge carries itself (palm.js)
     p.vel.x += THREE.MathUtils.clamp(tx - p.vel.x, -a, a);
     p.vel.z += THREE.MathUtils.clamp(tz - p.vel.z, -a, a);
   }

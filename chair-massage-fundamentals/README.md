@@ -23,7 +23,7 @@ hands off W and S. "A little to the left / right": tap A or D. Otherwise A / D m
 matches the client** (snaps to the modality they asked for), mouse on the guide, E next client.
 Trigger point is a held click: hold left click inside the ring while it closes (`src/massage/hold.js`).
 On a first playthrough the first client walks you through it, one prompt at a time.
-In the run, a goon winding up on you is a call too: the S cue over his head, tap S to back off, he whiffs and staggers 1 s (`src/entities/goon-dodge.js`).
+In the run, a goon winding up on you is a call too: the Q cue over his head. Tap Q to counter (he goes down 3 s), hold Q through his swing to treat him (HEALING PALM). Only one goon swings at a time; the rest circle (`src/entities/goon-counter.js`, `src/entities/goon-turns.js`). Tab switches the palm and the massage gun.
 
 - `?seed=12345` (or any text, like `?seed=andy`) pins the run's city block: building heights,
   plaza layout, parked cars, the van's entry, the escape edge. Without it, every load rolls a new block.

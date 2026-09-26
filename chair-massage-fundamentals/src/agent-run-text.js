@@ -67,7 +67,7 @@ export function runText(s) {
   L.push(`RUN. ${where}. HP ${p.hp}, stamina ${Math.round(p.sta * 100)}%${p.kn > 0 ? `, KNOCKED DOWN for ${p.kn} s` : ''}${p.chg ? ', charging a palm' : ''}. Cash $${s.cash}.`);
   const alarms = [];
   if (w.arrestT > 0) alarms.push(`A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): move now`);
-  if (s.dodge) alarms.push(`GOON WIND-UP ON YOU (${s.dodge.map((d) => `goon g${d.id} ${d.kind}, ${d.left} s left`).join('; ')}): dodge (tap S) and he whiffs and staggers 1 s, open to a palm`);
+  if (s.counter) alarms.push(`GOON WIND-UP ON YOU (${s.counter.map((d) => `goon g${d.id} ${d.kind}, ${d.left} s left`).join('; ')}): counter (tap Q: he goes down 3 s; hold Q through his swing: HEALING PALM, he is treated)`);
   for (const n of s.near || []) if (n[4] === 'windup' && n[5].includes('pull')) alarms.push(`goon ${n[0]} is about to PULL YOU OUT of the car: drive off`);
   if ((s.near || []).some((n) => n[5].includes('cling'))) alarms.push('a goon is clinging to your car: swerve to throw him off');
   if (alarms.length) L.push(`DANGER: ${alarms.join('. ')}.`);
@@ -104,7 +104,7 @@ export function runMenu(s, o) {
     else o.exit_vehicle = 'Press E: get out (a chair loaded in it stays in it).';
     return o;
   }
-  if (s.dodge) o.dodge = 'Tap S: back off from the goon winding up (he whiffs and staggers 1 s).';
+  if (s.counter) Object.assign(o, { counter: 'Tap Q: counter the goon winding up (he goes down 3 s).', counter_hold: 'Hold Q through his swing: a charged counter, HEALING PALM, he is treated (you stand still for it).' });
   if (p.it === 'massage') o.hold_E_massage = 'Hold E: give the kneeling client a mini-massage (5 s of hold, answer their calls).';
   if (p.it === 'setdown') o.set_chair_down = 'Press E: set the chair down here and open for a client (a mini-massage drops a star).';
   if (p.it === 'load') o.load_chair = 'Press E: load the chair into the vehicle beside you.';
