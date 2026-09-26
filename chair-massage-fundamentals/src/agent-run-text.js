@@ -111,7 +111,7 @@ export function runMenu(s, o) {
   if (p.it === 'setdown') o.set_chair_down = 'Press E: set the chair down here and open for a client (a mini-massage drops a star).';
   if (p.it === 'load') o.load_chair = 'Press E: load the chair into the vehicle beside you.';
   if (p.it === 'pickup' || p.it === 'take') o.pick_up_chair = 'Press E: pick up the chair.';
-  if (p.it === 'enter') o.enter_car = `Press E: get into the ${p.itt} ${p.itv} beside you${p.chair === 'vehicle' && p.itv !== p.cin ? ` (NOT the ${p.cin} holding the chair)` : ''}.`;
+  if (p.it === 'enter') o.enter_car = `Press E: get into the ${p.itt} ${p.itv} beside you${p.ithp !== null && p.ithp <= 0 ? ' (WRECKED: it will not drive)' : ''}${p.chair === 'vehicle' && p.itv !== p.cin ? ` (NOT the ${p.cin} holding the chair)` : ''}.`;
   if (p.it === 'carjack') o.carjack = 'Press E: pull the driver out and take the car (+1 star).';
   if (p.it === 'repair') o.repair_vehicle = 'Press E: repair your vehicle at this food cart ($20).';
   if (p.chair !== 'player' && s.tgt && s.tgt.chair && (s.tgt.chair[1] !== null || (p.chair === 'vehicle' && p.it !== 'take'))) o.go_to_chair = 'Run to the chair (code steers, 1.5 s).';

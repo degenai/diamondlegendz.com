@@ -120,6 +120,19 @@ export function createRunHands(ctx, io) {
   // projection (off the streets, as on the plaza, a carrot on the ped walkways toward the route
   // instead); A/D when it is off the nose, W up to a speed that drops with the turn and never tops
   // 11 m/s (an impact over 12 throws a loaded chair out), S to brake over it; stuck 1 s, reverse.
+  // The nearest person within 9 m and 30 degrees of the car's nose: { d, a (rad, + = left) }.
+  function bodyAhead(v) {
+    let best = null;
+    for (const e of ctx.npcs || []) {
+      if (e === ctx.player) continue;
+      const dx = e.pos.x - v.pos.x, dz = e.pos.z - v.pos.z, d = Math.hypot(dx, dz);
+      if (d > 9 || d < 0.5) continue;
+      const a = wrap(Math.atan2(dx, dz) - v.yaw);
+      if (Math.abs(a) < 0.52 && (!best || d < best.d)) best = { d, a };
+    }
+    return best;
+  }
+
   function driveTick(F) {
     const v = ctx.player.vehicle;
     if (!v) return stop();
@@ -129,7 +142,12 @@ export function createRunHands(ctx, io) {
     const P = F.plan, pr = project(P, v.pos.x, v.pos.z);
     let c = pr.off > 8 ? navCarrotFrom(v.pos, pr.x, pr.z) : along(P, pr.s + 9);
     if (Math.hypot(goal.x - v.pos.x, goal.z - v.pos.z) < 30 || pr.s >= P.total - 2) c = goal;
-    const err = wrap(Math.atan2(c.x - v.pos.x, c.z - v.pos.z) - v.yaw), spd = v.speed || 0;
+    let err = wrap(Math.atan2(c.x - v.pos.x, c.z - v.pos.z) - v.yaw);
+    const spd = v.speed || 0, body = bodyAhead(v);
+    // A body in the path (a goon sitting where he was treated, a ped): steer around it, and brake
+    // when it is too close to miss. Hitting one is a star (goonHit, pedHurt); a player would swerve.
+    if (body) err = body.d < 3.5 ? err : wrap(err - Math.sign(body.a || 1) * 0.7);
+    if (body && body.d < 3.5 && Math.abs(body.a) < 0.35) { F.stuck = 0; setKeys(['KeyS', body.a > 0 ? 'KeyD' : 'KeyA']); return; }
     if (F.back > 0) { F.back--; setKeys(['KeyS', err > 0 ? 'KeyD' : 'KeyA']); return; }
     const steer = err > 0.06 ? 'KeyA' : err < -0.06 ? 'KeyD' : null;
     const want = Math.abs(err) > 0.7 ? 4 : Math.abs(err) > 0.3 ? 7 : pr.off > 8 ? 6 : 11;

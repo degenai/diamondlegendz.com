@@ -34,6 +34,7 @@ export function runOracle(obs) {
   // Clean, or a cop on foot closing in (a star cannot fall while he sees you): the car plan.
   if (w.lv === 0 || (cop && cop[2] < 25)) {
     if (p.chair === 'player') return pick('load_chair', 'go_to_car');
+    if (p.chair === 'vehicle' && p.itv === p.cin && p.ithp !== null && p.ithp <= 0) return pick('go_to_chair', 'pick_up_chair');   // a wreck: carry it
     if (p.chair === 'vehicle') return p.itv === p.cin ? pick('enter_car', 'go_to_car') : pick('go_to_car', 'go_to_chair');
     return pick('pick_up_chair', 'go_to_chair');
   }

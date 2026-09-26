@@ -146,7 +146,7 @@ function nearList(p, h, fx, fz) {
 }
 
 // What E does right now and on which vehicle (enter, load, carjack, repair act on one).
-function itOf(p) { const it = interaction(p, ctx); return { it: it.act, itv: it.v ? `v${it.v.id}` : null, itt: it.v ? it.v.type : null }; }
+function itOf(p) { const it = interaction(p, ctx); return { it: it.act, itv: it.v ? `v${it.v.id}` : null, itt: it.v ? it.v.type : null, ithp: it.v ? Math.round(it.v.hp ?? 100) : null }; }
 
 // The nearest vehicle he could take on foot, any distance: [id, type, dist, bearing, 'enter' | 'carjack'].
 function nearestTakeable(p, h, fx, fz) {
