@@ -450,6 +450,18 @@ walks off, the meter still rises). A stolen vehicle is +1 (+0.5 each after), a c
 vehicle carnage (3+ ped hits or 3+ vehicle wrecks). The once-per-run `goonHit` and the `vending`
 star are unchanged. Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
 and walk off pursuit for a while; wanted does not drop from that.
+**Rulings from the first pilot review** (docs/jev-review-2026-09-25.md, thirteen baseline runs; ruled by
+Alex 2026-09-25, late): (1) **The pivot's cart is free.** The cart the van leaves beside the chair is his
+by story: taking it reports no `stealVehicle`; every other car is theft as before (nine of thirteen runs
+took a star 2.6 s in from that cart). (2) **Decay needs a close witness.** A star decays unless a cop
+within 40 m has line of sight (was any cop, up to 90 m, holding stars in 82% of snapshots); the compass
+strip names the cop keeping the star up ("seen by: ranger, 22 m"). (3) **Chair business pauses the
+arrest touch.** Folding, loading, taking the chair and getting into a car do not count as standing
+still for the 1.5 s touch; the touch resumes the moment the action ends (a beat of grace, not
+immunity; all six baseline arrests were taken mid-action at a door or the rack). (4) **A nudge is not
+a hit.** A vehicle under 3 m/s does not knock down a sitting or treated goon and reports nothing (a cart
+pulling away scored goonHit on a goon it had just treated). (5) **Beside a car, tap E loads, hold E
+sets the chair down** (E could only load there, so the chair could not be set down next to a car).
 Rulings (2026-09-23, post-v1 relay): a stolen car still rolling after you bail out is yours; it
 raises wanted for anyone it hits, ped, goon, or cop, the same as if you were driving. A hit by an
 AI-driven car (cop car, the franchise van) raises no wanted, but the street still reacts: peds nearby
