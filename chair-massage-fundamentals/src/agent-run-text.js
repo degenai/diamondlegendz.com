@@ -23,6 +23,7 @@ const STATE_WORDS = {
 export function thing([id, kind, dist, b, state, tag]) {
   let what = STATE_WORDS[state] || state;
   if (tag.includes('stagger')) what = 'staggered (open to a palm)';
+  else if (kind === 'goon' && state === 'chase') what = tag.includes('turn') ? 'HAS THE TURN: the next swing comes from him' : dist < 10 ? 'circling, waiting his turn' : 'chasing you';
   else if (state === 'windup') what = `winding up ${tag.includes('pull') ? 'to pull you out' : tag.includes('bat') ? 'a bat swing' : tag.includes('grab') ? 'a grab' : 'a shove'}`;
   const extra = [kind === 'goon' && tag.includes('bat') && state !== 'windup' ? 'has a bat' : '', tag.includes('cling') ? 'CLINGING TO YOUR CAR' : '',
     kind.startsWith('car:') && tag.includes('van') ? 'the Serenity van' : '', kind.startsWith('car:') && state === 'parked' ? 'free to take' : '',
@@ -64,10 +65,11 @@ export function runText(s) {
   const p = s.p, w = s.w, t = s.tgt || {}, L = [];
   if (!p) return [`${s.st}.`];
   const where = p.veh ? `Driving the ${p.veh} (${p.vhp} hp${p.vhp <= 0 ? ': WRECKED, it only coasts; get out' : ''}), ${Math.round(p.spd)} m/s` : p.mass ? 'Giving a mini-massage (holding E)' : `On foot, ${p.spd > 0.5 ? `moving ${Math.round(p.spd)} m/s` : 'standing'}`;
-  L.push(`RUN. ${where}. HP ${p.hp}, stamina ${Math.round(p.sta * 100)}%${p.kn > 0 ? `, KNOCKED DOWN for ${p.kn} s` : ''}${p.chg ? ', charging a palm' : ''}. Cash $${s.cash}.`);
+  L.push(`RUN. ${where}. HP ${p.hp}, stamina ${Math.round(p.sta * 100)}%${p.kn > 0 ? `, KNOCKED DOWN for ${p.kn} s` : ''}${p.chg ? ', charging a palm' : p.busy ? `, mid-${p.busy} (no counter until it ends)` : ''}. Cash $${s.cash}.`);
   const alarms = [];
   if (w.arrestT > 0) alarms.push(`A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): move now`);
-  if (s.counter) alarms.push(`GOON WIND-UP ON YOU (${s.counter.map((d) => `goon g${d.id} ${d.kind}, ${d.left} s left`).join('; ')}): counter (tap Q: he goes down 3 s; hold Q through his swing: HEALING PALM, he is treated)`);
+  if (s.counter && p.busy) alarms.push(`GOON WIND-UP ON YOU (${s.counter.map((d) => `goon g${d.id} ${d.kind}`).join('; ')}) and you are mid-${p.busy}: no counter possible, it will land`);
+  else if (s.counter) alarms.push(`GOON WIND-UP ON YOU (${s.counter.map((d) => `goon g${d.id} ${d.kind}, ${d.left} s left`).join('; ')}): counter (tap Q: he goes down 3 s; hold Q through his swing: HEALING PALM, he is treated)`);
   for (const n of s.near || []) if (n[4] === 'windup' && n[5].includes('pull')) alarms.push(`goon ${n[0]} is about to PULL YOU OUT of the car: drive off`);
   if ((s.near || []).some((n) => n[5].includes('cling'))) alarms.push('a goon is clinging to your car: swerve to throw him off');
   if (alarms.length) L.push(`DANGER: ${alarms.join('. ')}.`);
@@ -78,7 +80,7 @@ export function runText(s) {
   L.push(threats.length ? `Threats: ${threats.map(thing).join('; ')}.` : 'Threats: none within 40 m.');
   if (rest.length) L.push(`Also near: ${rest.map(thing).join('; ')}.`);
   if (s.car) L.push(`Nearest car you could take: ${s.car[1]} ${s.car[0]}, ${Math.round(s.car[2])} m ${side(s.car[3])}${s.car[4] === 'carjack' ? ' (a driver in it: E pulls him out, +1 star)' : ' (empty: E gets in, a stolen car is +1 star)'}, ${s.car[5]} hp.`);
-  if (p.it && !p.mass) L.push(`E right now would ${IT_WORDS[p.it] || p.it}.`);
+  if (p.it && !p.mass) L.push(`E right now would ${IT_WORDS[p.it] || p.it}${p.itv && !p.veh ? ` (${p.itt} ${p.itv}${p.chair === 'vehicle' ? (p.itv === p.cin ? ', the one holding the chair' : `; the chair is in ${p.cin}, not this one`) : ''})` : ''}.`);
   const mw = miniWords(s.mini, p);
   if (mw) L.push(mw);
   if (s.hud && s.hud.heat) L.push(`Heat line: "${s.hud.heat}"`);
@@ -104,16 +106,17 @@ export function runMenu(s, o) {
     else o.exit_vehicle = 'Press E: get out (a chair loaded in it stays in it).';
     return o;
   }
-  if (s.counter) Object.assign(o, { counter: 'Tap Q: counter the goon winding up (he goes down 3 s).', counter_hold: 'Hold Q through his swing: a charged counter, HEALING PALM, he is treated (you stand still for it).' });
+  if (s.counter && !p.busy) Object.assign(o, { counter: 'Tap Q: counter the goon winding up (he goes down 3 s).', counter_hold: 'Hold Q through his swing: a charged counter, HEALING PALM, he is treated (you stand still for it).' });
   if (p.it === 'massage') o.hold_E_massage = 'Hold E: give the kneeling client a mini-massage (5 s of hold, answer their calls).';
   if (p.it === 'setdown') o.set_chair_down = 'Press E: set the chair down here and open for a client (a mini-massage drops a star).';
   if (p.it === 'load') o.load_chair = 'Press E: load the chair into the vehicle beside you.';
   if (p.it === 'pickup' || p.it === 'take') o.pick_up_chair = 'Press E: pick up the chair.';
-  if (p.it === 'enter') o.enter_car = 'Press E: get into the vehicle beside you (the chair stays wherever it is unless loaded).';
+  if (p.it === 'enter') o.enter_car = `Press E: get into the ${p.itt} ${p.itv} beside you${p.chair === 'vehicle' && p.itv !== p.cin ? ` (NOT the ${p.cin} holding the chair)` : ''}.`;
   if (p.it === 'carjack') o.carjack = 'Press E: pull the driver out and take the car (+1 star).';
   if (p.it === 'repair') o.repair_vehicle = 'Press E: repair your vehicle at this food cart ($20).';
   if (p.chair !== 'player' && s.tgt && s.tgt.chair && (s.tgt.chair[1] !== null || (p.chair === 'vehicle' && p.it !== 'take'))) o.go_to_chair = 'Run to the chair (code steers, 1.5 s).';
-  if (s.car && s.car[2] > 2) o.go_to_car = `Run to the nearest takeable car, ${s.car[1]} ${s.car[0]} (code steers, 1.5 s).`;
+  if (p.chair === 'vehicle' && (p.it !== 'enter' || p.itv !== p.cin)) o.go_to_car = `Walk to the driver's door of the ${p.cin} holding the chair (code steers).`;
+  else if (s.car && (s.car[2] > 2 || p.it !== 'enter')) o.go_to_car = `Run to the driver's door of the nearest takeable car, ${s.car[1]} ${s.car[0]} (code steers, 1.5 s).`;
   o.run_to_exit = 'Run toward the exit along the walkways (code steers, 2 s).';
   Object.assign(o, { walk_fwd_1s: 'Hold W 1 s.', sprint_fwd_2s: 'Hold W+Shift 2 s.', back_off_1s: 'Hold S 1 s.', strafe_left_1s: 'Hold A 1 s.', strafe_right_1s: 'Hold D 1 s.',
     turn_left_30: 'Turn the camera 30 degrees left.', turn_right_30: 'Turn the camera 30 degrees right.', turn_around: 'Turn the camera 180 degrees.',

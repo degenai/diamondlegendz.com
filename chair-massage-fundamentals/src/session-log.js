@@ -14,6 +14,7 @@ import { chairState, chairWorldPos } from './entities/chair.js';
 import { hostile, copHostile } from './entities/hostile.js';
 import { playerCash, interaction, JACK_SPEED } from './entities/interact.js';
 import { openCounters } from './entities/goon-counter.js';
+import { turnHolders } from './entities/goon-turns.js';
 
 const CAP_TICKS = 20 * 60 * 60;   // 20 min at 60 ticks/s
 const MOUSE_EVERY = 6;            // ticks between coalesced mouse entries (10/s)
@@ -114,14 +115,16 @@ function kindOf(e) {
   if (e.kind === 'cop') return e.rank === 'ranger' ? 'ranger' : 'cop';
   return e.kind;
 }
+let turns = [];   // goon-turns.js: who holds the attack token this snapshot
 function tagOf(e) {
-  if (e.kind === 'goon') return [e.state === 'windup' ? e.vmove || (e.grab ? 'grab' : e.bat ? 'bat' : 'shove') : e.bat ? 'bat' : '', e.cling ? 'cling' : '', e.stunT > 0 && !(e.knockedT > 0) ? 'stagger' : ''].filter(Boolean).join(',');
+  if (e.kind === 'goon') return [turns.includes(e.id) ? 'turn' : '', e.state === 'windup' ? e.vmove || (e.grab ? 'grab' : e.bat ? 'bat' : 'shove') : e.bat ? 'bat' : '', e.cling ? 'cling' : '', e.stunT > 0 && !(e.knockedT > 0) ? 'stagger' : ''].filter(Boolean).join(',');
   if (e.kind === 'ped') return [e.regular ? 'regular' : '', e.sore ? 'sore' : '', e.paid ? 'paid' : '', e.knockedT > 0 ? 'down' : ''].filter(Boolean).join(',');
   if (e.kind === 'cop') return e.knockedT > 0 ? 'down' : e.standDown ? 'standdown' : '';
   return '';
 }
 
 function nearList(p, h, fx, fz) {
+  turns = turnHolders(ctx);
   const out = [];
   const R2 = NEAR_R * NEAR_R;
   for (const e of ctx.npcs || []) {
@@ -141,6 +144,9 @@ function nearList(p, h, fx, fz) {
   out.sort((a, b) => a[0] - b[0] || a[1] - b[1] || (a[2][0] < b[2][0] ? -1 : 1));
   return out.slice(0, NEAR_N).map((r) => r[2]);
 }
+
+// What E does right now and on which vehicle (enter, load, carjack, repair act on one).
+function itOf(p) { const it = interaction(p, ctx); return { it: it.act, itv: it.v ? `v${it.v.id}` : null, itt: it.v ? it.v.type : null }; }
 
 // The nearest vehicle he could take on foot, any distance: [id, type, dist, bearing, 'enter' | 'carjack'].
 function nearestTakeable(p, h, fx, fz) {
@@ -179,7 +185,7 @@ export function buildSnap() {
       veh: v ? v.type : null, vhp: v ? Math.round(v.hp ?? 100) : null, kn: r1(Math.max(0, p.knockedT || 0)), chg: p.chargeT >= 0 ? r2(p.chargeT) : 0,
       chair: cs.where, dur: Math.round(cs.durability), bat: ctx.perks && ctx.perks.gun >= 0 ? Math.round(p.battery ?? 100) : null,
       gun: !!p.gunEquipped, lock: !!(inp && inp.locked), mass: !!p.massaging,
-      it: interaction(p, ctx).act, cin: cs.where === 'vehicle' && cs.vehicle ? `v${cs.vehicle.id}` : null, vid: v ? `v${v.id}` : null };
+      ...itOf(p), busy: p.swingT >= 0 ? 'swing' : p.foldT > 0 ? 'fold' : p.chargeT >= 0 ? 'charge' : p.lungeT > 0 ? 'lunge' : null, cin: cs.where === 'vehicle' && cs.vehicle ? `v${cs.vehicle.id}` : null, vid: v ? `v${v.id}` : null };
     const w = ctx.wanted;
     // seen: a cop has line of sight (the level cannot fall); decay: seconds of the 25 s countdown gone.
     s.w = { lv: w.level, heat: r2(w.heat), rise: w.risingT > 0, arrestT: r2((ctx.police && ctx.police.arrestT) || 0), seen: !!w.seen, decay: r1(w.decayT || 0) };

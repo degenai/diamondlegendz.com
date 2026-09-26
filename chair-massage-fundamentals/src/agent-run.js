@@ -38,14 +38,27 @@ export function createRunHands(ctx, io) {
     const dx = c.x - v.pos.x, dz = c.z - v.pos.z, d = Math.hypot(dx, dz) || 1;
     return { x: c.x + (dx / d) * 1.0, z: c.z + (dz / d) * 1.0 };
   };
+  // The car to walk to: the one holding the chair when it is parked, else the nearest takeable. The
+  // target is its driver's door (the side exitVehicle uses first), not the centre: at the rack or
+  // the trunk E takes the chair out instead of getting in (2026-09-25.9).
   function takeable() {
+    const cv = ctx.world.chairState && ctx.world.chairState.where === 'vehicle' ? ctx.world.chairState.vehicle : null;
+    if (cv && !cv.driver && !cv.removed) return door(cv);
+    const v = nearestFree();
+    return v ? door(v) : null;
+  }
+  function door(v) {
+    const side = ((v.spec && v.spec.halfW) || 1) + 0.6, s = Math.sin(v.yaw), c = Math.cos(v.yaw);
+    return { x: v.pos.x + c * side, z: v.pos.z - s * side };
+  }
+  function nearestFree() {
     const p = ctx.player; let best = null, bd = Infinity;
     for (const v of ctx.world.vehicles || []) {
       if (v.removed || (v.driver && !(v.civilian && Math.abs(v.speed) < 3))) continue;
       const d = (v.pos.x - p.pos.x) ** 2 + (v.pos.z - p.pos.z) ** 2;
       if (d < bd) { bd = d; best = v; }
     }
-    return best ? best.pos : null;
+    return best;
   }
   // A walkable carrot toward (gx, gz) along the ped nav graph: the farthest of the next hops the
   // player can walk straight to. Straight at the goal once it is close and in the clear.
@@ -143,7 +156,7 @@ export function createRunHands(ctx, io) {
         // A chair loaded in a vehicle is taken from its rack or trunk (TAKE_DIST 1.5 m, and nearer than the
         // car's body): walk right up to it.
         case 'go_to_chair': return s.p && s.p.chair === 'vehicle' ? goto(chairTakeSpot, 90, { stopAt: 0.3 }) : goto(chairAt, 90, { stopAt: 1.4 });
-        case 'go_to_car': return goto(takeable, 90, { stopAt: 1.6 });
+        case 'go_to_car': return goto(takeable, 90, { stopAt: 0.5 });
         case 'run_to_exit': return goto(() => { const e = escape(); return e && navCarrot(e.x, e.z); }, 120, { stopAt: 0.6 });
         case 'face_exit_steer': return drive(escape, 120);
         case 'drive_to_chair': return drive(chairAt, 120);

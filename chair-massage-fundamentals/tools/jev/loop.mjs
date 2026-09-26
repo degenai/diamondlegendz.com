@@ -20,9 +20,12 @@ export async function play(T, choose, { until = () => false, maxTicks = 60 * 60 
     const r = await T.J(`CMF.agent.act(${JSON.stringify(d.action)})`);
     if (!r.ok) throw new Error(`act(${d.action}) refused at tick ${obs.tick}: ${r.error}`);
     const entry = { tick: obs.tick, action: d.action };
-    if (obs.state.st === 'RUN') entry.run = true;
+    if (obs.state.st === 'RUN') { entry.run = true; entry.text = obs.text.split('\nJust now')[0]; }   // what the pilot saw (review.mjs)
     for (const k of ['auto', 'invalid', 'probs', 'conf', 'danger', 'q', 'ms', 'retries', 'prov', 'raw']) if (d[k] !== undefined && d[k] !== null) entry[k] = d[k];
     log.push(entry);
+    // A pilot flapping between two instant actions (enter/exit, 4000 times) ends the run as 'loop'.
+    const L = log.length;
+    if (L >= 60 && log[L - 1].tick - log[L - 60].tick < 300 && new Set(log.slice(L - 60).map((e) => e.action)).size <= 2) return { reason: 'loop', obs, log };
     if (onDecision) onDecision(entry, obs);
     if (d.action === 'wait') await T.J('CMF.agent.step(30)');
     else if (r.ticks > 0) await T.J(r.interruptible ? `CMF.agent.step(${r.ticks})` : `CMF.agent.step(${r.ticks}, { stopOn: null })`);
