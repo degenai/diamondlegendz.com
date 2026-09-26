@@ -2,21 +2,26 @@
 // draining with the wind-up, over each goon winding up on the player (entities/goon-counter.js keeps
 // the cues on ctx.counter). "hold" while Q is held for the charged counter; green after a counter,
 // red after he connects. Lives in the RUN overlay (.rh), so it hides with it; styles are the mini
-// strip's .rh-mini-call (ui.css). (Was hud-dodge.js, the S cue.)
+// strip's .rh-mini-call, sized like the first-run prompt (ui.css .rh-counter, 24 px). The cues sit on
+// the HUD root beside the RUN overlay (.rh), above the speech bubbles (bubbles.js, .bb z 3) and the
+// onboarding prompt (hud-run.js, .rh-onboard z 4), and hide whenever the overlay does.
+// (Was hud-dodge.js, the S cue.)
 import * as THREE from '../vendor/three.module.js';
 
 const POOL = 3;
 const HEAD = 2.35;          // m over the goon's feet
 const OK = 'rgba(38,96,44,.9)', BAD = 'rgba(120,24,16,.9)', OPEN = '';
 const cues = [];
+let overlay = null;          // the RUN overlay (.rh): the cues hide with it
 const _v = new THREE.Vector3();
 
 export function initCounterHud(root) {
-  const wrap = (root && root.querySelector('.rh')) || root;
+  overlay = root && root.querySelector('.rh');
+  const wrap = root;
   for (let i = 0; i < POOL; i++) {
     const n = document.createElement('div');
     n.className = 'rh-mini-call rh-counter';
-    n.style.cssText = 'position:absolute;left:0;top:0;min-width:92px;pointer-events:none;z-index:3;will-change:transform';
+    n.style.cssText = 'position:absolute;left:0;top:0;pointer-events:none;z-index:5;will-change:transform';
     const k = document.createElement('kbd'); k.textContent = 'Q'; n.appendChild(k);
     const w = document.createElement('span'); w.textContent = 'counter'; n.appendChild(w);
     const bar = document.createElement('div'); bar.className = 'rh-mini-callbar';
@@ -31,7 +36,7 @@ const WORDS = { tap: 'countered', hold: 'HEALING PALM', miss: 'too late', late: 
 
 // Per tick after the camera moved (main.js). ctx.counter null (outside RUN) hides every cue.
 export function updateCounterCues(ctx, camera) {
-  const all = ctx.counter && camera ? ctx.counter.cues : [];
+  const all = ctx.counter && camera && !(overlay && overlay.hidden) ? ctx.counter.cues : [];
   const live = (c) => !c.done;   // open cues take a slot before resolved ones
   const list = all.filter(live).concat(all.filter((c) => !live(c)));
   const w = window.innerWidth, h = window.innerHeight;

@@ -120,3 +120,7 @@ body.massage .hud-mute { color: rgba(59,51,38,.55); text-shadow: none; }
   border-bottom-width: 3px; border-radius: 4px; padding: 1px 10px; margin-right: 6px; }
 .rh-mini-callbar { height: 4px; margin-top: 4px; background: rgba(253,248,234,.25); }
 .rh-mini-callbar i { display: block; height: 100%; width: 100%; background: #ffd27a; }
+/* The Q counter cue (hud-counter.js): the first-run prompt's size, over speech bubbles (.bb 3) and the prompt (.rh-onboard 4). */
+.rh-mini-call.rh-counter { font: bold 24px/1.2 system-ui, sans-serif; padding: 6px 12px 8px; min-width: 150px; white-space: nowrap; }
+.rh-mini-call.rh-counter kbd { font: bold 24px/1.1 var(--mono, monospace); padding: 2px 12px; border-bottom-width: 4px; margin-right: 10px; }
+.rh-mini-call.rh-counter .rh-mini-callbar { height: 6px; margin-top: 6px; }
