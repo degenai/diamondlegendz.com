@@ -363,7 +363,13 @@ line (a miss on a bent chair steps progress back by one second of that longer ho
 usual `mini` cancel event with reason 'three misses'). The run HUD's mini strip shows the E hold's
 progress and, while a call is open, the same key cue with a countdown bar the course uses. Between
 calls the ped may say one of their regular lines. Watcher: `call` events with where 'run'. Goons and cops within 6 m interrupt it.
-**Camping the chair has a risk** (ruled 2026-09-24): every success within 90 s of the previous one on
+**Clients come to the chair** (ruled 2026-09-25 after the Jev builder measured 50 to 100 s, or never, to
+the first client after a fight): the chair calls a willing ped within 30 m (was 12), the walk-over may
+take 35 s, the player's block holds 12 peds (was 9), and while the chair is set down for clients a ped
+topped up into that block lands within 25 m of the chair (at least 12 m from the player, behind the
+camera when possible) instead of 35 m from the player. Measured after: 5 s to the call and 35 s to the
+kneel after a 30 s fight (was 50 s to the call), 1 s and 17 s with no fight. The Q counter cue is drawn
+at the first-run prompt's size above bubbles and prompts (ruled the same night). **Camping the chair has a risk** (ruled 2026-09-24): every success within 90 s of the previous one on
 the same spot (40 m) counts toward heat, the first success being heat 1 and free. The second quick
 success (heat 2) radios the goon pack to the chair (every goon up and working who is not already on him
 runs to it and searches there); the third and on (heat 3) sends a cop on foot (a ranger first, else one called in out of sight) walks to the chair
