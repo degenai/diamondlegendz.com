@@ -160,7 +160,19 @@ determinism) is [docs/playtest-jev.md](docs/playtest-jev.md).
   entity), `chair` (is it safe, 0..1) and `plan`; all go into actions.json with their
   probabilities, plus the gateway provider that answered (`PILOT_JEV_ORDER`, default
   `typesafe-ai,digitalocean`; `PILOT_RETRIES`, default 12, backoff capped at 30 s). The oracle's
-  run is a scripted stand-your-ground policy (`tools/jev/oracle-run.mjs`): a baseline, never a pass.
+  run is a scripted policy (`tools/jev/oracle-run.mjs`): a baseline, never a pass.
+- Full runs and the batch (milestone 4): `node tools/jev/batch.mjs --model jev|oracle --n 10
+  [--start 1001] [--max-run-s 600] [--url http://127.0.0.1:8821/]` flies N seeds one after another
+  (never in parallel) through `pilot.mjs --until end` and writes `tools/jev/out/batch-<date>.md`
+  (seed, pilot, ending, time, peak stars, tension, chair kept, decisions, model seconds, retries, and
+  the escape / arrest / death rates and median time) plus a .json beside it. A run that flaps
+  between two instant actions ends as `loop`. `node tools/jev/review.mjs <dir> <seed>` prints the
+  three worst decisions of a run (each bad outcome charged to the decision before it) with the
+  observation text the pilot saw.
+- **The overnight run** (about 2 hours for 50 seeds when the gateway is not throttling; serve the game
+  on 8821 first, `pythonw -m http.server 8821 --bind 127.0.0.1`):
+
+  `set -a; . ~/.config/jev.env; set +a; node tools/jev/batch.mjs --model jev --n 50 --start 2001`
 
 ## The debug handle
 

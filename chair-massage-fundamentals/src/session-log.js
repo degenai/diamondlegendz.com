@@ -148,6 +148,18 @@ function nearList(p, h, fx, fz) {
 // What E does right now and on which vehicle (enter, load, carjack, repair act on one).
 function itOf(p) { const it = interaction(p, ctx); return { it: it.act, itv: it.v ? `v${it.v.id}` : null, itt: it.v ? it.v.type : null, ithp: it.v ? Math.round(it.v.hp ?? 100) : null }; }
 
+// The nearest cop still on him at any range (wanted.js counts line of sight out to 90 m, past the
+// near list's 40): [id, dist, bearing].
+function nearestCop(h, fx, fz) {
+  let best = null, bd = Infinity;
+  for (const e of ctx.npcs || []) {
+    if (e.kind !== 'cop' || !copHostile(e)) continue;
+    const d2 = (e.pos.x - fx) ** 2 + (e.pos.z - fz) ** 2;
+    if (d2 < bd) { bd = d2; best = [`${kindOf(e)[0]}${e.id}`, r1(Math.sqrt(d2)), bearing(h, fx, fz, e.pos.x, e.pos.z)]; }
+  }
+  return best;
+}
+
 // The nearest vehicle he could take on foot, any distance: [id, type, dist, bearing, 'enter' | 'carjack'].
 function nearestTakeable(p, h, fx, fz) {
   if (p.vehicle) return null;
@@ -194,6 +206,7 @@ export function buildSnap() {
     s.tgt = { chair: tgt(cw), exit: tgt(esc && esc.centre) };
     s.near = nearList(p, h, at.x, at.z);
     s.car = nearestTakeable(p, h, at.x, at.z);
+    if (s.w.seen) s.w.cop = nearestCop(h, at.x, at.z);   // who keeps the wanted level from falling
     const dg = openCounters(ctx); if (dg.length) s.counter = dg;   // goon wind-ups open on him (the Q counter)
     const M = ctx.mini;
     s.mini = M ? { ph: M.phase, prog: r2(M.progress || 0), miss: M.misses || 0, call: callOf(M.caller && M.caller.call),

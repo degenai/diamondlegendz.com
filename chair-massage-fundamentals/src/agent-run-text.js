@@ -48,7 +48,7 @@ function chairWords(p, t) {
 
 function wantedWords(w) {
   if (!w.lv) return 'Wanted: 0 stars (clean: you can escape at the exit with the chair).';
-  const how = w.rise ? 'RISING' : w.seen ? 'a cop can see you, so it is not falling' : `no cop sees you, so it is falling: the next star drops in ${Math.max(0, Math.round(DECAY - w.decay))} s`;
+  const how = w.rise ? 'RISING' : w.seen ? `a cop can see you${w.cop ? ` (${w.cop[0]}, ${Math.round(w.cop[1])} m ${side(w.cop[2])})` : ''}, so it is not falling: break his line of sight` : `no cop sees you, so it is falling: the next star drops in ${Math.max(0, Math.round(DECAY - w.decay))} s`;
   return `Wanted: ${w.lv} star${w.lv === 1 ? '' : 's'}, ${how}. The exit only works at 0 stars; a finished mini-massage drops one star.`;
 }
 
