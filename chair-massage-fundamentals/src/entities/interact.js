@@ -110,7 +110,11 @@ export function interaction(p, ctx) {
   if (ctx.mini && canStart(p, ctx)) return { act: 'massage' };
   const cd = chairDistance(p, ctx);
   if (cs.where === 'vehicle') {
-    if (cd <= TAKE_DIST && (!nv || cd < nv.d)) return { act: 'take' };
+    // The chair comes out at the back (ruled 2026-09-25): within TAKE_DIST of the mount and behind
+    // the rear axle, E takes it whatever the box distance says (the cart's rack sits inside its
+    // footprint, so the enter prompt always won that tie); elsewhere the nearer of the two wins
+    // (the van's passenger door), and the door zones stay "enter".
+    if (cd <= TAKE_DIST && (!nv || cd < nv.d || behindAxle(p, cs.vehicle))) return { act: 'take' };
   } else if (cd <= CHAIR_DIST && (!nv || cd < nv.d)) return { act: 'pickup' };
   if (nv && nv.v === p.lastVehicle) {
     const o = repairOffer(p, ctx, nv.v);
@@ -119,6 +123,12 @@ export function interaction(p, ctx) {
   if (nv) return { act: 'enter', v: nv.v };
   const jv = jackableVehicle(p, ctx);
   return jv ? { act: 'carjack', v: jv } : { act: null };
+}
+
+function behindAxle(p, v) {
+  if (!v || !v.spec) return false;
+  const along = (p.pos.x - v.pos.x) * Math.sin(v.yaw) + (p.pos.z - v.pos.z) * Math.cos(v.yaw);   // + ahead of centre
+  return along < -(v.spec.wheelbase || v.spec.halfL) / 2;
 }
 
 export function handleInteract(p, ctx) {
