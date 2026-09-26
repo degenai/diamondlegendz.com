@@ -50,9 +50,14 @@ export function menuFor(s, A) {
       o.answer_right = 'Tap D: the answer to "a little to the right".';
     } else if (m.phase === 'session') {
       if (m.want && m.mod !== m.want) o.match_modality = 'Press Space: switch to the modality the client wants.';
-      if (A.track) o.track_ring_off = 'Stop keeping the cursor on the ring.'; else o.track_ring_on = 'Keep the cursor on the ring from now on, holding the click in trigger point (full credit per right answer).';
+      // One way: once the reflex is on, turning it off is not offered (Laya toggled on/off 60 times at
+      // tick 62, a 1-tick action that never lets time pass). replay() still accepts track_ring_off.
+      if (!A.track) o.track_ring_on = 'Keep the cursor on the ring from now on, holding the click in trigger point (full credit per right answer).';
     }
   } else if (s.st === 'RUN' && s.p) runMenu(s, o);
-  o.wait = 'Do nothing for half a second.';
+  // Waiting on the title or the intro card changes nothing (they wait for a key): a stateless model
+  // that prefers `wait` there never starts (Laya, 2026-09-25, 260 waits at the intro card).
+  const idle = s.st === 'TITLE' || (s.st === 'MASSAGE' && s.m && s.m.phase === 'intro');
+  if (!idle) o.wait = 'Do nothing for half a second.';
   return o;
 }

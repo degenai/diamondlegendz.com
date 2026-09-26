@@ -79,15 +79,19 @@ export function createAgent(ctx, hooks) {
     switch (id) {
       case 'click_begin': { const b = document.getElementById('begin'); if (b) b.click(); return 1; }
       case 'skip_intro': return tap('KeyK');
-      case 'answer_lighter': case 'mini_answer_lighter': return tap('KeyS');
+      // A tap answer commits to the call: the step runs to the window's end (a right answer closes the
+      // call at once, a wrong one leaves it open, and a pilot re-asked every 2 ticks tapped S 50 times
+      // into one "right there" call: Laya, 2026-09-25).
+      case 'answer_lighter': tap('KeyS'); return Math.max(2, windowLeft(c));
+      case 'mini_answer_lighter': tap('KeyS'); return Math.max(2, windowLeft(M.call));
       case 'counter': return tap('KeyQ');
       case 'counter_hold': return hold(['KeyQ'], Math.ceil(Math.max(0, ...(s.counter || []).map((d) => d.left)) * 60) + 20);   // through his strike, then let go
       case 'answer_harder': return hold(['KeyW'], 66);
       case 'mini_answer_harder': return hold(['KeyW'], 42);
       case 'stay_still': return windowLeft(c);
       case 'mini_answer_still': return windowLeft(M.call);
-      case 'answer_left': return tap('KeyA');
-      case 'answer_right': return tap('KeyD');
+      case 'answer_left': tap('KeyA'); return Math.max(2, windowLeft(c));
+      case 'answer_right': tap('KeyD'); return Math.max(2, windowLeft(c));
       case 'match_modality': return tap('Space');
       case 'next_client': case 'interact_E': case 'exit_vehicle': case 'set_chair_down':
       case 'enter_car': case 'carjack': case 'repair_vehicle': return tap('KeyE');

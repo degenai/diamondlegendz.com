@@ -26,6 +26,8 @@
 // "jev-latest" pointed to jev-1.13.0 in September 2026; versioned ids work in requests (flaviocopes.com/jev-api-key).
 // The AI Gateway takes the same body and answers in the same shape (vercel.com/docs/ai-gateway/sdks-and-apis/typesafe).
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { runOracle } from './oracle-run.mjs';
 
 const DANGER = ['safe', 'watch', 'danger', 'now'];
@@ -60,7 +62,9 @@ function runQuestions(obs) {
   };
 }
 
-export const MODEL_HELP = `--model oracle | jev | claude | openai:<model-id>
+export const MODEL_HELP = `--model oracle | jev | cf | laya | claude | openai:<model-id>
+  cf:     Cloudflare Workers AI typesafe/jev: CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID, or a wrangler login
+  laya:   the local Laya sidecar (python tools/jev/laya-server.py in tools/jev/.venv); LAYA_URL to move it
   jev:    set TYPESAFE_API_KEY (console.typesafe.ai > API Keys), or AI_GATEWAY_API_KEY (Vercel AI Gateway)
   claude: set ANTHROPIC_API_KEY (optional CLAUDE_MODEL, default claude-haiku-4-5-20251001)
   openai: set PILOT_OPENAI_API_KEY (optional PILOT_OPENAI_BASE_URL, default https://inference-api.nousresearch.com/v1)`;
@@ -122,6 +126,22 @@ function oracle() {
   };
 }
 
+// The TypeSafe question set, shared by every systemone-shaped site (jev, cf, laya): the action and
+// the danger, plus the run's battery in the RUN.
+function battery(obs) {
+  const inRun = obs.state.st === 'RUN';
+  return {
+    action: { type: 'choice', instructions: inRun ? `${RUN_RULES} Pick the one action that best serves the goal right now.` : INSTRUCT, criteria: obs.options },
+    danger: { type: 'score', instructions: 'How close is the player to being knocked down, arrested or losing the chair?', criteria: DANGER },
+    ...(inRun ? runQuestions(obs) : {}),
+  };
+}
+function readAnswers(A = {}, obs) {
+  const a = A.action, d = A.danger;
+  const q = obs.state.st === 'RUN' ? { threat: A.threat && { c: A.threat.choice, p: A.threat.probabilities }, chair: A.chair ? A.chair.noul : null, plan: A.plan && { c: A.plan.choice, p: A.plan.probabilities } } : undefined;
+  return { action: a && a.choice, probs: a && a.probabilities, conf: a && a.confidence, danger: d ? d.score : null, q };
+}
+
 function jev() {
   need('TYPESAFE_API_KEY', 'AI_GATEWAY_API_KEY');
   const direct = !!process.env.TYPESAFE_API_KEY;
@@ -136,20 +156,64 @@ function jev() {
   return {
     name: `jev (${model}${direct ? '' : ' via AI Gateway'})`,
     async decide(obs) {
-      const inRun = obs.state.st === 'RUN';
-      const { json, ms, retries } = await post(url, { authorization: `Bearer ${key}` }, {
-        model, state: obs.text, ...route,
-        questions: {
-          action: { type: 'choice', instructions: inRun ? `${RUN_RULES} Pick the one action that best serves the goal right now.` : INSTRUCT, criteria: obs.options },
-          danger: { type: 'score', instructions: 'How close is the player to being knocked down, arrested or losing the chair?', criteria: DANGER },
-          ...(inRun ? runQuestions(obs) : {}),
-        },
-      });
-      const A = json.answers || {}, a = A.action, d = A.danger;
-      const q = inRun ? { threat: A.threat && { c: A.threat.choice, p: A.threat.probabilities }, chair: A.chair ? A.chair.noul : null, plan: A.plan && { c: A.plan.choice, p: A.plan.probabilities } } : undefined;
+      const { json, ms, retries } = await post(url, { authorization: `Bearer ${key}` }, { model, state: obs.text, ...route, questions: battery(obs) });
       const R = json.provider_metadata && json.provider_metadata.gateway && json.provider_metadata.gateway.routing;
-      const prov = R ? R.resolvedProvider || R.finalProvider || null : null;
-      return { action: a && a.choice, probs: a && a.probabilities, conf: a && a.confidence, danger: d ? d.score : null, q, ms, retries, prov };
+      return { ...readAnswers(json.answers, obs), ms, retries, prov: R ? R.resolvedProvider || R.finalProvider || null : null };
+    },
+  };
+}
+
+// Cloudflare Workers AI hosts typesafe/jev: POST .../accounts/<id>/ai/run, body {model, input: {state,
+// questions}} (the TypeSafe shape inside `input`), answer {result: {answers, usage}}. Token and account
+// from CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID, else wrangler's OAuth login (default.toml, which
+// has ai:write) and the token's first account. Neither is ever printed. 402 means the owner's
+// Cloudflare AI Gateway balance is empty: stop with that, do not retry.
+function cfToken() {
+  if (process.env.CLOUDFLARE_API_TOKEN) return process.env.CLOUDFLARE_API_TOKEN;
+  const f = join(process.env.APPDATA || '', 'xdg.config', '.wrangler', 'config', 'default.toml');
+  let m = null;
+  try { m = readFileSync(f, 'utf8').match(/^oauth_token\s*=\s*"([^"]+)"/m); } catch { m = null; }
+  if (!m) throw new Error(`cf needs CLOUDFLARE_API_TOKEN (Workers AI permission) or a wrangler login (${f}); neither found.
+${MODEL_HELP}`);
+  return m[1];
+}
+function cf() {
+  const token = cfToken();
+  const model = process.env.CF_JEV_MODEL || 'typesafe/jev';
+  let account = process.env.CLOUDFLARE_ACCOUNT_ID || null;
+  return {
+    name: `cf (${model} on Workers AI)`,
+    async decide(obs) {
+      if (!account) {
+        const r = await fetch('https://api.cloudflare.com/client/v4/accounts', { headers: { authorization: `Bearer ${token}` } });
+        const j = await r.json().catch(() => ({}));
+        account = j.result && j.result[0] && j.result[0].id;
+        if (!account) throw new Error(`cf: no account visible to the token (HTTP ${r.status}); set CLOUDFLARE_ACCOUNT_ID`);
+      }
+      let res;
+      try {
+        res = await post(`https://api.cloudflare.com/client/v4/accounts/${account}/ai/run`, { authorization: `Bearer ${token}` }, { model, input: { state: obs.text, questions: battery(obs) } });
+      } catch (err) {
+        if (/HTTP 402/.test(err.message)) throw new Error('cf: HTTP 402, insufficient balance: the Cloudflare AI Gateway needs credits (or BYOK) before typesafe/jev answers. Top up, then re-run.');
+        throw new Error(err.message.replace(/accounts\/[0-9a-f]+/, 'accounts/<id>'));
+      }
+      const R = res.json.result || {};
+      return { ...readAnswers(R.answers, obs), ms: res.ms, retries: res.retries, prov: 'cloudflare' };
+    },
+  };
+}
+
+// Laya (Apache 2.0, convaiinnovations/laya, 421M ModernBERT-large): a local open clone with the same
+// state + questions API, served by tools/jev/laya-server.py on LAYA_URL (default 127.0.0.1:8899).
+function laya() {
+  const url = (process.env.LAYA_URL || 'http://127.0.0.1:8899').replace(/\/$/, '');
+  return {
+    name: `laya (local sidecar ${url})`,
+    async decide(obs) {
+      const { json, ms, retries } = await post(`${url}/v1/systemone`, {}, { model: 'laya', state: obs.text, questions: battery(obs) });
+      const F = json.fit || {}, qs = Object.keys(F).filter((k) => F[k] && typeof F[k] === 'object');
+      const fit = { ck: F.checkpoint, tok: F.state_tokens, cut: qs.filter((k) => F[k].state_cut), head: qs.filter((k) => F[k].head_cut), opt: qs.filter((k) => F[k].opt_cut) };
+      return { ...readAnswers(json.answers, obs), ms, lms: json.ms, retries, prov: 'laya-local', fit };
     },
   };
 }
@@ -189,6 +253,8 @@ export function makeModel(spec) {
   if (kind === 'oracle') return oracle();
   if (kind === 'jev') return jev();
   if (kind === 'claude') return claude();
+  if (kind === 'cf') return cf();
+  if (kind === 'laya') return laya();
   if (kind === 'openai') return openai(rest.join(':'));
   throw new Error(`unknown model "${spec}"\n${MODEL_HELP}`);
 }

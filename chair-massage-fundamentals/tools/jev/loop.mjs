@@ -20,12 +20,19 @@ export async function play(T, choose, { until = () => false, maxTicks = 60 * 60 
     const r = await T.J(`CMF.agent.act(${JSON.stringify(d.action)})`);
     if (!r.ok) throw new Error(`act(${d.action}) refused at tick ${obs.tick}: ${r.error}`);
     const entry = { tick: obs.tick, action: d.action };
-    if (obs.state.st === 'RUN') { entry.run = true; entry.text = obs.text.split('\nJust now')[0]; }   // what the pilot saw (review.mjs)
-    for (const k of ['auto', 'invalid', 'probs', 'conf', 'danger', 'q', 'ms', 'retries', 'prov', 'raw']) if (d[k] !== undefined && d[k] !== null) entry[k] = d[k];
+    // What the pilot saw, for review.mjs and compare.mjs (the same input through another model).
+    if (obs.state.st === 'RUN') entry.run = true;
+    if (ids.length > 1) { entry.text = obs.text; entry.opts = obs.options; if (obs.state.st === 'RUN') entry.near = obs.state.near; if (obs.state.st === 'MASSAGE' && obs.state.call) entry.call = obs.state.call; if (obs.state.mini && obs.state.mini.call) entry.call = obs.state.mini.call; }
+    for (const k of ['auto', 'invalid', 'probs', 'conf', 'danger', 'q', 'ms', 'lms', 'retries', 'prov', 'fit', 'raw']) if (d[k] !== undefined && d[k] !== null) entry[k] = d[k];
     log.push(entry);
-    // A pilot flapping between two instant actions (enter/exit, 4000 times) ends the run as 'loop'.
+    // A pilot flapping between two instant actions (enter/exit, 4000 times) ends the run as 'loop':
+    // 400 decisions inside 20 s of sim using two actions or fewer. (60 in 5 s was too tight: Laya
+    // tapping S through one open call, 2 ticks a tap, is a wrong answer, not a stuck run.)
     const L = log.length;
-    if (L >= 60 && log[L - 1].tick - log[L - 60].tick < 300 && new Set(log.slice(L - 60).map((e) => e.action)).size <= 2) return { reason: 'loop', obs, log };
+    // Or the same observation 120 times running with the model's answer unchanged: a deterministic
+    // stateless pilot at a state that only it can change ends as 'stall'.
+    if (L >= 120 && log.slice(L - 120).every((e) => e.text && e.text === log[L - 1].text && e.action === log[L - 1].action)) return { reason: 'stall', obs, log };
+    if (L >= 400 && log[L - 1].tick - log[L - 400].tick < 1200 && new Set(log.slice(L - 400).map((e) => e.action)).size <= 2) return { reason: 'loop', obs, log };
     if (onDecision) onDecision(entry, obs);
     if (d.action === 'wait') await T.J('CMF.agent.step(30)');
     else if (r.ticks > 0) await T.J(r.interruptible ? `CMF.agent.step(${r.ticks})` : `CMF.agent.step(${r.ticks}, { stopOn: null })`);
