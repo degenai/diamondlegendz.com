@@ -14,6 +14,7 @@ import { onEvent } from './events.js';
 import { short } from './run-report.js';
 import { buildSnap } from './session-log.js';
 import { observeText, menuFor } from './agent-text.js';
+import { createRunHands, INTERRUPTIBLE } from './agent-run.js';
 
 const MOUSE_SENS = 0.0025;   // rad per px (player.js, chase-cam.js): 30 degrees = 209 px
 const WAIT = 30;             // ticks: 2 decisions per sim second
@@ -23,12 +24,15 @@ const END = ['ARREST', 'DEATH', 'ESCAPE', 'SUMMARY'];
 export function INTERRUPTS(type, d) {
   switch (type) {
     case 'call': return d.act === 'asked' || d.act === 'open';
-    case 'mini': return d.phase === 'ready';
+    case 'mini': return d.phase === 'ready' || d.phase === 'success' || d.phase === 'cancel';
     case 'telegraph': case 'state': return true;
     case 'knockdown': return d.who === 'player';
     case 'damage': return true;                    // only the player takes `damage`
     case 'tutorial': return d.act === 'shown';
     case 'leave': return d.phase === 'prompt';
+    case 'goon': return d.act === 'cling' || d.act === 'pullout';     // milestone 3: a goon on his car
+    case 'chair': return d.act === 'throw';
+    case 'wanted': return d.level !== d.prev;
     default: return false;
   }
 }
@@ -58,9 +62,15 @@ export function createAgent(ctx, hooks) {
   function hold(codes, k) { for (const c of codes) key(c, true); later(k, () => { for (const c of codes) key(c, false); }); return k; }
   const tap = (code) => hold([code], 2);
   function click(b, k) { lock(); button(b, true); later(k, () => button(b, false)); return k; }
+  const hands = createRunHands(ctx, { key, look });
   const turnTo = (b) => { if (b === null || b === undefined) return 1; look((b * Math.PI / 180) / MOUSE_SENS); return 1; };
 
   function nearestOf(s, pred) { const n = (s.near || []).find(pred); return n ? n[3] : null; }
+  function aim(s) {
+    const g = (s.near || []).filter((n) => (n[1] === 'goon' || n[1] === 'boss') && n[2] <= 4 && n[4] !== 'down' && n[4] !== 'sit' && n[4] !== 'treated');
+    g.sort((a, b) => (b[5].includes('stagger') - a[5].includes('stagger')) || a[2] - b[2]);
+    if (g.length) turnTo(g[0][3]);
+  }
   const windowLeft = (c) => (c && c.open ? Math.max(1, Math.ceil((c.window - c.t) * 60) + 2) : WAIT);
 
   // id -> () => ticks the macro needs. Only the ids menuFor offers right now are accepted.
@@ -77,7 +87,9 @@ export function createAgent(ctx, hooks) {
       case 'answer_left': return tap('KeyA');
       case 'answer_right': return tap('KeyD');
       case 'match_modality': return tap('Space');
-      case 'next_client': case 'interact_E': case 'exit_vehicle': return tap('KeyE');
+      case 'next_client': case 'interact_E': case 'exit_vehicle': case 'set_chair_down':
+      case 'enter_car': case 'carjack': case 'repair_vehicle': return tap('KeyE');
+      case 'load_chair': case 'pick_up_chair': tap('KeyE'); return 32;   // the fold: 0.5 s standing still
       case 'track_ring_on': A.track = true; return 1;
       case 'track_ring_off': A.track = false; return 1;
       case 'wait': return WAIT;
@@ -93,17 +105,21 @@ export function createAgent(ctx, hooks) {
       case 'face_chair': return turnTo(s.tgt && s.tgt.chair ? s.tgt.chair[1] : null);
       case 'face_nearest_goon': return turnTo(nearestOf(s, (n) => n[1] === 'goon'));
       case 'face_nearest_car': return turnTo(nearestOf(s, (n) => n[1].startsWith('car:')));
-      case 'palm_tap': return click(0, 3);
-      case 'palm_charge': return click(0, 48);
+      // The palm and the swing aim first (code does bearings): at the nearest goon within 4 m, a
+      // staggered one before the rest; nobody that close and they go where the camera looks.
+      case 'palm_tap': case 'swing_chair': aim(s); return click(0, 3);
+      case 'palm_charge': aim(s); return click(0, 48);
       case 'jump': return tap('Space');
-      case 'hold_E_massage': key('KeyE', true); A.holds.push({ code: 'KeyE', until: ctx.tick + 900, started: false }); return 60;
+      case 'hold_E_massage': key('KeyE', true); A.holds.push({ code: 'KeyE', until: ctx.tick + 1500, started: false }); return 60;
+      case 'keep_massaging': return 90;
+      case 'let_go': for (const h of A.holds.splice(0)) key(h.code, false); return 1;
       case 'drive_fwd_2s': return hold(['KeyW'], 120);
       case 'drive_fwd_left_1s': return hold(['KeyW', 'KeyA'], 60);
       case 'drive_fwd_right_1s': return hold(['KeyW', 'KeyD'], 60);
       case 'brake_reverse_1s': return hold(['KeyS'], 60);
       case 'swerve_left': return hold(['KeyW', 'KeyA', 'Space'], 36);
       case 'swerve_right': return hold(['KeyW', 'KeyD', 'Space'], 36);
-      default: return -1;
+      default: { const t = hands.macro(id, s); return t === undefined ? -1 : t; }
     }
   }
 
@@ -119,10 +135,11 @@ export function createAgent(ctx, hooks) {
   }
   function beforeTick() {
     drainDue();
+    hands.tick();
     for (let i = A.holds.length - 1; i >= 0; i--) {
       const h = A.holds[i], ph = ctx.mini && ctx.mini.phase;
       if (ph === 'massage') h.started = true;
-      if (ctx.tick >= h.until || (h.started && ph !== 'massage') || (!h.started && ctx.tick >= h.until - 840 && ph !== 'massage')) { key(h.code, false); A.holds.splice(i, 1); }
+      if (ctx.tick >= h.until || (h.started && ph !== 'massage') || (!h.started && ctx.tick >= h.until - 1440 && ph !== 'massage')) { key(h.code, false); A.holds.splice(i, 1); }
     }
     const m = A.track && hooks.state() === 'MASSAGE' ? hooks.massageState() : null;
     if (m && m.ring && Number.isFinite(m.ring.x)) window.dispatchEvent(new MouseEvent('mousemove', { clientX: Math.round(m.ring.x), clientY: Math.round(m.ring.y), bubbles: true }));
@@ -133,15 +150,28 @@ export function createAgent(ctx, hooks) {
     if (hold !== A.clickHeld) { A.clickHeld = hold; button(0, hold); }
   }
 
+  // One path for act and replay. In the RUN a new decision ends the last one: the reflex stops and
+  // every scheduled release fires now (an interrupted 1 s walk lets go of W), except the E hold of a
+  // mini-massage, which only let_go or the massage's end releases.
+  function run(id, s) {
+    drainDue();
+    if (s.st === 'RUN') { hands.stop(); for (const d of A.due.splice(0)) d.fn(); }
+    const ticks = macro(id, s);
+    A.log.push({ tick: ctx.tick, id });
+    return { ok: ticks >= 0, id, ticks: Math.max(0, ticks), interruptible: s.st === 'RUN' && INTERRUPTIBLE.has(id) };
+  }
+
   const agent = {
     get paused() { return A.paused; },
     pause(on = true) { A.paused = !!on; return A.paused; },
     // The unpaused frame loop (main.js) drains a macro's due releases too, so a hold started by act()
     // never outlives its ticks when nobody calls step() again (nitpick 2026-09-25).
     beforeTick,
-    releaseAll() { for (const d of A.due.splice(0)) d.fn(); for (const h of A.holds.splice(0)) key(h.code, false); if (A.clickHeld) { A.clickHeld = false; button(0, false); } },
+    releaseAll() { hands.stop(); for (const d of A.due.splice(0)) d.fn(); for (const h of A.holds.splice(0)) key(h.code, false); if (A.clickHeld) { A.clickHeld = false; button(0, false); } },
     get tick() { return ctx.tick; },
     get track() { return A.track; },
+    // What the hands still hold: scheduled releases, E holds, the running reflex (diagnostics).
+    get pending() { return { due: A.due.map((d) => d.at), holds: A.holds.map((h) => ({ ...h })), reflex: hands.reflex, now: ctx.tick }; },
     ready: hooks.ready,
     log: A.log,
     // n whole ticks, or fewer on an interrupt. stopOn: a (type, data) => bool, or null for none.
@@ -164,13 +194,10 @@ export function createAgent(ctx, hooks) {
     act(id) {
       const s = buildSnap(), menu = menuFor(s, A);
       if (!(id in menu)) return { ok: false, id, error: `not a valid action now (${s.st})`, options: Object.keys(menu) };
-      drainDue();
-      const ticks = macro(id, s);
-      A.log.push({ tick: ctx.tick, id });
-      return { ok: ticks >= 0, id, ticks: Math.max(0, ticks) };
+      return run(id, s);
     },
     // Replay: the same act without the menu check (a recorded action list may be replayed blind).
-    replay(id) { drainDue(); const t = macro(id, buildSnap()); A.log.push({ tick: ctx.tick, id }); return { ok: t >= 0, id, ticks: Math.max(0, t) }; },
+    replay(id) { return run(id, buildSnap()); },
   };
   return agent;
 }

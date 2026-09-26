@@ -149,6 +149,18 @@ determinism) is [docs/playtest-jev.md](docs/playtest-jev.md).
   `PILOT_OPENAI_BASE_URL`, default the Nous inference portal). `oracle` needs no key: it answers
   every call right, which proves the harness. Keys come from the environment only. Each seed writes
   `tools/jev/out/<seed>.actions.json` and `<seed>.session.ndjson` (git-ignored).
+- The run (milestone 3): `--until mini` stops at the first finished mini-massage, `--until end` at
+  any ending, `--max-run-s` caps the run (default 600 s of sim). Past the course the oracle flies
+  the massage course and the model takes over at the pivot (`--model-course` to have the model fly
+  it too); `--trace` prints one line per run decision. The RUN menu is `src/agent-run-text.js`
+  (on foot, driving, the mini-massage), the hands behind it `src/agent-run.js`: code-steered macros
+  (`go_to_chair`, `go_to_car`, `run_to_exit` on the ped walkways, `face_exit_steer` and
+  `drive_to_chair` on the street graph under 11 m/s so a crash never throws the chair) and aimed
+  palms. In the run Jev answers a battery per decision: `action`, `danger`, `threat` (which nearby
+  entity), `chair` (is it safe, 0..1) and `plan`; all go into actions.json with their
+  probabilities, plus the gateway provider that answered (`PILOT_JEV_ORDER`, default
+  `typesafe-ai,digitalocean`; `PILOT_RETRIES`, default 12, backoff capped at 30 s). The oracle's
+  run is a scripted stand-your-ground policy (`tools/jev/oracle-run.mjs`): a baseline, never a pass.
 
 ## The debug handle
 

@@ -7,7 +7,7 @@ export async function play(T, choose, { until = () => false, maxTicks = 60 * 60 
   await T.ev('CMF.agent.ready');
   for (;;) {
     const obs = await T.J('CMF.agent.observe()');
-    if (until(obs)) return { reason: 'goal', obs, log };
+    if (await until(obs)) return { reason: 'goal', obs, log };
     if (obs.done) return { reason: 'done', obs, log };
     if (obs.tick > maxTicks) return { reason: 'timeout', obs, log };
     const ids = Object.keys(obs.options);
@@ -20,11 +20,12 @@ export async function play(T, choose, { until = () => false, maxTicks = 60 * 60 
     const r = await T.J(`CMF.agent.act(${JSON.stringify(d.action)})`);
     if (!r.ok) throw new Error(`act(${d.action}) refused at tick ${obs.tick}: ${r.error}`);
     const entry = { tick: obs.tick, action: d.action };
-    for (const k of ['auto', 'invalid', 'probs', 'conf', 'danger', 'ms', 'raw']) if (d[k] !== undefined && d[k] !== null) entry[k] = d[k];
+    if (obs.state.st === 'RUN') entry.run = true;
+    for (const k of ['auto', 'invalid', 'probs', 'conf', 'danger', 'q', 'ms', 'retries', 'prov', 'raw']) if (d[k] !== undefined && d[k] !== null) entry[k] = d[k];
     log.push(entry);
     if (onDecision) onDecision(entry, obs);
     if (d.action === 'wait') await T.J('CMF.agent.step(30)');
-    else if (r.ticks > 0) await T.J(`CMF.agent.step(${r.ticks}, { stopOn: null })`);
+    else if (r.ticks > 0) await T.J(r.interruptible ? `CMF.agent.step(${r.ticks})` : `CMF.agent.step(${r.ticks}, { stopOn: null })`);
   }
 }
 

@@ -12,7 +12,7 @@ import { getState } from './state.js';
 import { SESSION_CHANNEL } from './events.js';
 import { chairState, chairWorldPos } from './entities/chair.js';
 import { hostile, copHostile } from './entities/hostile.js';
-import { playerCash } from './entities/interact.js';
+import { playerCash, interaction, JACK_SPEED } from './entities/interact.js';
 import { openDodges } from './entities/goon-dodge.js';
 
 const CAP_TICKS = 20 * 60 * 60;   // 20 min at 60 ticks/s
@@ -142,6 +142,20 @@ function nearList(p, h, fx, fz) {
   return out.slice(0, NEAR_N).map((r) => r[2]);
 }
 
+// The nearest vehicle he could take on foot, any distance: [id, type, dist, bearing, 'enter' | 'carjack'].
+function nearestTakeable(p, h, fx, fz) {
+  if (p.vehicle) return null;
+  let best = null, bd = Infinity;
+  for (const v of (ctx.world && ctx.world.vehicles) || []) {
+    if (v.removed) continue;
+    const how = !v.driver ? 'enter' : v.civilian && Math.abs(v.speed) < JACK_SPEED ? 'carjack' : null;
+    if (!how) continue;
+    const d2 = (v.pos.x - fx) ** 2 + (v.pos.z - fz) ** 2;
+    if (d2 < bd) { bd = d2; best = [`v${v.id}`, v.type, r1(Math.sqrt(d2)), bearing(h, fx, fz, v.pos.x, v.pos.z), how, Math.round(v.hp ?? 100)]; }
+  }
+  return best;
+}
+
 function callOf(c) { return c ? { name: c.name, key: c.key || 'none', open: !!c.open, t: r2(c.t || 0), window: c.window } : null; }
 
 export function buildSnap() {
@@ -164,16 +178,20 @@ export function buildSnap() {
       spd: r1(Math.hypot(vel.x, vel.z)), hp: Math.round(p.hp), sta: p.staminaMax ? r2(p.stamina / p.staminaMax) : 1,
       veh: v ? v.type : null, vhp: v ? Math.round(v.hp ?? 100) : null, kn: r1(Math.max(0, p.knockedT || 0)), chg: p.chargeT >= 0 ? r2(p.chargeT) : 0,
       chair: cs.where, dur: Math.round(cs.durability), bat: ctx.perks && ctx.perks.gun >= 0 ? Math.round(p.battery ?? 100) : null,
-      gun: !!p.gunEquipped, lock: !!(inp && inp.locked), mass: !!p.massaging };
+      gun: !!p.gunEquipped, lock: !!(inp && inp.locked), mass: !!p.massaging,
+      it: interaction(p, ctx).act, cin: cs.where === 'vehicle' && cs.vehicle ? `v${cs.vehicle.id}` : null, vid: v ? `v${v.id}` : null };
     const w = ctx.wanted;
-    s.w = { lv: w.level, heat: r2(w.heat), rise: w.risingT > 0, arrestT: r2((ctx.police && ctx.police.arrestT) || 0) };
+    // seen: a cop has line of sight (the level cannot fall); decay: seconds of the 25 s countdown gone.
+    s.w = { lv: w.level, heat: r2(w.heat), rise: w.risingT > 0, arrestT: r2((ctx.police && ctx.police.arrestT) || 0), seen: !!w.seen, decay: r1(w.decayT || 0) };
     s.cash = r2(playerCash(ctx));
     const tgt = (q) => { if (!q) return null; const d = Math.hypot(q.x - at.x, q.z - at.z); return d < 1.5 ? [0, null] : [Math.round(d), bearing(h, at.x, at.z, q.x, q.z)]; };
     s.tgt = { chair: tgt(cw), exit: tgt(esc && esc.centre) };
     s.near = nearList(p, h, at.x, at.z);
+    s.car = nearestTakeable(p, h, at.x, at.z);
     const dg = openDodges(ctx); if (dg.length) s.dodge = dg;   // goon wind-ups open on him (the S call)
     const M = ctx.mini;
-    s.mini = M ? { ph: M.phase, prog: r2(M.progress || 0), miss: M.misses || 0, call: callOf(M.caller && M.caller.call) } : null;
+    s.mini = M ? { ph: M.phase, prog: r2(M.progress || 0), miss: M.misses || 0, call: callOf(M.caller && M.caller.call),
+      who: M.client ? `p${M.client.id}` : null, cd: M.client ? r1(Math.hypot(M.client.pos.x - M.pos.x, M.client.pos.z - M.pos.z)) : null, t: r1(M.t || 0) } : null;
   }
   s.hud = hudText(st);
   s.in = heldText(inp);
