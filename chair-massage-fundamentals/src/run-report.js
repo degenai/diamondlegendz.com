@@ -82,7 +82,7 @@ function line(e, evs, i, t0) {
       if (d.act === 'carjack') return null;       // the wanted line says it
       if (d.act === 'batHit') return `${at} a goon's bat on the ${d.type} (hp ${d.hp})`;
       if (d.act === 'exit' && (nearby(evs, i, 'goon', 0.1) || {}).data?.act === 'pullout') return null;   // the pull-out line says it
-      return d.act === 'exit' ? `${at} got out of the ${d.type}` : `${at} ${d.stolen ? 'took' : 'got in'} the ${d.type}${d.stolen ? ' (stolen)' : ''}`;
+      return d.act === 'exit' ? `${at} got out of the ${d.type}` : `${at} ${d.stolen || d.own ? 'took' : 'got in'} the ${d.type}${d.stolen ? ' (stolen)' : ''}`   // the pivot's cart (d.own): took, not stolen;
     case 'chair':
       if (d.act === 'pickup') return `${at} chair on your back`;
       if (d.act === 'take') return `${at} took the chair out of the ${d.vehicle}`;

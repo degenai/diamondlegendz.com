@@ -138,7 +138,7 @@ function nearList(p, h, fx, fz) {
     const d2 = (v.pos.x - fx) ** 2 + (v.pos.z - fz) ** 2;
     if (d2 > R2) continue;
     const who = v.driver ? (v.driver.kind === 'goon' ? 'goons' : v.driver.kind === 'cop' ? 'cops' : 'driven') : 'parked';
-    const tag = [v.franchise ? 'van' : '', v.parked === false ? 'keys' : '', v.stolen ? 'stolen' : '', `hp${Math.round(v.hp ?? 100)}`].filter(Boolean).join(',');
+    const tag = [v.franchise ? 'van' : '', v.pivotCart ? 'own' : '', v.parked === false ? 'keys' : '', v.stolen ? 'stolen' : '', `hp${Math.round(v.hp ?? 100)}`].filter(Boolean).join(',');
     out.push([who === 'goons' || who === 'cops' ? 0 : 1, d2, [`v${v.id}`, `car:${v.type}`, r1(Math.sqrt(d2)), bearing(h, fx, fz, v.pos.x, v.pos.z), who, tag]]);
   }
   out.sort((a, b) => a[0] - b[0] || a[1] - b[1] || (a[2][0] < b[2][0] ? -1 : 1));
@@ -160,7 +160,8 @@ function nearestCop(h, fx, fz) {
   return best;
 }
 
-// The nearest vehicle he could take on foot, any distance: [id, type, dist, bearing, 'enter' | 'carjack'].
+// The nearest vehicle he could take on foot, any distance: [id, type, dist, bearing, 'enter' | 'carjack', hp,
+// 'own' for the pivot's cart (free to take, no star) else ''].
 function nearestTakeable(p, h, fx, fz) {
   if (p.vehicle) return null;
   let best = null, bd = Infinity;
@@ -169,7 +170,7 @@ function nearestTakeable(p, h, fx, fz) {
     const how = !v.driver ? 'enter' : v.civilian && Math.abs(v.speed) < JACK_SPEED ? 'carjack' : null;
     if (!how) continue;
     const d2 = (v.pos.x - fx) ** 2 + (v.pos.z - fz) ** 2;
-    if (d2 < bd) { bd = d2; best = [`v${v.id}`, v.type, r1(Math.sqrt(d2)), bearing(h, fx, fz, v.pos.x, v.pos.z), how, Math.round(v.hp ?? 100)]; }
+    if (d2 < bd) { bd = d2; best = [`v${v.id}`, v.type, r1(Math.sqrt(d2)), bearing(h, fx, fz, v.pos.x, v.pos.z), how, Math.round(v.hp ?? 100), v.pivotCart ? 'own' : '']; }
   }
   return best;
 }

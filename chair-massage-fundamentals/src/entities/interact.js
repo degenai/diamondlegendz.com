@@ -161,8 +161,11 @@ export function handleInteract(p, ctx) {
 
 export function enterVehicle(p, v, ctx, how = 'enter') {
   if (p.knockedT > 0 || v.driver) return false;
-  emit('vehicle', { act: how, type: v.spec.label, stolen: how === 'carjack' || !!v.parked || !!v.stolen });
-  if (v.parked) {                      // stealing: wanted +1 the first time, +0.5 after
+  // The pivot's cart (v.pivotCart, cars.js) is his by story (ruled 2026-09-25): taking it, the
+  // first time or again after leaving it, is never theft. Every other parked car is.
+  const own = !!v.pivotCart && how !== 'carjack';
+  emit('vehicle', { act: how, type: v.spec.label, stolen: !own && (how === 'carjack' || !!v.parked || !!v.stolen), ...(own ? { own: true } : {}) });
+  if (v.parked && !own) {              // stealing: wanted +1 the first time, +0.5 after
     v.stolen = true;
     if (ctx.wanted) ctx.wanted.report('stealVehicle');
     emitChaos(ctx, v.pos.x, v.pos.z, 'steal');

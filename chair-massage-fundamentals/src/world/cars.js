@@ -89,7 +89,8 @@ export function placeVehicle(world, root, entities, type, mesh, pos, yaw) {
   return v;
 }
 
-// Maintenance cart on the plaza near the chair: first clear spot at least 5 m from the chair.
+// Maintenance cart on the plaza near the chair: first clear spot at least 5 m from the chair. It is
+// "the pivot's cart" (v.pivotCart): the one beside the chair when the controls unlock.
 function cartSpot(world) {
   const cs = world.chairSpot;
   const cands = [[6, 1.5, 0], [-6, 1.5, 0], [6, -3, Math.PI / 2], [-6, -3, Math.PI / 2], [3, 4, Math.PI / 2],
@@ -130,7 +131,8 @@ export function spawnVehicles(world, root, entities) {
   const jobs = [
     loadMesh(VEHICLE_TYPES.cart.asset).then((m) => {
       m.name = 'maintenanceCart';
-      home(placeVehicle(world, root, entities, 'cart', m, cart.pos, cart.yaw), cart.pos, cart.yaw);
+      const v = home(placeVehicle(world, root, entities, 'cart', m, cart.pos, cart.yaw), cart.pos, cart.yaw);
+      v.pivotCart = true;         // the pivot's cart: his by story, taking it is no theft (interact.js, ruled 2026-09-25)
     }),
     loadMesh(VEHICLE_TYPES.van.asset).then((m) => {
       recolourBody(m, 0x111214);  // franchise black

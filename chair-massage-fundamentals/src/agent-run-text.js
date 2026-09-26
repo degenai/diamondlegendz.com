@@ -26,7 +26,7 @@ export function thing([id, kind, dist, b, state, tag]) {
   else if (kind === 'goon' && state === 'chase') what = tag.includes('turn') ? 'HAS THE TURN: the next swing comes from him' : dist < 10 ? 'circling, waiting his turn' : 'chasing you';
   else if (state === 'windup') what = `winding up ${tag.includes('pull') ? 'to pull you out' : tag.includes('bat') ? 'a bat swing' : tag.includes('grab') ? 'a grab' : 'a shove'}`;
   const extra = [kind === 'goon' && tag.includes('bat') && state !== 'windup' ? 'has a bat' : '', tag.includes('cling') ? 'CLINGING TO YOUR CAR' : '',
-    kind.startsWith('car:') && tag.includes('van') ? 'the Serenity van' : '', kind.startsWith('car:') && state === 'parked' ? 'free to take' : '',
+    kind.startsWith('car:') && tag.includes('van') ? 'the Serenity van' : '', kind.startsWith('car:') && state === 'parked' ? 'free to take' : '', kind.startsWith('car:') && tag.includes('own') ? "the pivot's cart: yours, no star" : '',
     kind === 'ped' && tag.includes('sore') ? 'sore back' : ''].filter(Boolean).join(', ');
   return `${kind.replace('car:', '')} ${id} ${Math.round(dist)} m ${side(b)}, ${what}${extra ? `, ${extra}` : ''}`;
 }
@@ -79,7 +79,7 @@ export function runText(s) {
   const near = s.near || [], threats = near.filter(isThreat), rest = near.filter((n) => !isThreat(n));
   L.push(threats.length ? `Threats: ${threats.map(thing).join('; ')}.` : 'Threats: none within 40 m.');
   if (rest.length) L.push(`Also near: ${rest.map(thing).join('; ')}.`);
-  if (s.car) L.push(`Nearest car you could take: ${s.car[1]} ${s.car[0]}, ${Math.round(s.car[2])} m ${side(s.car[3])}${s.car[4] === 'carjack' ? ' (a driver in it: E pulls him out, +1 star)' : ' (empty: E gets in, a stolen car is +1 star)'}, ${s.car[5]} hp.`);
+  if (s.car) L.push(`Nearest car you could take: ${s.car[1]} ${s.car[0]}, ${Math.round(s.car[2])} m ${side(s.car[3])}${s.car[4] === 'carjack' ? ' (a driver in it: E pulls him out, +1 star)' : s.car[6] === 'own' ? " (the pivot's cart, yours: E gets in, no star)" : ' (empty: E gets in, a stolen car is +1 star)'}, ${s.car[5]} hp.`);
   if (p.it && !p.mass) L.push(`E right now would ${IT_WORDS[p.it] || p.it}${p.itv && !p.veh ? ` (${p.itt} ${p.itv}${p.chair === 'vehicle' ? (p.itv === p.cin ? ', the one holding the chair' : `; the chair is in ${p.cin}, not this one`) : ''})` : ''}.`);
   const mw = miniWords(s.mini, p);
   if (mw) L.push(mw);
