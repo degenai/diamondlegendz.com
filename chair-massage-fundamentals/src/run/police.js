@@ -231,8 +231,12 @@ function arrest(P, dt, ctx) {
     if (d2 < 2 * 2) near = true;
   }
   if (p.knockedT > 0 && near) { endRun(ctx, 'arrest'); return; }
-  const speed = Math.hypot(p.vel.x, p.vel.z);
-  if (touch && speed < 0.5 && !(P.arrestT > 0)) { P.arrestBy = touch.id; emit('telegraph', { who: touch.rank === 'ranger' ? 'ranger' : 'cop', id: touch.id, act: 'arrestStart', t: 1.5 }); }   // Jev milestone 0
-  P.arrestT = touch && speed < 0.5 ? P.arrestT + dt : Math.max(0, P.arrestT - dt);
+  const speed = Math.hypot(p.vel.x, p.vel.z), still = touch && speed < 0.5;
+  // Chair business pauses the touch (ruled 2026-09-25): mid-fold (pick up, take, load, the hold-E
+  // set-down; getting in is instant and a driver is never touched) the meter holds where it is and
+  // resumes the moment the action ends. A beat of grace, not immunity.
+  if (still && p.foldT > 0) return;
+  if (still && !(P.arrestT > 0)) { P.arrestBy = touch.id; emit('telegraph', { who: touch.rank === 'ranger' ? 'ranger' : 'cop', id: touch.id, act: 'arrestStart', t: 1.5 }); }   // Jev milestone 0
+  P.arrestT = still ? P.arrestT + dt : Math.max(0, P.arrestT - dt);
   if (P.arrestT >= 1.5) endRun(ctx, 'arrest');
 }
