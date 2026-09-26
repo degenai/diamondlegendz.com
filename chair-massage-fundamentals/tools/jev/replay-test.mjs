@@ -14,7 +14,7 @@ const arg = (name, def) => { const i = process.argv.indexOf(`--${name}`); return
 const seed = arg('seed', '777'), base = arg('url', 'http://127.0.0.1:8817/'), port = Number(arg('port', '9736'));
 const META = { runs: 0, bestTime: 0, bestCash: 0, escapes: 0, pivotsSeen: 0, firstPivotSeen: false, firstRunSeen: false, unlocks: [], consolations: [], lastOutcome: null, lastUnlock: null };
 const RUN_SECONDS = Number(arg('run-seconds', '20'));
-const RUN_SCRIPT = ['face_exit', 'walk_fwd_1s', 'turn_left_30', 'palm_tap', 'sprint_fwd_2s', 'face_nearest_goon', 'palm_charge', 'turn_right_30', 'strafe_left_1s', 'jump', 'interact_E', 'back_off_1s', 'turn_around', 'walk_fwd_1s'];
+const RUN_SCRIPT = ['face_exit', 'walk_fwd_1s', 'turn_left_30', 'palm_tap', 'sprint_fwd_2s', 'face_nearest_goon', 'counter', 'palm_charge', 'counter_hold', 'turn_right_30', 'strafe_left_1s', 'jump', 'interact_E', 'back_off_1s', 'turn_around', 'walk_fwd_1s'];
 const url = `${base}?seed=${seed}&norender&snap=4`;
 
 async function streams(T) {

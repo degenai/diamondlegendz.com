@@ -14,7 +14,7 @@ let canvasEl = null;
 const lockListeners = [];
 
 const GAME_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'ShiftLeft', 'ShiftRight',
-  'KeyE', 'KeyQ', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+  'KeyE', 'KeyQ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 
 function isEditable(el) {
   if (!el) return false;
@@ -25,7 +25,8 @@ function isEditable(el) {
 function onKeyDown(ev) {
   // Prevent page scroll and button re-activation (a focused #begin button
   // would otherwise swallow Space/Enter) unless the user is typing in a field.
-  if (GAME_KEYS.has(ev.code) && !isEditable(ev.target)) {
+  // Tab (palm / gun) is only swallowed in the run: elsewhere it still moves focus through the menus.
+  if ((GAME_KEYS.has(ev.code) || (ev.code === 'Tab' && getState() === STATES.RUN)) && !isEditable(ev.target)) {
     ev.preventDefault();
     if (ev.target && ev.target !== document.body && typeof ev.target.blur === 'function') ev.target.blur();
   }
