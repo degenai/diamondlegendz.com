@@ -5,6 +5,7 @@ import { setPersonColours, shirtFor } from '../world/people.js';
 import { chairState, wearChair, holdChairFront, chairToBack } from './chair.js';
 import { emit } from '../events.js';
 import { handleInteract, interaction } from './interact.js';
+import { setChairDown } from '../run/mini-start.js';
 import { startCharge, cancelCharge, updatePalm, knockBody, palmable } from './palm.js';
 import { updateGun, poseGun } from './gun.js';
 import { emitChaos } from '../run/wanted.js';
@@ -22,15 +23,22 @@ export function interactInput(p, dt, ctx, input) {
     // Folding the chair or starting a mini-massage plants both hands: a charge or a quick palm's
     // wind-up in progress is dropped, or it would freeze under the massage and fire at its end.
     if (FOLD_ACTS.has(act) || act === 'massage') { cancelCharge(p, 'interact'); p.palmT = 0; }
-    if (FOLD_ACTS.has(act)) { p.foldT = FOLD * ((ctx.perks && ctx.perks.foldMul) || 1); p.foldAct = act; }
+    if (FOLD_ACTS.has(act)) { p.foldT = FOLD * ((ctx.perks && ctx.perks.foldMul) || 1); p.foldAct = act; p.foldHeld = act === 'load'; }
     else handleInteract(p, ctx);
   }
   if (p.foldT > 0) {
     p.foldT -= dt;
+    // Beside a car, tap E loads and hold E sets down (ruled 2026-09-25): a load fold with E held
+    // from the press to its end sets the chair down here instead (the fold is the hold).
+    if (!(input && input.e)) p.foldHeld = false;
     if (p.knockedT > 0 || p.vehicle) p.foldT = 0;
     else if (p.foldT <= 0) {
       p.foldT = 0;
-      if (interaction(p, ctx).act === p.foldAct) { handleInteract(p, ctx); if (chairState(ctx.world).where === 'player') icePack(p, ctx); }
+      if (interaction(p, ctx).act === p.foldAct) {
+        if (p.foldHeld && ctx.mini) setChairDown(p, ctx);
+        else { handleInteract(p, ctx); if (chairState(ctx.world).where === 'player') icePack(p, ctx); }
+      }
+      p.foldHeld = false;
     }
   }
 }

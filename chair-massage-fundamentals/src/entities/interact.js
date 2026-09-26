@@ -266,7 +266,7 @@ export function exitVehicle(p, ctx) {
 
 const SWING_HINT = 'Left click: swing the chair';
 const BROKE = `Repair $${REPAIR_COST} (not enough cash)`;
-const HINTS = { repair: `E: repair here ($${REPAIR_COST})`, enter: 'E enter vehicle', carjack: 'E pull the driver out', exit: 'E exit vehicle', load: 'E load chair', pickup: 'E pick up chair', take: 'E take the chair',
+const HINTS = { repair: `E: repair here ($${REPAIR_COST})`, enter: 'E enter vehicle', carjack: 'E pull the driver out', exit: 'E exit vehicle', load: 'E load chair · hold E set down', pickup: 'E pick up chair', take: 'E take the chair',
   setdown: 'E set chair down', massage: 'Hold E: massage (answer what they say)' };
 
 // RUN HUD strings for main.js: { hint, vehicle, chair }.
