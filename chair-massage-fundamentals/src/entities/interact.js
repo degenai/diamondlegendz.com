@@ -115,6 +115,7 @@ export function interaction(p, ctx) {
     // footprint, so the enter prompt always won that tie); elsewhere the nearer of the two wins
     // (the van's passenger door), and the door zones stay "enter".
     if (cd <= TAKE_DIST && (!nv || cd < nv.d || behindAxle(p, cs.vehicle))) return { act: 'take' };
+    if (cabinTake(p, cs.vehicle, cd)) return { act: 'take' };
   } else if (cd <= CHAIR_DIST && (!nv || cd < nv.d)) return { act: 'pickup' };
   if (nv && nv.v === p.lastVehicle) {
     const o = repairOffer(p, ctx, nv.v);
@@ -123,6 +124,20 @@ export function interaction(p, ctx) {
   if (nv) return { act: 'enter', v: nv.v };
   const jv = jackableVehicle(p, ctx);
   return jv ? { act: 'carjack', v: jv } : { act: null };
+}
+
+// A chair riding inside the body (the van's and the SWAT van's passenger seat, vehicle-types.js
+// chair.pos z +1.05): no spot outside is ever nearer to the mount than to the box, and it is
+// ahead of the axle. It comes out through the rear doors (behind the rear axle within TAKE_DIST of
+// the box) or the door beside it (the mount's side, within TAKE_DIST of the mount); the driver's
+// door stays "enter".
+function cabinTake(p, v, cd) {
+  const m = v && v.spec && v.spec.chair && v.spec.chair.pos;
+  if (!m || Math.abs(m[0]) >= v.spec.halfW || Math.abs(m[2]) >= v.spec.halfL) return false;   // a rack or a trunk: the rule above
+  const s = Math.sin(v.yaw), c = Math.cos(v.yaw), dx = p.pos.x - v.pos.x, dz = p.pos.z - v.pos.z;
+  const side = dx * c - dz * s;                // + the driver's side (vehicle-types.js: left, +X)
+  if (behindAxle(p, v) && boxDistance(v, p.pos.x, p.pos.z) <= TAKE_DIST) return true;
+  return Math.abs(m[0]) > 0.2 && Math.sign(side) === Math.sign(m[0]) && cd <= TAKE_DIST;
 }
 
 function behindAxle(p, v) {

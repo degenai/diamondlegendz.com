@@ -43,7 +43,7 @@ export function startPalm(p) {
 
 // Left button down: start the charge (updatePalm follows the hold).
 export function startCharge(p) {
-  if (p.chargeT >= 0 || p.palmT > 0 || p.lungeT > 0 || p.knockedT > 0 || p.foldT > 0 || p.vehicle || p.massaging) return false;
+  if (p.chargeT >= 0 || p.palmT > 0 || p.lungeT > 0 || p.knockedT > 0 || p.foldT > 0 || p.vehicle || p.massaging || p.counterArmed) return false;   // an armed Q counter (goon-counter.js) goes first
   p.chargeT = 0; p.chargeShout = false;
   p.yaw = Math.atan2(-Math.sin(p.camYaw), -Math.cos(p.camYaw));
   emit('palm', { phase: 'charge' });

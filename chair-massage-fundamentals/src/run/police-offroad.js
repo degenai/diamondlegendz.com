@@ -7,13 +7,20 @@
 // brakes for anyone in its path (goons, cops, peds: van-yield.js yieldStep with its own filter,
 // creeping through after 2 s). When he is back on the road (or out of range) it goes back to the
 // graph: police-units.js driveUnit resumes its street route. Roadblocks are parked: untouched.
-// Watcher: `police` { act: 'offroad' | 'onroad', unit }.
+// Hysteresis: it leaves the graph within RANGE and comes back only past RANGE_BACK (or when he is on
+// the road), and either wish has to hold SETTLE s before it switches. Stuck (a planter ring): no
+// STUCK_GAIN m closer in STUCK_MAX s and it goes back to the graph for BAN s.
+// Watcher: `police` { act: 'offroad' | 'onroad' | 'stuck', unit }.
 import { isRoad, nearestNav, entryNav, nextHop, navInfo, walkable } from '../entities/npc-nav.js';
 import { driveAt } from './driver.js';
 import { yieldStep } from './van-yield.js';
 import { emit } from '../events.js';
 
 const RANGE = 60;            // m: a player off the road this close pulls the unit off the graph
+const RANGE_BACK = 75;       // m: ...and it goes back to the graph only past this
+const SETTLE = 0.5;          // s a wish to switch must hold
+const STUCK_MAX = 8, STUCK_GAIN = 3;   // s without closing STUCK_GAIN m: back to the graph
+const BAN = 10;              // s after a stuck before it tries the plaza again
 const SPEED = 6;             // m/s across the plaza
 const REACH = 2.5;           // m: a waypoint this close is passed
 const SKIP = 4;              // look this many points ahead for a clear straight line
@@ -35,17 +42,27 @@ function clear(world, v, x, y, z) {
 export function offroadStep(ctx, u, tgt, dt) {
   const v = u.v, world = ctx.world;
   const d = Math.hypot(tgt.x - v.pos.x, tgt.z - v.pos.z);
-  const off = world.nav && d <= RANGE && !isRoad(tgt.x, tgt.z);
-  if (!off) {
-    if (u.off) { u.off = null; emit('police', { act: 'onroad', unit: u.type }); }
+  const road = isRoad(tgt.x, tgt.z);
+  const want = !!world.nav && !road && d <= (u.off ? RANGE_BACK : RANGE) && !(ctx.time < (u.offBan || 0));
+  u.offWish = want === !!u.off ? 0 : (u.offWish || 0) + dt;   // how long it has wanted to switch
+  if (u.offWish > 0 && u.offWish < SETTLE) { if (!u.off) return false; }   // not yet: carry on as it was
+  else if (!want) {
+    if (u.off) { u.off = null; u.offWish = 0; emit('police', { act: 'onroad', unit: u.type }); }
     return false;
   }
   const pts = navInfo(world).points;
   let O = u.off;
   if (!O) {
-    O = u.off = { goal: -1, wp: -1, regoal: 0 };
+    O = u.off = { goal: -1, wp: -1, regoal: 0, best: d, bestT: ctx.time };
+    u.offWish = 0;
     u.yieldTag = 'police';                   // van-yield.js logs `police` { act: 'yield' }
     emit('police', { act: 'offroad', unit: u.type, d: Math.round(d) });
+  }
+  if (d < O.best - STUCK_GAIN) { O.best = d; O.bestT = ctx.time; }
+  else if (ctx.time - O.bestT > STUCK_MAX) {  // boxed in: back to the street graph for a while
+    u.off = null; u.offWish = 0; u.offBan = ctx.time + BAN;
+    emit('police', { act: 'stuck', unit: u.type, d: Math.round(d) });
+    return false;
   }
   O.regoal -= dt;
   if (O.goal < 0 || O.regoal <= 0) {

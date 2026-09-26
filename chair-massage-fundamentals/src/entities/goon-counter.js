@@ -30,8 +30,11 @@ const isQ = (set) => !!(set && set.has('KeyQ'));
 // RUN entry (wiring.js): no cues, no remembered press.
 export function resetCounter(ctx) { ctx.counter = { pressAt: -1e9, used: true, held: false, cues: [], hold: null }; }
 
+// A left-click charge in progress means no counter: the charge's wind-up is the risk (palm.js), and
+// one move at a time keeps it to one HEALING PALM shout. The other way round, palm.js startCharge
+// does not start while a counter is armed (p.counterArmed).
 function canCounter(p) {
-  return !p.vehicle && !(p.knockedT > 0) && !p.massaging && !(p.lungeT > 0) && !(p.foldT > 0) && !(p.swingT >= 0);
+  return !p.vehicle && !(p.knockedT > 0) && !p.massaging && !(p.lungeT > 0) && !(p.foldT > 0) && !(p.swingT >= 0) && !(p.chargeT >= 0);
 }
 
 // The quick counter: face him, slip, drop him (the quick palm's hit).
@@ -111,9 +114,11 @@ export function counterInput(p, ctx, input) {
     }
     if (c.doneAt !== null && ctx.time - c.doneAt > FLASH) D.cues.splice(i, 1);
   }
-  if (!press || D.used || !canCounter(p)) return;   // a press this tick; an earlier one only counts through counterOpen's buffer
-  const open = D.cues.filter((c) => !c.done && c.struckAt === null && c.armedAt === null);
-  if (open.length) arm(ctx, open.reduce((a, b) => (b.end < a.end ? b : a)));   // the swing that lands first
+  if (press && !D.used && canCounter(p)) {   // a press this tick; an earlier one only counts through counterOpen's buffer
+    const open = D.cues.filter((c) => !c.done && c.struckAt === null && c.armedAt === null);
+    if (open.length) arm(ctx, open.reduce((a, b) => (b.end < a.end ? b : a)));   // the swing that lands first
+  }
+  p.counterArmed = !!D.hold || D.cues.some((c) => c.armedAt !== null && !c.done);
 }
 
 // The open calls, for the snapshot and the agent: [{ id, kind, left }] (s left in the wind-up).
