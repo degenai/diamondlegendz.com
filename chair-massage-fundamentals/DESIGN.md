@@ -268,6 +268,35 @@ as cosmetic feedback, and the car "relaxes": a suspension bounce and a small "si
 lands on a body never also strikes the car behind him. Car hits, the chair swing and the gun's level-3
 knockback still dent for real. Watcher: the `palm` event carries `vehicle: true` for a car hit.
 
+**The fight tilts toward Arkham** (ruled 2026-09-25 after Alex's run 2 on 25.7: 26 wind-ups from three
+goons in 30 s, one every 1.2 s, often two at once; he dodged 16 and still took seven hits. "The S as an
+evasion key doesn't really work great. We need maybe something like Q, more like Arkham. Let's start
+tilting towards an Arkham Asylum style gang fight approach."). Two things make Arkham work: the crowd
+takes turns, and a counter is an answer, not an escape.
+1. **The counter is Q.** When a goon winds up on the player on foot (bat, shove, grab), the cue shows a
+   Q keycap with the draining bar (the dodge's cue, re-keyed). Tap Q inside the window (the wind-up plus a
+   0.15 s buffer, widened to about 0.6 s): the player slips the swing and drops him with a palm strike,
+   the quick palm's outcome (down 3 s, relaxed rise, no treatment). Hold Q through the window: the
+   counter is charged, the player says HEALING PALM on the release and the goon is TREATED, the charged
+   palm's outcome, at the cost of standing still for it. Alex: "2 is an easier start": no new enemy
+   types, both outcomes already exist, only the trigger is new. S goes back to plain movement; the
+   backstep goes. Tab switches palm and gun (Q is no longer the gun toggle). Watcher: the `dodge` event
+   becomes `counter` { who, id, act: shown | tap | hold | miss | late, kind }.
+2. **The crowd takes turns.** An attack token: only one goon may wind up at a time; the others circle
+   at 3 to 4 m, face him, and jeer (their existing lines). A counter, a hit on the token holder, or his
+   cooldown passes the token to the nearest ready goon. From the second wave on there are two tokens.
+   Goon cars' crews and the grab window follow the same rule (the grab window's shoves come from the
+   token holder). Cops are not in the token system.
+3. **The chair comes out of a car at the back.** Standing at the rack or the trunk (within TAKE_DIST of
+   the loaded chair's mount, behind the rear axle), E is "take the chair"; the door zones stay "enter
+   vehicle"; the hint says which. (Bug found by Alex: the enter prompt won the tie beside a loaded cart,
+   so the only way to get the chair out was a crash.)
+4. **Cop cars drive the plaza and alleys too.** Police vehicles (and the parks cart) get an off-graph
+   nav on the plaza paths and alley segments: when the player is off the road graph within 60 m, a
+   driving unit leaves the graph and drives at him across the plaza (slow, 6 m/s, braking for people
+   as the van does), then returns to the graph when he does. The image: a parks cart chasing you between
+   the planters. Rangers still walk anywhere.
+
 **The chair swing** (Andy's suggestion, ruled 2026-09-24). Carrying the chair on foot, left click swings
 it instead of the palm (the palm cannot be charged or tapped while the chair is on his back; the hint
 line adds "Left click: swing the chair"). No charge: 0.15 s wind-up, 0.2 s arc, 0.15 s recover. The
