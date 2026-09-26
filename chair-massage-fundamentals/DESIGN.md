@@ -448,7 +448,7 @@ cop is aggression**: palm, gun, chair or car on a cop is +1 every time (`copHit`
 walks off, the meter still rises). A stolen vehicle is +1 (+0.5 each after), a carjack +1, +1 after
 60 s of continuous chaos (any wanted > 0 with hits in the last 10 s), 4 and 5 only from repeated
 vehicle carnage (3+ ped hits or 3+ vehicle wrecks). The once-per-run `goonHit` and the `vending`
-star are unchanged. Decays 1 star per 25 s while no cop has line of sight. Cops relax like goons
+star are unchanged. Decays 1 star per 25 s while no cop within 40 m has line of sight (ruled 2026-09-25; the compass names the watcher). Cops relax like goons
 and walk off pursuit for a while; wanted does not drop from that.
 **Rulings from the first pilot review** (docs/jev-review-2026-09-25.md, thirteen baseline runs; ruled by
 Alex 2026-09-25, late): (1) **The pivot's cart is free.** The cart the van leaves beside the chair is his
