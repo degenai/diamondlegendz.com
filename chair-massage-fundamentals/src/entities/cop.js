@@ -124,6 +124,6 @@ function onPalm(e, p, ctx) {
 function onVehicleHit(e, v, ctx) {
   e.knockCause = 'vehicle';
   e.knockedT = 3;
-  if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('copHit'); // +1, not carnage; a stolen car you bailed from is still yours (ped.js)
+  if ((v.driver === ctx.player || (!v.driver && (v.stolen || v.pivotCart))) && ctx.wanted) ctx.wanted.report('copHit'); // +1, not carnage; a stolen car you bailed from is still yours (ped.js)
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');
 }

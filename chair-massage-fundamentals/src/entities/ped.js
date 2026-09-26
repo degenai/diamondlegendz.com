@@ -146,7 +146,7 @@ function onVehicleHit(e, v, ctx) {
   e.knockCause = 'vehicle';
   e.knockedT = 3;
   if (e.state === 'kneel' || e.state === 'toChair') e.state = 'wander';
-  if (v.driver === ctx.player || (!v.driver && v.stolen)) {
+  if (v.driver === ctx.player || (!v.driver && (v.stolen || v.pivotCart))) {
     if (ctx.wanted) ctx.wanted.report('pedHurt');
   }
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');

@@ -109,7 +109,7 @@ export function runMenu(s, o) {
   if (s.counter && !p.busy) Object.assign(o, { counter: 'Tap Q: counter the goon winding up (he goes down 3 s).', counter_hold: 'Hold Q through his swing: a charged counter, HEALING PALM, he is treated (you stand still for it).' });
   if (p.it === 'massage') o.hold_E_massage = 'Hold E: give the kneeling client a mini-massage (5 s of hold, answer their calls).';
   if (p.it === 'setdown') o.set_chair_down = 'Press E: set the chair down here and open for a client (a mini-massage drops a star).';
-  if (p.it === 'load') o.load_chair = 'Press E: load the chair into the vehicle beside you.';
+  if (p.it === 'load') Object.assign(o, { load_chair: 'Tap E: load the chair into the vehicle beside you.', set_chair_down: 'Hold E through the fold (0.7 s): set the chair down here beside the car instead, and open for a client.' });
   if (p.it === 'pickup' || p.it === 'take') o.pick_up_chair = 'Press E: pick up the chair.';
   if (p.it === 'enter') o.enter_car = `Press E: get into the ${p.itt} ${p.itv} beside you${p.ithp !== null && p.ithp <= 0 ? ' (WRECKED: it will not drive)' : ''}${p.chair === 'vehicle' && p.itv !== p.cin ? ` (NOT the ${p.cin} holding the chair)` : ''}.`;
   if (p.it === 'carjack') o.carjack = 'Press E: pull the driver out and take the car (+1 star).';

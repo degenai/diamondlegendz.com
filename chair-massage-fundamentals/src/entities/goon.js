@@ -294,6 +294,6 @@ function onVehicleHit(e, v, ctx) {
   e.knockCause = e.state === 'loose' || e.state === 'sit' ? 'palm' : 'vehicle';
   e.knockedT = 3; e.stunT = 0;
   if (e.state === 'windup') e.state = 'chase';
-  if ((v.driver === ctx.player || (!v.driver && v.stolen)) && ctx.wanted) ctx.wanted.report('goonHit'); // a stolen car you bailed from is still yours (ped.js)
+  if ((v.driver === ctx.player || (!v.driver && (v.stolen || v.pivotCart))) && ctx.wanted) ctx.wanted.report('goonHit'); // a stolen car you bailed from is still yours (ped.js)
   emitChaos(ctx, e.pos.x, e.pos.z, 'vehicleHit');
 }

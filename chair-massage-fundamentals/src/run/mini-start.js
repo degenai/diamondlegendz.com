@@ -3,18 +3,46 @@
 // pay, interruptions) is minimassage.js. Split out (refactor/split) so interact.js no longer
 // imports minimassage.js, which reaches the goons.
 import { findChair, chairState } from '../entities/chair.js';
-import { floorHeightAt } from '../physics.js';
+import { floorHeightAt, overlapsFootprint } from '../physics.js';
+import { boxDistance } from '../entities/vehicle-collide.js';
 import { THERAPIST } from '../massage/stage.js';
 import { sfx } from '../juice.js';
 import { emit } from '../events.js';
 import { createCaller, nextGap, MINI_CALLS } from '../massage/meter.js';
 
+const SET_AT = 1.1;          // m from him
+const CHAIR_R = 0.45;        // the chair's footprint radius for the clearance check
+
+// Room for the chair at (x, z): not inside a vehicle's footprint or a static collider standing
+// above the floor it would sit on (the same test as a door spot, interact.js spotFree).
+function roomAt(ctx, x, z, y) {
+  for (const c of ctx.world.colliders) {
+    if (c.camOnly || c.maxY <= y + 0.35) continue;
+    if (overlapsFootprint({ x, z }, CHAIR_R, c)) return false;
+  }
+  for (const v of ctx.world.vehicles || []) {
+    if (!v.removed && Math.abs(v.pos.y - y) < 1.5 && boxDistance(v, x, z) < CHAIR_R) return false;
+  }
+  return true;
+}
+
+// Set it down SET_AT in front of him; if that spot is inside a car or a wall, to his left, then
+// his right, then behind him (beside a car, ruled 2026-09-25, the front is often the car). No
+// room anywhere: refused, a floater says so, the chair stays on his back.
 export function setChairDown(p, ctx) {
   const c = findChair(ctx);
   if (!c) return false;
   const fx = Math.sin(p.yaw), fz = Math.cos(p.yaw);
-  const x = p.pos.x + fx * 1.1, z = p.pos.z + fz * 1.1;
-  const y = floorHeightAt(x, z, ctx.world.colliders, p.pos.y + 0.3);
+  let x = 0, z = 0, y = 0, ok = false;
+  for (const [dx, dz] of [[fx, fz], [fz, -fx], [-fz, fx], [-fx, -fz]]) {     // front, left, right, behind
+    x = p.pos.x + dx * SET_AT; z = p.pos.z + dz * SET_AT;
+    y = floorHeightAt(x, z, ctx.world.colliders, p.pos.y + 0.3);
+    if (Math.abs(y - p.pos.y) < 0.6 && roomAt(ctx, x, z, y)) { ok = true; break; }
+  }
+  if (!ok) {
+    if (ctx.hud && ctx.hud.floater) ctx.hud.floater('no room for the chair here', p.pos.x, p.pos.y + 2.1, p.pos.z, 'speech dim');
+    return false;
+  }
   ctx.scene.add(c);
   c.position.set(x, y, z);
   c.rotation.set(0, p.yaw + Math.PI, 0);          // face cradle (chair -Z) away from the player

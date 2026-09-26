@@ -93,7 +93,9 @@ export function createAgent(ctx, hooks) {
       case 'answer_left': tap('KeyA'); return Math.max(2, windowLeft(c));
       case 'answer_right': tap('KeyD'); return Math.max(2, windowLeft(c));
       case 'match_modality': return tap('Space');
-      case 'next_client': case 'interact_E': case 'exit_vehicle': case 'set_chair_down':
+      // Beside a car E is "load"; a hold through the 0.5 s fold sets the chair down instead (ruled 2026-09-25).
+      case 'set_chair_down': return s.p && s.p.it === 'load' ? hold(['KeyE'], 40) : tap('KeyE');
+      case 'next_client': case 'interact_E': case 'exit_vehicle':
       case 'enter_car': case 'carjack': case 'repair_vehicle': return tap('KeyE');
       case 'load_chair': case 'pick_up_chair': tap('KeyE'); return 32;   // the fold: 0.5 s standing still
       case 'track_ring_on': A.track = true; return 1;
