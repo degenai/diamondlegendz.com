@@ -35,12 +35,12 @@ Use this skill when the user:
 
 ## Wiki Location
 
-**Alex's wiki lives at `C:\Users\alexa\.claude\wiki\`** — also a private git repo at `degenai/alexpedia`. This is the canonical location. The `WIKI_PATH` env var and `~/wiki` default do NOT apply here.
+**Alex's wiki lives at `C:\Users\<you>\.claude\wiki\`** — also a private git repo at `degenai/alexpedia`. This is the canonical location. The `WIKI_PATH` env var and `~/wiki` default do NOT apply here.
 
-On Windows: `C:\Users\alexa\.claude\wiki\`
+On Windows: `C:\Users\<you>\.claude\wiki\`
 Terminal path: `/c/Users/<you>/.claude/wiki/`
 
-`C:\Users\alexa\Desktop\Personal Wiki` is just a Claude Code workspace directory, NOT the wiki.
+`C:\Users\<you>\Desktop\Personal Wiki` is just a Claude Code workspace directory, NOT the wiki.
 
 The wiki is a directory of markdown files — open it in Obsidian, VS Code, or any editor. No database, no special tooling required.
 
@@ -76,7 +76,7 @@ Alex's wiki intentionally diverges from the Karpathy 3-layer pattern. The sectio
 - **AI chat export ingest** — ChatGPT/Claude exports are **layer-one reference archives, not wiki nodes**. Preserve raw ZIP/JSON untouched with hashes and manifests, normalize transcripts separately, then digest only durable claims into existing nodes. See `references/ai-chat-export-ingest.md`.
 - **Artifact recovery from wiki context** — when Alex remembers a wiki concept but wants the newest HTML/PDF/image/deck/sheet, use the node as the semantic key, extract unique fingerprints, locate and version the external render, verify it locally, check deployment separately, and attach a verified copy if the public route is dead. See `references/artifact-recovery-from-wiki.md`.
 
-**Git:** `git add . && git commit -m "message" && git push` from `C:\Users\alexa\.claude\wiki\`
+**Git:** `git add . && git commit -m "message" && git push` from `C:\Users\<you>\.claude\wiki\`
 
 ## Architecture: Three Layers
 
@@ -105,7 +105,7 @@ cross-referenced by the agent.
 
 When the user has an existing wiki, **always orient yourself before doing anything**:
 
-**For Alex's wiki** (`C:\Users\alexa\.claude\wiki\`):
+**For Alex's wiki** (`C:\Users\<you>\.claude\wiki\`):
 ① **Read `~/.claude/CLAUDE.md`** — conventions, key pages, always-on rules
 ② **Read `wiki/_meta/log.md`** — recent activity (last 30-50 lines)
 ③ **Read `wiki/_meta/tags.md`** — tag schema
@@ -471,7 +471,7 @@ When content is fully superseded or the domain scope changes:
 
 ### Obsidian Integration
 
-**Alex's wiki:** Obsidian already sits on top of `C:\Users\alexa\.claude\wiki\` as a visual IDE. The vault is the wiki directory. Obsidian-specific conventions: `[[wikilinks]]` render as clickable links, Graph View visualizes the network, YAML frontmatter powers Dataview queries, `nodes/assets/` holds images referenced via `![[image.png]]`.
+**Alex's wiki:** Obsidian already sits on top of `C:\Users\<you>\.claude\wiki\` as a visual IDE. The vault is the wiki directory. Obsidian-specific conventions: `[[wikilinks]]` render as clickable links, Graph View visualizes the network, YAML frontmatter powers Dataview queries, `nodes/assets/` holds images referenced via `![[image.png]]`.
 
 **For a Karpathy-pattern wiki:**
 - `[[wikilinks]]` render as clickable links
@@ -546,7 +546,7 @@ vault in Obsidian on your laptop/phone — changes appear within seconds.
 ## Pitfalls
 
 **Alex's wiki specific:**
-- **Wiki is at `C:\Users\alexa\.claude\wiki\`** — NOT `~/wiki`. `Desktop\Personal Wiki` is a workspace, not the wiki.
+- **Wiki is at `C:\Users\<you>\.claude\wiki\`** — NOT `~/wiki`. `Desktop\Personal Wiki` is a workspace, not the wiki.
 - **No index.md** — retired. Do NOT create one. Log + filesystem are the catalog.
 - **No SCHEMA.md** — conventions are in `~/.claude/CLAUDE.md` and `_meta/tags.md`.
 - **Log format is `ACTION PageName — note`** — diagnostic, not narrative. Not `## [date] action | subject`.

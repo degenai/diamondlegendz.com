@@ -62,7 +62,7 @@ cd /c/Users/<you>/.claude/wiki/scripts && python -m lint.suite
 
 4. Fix new obvious wiki-link issues introduced in pointer nodes. Do not turn the whole-wiki backlog into the task unless Alex asks.
 5. Append a concise `_meta/log.md` entry listing created/updated working folder and node pointers.
-6. Commit and push from `C:\Users\alexa\.claude\wiki` when AlexPedia is the intended durable home.
+6. Commit and push from `C:\Users\<you>\.claude\wiki` when AlexPedia is the intended durable home.
 
 ## Future website review areas
 

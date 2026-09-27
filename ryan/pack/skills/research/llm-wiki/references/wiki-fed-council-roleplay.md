@@ -5,9 +5,9 @@ Use when Alex asks for a council/RPC-style dialogue that should be grounded in t
 ## Shape
 
 1. Orient to Alex's wiki first:
-   - `C:\Users\alexa\.claude\CLAUDE.md`
-   - `C:\Users\alexa\.claude\wiki\_meta\log.md` recent tail only
-   - `C:\Users\alexa\.claude\wiki\_meta\tags.md`
+   - `C:\Users\<you>\.claude\CLAUDE.md`
+   - `C:\Users\<you>\.claude\wiki\_meta\log.md` recent tail only
+   - `C:\Users\<you>\.claude\wiki\_meta\tags.md`
 2. Read a small set of high-signal nodes rather than trying to exhaust the graph.
    - Default anchors: `Alex.md`, `ai-philosophy.md`, `meta.md`, `formed-by-doing.md`, `the-long-game.md`.
    - Add task-specific nodes: e.g. `robinhood-lab.md`, `peoples-elbow.md`, `Elbow Room.md`, `Convention of Tension Prevention.md`.
