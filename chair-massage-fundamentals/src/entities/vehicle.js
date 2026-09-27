@@ -5,7 +5,8 @@
 import * as THREE from '../../vendor/three.module.js';
 import { VEHICLE_TYPES, SURFACES } from './vehicle-types.js';
 import { surfaceAt } from '../world/surface.js';
-import { burst } from '../juice.js';
+import { burst, sfx } from '../juice.js';
+import { stepGear, stepRpm, torque, RPM_IDLE } from './gearbox.js';
 import { collideStatic, collideVehicles, collidePlayer, collideNpc, settleHeight } from './vehicle-collide.js';
 import { updateFx } from './vehicle-fx.js';
 import { syncDriverRig } from './seated.js';
@@ -24,6 +25,8 @@ const DUST_EVERY = 0.12;  // s between grass dust puffs behind the rear axle
 const DUST_SPEED = 4;     // m/s
 // Grass dust puffs so far (CMF.debug.dustCount, the surfaces proof).
 export const dustStats = { count: 0 };
+// Gear shifts of driven vehicles so far, each one a 'shift' sfx (CMF.debug.shiftCount, the gears proof).
+export const shiftStats = { count: 0 };
 
 function wrapAngle(a) {
   while (a > Math.PI) a -= Math.PI * 2;
@@ -67,6 +70,9 @@ export function createVehicle(type, mesh, pos, yaw, opts = {}) {
     yaw,
     radius: spec.circleR,
     speed: 0,           // signed forward speed, m/s
+    gear: 1,            // 1-based forward gear (entities/gearbox.js)
+    shiftT: 0,          // s left of an upshift's no-drive dip
+    rpm: RPM_IDLE,      // the engine note, position in the gear's band (audio-wire.js)
     steer: 0,           // front wheel angle, rad (+ = left)
     yawRate: 0,
     hp: 100,
@@ -118,13 +124,20 @@ export function updateVehicle(v, dt, ctx) {
   let vf = v.vel.x * s + v.vel.z * c;
   let vl = -v.vel.x * c + v.vel.z * s;
   const vf0 = vf;
+  // The automatic gearbox: one shift at most per tick, the dip on an upshift, a thunk on either.
+  const shifted = stepGear(v, vf, dt, driven && !dead, v.surface);
+  if (shifted && driven) {
+    shiftStats.count++;
+    sfx(ctx, 'shift', v.pos.x, v.pos.z, v.type === 'cart' ? 0.45 : 1);
+  }
 
   if (!driven) {
     vf = approach(vf, 0, PARKED_BRAKE * dt);
   } else {
     if (throttle > 0) {
       if (vf < -0.3) vf = approach(vf, 0, T.brake * dt * throttle);
-      else if (!dead) vf += T.accel * G.accel * throttle * dt * Math.max(0, 1 - Math.pow(Math.max(0, vf) / top, 3));
+      else if (!dead && v.shiftT > 0) vf = approach(vf, 0, COAST * dt);  // the shift dip: no drive, it coasts
+      else if (!dead) vf += T.accel * G.accel * throttle * dt * torque(T, v.gear, vf) * Math.max(0, 1 - Math.pow(Math.max(0, vf) / top, 3));
     } else if (throttle < 0) {
       if (vf > 0.3) vf = approach(vf, 0, T.brake * dt * -throttle);
       else if (!dead) vf = Math.max(-T.maxReverse, vf + T.accel * 0.6 * throttle * dt);
@@ -136,6 +149,7 @@ export function updateVehicle(v, dt, ctx) {
     if (vf > top) vf = approach(vf, top, OVER_TOP * dt);   // onto grass at speed: felt within a second
     if (dead) vf = approach(vf, 0, COAST * dt); // a wreck coasts down whatever the pedal says
   }
+  stepRpm(v, vf, dt, driven ? throttle : 0);
 
   // Steering narrows with speed: tight at a crawl, wide at the top end.
   const speedK = 1 / (1 + Math.abs(vf) / T.steerFall);

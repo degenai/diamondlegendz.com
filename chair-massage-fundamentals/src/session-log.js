@@ -191,7 +191,7 @@ export function buildSnap() {
     const vel = v ? v.vel : p.vel;
     s.p = { x: r1(at.x), z: r1(at.z), y: r1(at.y), yaw: deg(v ? v.yaw : p.yaw), cam: deg(h), pitch: Math.round((p.camPitch || 0) * 180 / Math.PI),
       spd: r1(Math.hypot(vel.x, vel.z)), hp: Math.round(p.hp), sta: p.staminaMax ? r2(p.stamina / p.staminaMax) : 1,
-      veh: v ? v.type : null, vhp: v ? Math.round(v.hp ?? 100) : null, surf: v ? v.surface || 'asphalt' : null, kn: r1(Math.max(0, p.knockedT || 0)), chg: p.chargeT >= 0 ? r2(p.chargeT) : 0,
+      veh: v ? v.type : null, vhp: v ? Math.round(v.hp ?? 100) : null, surf: v ? v.surface || 'asphalt' : null, gear: v ? v.gear || 1 : null, kn: r1(Math.max(0, p.knockedT || 0)), chg: p.chargeT >= 0 ? r2(p.chargeT) : 0,
       chair: cs.where, dur: Math.round(cs.durability), bat: ctx.perks && ctx.perks.gun >= 0 ? Math.round(p.battery ?? 100) : null,
       gun: !!p.gunEquipped, lock: !!(inp && inp.locked), mass: !!p.massaging,
       ...itOf(p), busy: p.swingT >= 0 ? 'swing' : p.foldT > 0 ? 'fold' : p.chargeT >= 0 ? 'charge' : p.lungeT > 0 ? 'lunge' : null, cin: cs.where === 'vehicle' && cs.vehicle ? `v${cs.vehicle.id}` : null, vid: v ? `v${v.id}` : null };

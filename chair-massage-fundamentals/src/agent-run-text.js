@@ -2,6 +2,7 @@
 // milestone 3): the snapshot (session-log.js buildSnap) as a short situation, the threats first,
 // every bearing also as a word, and the action menu valid right now. agent-run.js and agent.js do
 // the actions; this file only says them. The massage course's words are agent-text.js.
+import { ordinal } from './entities/gearbox.js';
 
 // Bearing in degrees (+ = right) to a word.
 export function side(b) {
@@ -64,7 +65,7 @@ function miniWords(M, p) {
 export function runText(s) {
   const p = s.p, w = s.w, t = s.tgt || {}, L = [];
   if (!p) return [`${s.st}.`];
-  const where = p.veh ? `Driving the ${p.veh}${p.surf === 'grass' || p.surf === 'pavers' ? ` on ${p.surf}` : ''} (${p.vhp} hp${p.vhp <= 0 ? ': WRECKED, it only coasts; get out' : ''}), ${Math.round(p.spd)} m/s` : p.mass ? 'Giving a mini-massage (holding E)' : `On foot, ${p.spd > 0.5 ? `moving ${Math.round(p.spd)} m/s` : 'standing'}`;
+  const where = p.veh ? `Driving the ${p.veh}${p.surf === 'grass' || p.surf === 'pavers' ? ` on ${p.surf}` : ''} (${p.vhp} hp${p.vhp <= 0 ? ': WRECKED, it only coasts; get out' : ''}), ${Math.round(p.spd)} m/s${p.gear ? ` in ${ordinal(p.gear)}` : ''}` : p.mass ? 'Giving a mini-massage (holding E)' : `On foot, ${p.spd > 0.5 ? `moving ${Math.round(p.spd)} m/s` : 'standing'}`;
   L.push(`RUN. ${where}. HP ${p.hp}, stamina ${Math.round(p.sta * 100)}%${p.kn > 0 ? `, KNOCKED DOWN for ${p.kn} s` : ''}${p.chg ? ', charging a palm' : p.busy ? `, mid-${p.busy} (no counter until it ends)` : ''}. Cash $${s.cash}.`);
   const alarms = [];
   if (w.arrestT > 0) alarms.push(p.busy === 'fold' ? `A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): the touch is paused while you finish this chair action, then move` : `A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): move now`);

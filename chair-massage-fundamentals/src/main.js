@@ -27,7 +27,7 @@ import { initAudio, audioFrame, audioInternals } from './audio-wire.js';
 import { initTitle } from './title.js';
 import { initEvents, setSink, setWhy, onEvent } from './events.js';
 import { surfaceAt } from './world/surface.js';
-import { dustStats } from './entities/vehicle.js';
+import { dustStats, shiftStats } from './entities/vehicle.js';
 import { initSession, recordEvent, recordInput, sessionTick, whyOf } from './session-log.js';
 import { initJuice, juiceTick, juiceCamera, preTick, frozen, tickFrozen } from './juice.js';
 import { wireStates, END } from './wiring.js';
@@ -188,7 +188,7 @@ function boot() {
     bubbles: activeBubbles,
     slowmoLog,
     debug: { palm: () => startPalm(player), charge: () => startCharge(player), finishClient: massage.debugComplete,
-      surfaceAt: (x, z) => surfaceAt(world, x, z), get dustCount() { return dustStats.count; } },
+      surfaceAt: (x, z) => surfaceAt(world, x, z), get dustCount() { return dustStats.count; }, get shiftCount() { return shiftStats.count; } },
   };
 
   // One stepped tick (agent.js): matrices settled first, so a projection in the tick (the ring, the

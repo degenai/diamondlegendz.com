@@ -159,7 +159,7 @@ export function audioFrame(ctx, dt) {
     if (v.driver && v.hp > 0) {
       const id = v.id;
       _on.add(id);
-      audio.sfx('engine', { id, type: v.type, rpm: 0.1 + 0.9 * Math.min(1, Math.abs(v.speed) / v.spec.maxSpeed),
+      audio.sfx('engine', { id, type: v.type, rpm: v.rpm ?? 0.1 + 0.9 * Math.min(1, Math.abs(v.speed) / v.spec.maxSpeed), // climbs through each gear (gearbox.js)
         load: v.throttle ? 0.85 : 0.25, surface: v.surface, x: v.pos.x, z: v.pos.z });
     }
     if (v.lightbar && v.lights && v.hp > 0) { // a wreck's siren dies with it

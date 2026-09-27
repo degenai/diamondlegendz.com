@@ -13,6 +13,7 @@ import { takeCivilian } from '../run/traffic.js';
 import { makeRng } from '../rng.js';
 import { emit } from '../events.js';
 import { vehicleName } from './vehicle-types.js';
+import { ordinal } from './gearbox.js';
 import { sfx } from '../juice.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
@@ -285,7 +286,7 @@ export function runHudText(p, ctx) {
   else if (cs.where === 'vehicle' && cs.vehicle && cs.durability <= 0) chair += ' (bent)';
   return {
     hint,
-    vehicle: v ? `${v.spec.label.toUpperCase()}  ${Math.round(Math.abs(v.speed) * 3.6)} km/h  hp ${Math.ceil(v.hp)}` : '',
+    vehicle: v ? `${v.spec.label.toUpperCase()}  ${Math.round(Math.abs(v.speed) * 3.6)} km/h  ${ordinal(v.gear || 1)}  hp ${Math.ceil(v.hp)}` : '',
     chair,
   };
 }
