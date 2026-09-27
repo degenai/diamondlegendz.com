@@ -506,7 +506,7 @@ gets `vname`.
 **Stage 2, gears.** Automatic, four gears, audible shifts, no new keys. Acceleration becomes a torque
 curve per gear: a hard pull off the line in first, a dip at each upshift (0.25 s of no drive), the engine
 note climbing through each gear and dropping at the shift. Shift points by speed per vehicle type: the
-sedan and cop car four gears, the van three, the cart two (a golf-cart whine), the SWAT van three. Top
+sedan four gears, the cop car five (Alex: the cruiser gets one more), the van three, the cart two (a golf-cart whine), the SWAT van three. The gear shows on the status line beside the speed (1st..5th) and on the watcher's snapshot as `gear`. Top
 speed is reached only in top gear on asphalt; grass keeps you a gear down. Downshifts on braking. The
 handbrake launch is not in (ruled: plain automatic). Watcher: `gear` on the snapshot.
 
