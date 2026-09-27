@@ -1,0 +1,4 @@
+node_modules/
+userData/
+*.part
+rom-loader-v0.zip.tmp

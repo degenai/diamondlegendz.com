@@ -1,0 +1,16 @@
+{
+  "name": "rom-loader",
+  "version": "0.1.0",
+  "description": "A Steam-style library for ROMs on an external drive: install (copy), uninstall (delete the local copy), play with your emulator.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/*.test.js\"",
+    "screenshots": "electron tools/screenshots.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^44.4.5"
+  }
+}
