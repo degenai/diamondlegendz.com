@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; style-src 'self'; script-src 'self'">
+  <title>ROM Loader</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">ROM Loader</div>
+    <input id="search" type="search" placeholder="Search your library" autocomplete="off">
+    <select id="filter-system" title="System"><option value="">All systems</option></select>
+    <select id="filter-state" title="Where it is">
+      <option value="">Anywhere</option>
+      <option value="local">On the laptop</option>
+      <option value="drive">Drive only</option>
+      <option value="both">Both</option>
+      <option value="unavailable">Unavailable</option>
+    </select>
+    <select id="sort" title="Sort">
+      <option value="title">Title</option>
+      <option value="size">Size</option>
+      <option value="played">Last played</option>
+    </select>
+    <button id="btn-rescan" class="btn">Rescan</button>
+    <button id="btn-settings" class="btn ghost">Settings</button>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <div class="statusbar">
+    <span id="count"></span>
+    <span id="space"></span>
+  </div>
+
+  <main id="grid" class="grid" aria-live="polite"></main>
+  <div id="empty" class="empty" hidden></div>
+
+  <aside id="panel" class="panel" hidden>
+    <button id="panel-close" class="close" title="Close">&times;</button>
+    <div class="panel-art" id="panel-art"></div>
+    <h2 id="panel-title"></h2>
+    <div class="panel-tags" id="panel-tags"></div>
+    <dl class="facts">
+      <dt>System</dt><dd id="panel-system"></dd>
+      <dt>Size</dt><dd id="panel-size"></dd>
+      <dt>Where</dt><dd id="panel-state"></dd>
+      <dt>Last played</dt><dd id="panel-played"></dd>
+    </dl>
+    <div class="actions">
+      <button id="act-play" class="btn primary">Play</button>
+      <button id="act-install" class="btn">Install</button>
+      <button id="act-uninstall" class="btn danger">Uninstall</button>
+      <button id="act-folder" class="btn ghost">Open folder</button>
+    </div>
+    <div id="progress" class="progress" hidden>
+      <div class="bar"><div id="progress-fill" class="fill"></div></div>
+      <div id="progress-text" class="progress-text"></div>
+    </div>
+    <div id="panel-error" class="error" hidden></div>
+    <details class="files">
+      <summary>Files (<span id="panel-file-count"></span>)</summary>
+      <ul id="panel-files"></ul>
+    </details>
+  </aside>
+
+  <div id="settings" class="modal" hidden>
+    <div class="modal-body">
+      <h2>Settings</h2>
+      <section>
+        <h3>Folders</h3>
+        <div class="row">
+          <label>External drive (where the games live)</label>
+          <div class="pick"><input id="set-drive" type="text" spellcheck="false"><button class="btn" data-pick="set-drive">Browse</button></div>
+          <div class="hint" id="free-drive"></div>
+        </div>
+        <div class="row">
+          <label>Laptop folder (installed games go here)</label>
+          <div class="pick"><input id="set-local" type="text" spellcheck="false"><button class="btn" data-pick="set-local">Browse</button></div>
+          <div class="hint" id="free-local"></div>
+        </div>
+        <label class="check"><input id="set-play-drive" type="checkbox"> Allow playing straight from the drive (no install)</label>
+        <label class="check"><input id="set-recycle" type="checkbox"> Uninstall sends the laptop copy to the Recycle Bin (space frees when you empty it)</label>
+      </section>
+      <section>
+        <h3>Emulators</h3>
+        <p class="hint">One per system. The arguments use <code>{rom}</code> for the game file. Leave a system blank if you don't play it.</p>
+        <div id="emu-list"></div>
+      </section>
+      <div class="modal-actions">
+        <span id="settings-msg" class="hint"></span>
+        <button id="settings-cancel" class="btn ghost">Cancel</button>
+        <button id="settings-save" class="btn primary">Save and rescan</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="util.js"></script>
+  <script src="panel.js"></script>
+  <script src="settings.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

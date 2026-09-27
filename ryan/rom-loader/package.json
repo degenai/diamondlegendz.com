@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test \"test/*.test.js\"",
-    "screenshots": "electron tools/screenshots.js"
+    "screenshots": "node tools/screenshots.js"
   },
   "license": "MIT",
   "devDependencies": {
