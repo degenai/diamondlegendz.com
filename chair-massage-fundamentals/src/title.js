@@ -17,8 +17,8 @@ export function initTitle() {
   // Reset the save: runs, unlocks, and the first-pivot flag go back to a fresh course.
   const reset = document.getElementById('reset-progress');
   if (reset) reset.addEventListener('click', () => {
-    if (!window.confirm('Reset all progress? Runs, unlocks and the first-time course come back fresh.')) return;
-    try { window.localStorage.removeItem('cmf.meta.v1'); } catch (_) { /* private mode */ }
+    if (!window.confirm('Reset all progress? Runs, unlocks, the first-time course and the run log come back fresh.')) return;
+    try { window.localStorage.removeItem('cmf.meta.v1'); window.localStorage.removeItem('cmf.events.v1'); } catch (_) { /* private mode */ }   // the watcher's ring goes too: a reset is a clean slate
     window.location.reload();
   });
   return phone;

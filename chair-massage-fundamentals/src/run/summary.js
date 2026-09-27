@@ -91,7 +91,7 @@ export function showSummary(ctx, root, onReturn) {
     u.classList.add('cert-none');
     el('div', 'cert-unlock-name', ut, reason === 'left' ? 'No unlock. You left the chair.' : failed ? meta.NO_CONSOLATION : 'Nothing left to unlock.');
   }
-  if (failed && meta.has(ctx.meta, 'getwellcard')) {
+  if (failed && meta.has(ctx.meta, 'getwellcard') && ctx.meta.lastUnlock !== 'getwellcard') {   // not on the run that grants it (client-lines.js does the same)
     const gw = el('div', 'cert-getwell', c, 'Get well soon');
     Object.assign(gw.style, { display: 'inline-block', margin: '2px 0 6px', padding: '2px 8px', border: '2px solid #3d5a73',
       color: '#3d5a73', font: 'bold 12px var(--cm-serif)', letterSpacing: '.08em', textTransform: 'uppercase', transform: 'rotate(-4deg)', opacity: '.8' });
