@@ -223,7 +223,10 @@ const PAUSE_MAX = 1.0;     // s of fold pause per arrest episode
 
 function arrest(P, dt, ctx) {
   const p = ctx.player;
-  if (p.vehicle) { P.arrestT = 0; P.pauseT = 0; return; }
+  // In a car the meter decays at the normal rate instead of resetting (nitpick 2026-09-27: an instant
+  // E in, E out beside any car zeroed it and gave free immunity); the pause budget stays until the
+  // episode ends on its own.
+  if (p.vehicle) { P.arrestT = Math.max(0, (P.arrestT || 0) - dt); if (!(P.arrestT > 0)) P.pauseT = 0; return; }
   let touch = false, near = false;
   for (const c of ctx.npcs) {
     if (c.kind !== 'cop' || !copHostile(c)) continue;
