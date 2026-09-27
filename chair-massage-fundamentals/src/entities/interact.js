@@ -12,6 +12,7 @@ import { nearestNav } from './npc-nav.js';
 import { takeCivilian } from '../run/traffic.js';
 import { makeRng } from '../rng.js';
 import { emit } from '../events.js';
+import { vehicleName } from './vehicle-types.js';
 import { sfx } from '../juice.js';
 
 export const ENTER_DIST = 2.5;   // metres from the vehicle's footprint box
@@ -164,7 +165,7 @@ export function enterVehicle(p, v, ctx, how = 'enter') {
   // The pivot's cart (v.pivotCart, cars.js) is his by story (ruled 2026-09-25): taking it, the
   // first time or again after leaving it, is never theft. Every other parked car is.
   const own = !!v.pivotCart && how !== 'carjack';
-  emit('vehicle', { act: how, type: v.spec.label, stolen: !own && (how === 'carjack' || !!v.parked || !!v.stolen), ...(own ? { own: true } : {}) });
+  emit('vehicle', { act: how, type: v.spec.label, name: vehicleName(v), stolen: !own && (how === 'carjack' || !!v.parked || !!v.stolen), ...(own ? { own: true } : {}) });
   if (v.parked && !own) {              // stealing: wanted +1 the first time, +0.5 after
     v.stolen = true;
     if (ctx.wanted) ctx.wanted.report('stealVehicle');

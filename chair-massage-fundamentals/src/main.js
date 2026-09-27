@@ -25,7 +25,7 @@ import { tickSlowmo, slowmoLog, NEUTRAL } from './run/slowmo.js';
 import { trackStats } from './run/summary.js';
 import { initAudio, audioFrame, audioInternals } from './audio-wire.js';
 import { initTitle } from './title.js';
-import { initEvents, setSink, setWhy } from './events.js';
+import { initEvents, setSink, setWhy, onEvent } from './events.js';
 import { surfaceAt } from './world/surface.js';
 import { dustStats } from './entities/vehicle.js';
 import { initSession, recordEvent, recordInput, sessionTick, whyOf } from './session-log.js';
@@ -113,6 +113,8 @@ function boot() {
   ctx.perks = meta.perks(ctx.meta);
   wearPerks(player, ctx.perks);     // the loaner scrubs from the first spawn
   initEvents(ctx);                  // the run watcher's event bus (watch.html)
+  // The vehicle name card on every entry (enter, carjack, the pivot cart): hud-run.js.
+  onEvent((type, d) => { if (type === 'vehicle' && (d.act === 'enter' || d.act === 'carjack')) hud.showVehicleName(d.name, ctx.time); });
   const session = initSession(ctx, { massageState: massage.debugState, pivotState: pivot.pivotState });
   setSink(recordEvent); setWhy(whyOf); // Jev milestone 0: every event into the session log, state.why
   initAudio(ctx, hudRoot);          // before the state wiring: its MASSAGE hook hushes the voice first
@@ -139,6 +141,7 @@ function boot() {
     hud.setBattery(ctx.perks.gun >= 0 ? player.battery ?? 100 : null);
     const t = runHudText(player, ctx);
     hud.setVehicleLine(t.vehicle);
+    hud.updateVehicleName(ctx.time);
     hud.setChairStrip(t.chair);
     const escLine = checkEscape(ctx);
     hud.setHeatLine(escLine, leaveHold(ctx));

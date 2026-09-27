@@ -74,7 +74,7 @@ onEnter(STATES.RUN, (prev) => {
 });
 onExit(STATES.RUN, () => {
   input.releaseLock(); hud.setHint(''); hud.setRunTitle(false); ctx.counter = null;
-  hud.setVehicleLine(''); hud.setChairStrip(''); hud.setMini(null); hud.setHeatLine('');
+  hud.setVehicleLine(''); hud.setChairStrip(''); hud.setMini(null); hud.setHeatLine(''); hud.hideVehicleName();
 });
 // Run end: slow motion and a stamp (run/slowmo.js), then the certificate (run/summary.js).
 for (const s of END) {

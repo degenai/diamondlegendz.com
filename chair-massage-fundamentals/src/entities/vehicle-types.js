@@ -7,6 +7,14 @@
 // Serenity livery: the franchise van's black (world/cars.js paints the van with the same value), also
 // the goon cars' sedans (run/goon-car.js): recolourBody swaps the asset's Paint for it.
 export const SERENITY_BLACK = 0x111214;
+// `name` is the model name on the GTA-style card shown on entry (hud-run.js .rh-vehname); `label`
+// stays the plain word the events, the status line and the tests read. Rename models here only.
+export const FRANCHISE_NAME = 'SERENITY VAN';
+export function vehicleName(v) {
+  if (!v) return '';
+  if (v.franchise) return FRANCHISE_NAME;
+  return (v.spec && v.spec.name) || (VEHICLE_TYPES[v.type] && VEHICLE_TYPES[v.type].name) || '';
+}
 // Surface multipliers (world/surface.js; DESIGN.md "Driving, three stages", stage 1): accel scales
 // the drive, top the top speed, grip the lateral bleed (handbrake or not). Reverse and brakes as is.
 export const SURFACES = {
@@ -16,7 +24,7 @@ export const SURFACES = {
 };
 export const VEHICLE_TYPES = {
   sedan: {
-    label: 'sedan', asset: 'assets/sedan.json',
+    label: 'sedan', name: 'COMMUTER', asset: 'assets/sedan.json',
     halfW: 0.9, halfL: 2.3, circleR: 0.9, circleOff: 1.4, height: 1.45,
     mass: 1200, maxSpeed: 22, accel: 9, brake: 16, maxReverse: 7,
     steerMax: 0.6, steerRate: 3, steerFall: 9, wheelbase: 2.7, wheelR: 0.3,
@@ -25,7 +33,7 @@ export const VEHICLE_TYPES = {
     chair: { pos: [0, 0.95, -1.55], rot: [-Math.PI / 2 + 0.35, 0, 0], scale: 0.85 }, // poking out of the trunk
   },
   van: {
-    label: 'van', asset: 'assets/van.json',
+    label: 'van', name: 'PANEL VAN', asset: 'assets/van.json',
     halfW: 1.0, halfL: 2.76, circleR: 1.0, circleOff: 1.76, height: 2.15,
     mass: 2200, maxSpeed: 16, accel: 6, brake: 11, maxReverse: 5,
     steerMax: 0.5, steerRate: 2.4, steerFall: 8, wheelbase: 3.5, wheelR: 0.34,
@@ -34,7 +42,7 @@ export const VEHICLE_TYPES = {
     chair: { pos: [-0.45, 0.62, 1.05], rot: [0, Math.PI, 0], scale: 0.85 },           // passenger seat, behind the glass
   },
   cart: {
-    label: 'cart', asset: 'assets/cart.json',
+    label: 'cart', name: 'PARKS CART', asset: 'assets/cart.json',
     halfW: 0.6, halfL: 1.22, circleR: 0.6, circleOff: 0.62, height: 1.9,
     mass: 450, maxSpeed: 13, accel: 11, brake: 14, maxReverse: 5,
     steerMax: 0.7, steerRate: 4, steerFall: 7, wheelbase: 1.64, wheelR: 0.22,
@@ -43,7 +51,7 @@ export const VEHICLE_TYPES = {
     chair: { pos: [0, 0.86, -0.97], rot: [0, Math.PI, 0], scale: 0.85 },              // rear rack, upright
   },
   copcar: {
-    label: 'cop car', asset: 'assets/copcar.json',
+    label: 'cop car', name: 'RANGER CRUISER', asset: 'assets/copcar.json',
     halfW: 0.9, halfL: 2.35, circleR: 0.9, circleOff: 1.45, height: 1.57,
     mass: 1300, maxSpeed: 26, accel: 11, brake: 18, maxReverse: 8,
     steerMax: 0.6, steerRate: 3.2, steerFall: 10, wheelbase: 2.7, wheelR: 0.3,
@@ -52,7 +60,7 @@ export const VEHICLE_TYPES = {
     chair: { pos: [0, 0.95, -1.55], rot: [-Math.PI / 2 + 0.35, 0, 0], scale: 0.85 },
   },
   swatvan: {
-    label: 'SWAT van', asset: 'assets/swatvan.json',
+    label: 'SWAT van', name: 'TACTICAL VAN', asset: 'assets/swatvan.json',
     halfW: 1.01, halfL: 2.9, circleR: 1.01, circleOff: 1.9, height: 2.5,
     mass: 3000, maxSpeed: 18, accel: 6.5, brake: 11, maxReverse: 5,
     steerMax: 0.5, steerRate: 2.4, steerFall: 8, wheelbase: 3.5, wheelR: 0.36,

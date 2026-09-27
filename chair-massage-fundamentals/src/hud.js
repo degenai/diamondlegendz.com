@@ -16,7 +16,7 @@ export {
 } from './hud-massage.js';
 export {
   showRunHud, setWanted, setHealth, setCash, flashChaos, floater, updateFloaters, setMini, activeFloaters,
-  setBattery, setHeatLine, showStamp, hideStamp, stampText,
+  setBattery, setHeatLine, showStamp, hideStamp, stampText, showVehicleName, updateVehicleName, hideVehicleName,
 } from './hud-run.js';
 
 let root = null;

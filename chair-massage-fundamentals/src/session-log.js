@@ -100,7 +100,7 @@ export function hudText(st) {
     return { prompt: txt('.cm-prompt'), coach: txt('.cm-coach'), sub: txt('.cm-sub'), card: txt('.cm-card'), cue: txt('.cm-call'), wants: txt('.cm-wants') };
   }
   if (st === 'TITLE') return { title: txt('#title') ? 'title screen' : '' };
-  return { hint: txt('.hud-hint'), onb: txt('.rh-onboard'), veh: txt('.hud-vehicle'), strip: txt('.hud-chair'), heat: txt('.rh-heat'), stamp: txt('.rh-stamp'), mini: txt('.rh-mini-call') };
+  return { hint: txt('.hud-hint'), onb: txt('.rh-onboard'), veh: txt('.hud-vehicle'), strip: txt('.hud-chair'), heat: txt('.rh-heat'), stamp: txt('.rh-stamp'), mini: txt('.rh-mini-call'), vname: txt('.rh-vehname') };
 }
 
 function heldText(inp) {

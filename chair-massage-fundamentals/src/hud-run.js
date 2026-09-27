@@ -14,6 +14,11 @@ let wrap = null, stars = [], hpFill = null, cashEl = null, flashEl = null, miniE
 let batWrap = null, batFill = null, heatEl = null, stampEl = null, stamBar = null, stamFill = null;
 let chargeEl = null, chargeRing = null;
 let onbEl = null; const onb = { on: false, x: 0, y: 0, z: 0, text: '' };
+// The vehicle name card (GTA3 manner, bottom right; ui.css .rh-vehname): in 0.3 s, held 2.5 s, out
+// 0.8 s. The CSS animation draws the fade; the sim clock (ctx.time) decides when it is gone, so the
+// session log's HUD read stays deterministic.
+const VNAME_LIFE = 3.6;
+let vnameEl = null, vnameAt = -1;
 const MINI_NOTE = 'Hold E  |  answer the client';
 // The cue per call (the key, then the word), as the course's (hud-massage.js). No left / right here.
 const MINI_CUE = { lighter: ['S', 'lighter'], harder: ['W', 'hold: harder'], still: ['', 'hold still: no W / S'] };
@@ -78,6 +83,8 @@ export function initRunHud(root) {
   // The first run's grab-window prompt (goon-waves.js), a big floater pinned above the player.
   onbEl = el('div', 'rh-float rh-onboard', root);
   onbEl.hidden = true;
+  vnameEl = el('div', 'rh-vehname', root);
+  vnameEl.hidden = true;
   for (let i = 0; i < POOL; i++) {
     const n = el('div', 'rh-float', root);
     n.hidden = true;
@@ -94,7 +101,25 @@ export function showRunHud(visible) {
     if (chargeEl) chargeEl.hidden = true;
     last.charge = 'off';
     setOnboard(null);
+    hideVehicleName();
   }
+}
+
+// On entering a vehicle: the model name (vehicle-types.js vehicleName). A new entry restarts it.
+export function showVehicleName(name, time) {
+  if (!vnameEl || !name) return;
+  vnameEl.textContent = name;
+  vnameEl.hidden = false;
+  vnameAt = time;
+  vnameEl.classList.remove('go'); void vnameEl.offsetWidth; vnameEl.classList.add('go');
+}
+// Per RUN tick: gone once its 3.6 s are up (or the clock went back, a new run).
+export function updateVehicleName(time) {
+  if (vnameEl && !vnameEl.hidden && (time - vnameAt >= VNAME_LIFE || time < vnameAt)) hideVehicleName();
+}
+export function hideVehicleName() {
+  if (!vnameEl) return;
+  vnameEl.hidden = true; vnameEl.classList.remove('go'); vnameAt = -1;
 }
 
 export function setWanted(level, rising) {
