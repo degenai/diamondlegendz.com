@@ -7,6 +7,13 @@
 // Serenity livery: the franchise van's black (world/cars.js paints the van with the same value), also
 // the goon cars' sedans (run/goon-car.js): recolourBody swaps the asset's Paint for it.
 export const SERENITY_BLACK = 0x111214;
+// Surface multipliers (world/surface.js; DESIGN.md "Driving, three stages", stage 1): accel scales
+// the drive, top the top speed, grip the lateral bleed (handbrake or not). Reverse and brakes as is.
+export const SURFACES = {
+  asphalt: { accel: 1, top: 1, grip: 1 },
+  pavers: { accel: 0.85, top: 1, grip: 0.9 },
+  grass: { accel: 0.55, top: 0.7, grip: 0.55 },
+};
 export const VEHICLE_TYPES = {
   sedan: {
     label: 'sedan', asset: 'assets/sedan.json',
