@@ -9,7 +9,7 @@ From Alex's working Hermes setup, 2026-09-26. Everything here is what he actuall
 - `skills/`: the ones he reaches for.
   - `project-workflows/eva-pattern`: the EVA pattern. One piloted chat writes the design doc and phase briefs; a strong model builds one phase at a time; a cheap model nitpicks between; the pilot gates with questions to you. Includes the process-hygiene rules learned the hard way (kill only recorded PIDs, one builder at a time, no console pop-ups).
   - `software-development/nitpick-relay`: sequential cheap-model review passes, one tiny falsifiable scope each, findings verified before fixes.
-  - `research/llm-wiki` and `note-taking/wiki-logging`: the personal wiki method (Karpathy-style, with a log instead of an index) and how the agent writes to it.
+  - `research/llm-wiki`: the personal wiki method (Karpathy-style, with a log instead of an index).
   - `graphify`: turn any folder into a knowledge graph you can query.
   - `evidence-first-code-review` and `cross-system-adversarial-audit`: review doctrines that demand receipts.
 
