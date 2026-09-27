@@ -27,8 +27,8 @@ Subfolders inside those are fine. A `.cue` with its `.bin` tracks, an `.m3u` ove
 - Your settings and the library list live in the app's data folder
   (`%APPDATA%\rom-loader\` on Windows): `config.json` (safe to edit by hand) and `library.json`.
 - If the drive is unplugged, games that are only on the drive go grey; installed games still play.
-- Uninstall sends the laptop copy to the Recycle Bin by default. Empty the bin to get the space back,
-  or untick that box in Settings to delete straight away.
+- Uninstall asks once ("Remove Okami (3.0 GB) from the laptop?"), then deletes the laptop copy
+  straight away so the space comes back. To have it go to the Recycle Bin instead, tick that box in Settings.
 - The argument box next to each emulator uses `{rom}` for the game file. The defaults are
   `-batch "{rom}"` for PCSX2 and DuckStation and `-b -e "{rom}"` for Dolphin; RetroArch wants
   something like `-L "C:\path\to\core.dll" "{rom}"`.

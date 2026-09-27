@@ -9,6 +9,7 @@ const { MANIFEST_FILE } = require('../lib/manifest');
 const { notEnoughSpace, deleteLocal } = require('../lib/copy');
 
 const PLENTY = async () => 1e12;
+const YES = async () => true;
 
 async function setup(opts = {}) {
   const fx = makeFixture();
@@ -77,7 +78,7 @@ test('uninstall removes only the local files and prunes empty folders; drive unt
     const crash = find('Crash Bandicoot');
     await lib.install(crash.id);
     const driveBefore = listTree(fx.drive);
-    await lib.uninstall(crash.id);
+    await lib.uninstall(crash.id, { confirm: YES });
     assert.deepEqual(listTree(fx.drive), driveBefore);
     for (const rel of crash.files) assert.equal(fs.existsSync(path.join(fx.local, rel)), false, rel);
     assert.equal(fs.existsSync(path.join(fx.local, 'PS1')), false, 'empty folders pruned');
@@ -93,7 +94,7 @@ test('uninstall uses the Recycle Bin hook when turned on', async () => {
   const { fx, lib, find } = await setup({ trash: async f => { trashed.push(f); fs.rmSync(f); } });
   try {
     lib.setConfig({ uninstallToRecycleBin: true });
-    await lib.uninstall(find('Metroid Fusion').id);
+    await lib.uninstall(find('Metroid Fusion').id, { confirm: YES });
     assert.deepEqual(trashed, [path.join(fx.local, 'GBA/Metroid Fusion (USA).gba')]);
     assert.ok(fs.existsSync(path.join(fx.drive, 'GBA/Metroid Fusion (USA).gba')));
   } finally { fx.cleanup(); }
@@ -102,7 +103,7 @@ test('uninstall uses the Recycle Bin hook when turned on', async () => {
 test('uninstall refuses a game that is only on the laptop; deletes refuse paths outside the local folder', async () => {
   const { fx, lib, find } = await setup();
   try {
-    await assert.rejects(lib.uninstall(find('Super Metroid').id), /only copy/);
+    await assert.rejects(lib.uninstall(find('Super Metroid').id, { confirm: YES }), /only copy/);
     assert.ok(fs.existsSync(path.join(fx.local, 'SNES/Super Metroid (USA).sfc')));
     const onDrive = path.join(fx.drive, 'GBA/Metroid Fusion (USA).gba');
     await assert.rejects(deleteLocal(fx.local, [onDrive]), /refusing to delete outside/);
@@ -183,4 +184,27 @@ test('buildArgs: quotes group, {rom} substituted, appended when missing', () => 
   assert.deepEqual(buildArgs('-b -e "{rom}"', 'C:/g/a b.iso'), ['-b', '-e', 'C:/g/a b.iso']);
   assert.deepEqual(buildArgs('--fullscreen', 'x.gba'), ['--fullscreen', 'x.gba']);
   assert.deepEqual(buildArgs('', 'x.gba'), ['x.gba']);
+});
+
+test('uninstall needs a confirmation: none refuses, "no" keeps the files, "yes" deletes; default is a real delete', async () => {
+  const trashed = [];
+  const { fx, lib, find } = await setup({ trash: async f => { trashed.push(f); fs.rmSync(f); } });
+  try {
+    const { defaultConfig } = require('../lib/config');
+    assert.equal(defaultConfig().uninstallToRecycleBin, false);
+    const gba = find('Metroid Fusion');
+    const file = path.join(fx.local, 'GBA/Metroid Fusion (USA).gba');
+    await assert.rejects(lib.uninstall(gba.id), /needs a confirmation/);
+    assert.ok(fs.existsSync(file));
+    let asked = null;
+    assert.equal(await lib.uninstall(gba.id, { confirm: async g => { asked = g; return false; } }), null);
+    assert.equal(asked.cleanTitle, 'Metroid Fusion');
+    assert.equal(asked.size, 8000);
+    assert.ok(fs.existsSync(file));
+    assert.equal(find('Metroid Fusion').state, 'both');
+    const g = await lib.uninstall(gba.id, { confirm: YES });
+    assert.equal(g.state, 'drive');
+    assert.equal(fs.existsSync(file), false);
+    assert.deepEqual(trashed, [], 'deleted directly, not via the Recycle Bin');
+  } finally { fx.cleanup(); }
 });

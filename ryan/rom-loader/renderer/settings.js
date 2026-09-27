@@ -42,7 +42,7 @@
     $('set-drive').value = cfg.driveRoot || '';
     $('set-local').value = cfg.localRoot || '';
     $('set-play-drive').checked = !!cfg.playFromDrive;
-    $('set-recycle').checked = cfg.uninstallToRecycleBin !== false;
+    $('set-recycle').checked = cfg.uninstallToRecycleBin === true;
     $('emu-list').replaceChildren(...cfg.systems.map(emuRow));
     $('settings-msg').textContent = '';
     $('settings').hidden = false;

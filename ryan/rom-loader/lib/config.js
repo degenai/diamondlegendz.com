@@ -10,7 +10,7 @@ function defaultConfig() {
     driveRoot: '',          // the external drive (source); never written to
     localRoot: '',          // the laptop folder where installed games live
     playFromDrive: false,   // allow Play on games that are only on the drive
-    uninstallToRecycleBin: true, // true: uninstall sends the local copy to the Recycle Bin (space frees when emptied)
+    uninstallToRecycleBin: false, // false: uninstall deletes the local copy now (frees the space); true: Recycle Bin
     systems: defaultSystems(),
   };
 }

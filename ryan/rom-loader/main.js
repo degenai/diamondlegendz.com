@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const { Library } = require('./lib/library');
+const { formatBytes } = require('./lib/copy');
 
 let win = null;
 let lib = null;
@@ -28,6 +29,18 @@ function withArt(manifest) {
 
 function gameOut(g) { return withArt({ games: [g] }).games[0]; }
 
+// The one-line confirm, asked by the main process so no page code can skip it.
+async function askUninstall(g) {
+  const bin = lib.getConfig().uninstallToRecycleBin;
+  const r = await dialog.showMessageBox(win, {
+    type: 'question', buttons: ['Uninstall', 'Cancel'], defaultId: 1, cancelId: 1, noLink: true,
+    title: 'Uninstall',
+    message: `Remove ${g.cleanTitle} (${formatBytes(g.size)}) from the laptop? The drive copy stays.`,
+    detail: bin ? 'It goes to the Recycle Bin.' : '',
+  });
+  return r.response === 0;
+}
+
 function registerIpc() {
   handle('config:get', () => lib.getConfig());
   handle('config:set', (_e, patch) => lib.setConfig(patch));
@@ -43,7 +56,10 @@ function registerIpc() {
     });
     return gameOut(g);
   });
-  handle('game:uninstall', async (_e, id) => gameOut(await lib.uninstall(id)));
+  handle('game:uninstall', async (_e, id) => {
+    const g = await lib.uninstall(id, { confirm: askUninstall });
+    return g ? gameOut(g) : null; // null: the user said no
+  });
   handle('game:play', (_e, id) => lib.play(id));
   handle('game:openFolder', async (_e, id) => {
     const dir = lib.folderOf(id);

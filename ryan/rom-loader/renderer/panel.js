@@ -95,9 +95,8 @@
     run('install', id, () => window.api.install(id));
   });
   $('act-uninstall').addEventListener('click', () => {
-    const g = RL.game(state.selectedId);
-    if (!confirm(`Remove "${g.cleanTitle}" from the laptop?\n\nThe copy on the drive stays. You can install it again any time.`)) return;
-    run('uninstall', g.id, () => window.api.uninstall(g.id));
+    const id = state.selectedId; // the main process asks for confirmation
+    run('uninstall', id, () => window.api.uninstall(id));
   });
   $('act-play').addEventListener('click', async () => {
     const id = state.selectedId;

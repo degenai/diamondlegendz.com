@@ -97,12 +97,16 @@ class Library {
     return g;
   }
 
-  async uninstall(id) {
+  // confirm(game) must resolve true before anything is deleted; main.js asks with a native dialog.
+  // Returns the updated game, or null when the user said no.
+  async uninstall(id, { confirm } = {}) {
     this.checkRoots();
     const g = this.game(id);
     if (!g.onLocal) throw new Error('This game is not installed.');
     if (!g.onDrive) throw new Error("This game isn't on the drive, so uninstalling would delete your only copy. Copy it to the drive first.");
     if (this.busy.has(id)) throw new Error('This game is being copied right now. Wait for it to finish.');
+    if (typeof confirm !== 'function') throw new Error('Uninstall needs a confirmation first.');
+    if (!(await confirm(g))) return null;
     await copy.deleteLocal(this.cfg.localRoot, g.files.map(rel => path.join(this.cfg.localRoot, rel)),
       { trash: this.cfg.uninstallToRecycleBin ? this.trash : null });
     g.onLocal = false;
