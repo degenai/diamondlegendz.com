@@ -54,8 +54,9 @@ export function createSfx(ctx, { bus, direct, noise, listener }) {
     }
     const rpmIn = o.rpm ?? 0;
     const rpm = rpmIn <= 1 ? 800 + rpmIn * 5200 : rpmIn; // accepts 0..1 or real RPM
-    const load = Math.min(1, Math.max(0, o.load ?? 0.3));
-    const f = (rpm / 30) * (TYPE_PITCH[o.type || e.type] ?? 1); // 4-cylinder firing rate
+    const grass = o.surface === 'grass';               // bogged down: a lower note, working harder
+    const load = Math.min(1, Math.max(0, (o.load ?? 0.3) + (grass ? 0.2 : 0)));
+    const f = (rpm / 30) * (TYPE_PITCH[o.type || e.type] ?? 1) * (grass ? 0.92 : 1); // 4-cylinder firing rate
     e.saw.frequency.setTargetAtTime(f, now, 0.05);
     e.sub.frequency.setTargetAtTime(f / 2, now, 0.05);
     e.lp.frequency.setTargetAtTime(250 + load * 1400 + f * 3, now, 0.05);
