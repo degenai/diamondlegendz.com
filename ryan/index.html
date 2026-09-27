@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hermes starter pack for Ryan</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --ink:#1b2c4d; --gold:#c49a48; --bg:#f6f3ec; --card:#fff; --muted:#5a6478; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.55 Georgia, "Times New Roman", serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 2rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; font-family: Arial, sans-serif; font-size: 15px; }
+  .card { background:var(--card); border-left: 4px solid var(--gold); padding: 16px 18px; margin: 14px 0; border-radius: 6px; }
+  h2 { font-size: 1.15rem; margin: 0 0 8px; }
+  code { font: 14px/1.4 Consolas, monospace; background:#eee9dc; padding: 1px 5px; border-radius: 3px; }
+  pre { font: 14px/1.45 Consolas, monospace; background:#1b2c4d; color:#f6f3ec; padding: 12px 14px; border-radius: 6px; overflow:auto; }
+  a { color: var(--ink); }
+  .btn { display:inline-block; background:var(--ink); color:#fff; text-decoration:none; padding: 12px 18px; border-radius: 8px; font-family: Arial, sans-serif; font-weight: bold; margin: 8px 8px 8px 0; }
+  ol li, ul li { margin: 6px 0; }
+  .small { color: var(--muted); font-family: Arial, sans-serif; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Hermes starter pack for Ryan</h1>
+  <p class="sub">From Alex's working setup, September 2026. The skills he actually reaches for, his persona file with your name on it, and his config with every secret blanked.</p>
+
+  <a class="btn" href="hermes-starter-for-ryan.zip">Download the pack (zip)</a>
+  <a class="btn" href="pack/README.md" style="background:#3c6a4d">Read the README</a>
+
+  <div class="card">
+    <h2>The one idea</h2>
+    <p>The agents are disposable; you are not. Keep the intent and the judgment in one seat, rent compute in short bursts, and make the machine ask before it acts. The persona file carries a rule called SYNC RATE: in any multi-step job the agent stops at every fork and asks you three or four multiple-choice questions, recommended option first, before it launches the next worker. Alex's line: "what's primarily important is our sync rate."</p>
+  </div>
+
+  <div class="card">
+    <h2>What's inside</h2>
+    <ul>
+      <li><code>SOUL.md</code>: how the agent should be. One pilot, disposable agents, propose before you mutate, evidence first, the sync-rate rule, secrets stay secret.</li>
+      <li><code>config.yaml</code>: Alex's config as a template. Providers, fallbacks, cron and gateway wiring visible; keys, tokens, ids and paths blanked. Take pieces, don't overwrite yours.</li>
+      <li><code>skills/project-workflows/eva-pattern</code>: the build relay. One piloted chat designs and gates, a strong model builds one phase at a time, a cheap model nitpicks between, questions to you at every gate. Includes the process-hygiene rules learned the hard way.</li>
+      <li><code>skills/software-development/nitpick-relay</code>: sequential cheap-model review, one tiny falsifiable scope per pass, findings verified before fixes.</li>
+      <li><code>skills/research/llm-wiki</code> and <code>skills/note-taking/wiki-logging</code>: the personal wiki method and how the agent writes to it.</li>
+      <li><code>skills/graphify</code>: any folder into a knowledge graph you can query.</li>
+      <li><code>skills/evidence-first-code-review</code> and <code>skills/cross-system-adversarial-audit</code>: review doctrines that demand receipts.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Install</h2>
+    <ol>
+      <li>Find your Hermes data folder. Windows: <code>%LOCALAPPDATA%\hermes</code>, which is <code>C:\Users\&lt;you&gt;\AppData\Local\hermes</code>.</li>
+      <li>Back up your <code>SOUL.md</code>, then copy the pack's over it. Change the name on the first line if you like.</li>
+      <li>Copy each folder under <code>skills\</code> into <code>hermes\skills\</code> at the same path, for example <code>hermes\skills\project-workflows\eva-pattern</code>. Restart Hermes.</li>
+      <li>Open the pack's <code>config.yaml</code> beside yours and take what you want. Keys come from Hermes' own login flow, never from a file someone sent you.</li>
+      <li>First job: say "run it like the EVA pattern" and answer the questions it asks.</li>
+    </ol>
+  </div>
+
+  <p class="small">This page isn't linked from anywhere else and asks search engines to skip it. It's for Ryan. If you're Ryan and something in here doesn't make sense, ask Alex; he'll enjoy it.</p>
+</main>
+</body>
+</html>
