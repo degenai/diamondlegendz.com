@@ -67,7 +67,7 @@ export function runText(s) {
   const where = p.veh ? `Driving the ${p.veh} (${p.vhp} hp${p.vhp <= 0 ? ': WRECKED, it only coasts; get out' : ''}), ${Math.round(p.spd)} m/s` : p.mass ? 'Giving a mini-massage (holding E)' : `On foot, ${p.spd > 0.5 ? `moving ${Math.round(p.spd)} m/s` : 'standing'}`;
   L.push(`RUN. ${where}. HP ${p.hp}, stamina ${Math.round(p.sta * 100)}%${p.kn > 0 ? `, KNOCKED DOWN for ${p.kn} s` : ''}${p.chg ? ', charging a palm' : p.busy ? `, mid-${p.busy} (no counter until it ends)` : ''}. Cash $${s.cash}.`);
   const alarms = [];
-  if (w.arrestT > 0) alarms.push(`A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): move now`);
+  if (w.arrestT > 0) alarms.push(p.busy === 'fold' ? `A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): the touch is paused while you finish this chair action, then move` : `A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): move now`);
   if (s.counter && p.busy) alarms.push(`GOON WIND-UP ON YOU (${s.counter.map((d) => `goon g${d.id} ${d.kind}`).join('; ')}) and you are mid-${p.busy}: no counter possible, it will land`);
   else if (s.counter) alarms.push(`GOON WIND-UP ON YOU (${s.counter.map((d) => `goon g${d.id} ${d.kind}, ${d.left} s left`).join('; ')}): counter (tap Q: he goes down 3 s; hold Q through his swing: HEALING PALM, he is treated)`);
   for (const n of s.near || []) if (n[4] === 'windup' && n[5].includes('pull')) alarms.push(`goon ${n[0]} is about to PULL YOU OUT of the car: drive off`);
@@ -111,7 +111,7 @@ export function runMenu(s, o) {
   if (p.it === 'setdown') o.set_chair_down = 'Press E: set the chair down here and open for a client (a mini-massage drops a star).';
   if (p.it === 'load') Object.assign(o, { load_chair: 'Tap E: load the chair into the vehicle beside you.', set_chair_down: 'Hold E through the fold (0.7 s): set the chair down here beside the car instead, and open for a client.' });
   if (p.it === 'pickup' || p.it === 'take') o.pick_up_chair = 'Press E: pick up the chair.';
-  if (p.it === 'enter') o.enter_car = `Press E: get into the ${p.itt} ${p.itv} beside you${p.ithp !== null && p.ithp <= 0 ? ' (WRECKED: it will not drive)' : ''}${p.chair === 'vehicle' && p.itv !== p.cin ? ` (NOT the ${p.cin} holding the chair)` : ''}.`;
+  if (p.it === 'enter') o.enter_car = `Press E: get into the ${p.itt} ${p.itv} beside you${p.itown ? ' (the pivot cart: yours, no star)' : ' (a theft: +1 star)'}${p.ithp !== null && p.ithp <= 0 ? ' (WRECKED: it will not drive)' : ''}${p.chair === 'vehicle' && p.itv !== p.cin ? ` (NOT the ${p.cin} holding the chair)` : ''}.`;
   if (p.it === 'carjack') o.carjack = 'Press E: pull the driver out and take the car (+1 star).';
   if (p.it === 'repair') o.repair_vehicle = 'Press E: repair your vehicle at this food cart ($20).';
   if (p.chair !== 'player' && s.tgt && s.tgt.chair && (s.tgt.chair[1] !== null || (p.chair === 'vehicle' && p.it !== 'take'))) o.go_to_chair = 'Run to the chair (code steers, 1.5 s).';

@@ -146,7 +146,7 @@ function nearList(p, h, fx, fz) {
 }
 
 // What E does right now and on which vehicle (enter, load, carjack, repair act on one).
-function itOf(p) { const it = interaction(p, ctx); return { it: it.act, itv: it.v ? `v${it.v.id}` : null, itt: it.v ? it.v.type : null, ithp: it.v ? Math.round(it.v.hp ?? 100) : null }; }
+function itOf(p) { const it = interaction(p, ctx); return { it: it.act, itv: it.v ? `v${it.v.id}` : null, itt: it.v ? it.v.type : null, ithp: it.v ? Math.round(it.v.hp ?? 100) : null, itown: !!(it.v && it.v.pivotCart) }; }
 
 // The cop holding the star (wanted.js w.watcher: the nearest within 40 m with line of sight; a
 // cruiser still driving in goes by its unit, e.g. 'cop car'): [id, dist, bearing].
