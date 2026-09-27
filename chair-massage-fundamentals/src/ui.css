@@ -124,3 +124,13 @@ body.massage .hud-mute { color: rgba(59,51,38,.55); text-shadow: none; }
 .rh-mini-call.rh-counter { font: bold 24px/1.2 system-ui, sans-serif; padding: 6px 12px 8px; min-width: 150px; white-space: nowrap; }
 .rh-mini-call.rh-counter kbd { font: bold 24px/1.1 var(--mono, monospace); padding: 2px 12px; border-bottom-width: 4px; margin-right: 10px; }
 .rh-mini-call.rh-counter .rh-mini-callbar { height: 6px; margin-top: 6px; }
+
+/* The vehicle name card (hud-run.js showVehicleName; DESIGN.md "Driving, three stages"): GTA3 manner,
+   bottom right, big condensed capitals in pale gold, a soft dark shadow. In 0.3 s, held 2.5 s, out
+   0.8 s (3.6 s); the sim clock hides the element when it is done. */
+.rh-vehname { position: fixed; right: 36px; bottom: 34px; z-index: 3; pointer-events: none; white-space: nowrap;
+  font: 700 46px/1 "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", Impact, sans-serif; font-stretch: condensed;
+  text-transform: uppercase; letter-spacing: .03em; color: #e8c878; opacity: 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,.7), 0 0 10px rgba(0,0,0,.45), 1px 1px 0 rgba(0,0,0,.55); }
+.rh-vehname.go { animation: rh-vehname 3.6s linear both; }
+@keyframes rh-vehname { 0% { opacity: 0; } 8.333% { opacity: 1; } 77.778% { opacity: 1; } 100% { opacity: 0; } }

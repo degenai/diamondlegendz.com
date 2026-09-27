@@ -475,6 +475,51 @@ vehicle). Escape is a win; the chair is the run's real objective. The HUD says i
 pivot fires: "Don't leave the chair." Leaving the block without it is a loss (the ESCAPE state with a
 "You left the chair" card and no unlock).
 
+## Driving, three stages (ruled 2026-09-27)
+
+Alex, after playing 27.2: "We're gonna need better driving mechanics. This is a three-stage thing. We need
+terrain differences: you can accelerate more on asphalt than on grass. We need some sort of metered,
+geared acceleration instead of one flat clean acceleration with no gears. And we need to review our maps
+and see if we can make them more interesting for drivers." Plus: "Plug a skate park in it with half pipes
+and a Sonic loop", and "a skate park should be a certain plaza type." Rulings: three builds in order,
+Alex plays after each.
+
+**Stage 1, surfaces.** Three surfaces, read from what is already drawn (the street graph's asphalt, the
+block centres' decks: pavers/sand paths, grass), no new art. Asphalt: full acceleration, grip and top
+speed. Pavers, sidewalks and sand paths: 85% acceleration, a little less grip. Grass and dirt: 55%
+acceleration, 70% top speed, the tail slides (lower grip), a dust puff at speed. The surface under each
+vehicle is sampled at its centre every tick (a cheap lookup: on the street graph within half a lane =
+asphalt; inside a block centre's paved/sand footprint = pavers; inside the centre's grass = grass;
+anywhere else = pavers). AI drivers feel it too (the van and cop cars slow on grass), which makes the
+plaza a real escape valve and the park the cart's home ground. HUD: nothing new; the watcher `snap`
+gets `surface`. Sound: the engine note drops on grass.
+
+**Also in stage 1, the name card.** Alex: "The name of the vehicle you're in should be displayed as well,
+Grand Theft Auto style." On entering any vehicle (enter, carjack, the pivot cart, the run's starting seat)
+the vehicle's model name fades in at the bottom right in the GTA3 manner: big condensed capitals, a soft
+dark shadow, in over 0.3 s, held 2.5 s, out over 0.8 s, once per entry. Model names live on the type as
+`name`, beside the plain `label` the events and the status line keep: sedan COMMUTER, van SERENITY VAN (the
+franchise van) or PANEL VAN (a goon car is still a sedan: COMMUTER), cart PARKS CART, cop car RANGER
+CRUISER, SWAT van TACTICAL VAN. Names are a list Alex can rename in one place. The watcher's HUD read
+gets `vname`.
+
+**Stage 2, gears.** Automatic, four gears, audible shifts, no new keys. Acceleration becomes a torque
+curve per gear: a hard pull off the line in first, a dip at each upshift (0.25 s of no drive), the engine
+note climbing through each gear and dropping at the shift. Shift points by speed per vehicle type: the
+sedan and cop car four gears, the van three, the cart two (a golf-cart whine), the SWAT van three. Top
+speed is reached only in top gear on asphalt; grass keeps you a gear down. Downshifts on braking. The
+handbrake launch is not in (ruled: plain automatic). Watcher: `gear` on the snapshot.
+
+**Stage 3, the map.** (a) A ring road with one long straight: the outer road gets a straight long enough
+to reach top gear, and the escape leg runs along it. (b) A park block: one block's centre becomes a park,
+grass with a sand path loop, benches to clip, the cart's ground. (c) Ramps and a jump: a loading dock or
+a parking-garage ramp you can launch off; the chair leaves the cart on a hard landing (the existing
+throw rule). (d) **A skate park centre type** ("half pipes and a Sonic loop"): a new block-centre kind
+beside 'green' and 'square' in centres.js, paved, with two half-pipes (curved ramps you can ride up and
+drop back from; too slow and you roll back), a bowl, and a loop-the-loop that needs top gear on asphalt
+to complete (stall at the top and you fall out, the chair goes flying). Skaters as a ped variant are a
+later touch. Landmark strip names it. Alley shortcuts were not chosen.
+
 ## Version one decisions (council sitting, 2026-09-23)
 
 - **Wanted cap for v1 is 3 stars** (ranger, parks cart, cop cars). Levels 4 and 5 (roadblocks, SWAT

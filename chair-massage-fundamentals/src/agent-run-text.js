@@ -64,7 +64,7 @@ function miniWords(M, p) {
 export function runText(s) {
   const p = s.p, w = s.w, t = s.tgt || {}, L = [];
   if (!p) return [`${s.st}.`];
-  const where = p.veh ? `Driving the ${p.veh} (${p.vhp} hp${p.vhp <= 0 ? ': WRECKED, it only coasts; get out' : ''}), ${Math.round(p.spd)} m/s` : p.mass ? 'Giving a mini-massage (holding E)' : `On foot, ${p.spd > 0.5 ? `moving ${Math.round(p.spd)} m/s` : 'standing'}`;
+  const where = p.veh ? `Driving the ${p.veh}${p.surf === 'grass' || p.surf === 'pavers' ? ` on ${p.surf}` : ''} (${p.vhp} hp${p.vhp <= 0 ? ': WRECKED, it only coasts; get out' : ''}), ${Math.round(p.spd)} m/s` : p.mass ? 'Giving a mini-massage (holding E)' : `On foot, ${p.spd > 0.5 ? `moving ${Math.round(p.spd)} m/s` : 'standing'}`;
   L.push(`RUN. ${where}. HP ${p.hp}, stamina ${Math.round(p.sta * 100)}%${p.kn > 0 ? `, KNOCKED DOWN for ${p.kn} s` : ''}${p.chg ? ', charging a palm' : p.busy ? `, mid-${p.busy} (no counter until it ends)` : ''}. Cash $${s.cash}.`);
   const alarms = [];
   if (w.arrestT > 0) alarms.push(p.busy === 'fold' ? `A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): the touch is paused while you finish this chair action, then move` : `A COP IS ARRESTING YOU (${w.arrestT} of 1.5 s): move now`);

@@ -3,7 +3,9 @@
 // bleeds off with grip each tick (handbrake drops grip so the tail slides). The mesh leans in
 // turns and under braking (cosmetic, the collider never rotates off the ground plane).
 import * as THREE from '../../vendor/three.module.js';
-import { VEHICLE_TYPES } from './vehicle-types.js';
+import { VEHICLE_TYPES, SURFACES } from './vehicle-types.js';
+import { surfaceAt } from '../world/surface.js';
+import { burst } from '../juice.js';
 import { collideStatic, collideVehicles, collidePlayer, collideNpc, settleHeight } from './vehicle-collide.js';
 import { updateFx } from './vehicle-fx.js';
 import { syncDriverRig } from './seated.js';
@@ -17,6 +19,11 @@ const PARKED_BRAKE = 7;   // driverless vehicles roll to a stop at this rate
 const HB_YAW = 1.5;       // handbrake yaw-rate boost (kicks the tail out)
 const SLEEP_V = 0.05;
 const CULL_R = 120;
+const OVER_TOP = 3;       // m/s^2: past a surface's top speed (grass) the car bleeds down toward it
+const DUST_EVERY = 0.12;  // s between grass dust puffs behind the rear axle
+const DUST_SPEED = 4;     // m/s
+// Grass dust puffs so far (CMF.debug.dustCount, the surfaces proof).
+export const dustStats = { count: 0 };
 
 function wrapAngle(a) {
   while (a > Math.PI) a -= Math.PI * 2;
@@ -99,6 +106,10 @@ export function updateVehicle(v, dt, ctx) {
     v.handbrake = !!ai.handbrake;
   }
   const driven = !!(input || ai);
+  // The ground under the centre (world/surface.js); a sleeping car keeps the last reading.
+  if ((!v.asleep || driven || v.surface === undefined) && ctx.world) v.surface = surfaceAt(ctx.world, v.pos.x, v.pos.z);
+  const G = SURFACES[v.surface] || SURFACES.asphalt;
+  const top = T.maxSpeed * G.top;
   v.throttle = throttle;          // the engine sound's load (audio-wire.js)
   const dead = v.hp <= 0;
 
@@ -113,7 +124,7 @@ export function updateVehicle(v, dt, ctx) {
   } else {
     if (throttle > 0) {
       if (vf < -0.3) vf = approach(vf, 0, T.brake * dt * throttle);
-      else if (!dead) vf += T.accel * throttle * dt * Math.max(0, 1 - Math.pow(Math.max(0, vf) / T.maxSpeed, 3));
+      else if (!dead) vf += T.accel * G.accel * throttle * dt * Math.max(0, 1 - Math.pow(Math.max(0, vf) / top, 3));
     } else if (throttle < 0) {
       if (vf > 0.3) vf = approach(vf, 0, T.brake * dt * -throttle);
       else if (!dead) vf = Math.max(-T.maxReverse, vf + T.accel * 0.6 * throttle * dt);
@@ -122,6 +133,7 @@ export function updateVehicle(v, dt, ctx) {
     }
     if (v.handbrake) vf = approach(vf, 0, T.brake * 0.45 * dt);
     vf -= vf * DRAG * dt;
+    if (vf > top) vf = approach(vf, top, OVER_TOP * dt);   // onto grass at speed: felt within a second
     if (dead) vf = approach(vf, 0, COAST * dt); // a wreck coasts down whatever the pedal says
   }
 
@@ -137,7 +149,7 @@ export function updateVehicle(v, dt, ctx) {
   s = Math.sin(v.yaw); c = Math.cos(v.yaw);
   vf = v.vel.x * s + v.vel.z * c;
   vl = -v.vel.x * c + v.vel.z * s;
-  vl *= Math.exp(-(v.handbrake ? T.hbGrip : T.grip) * dt);
+  vl *= Math.exp(-G.grip * (v.handbrake ? T.hbGrip : T.grip) * dt);
   v.vel.x = s * vf - c * vl;
   v.vel.z = c * vf + s * vl;
   v.speed = vf;
@@ -165,6 +177,17 @@ export function updateVehicle(v, dt, ctx) {
   if (v.driver && v.driver.pos) v.driver.pos.copy(v.pos);
   syncDriverRig(v, ctx);            // AI drivers sit visibly at the wheel (seated.js)
 
+  // Dust off the rear tyres on grass at speed, sprayed back the way it came.
+  if (v.surface === 'grass' && Math.abs(vf) > DUST_SPEED && !v.asleep) {
+    v.dustT = (v.dustT || 0) - dt;
+    if (v.dustT <= 0) {
+      v.dustT = DUST_EVERY;
+      const dir = Math.sign(vf), b = (T.wheelbase || T.halfL) / 2;
+      const rx = v.pos.x - s * b, rz = v.pos.z - c * b;
+      burst(ctx, 'dust', rx, v.pos.y + 0.1, rz, 4, -s * dir * 0.6, -c * dir * 0.6);
+      dustStats.count++;
+    }
+  } else v.dustT = 0;
   animate(v, dt, vf, vf0);
   updateFx(v, dt, ctx);
   // Distance culling: a vehicle is ~7 draw calls; past CULL_R it is fog anyway.
