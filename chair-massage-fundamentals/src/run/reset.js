@@ -4,6 +4,7 @@
 // Police and traffic vehicles are cleared by their own modules first (spawner.clear).
 import { removeEntity } from '../entities/index.js';
 import { clearDriverRig } from '../entities/seated.js';
+import { resetGear } from '../entities/gearbox.js';
 
 function dropSmoke(v) {
   if (!v.smoke) return;
@@ -30,7 +31,7 @@ export function resetVehicles(ctx) {
       continue;
     }
     v.pos.copy(v.home.pos); v.yaw = v.home.yaw;
-    v.vel.set(0, 0, 0); v.vy = 0; v.speed = 0; v.steer = 0; v.yawRate = 0; v.slip = 0; v.throttle = 0;
+    v.vel.set(0, 0, 0); v.vy = 0; v.speed = 0; v.steer = 0; v.yawRate = 0; v.slip = 0; v.throttle = 0; resetGear(v);
     v.hp = 100; v.parked = true; v.asleep = true; v.wreckSeen = false; v.chairLoaded = false;
     v.stolen = false; v.handbrake = false; v.lastImpact = 0; v.wobbleT = 0;
     v._hpSeen = undefined; v._propT = undefined;

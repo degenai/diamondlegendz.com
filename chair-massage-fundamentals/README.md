@@ -70,7 +70,7 @@ From here, Andy is a co-designer.
 
 | What | File |
 |---|---|
-| Car handling (speed, grip, steering, mass, damage) | `src/entities/vehicle-types.js` |
+| Car handling (speed, grip, steering, mass, damage, gears and shift points) | `src/entities/vehicle-types.js` (the gearbox: `src/entities/gearbox.js`) |
 | Wanted level: v1 cap, decay time, chaos rules | `src/run/wanted.js` (`WANTED_CAP`, `DECAY`, `CHAOS_*`) |
 | Police response per star, the ranger's 15 s hang-back | `src/run/police.js` (tiers); `src/run/police-units.js` (`CRUISE`, `BAIL`, `HANG`) |
 | Goons: speed, bat and shove reach, cooldowns, sit time, the 8 s opening grab window | `src/entities/goon.js` (`RUN`, `BAT_*`, `SHOVE_*`, `SIT_TIME`, `GRAB_*`) |

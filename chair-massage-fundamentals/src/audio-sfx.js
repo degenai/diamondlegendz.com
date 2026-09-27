@@ -136,6 +136,11 @@ export function createSfx(ctx, { bus, direct, noise, listener }) {
       tone(t, { type: 'square', f: 660, peak: 0.12 * a, decay: 0.12 });
       tone(t + 0.12, { type: 'square', f: 988, peak: 0.12 * a, decay: 0.25 });
     },
+    shift(t, a) { // a gear change: a short low thunk and a click, ~80 ms (the cart's call is quieter)
+      tone(t, { f: 110, f2: 55, glide: 0.06, peak: 0.35 * a, decay: 0.07 });
+      burst(t + 0.01, { filter: 'lowpass', f: 500, q: 0.8, peak: 0.25 * a, decay: 0.05 });
+      burst(t + 0.03, { f: 3200, q: 6, peak: 0.12 * a, decay: 0.012 });
+    },
     stamp(t, a) { // slow-mo stamp: bypasses the duck so it lands over silence
       tone(t, { f: 95, f2: 32, glide: 0.4, peak: 1.0 * a, decay: 0.6, out: direct });
       burst(t, { filter: 'lowpass', f: 400, q: 0.7, peak: 0.6 * a, decay: 0.2, out: direct });

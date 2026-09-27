@@ -8,6 +8,7 @@ import { loadMesh } from '../assets.js';
 import { makeRng } from '../rng.js';
 import { removeEntity } from '../entities/index.js';
 import { clearDriverRig } from '../entities/seated.js';
+import { resetGear } from '../entities/gearbox.js';
 import { placeVehicle, recolourBody, CAR_COLOURS } from '../world/cars.js';
 import { lanePoints, edgeSpot } from '../world/roads.js';
 import { SIZE } from '../world/layout.js';
@@ -189,7 +190,7 @@ export function updateTraffic(ctx, dt) {
     const s = pickSpot(ctx, AHEAD0, AHEAD1, true);
     if (!s) continue;
     T.log.push({ t: +ctx.time.toFixed(1), id: v.id, from: [Math.round(v.pos.x), Math.round(v.pos.z)], to: [Math.round(s.x), Math.round(s.z)] });
-    v.pos.set(s.x, 0, s.z); v.yaw = s.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0;
+    v.pos.set(s.x, 0, s.z); v.yaw = s.yaw; v.vel.set(0, 0, 0); v.speed = 0; v.steer = 0; v.yawRate = 0; resetGear(v);
     v.hp = 100; v.aiBackT = 0; v.aiStuckT = 0; v.tr.backT = 0;
     v.tr.from = s.a; v.tr.to = s.b; v.tr.next = nextNode(ctx.world.roads, s.a, s.b, T.rng); v.tr.stopT = 0;
     makePoly(v, ctx.world.roads, v.tr);
