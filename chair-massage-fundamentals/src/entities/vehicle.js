@@ -140,7 +140,7 @@ export function updateVehicle(v, dt, ctx) {
       else if (!dead) vf += T.accel * G.accel * throttle * dt * torque(T, v.gear, vf) * Math.max(0, 1 - Math.pow(Math.max(0, vf) / top, 3));
     } else if (throttle < 0) {
       if (vf > 0.3) vf = approach(vf, 0, T.brake * dt * -throttle);
-      else if (!dead) vf = Math.max(-T.maxReverse, vf + T.accel * 0.6 * throttle * dt);
+      else if (!dead) vf = Math.max(-T.maxReverse, vf + T.accel * G.accel * 0.6 * throttle * dt);  // grass slows reverse too
     } else {
       vf = approach(vf, 0, COAST * dt);
     }
@@ -197,7 +197,7 @@ export function updateVehicle(v, dt, ctx) {
     if (v.dustT <= 0) {
       v.dustT = DUST_EVERY;
       const dir = Math.sign(vf), b = (T.wheelbase || T.halfL) / 2;
-      const rx = v.pos.x - s * b, rz = v.pos.z - c * b;
+      const rx = v.pos.x - s * b * dir, rz = v.pos.z - c * b * dir;   // the trailing axle, whichever way it rolls
       burst(ctx, 'dust', rx, v.pos.y + 0.1, rz, 4, -s * dir * 0.6, -c * dir * 0.6);
       dustStats.count++;
     }

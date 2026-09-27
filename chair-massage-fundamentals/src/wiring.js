@@ -8,6 +8,7 @@ import * as massage from './massage/index.js';
 import { wearPerks } from './entities/player-actions.js';
 import { ensureChair, resetChair, chairToBack, chairState } from './entities/chair.js';
 import { exitVehicle } from './entities/interact.js';
+import { dustStats, shiftStats } from './entities/vehicle.js';
 import * as spawner from './run/spawner.js';
 import { armOnboard } from './run/goon-waves.js';
 import { createMini } from './run/minimassage.js';
@@ -50,7 +51,7 @@ onEnter(STATES.PIVOT, () => pivot.start(ctx));
 // Any way out of the cutscene other than the run restores the van's steering and clears the cast.
 onExit(STATES.PIVOT, (next) => { if (next !== STATES.RUN) pivot.reset(); });
 onEnter(STATES.RUN, (prev) => {
-  clearHitStop(); // no hit-stop or shake carried in from a previous state
+  clearHitStop(); dustStats.count = 0; shiftStats.count = 0; // the proof counters read per run // no hit-stop or shake carried in from a previous state
   // The lie is only spent once the player actually reaches the run.
   if (prev === STATES.PIVOT && !ctx.meta.firstPivotSeen) {
     ctx.meta.firstPivotSeen = true;

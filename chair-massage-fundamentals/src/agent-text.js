@@ -26,7 +26,7 @@ function massageText(s, A) {
 export function observeText(s, recent, A) {
   const L = s.st === 'MASSAGE' ? massageText(s, A) : s.st === 'RUN' ? runText(s) : s.st === 'TITLE' ? ['TITLE: the course catalog. Click Begin to start Module 1.'] : s.st === 'PIVOT' ? ['PIVOT: the cutscene is playing. Wait.'] : [`${s.st}: the run is over. Wait.`];
   const h = s.hud || {};
-  const hud = Object.entries(h).filter(([k, v]) => v && k !== 'hint' && k !== 'wants' && k !== 'cue').map(([k, v]) => `${k}: "${v}"`);
+  const hud = Object.entries(h).filter(([k, v]) => v && k !== 'hint' && k !== 'wants' && k !== 'cue' && k !== 'vname').map(([k, v]) => `${k}: "${v}"`);
   if (h.hint) hud.unshift(`hint: "${h.hint.split('  |  ')[0]}"`);
   if (hud.length) L.push(`HUD: ${hud.join('; ')}.`);
   if (recent.length) L.push(`Just now:\n${recent.map((r) => `- ${r}`).join('\n')}`);

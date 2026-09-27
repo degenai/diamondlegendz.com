@@ -201,7 +201,7 @@ function clearLog() {
 function snapLine(s) {
   if (!s) return '-';
   if (s.m) return `${s.st} tick ${s.tick} · client ${s.m.idx + 1}/${s.m.n} ${s.m.comp}% · ${s.m.mod}${s.m.want ? ` (wants ${s.m.want})` : ''}${s.call ? ` · call ${s.call.name}${s.call.open ? ' open' : ''}` : ''}`;
-  if (s.p) return `${s.st} tick ${s.tick} · hp ${s.p.hp} · ${s.p.veh || 'on foot'} · chair ${s.p.chair} · ${s.w.lv}★ · exit ${s.tgt.exit ? `${s.tgt.exit[0]} m` : '-'} · ${s.near.length} near`;
+  if (s.p) return `${s.st} tick ${s.tick} · hp ${s.p.hp} · ${s.p.veh || 'on foot'}${s.p.surf ? ` on ${s.p.surf}` : ''} · chair ${s.p.chair} · ${s.w.lv}★ · exit ${s.tgt.exit ? `${s.tgt.exit[0]} m` : '-'} · ${s.near.length} near`;
   return `${s.st} tick ${s.tick}`;
 }
 function downloadSession() {
