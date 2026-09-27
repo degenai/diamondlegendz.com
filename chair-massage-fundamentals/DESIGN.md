@@ -494,6 +494,15 @@ anywhere else = pavers). AI drivers feel it too (the van and cop cars slow on gr
 plaza a real escape valve and the park the cart's home ground. HUD: nothing new; the watcher `snap`
 gets `surface`. Sound: the engine note drops on grass.
 
+**Also in stage 1, the name card.** Alex: "The name of the vehicle you're in should be displayed as well,
+Grand Theft Auto style." On entering any vehicle (enter, carjack, the pivot cart, the run's starting seat)
+the vehicle's model name fades in at the bottom right in the GTA3 manner: big condensed capitals, a soft
+dark shadow, in over 0.3 s, held 2.5 s, out over 0.8 s, once per entry. Model names live on the type as
+`name`, beside the plain `label` the events and the status line keep: sedan COMMUTER, van SERENITY VAN (the
+franchise van) or PANEL VAN (a goon car is still a sedan: COMMUTER), cart PARKS CART, cop car RANGER
+CRUISER, SWAT van TACTICAL VAN. Names are a list Alex can rename in one place. The watcher's HUD read
+gets `vname`.
+
 **Stage 2, gears.** Automatic, four gears, audible shifts, no new keys. Acceleration becomes a torque
 curve per gear: a hard pull off the line in first, a dip at each upshift (0.25 s of no drive), the engine
 note climbing through each gear and dropping at the shift. Shift points by speed per vehicle type: the
