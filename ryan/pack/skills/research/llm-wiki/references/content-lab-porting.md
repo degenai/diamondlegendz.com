@@ -57,7 +57,7 @@ python queue.py stats
 3. Run AlexPedia lint:
 
 ```bash
-cd /c/Users/alexa/.claude/wiki/scripts && python -m lint.suite
+cd /c/Users/<you>/.claude/wiki/scripts && python -m lint.suite
 ```
 
 4. Fix new obvious wiki-link issues introduced in pointer nodes. Do not turn the whole-wiki backlog into the task unless Alex asks.

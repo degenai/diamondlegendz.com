@@ -38,7 +38,7 @@ Use this skill when the user:
 **Alex's wiki lives at `C:\Users\alexa\.claude\wiki\`** — also a private git repo at `degenai/alexpedia`. This is the canonical location. The `WIKI_PATH` env var and `~/wiki` default do NOT apply here.
 
 On Windows: `C:\Users\alexa\.claude\wiki\`
-Terminal path: `/c/Users/alexa/.claude/wiki/`
+Terminal path: `/c/Users/<you>/.claude/wiki/`
 
 `C:\Users\alexa\Desktop\Personal Wiki` is just a Claude Code workspace directory, NOT the wiki.
 
@@ -373,7 +373,7 @@ When the user asks a question about the wiki's domain:
 
 **For Alex's wiki:** Use the existing lint suite — do NOT reinvent or run agent-based lint.
 ```bash
-cd /c/Users/alexa/.claude/wiki/scripts && python -m lint.suite
+cd /c/Users/<you>/.claude/wiki/scripts && python -m lint.suite
 ```
 Flags: `--only <check>` (unlinked, orphans, broken_links), `--skip <check>`.
 `index_gaps` check was retired with index.md (2026-05-26).
@@ -433,7 +433,7 @@ wiki = "<WIKI_PATH>"
 
 ```bash
 # Alex's wiki
-WIKI="/c/Users/alexa/.claude/wiki"
+WIKI="/c/Users/<you>/.claude/wiki"
 
 # Find pages by content
 search_files "transformer" path="$WIKI/nodes" file_glob="*.md"
